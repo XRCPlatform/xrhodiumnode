@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>BRhodium Bitcoin Features Miner</Description>
+    <AssemblyTitle>BRhodium.Bitcoin.Features.Miner</AssemblyTitle>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>BRhodium.Bitcoin.Features.Miner</AssemblyName>
+    <PackageId>BRhodium.Bitcoin.Features.Miner</PackageId>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <Version>1.1.2-beta</Version>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BRhodium.Bitcoin.Features.Miner\**" />
+    <EmbeddedResource Remove="BRhodium.Bitcoin.Features.Miner\**" />
+    <None Remove="BRhodium.Bitcoin.Features.Miner\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\BRhodium.Bitcoin.Features.MemoryPool\BRhodium.Bitcoin.Features.MemoryPool.csproj" />
+    <ProjectReference Include="..\BRhodium.Bitcoin.Features.RPC\BRhodium.Bitcoin.Features.RPC.csproj" />
+    <ProjectReference Include="..\BRhodium.Bitcoin.Features.Wallet\BRhodium.Bitcoin.Features.Wallet.csproj" />
+    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1705;IDE0008;</NoWarn>
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+
+</Project>

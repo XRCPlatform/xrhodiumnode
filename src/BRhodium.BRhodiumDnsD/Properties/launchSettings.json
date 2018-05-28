@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "BRhodium.BRhodiumDnsD": {
+      "commandName": "Project"
+    },
+    "BRhodium.BRhodiumDnsD Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -dnslistenport=5399 -dnshostname=dns.BRhodiumplatform.com -dnsnameserver=ns1.dns.BRhodiumplatform.com -dnsmailbox=admin@BRhodiumplatform.com"
+    },
+    "BRhodium.BRhodiumDnsD FullNode Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -dnsfullnode -dnslistenport=5399 -dnshostname=dns.BRhodiumplatform.com -dnsnameserver=ns1.dns.BRhodiumplatform.com -dnsmailbox=admin@BRhodiumplatform.com"
+    }
+  }
+}

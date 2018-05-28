@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "BRhodium.BRhodiumD": {
+      "commandName": "Project"
+    },
+    "BRhodium.BRhodiumD Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    },
+    "BRhodium.BRhodiumD Test with RPC": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -server -rpcpassword=password -rpcuser=user"
+    },
+    "BRhodium.BRhodiumD Test Keepalive 60s": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -keepalive=60"
+    }
+  }
+}

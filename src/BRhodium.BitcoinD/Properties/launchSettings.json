@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "BRhodium.BitcoinD": {
+      "commandName": "Project"
+    },
+    "BRhodium.BitcoinD Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    }
+  }
+}
