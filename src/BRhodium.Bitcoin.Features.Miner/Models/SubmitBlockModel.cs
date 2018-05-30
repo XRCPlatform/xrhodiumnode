@@ -8,7 +8,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
     public class SubmitBlockModel
     {
         [JsonProperty(PropertyName = "code")]
-        public int Code { get; set; }
+        public string Code { get; set; }
 
         [JsonProperty(PropertyName = "message")]
         public string Message { get; set; }

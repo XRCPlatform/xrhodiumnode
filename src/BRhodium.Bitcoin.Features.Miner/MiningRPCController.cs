@@ -295,20 +295,23 @@ namespace BRhodium.Bitcoin.Features.Miner
                         for (int i = 0; i < block.Transactions.Count; i++)
                         {
                             var item = block.Transactions[i];
-                            var transaction = new TransactionContractModel();
+                            if (!item.IsCoinBase)
+                            {
+                                var transaction = new TransactionContractModel();
 
-                            transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.ALT_PROTOCOL_VERSION, this.Network));
-                            transaction.Hash = item.GetWitHash().ToString();
-                            transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
+                                transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.ALT_PROTOCOL_VERSION, this.Network));
+                                transaction.Hash = item.GetWitHash().ToString();
+                                transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
 
-                            transaction.Fee = pblockTemplate.VTxFees[i];
-                            transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
-                            transaction.Weight = item.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION);
+                                transaction.Fee = pblockTemplate.VTxFees[i];
+                                transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
+                                transaction.Weight = item.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION);
 
-                            //test decode
-                            var s = Transaction.Load(Encoders.Hex.DecodeData(transaction.Data), this.Network);
+                                //test decode
+                                var s = Transaction.Load(Encoders.Hex.DecodeData(transaction.Data), this.Network);
 
-                            blockTemplate.Transactions.Add(transaction);
+                                blockTemplate.Transactions.Add(transaction);
+                            }                            
                         }
                     }
 
@@ -369,7 +372,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                     mutable.Add("version/reduce");
                     mutable.Add("prevblock");
                     blockTemplate.Mutable = mutable;
-                    //blockTemplate.NonceRange = "00000000ffffffff";
+                    blockTemplate.NonceRange = "00000000ffffffff";
 
                     var rules = new List<string>();
                     rules.Add("csv");
@@ -409,7 +412,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                 //hex = "00000020ca641282f1695e1f07e4406c815c97145f4809ef1899621ef7c142190ae1cb0bf5c9a586c5d6ad7cd45ee5e524f5f98f202d8676820a3ec9b0943ebb7a84105a03bb0b5bffff7f20000ddbdd020100000003bb0b5b010000000000000000000000000000000000000000000000000000000000000000ffffffff03014800ffffffff0100f2052a010000000000000000";
                 if (string.IsNullOrEmpty(hex))
                 {
-                    response.Code = -1;
+                    response.Code = "-1";
                     response.Message = "Empty block hex supplied";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
@@ -445,7 +448,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                 var blockValidationContext = new BlockValidationContext { Block = pblock };
 
                 this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
-                
+
 
                 /*
                 if (blockValidationContext.ChainedBlock == null)
@@ -469,15 +472,19 @@ namespace BRhodium.Bitcoin.Features.Miner
                 blocks.Add(pblock.GetHash());
                 */
 
-
-
+                if (blockValidationContext.Error != null)
+                {
+                    response.Code = blockValidationContext.Error.Code;
+                    response.Message = blockValidationContext.Error.Message;
+                    return this.Json(ResultHelper.BuildResultResponse(response));
+                }             
 
                 var json = this.Json(response);
                 return json;
             }
             catch (Exception e)
             {
-                response.Code = -22;
+                response.Code = "-22";
                 response.Message = "Block decode failed";
 
                 //response.RaiseError(new Error("Block decode failed", -22));

@@ -40,22 +40,36 @@ namespace BRhodium.Bitcoin.Features.RPC
         {
             Guard.NotNull(context, nameof(context));
 
-            MemoryStream ms = new MemoryStream();
-            await context.HttpContext.Request.Body.CopyToAsync(ms);
-            context.HttpContext.Request.Body = ms;
-            ms.Position = 0;
-            var req = JObject.Load(new JsonTextReader(new StreamReader(ms)));
-            ms.Position = 0;
-            var method = (string)req["method"];
+            using (MemoryStream ms = new MemoryStream())
+            {
+                await context.HttpContext.Request.Body.CopyToAsync(ms);
+                context.HttpContext.Request.Body = ms;
+                ms.Position = 0;
+                using (StreamReader streamReader = new StreamReader(ms))
+                {
+                    using (JsonReader jsonReader = new JsonTextReader(streamReader))
+                    {
+                        var req = JObject.ReadFrom(jsonReader);
+                        if (req is JArray)
+                        {
+                            req = req.First();//allways select first element in array we do not support batching
+                        }
 
-            var controllerName = this.actionDescriptor.ActionDescriptors.Items.OfType<ControllerActionDescriptor>()
-                    .FirstOrDefault(w => w.ActionName == method)?.ControllerName ?? string.Empty;
+                        var method = (string)req["method"];
 
-            context.RouteData.Values.Add("action", method);
-            //TODO: Need to be extensible
-            context.RouteData.Values.Add("controller", controllerName);
-            context.RouteData.Values.Add("req", req);
-            await this.inner.RouteAsync(context);
+                        var controllerName = this.actionDescriptor.ActionDescriptors.Items.OfType<ControllerActionDescriptor>()
+                                .FirstOrDefault(w => w.ActionName == method)?.ControllerName ?? string.Empty;
+
+                        context.RouteData.Values.Add("action", method);
+                        //TODO: Need to be extensible
+                        context.RouteData.Values.Add("controller", controllerName);
+                        context.RouteData.Values.Add("req", req);
+
+                        await this.inner.RouteAsync(context);
+
+                    }
+                }               
+            }
         }
     }
 }
