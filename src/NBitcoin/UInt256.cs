@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using NBitcoin.DataEncoders;
 
 namespace NBitcoin
@@ -94,6 +96,17 @@ namespace NBitcoin
             return new uint[] { this.pn0, this.pn1, this.pn2, this.pn3, this.pn4, this.pn5, this.pn6, this.pn7 };
         }
 
+        public static uint256 operator -(uint256 a, uint256 b)
+        {
+            var target = a.ToArray();
+            var sub = b.ToArray();
+            for (int i = 0; i < WIDTH; i++)
+                target[i] -= sub[i];
+
+            
+            return new uint256(target);
+        }
+
         public static uint256 operator <<(uint256 a, int shift)
         {
             var source = a.ToArray();
@@ -125,7 +138,6 @@ namespace NBitcoin
             }
             return new uint256(target);
         }
-
         public static uint256 Parse(string hex)
         {
             return new uint256(hex);
@@ -197,6 +209,17 @@ namespace NBitcoin
         {
             return Encoder.EncodeData(ToBytes().Reverse().ToArray());
         }
+
+        public double ToDouble()
+        {
+            double ret = 0.0;
+            double fact = 1.0;
+            for (int i = 0; i<WIDTH; i++) {
+                ret += fact * GetByte(i);
+                fact *= 4294967296.0;
+            }
+            return ret;
+        }   
 
         public uint256(ulong b)
         {
