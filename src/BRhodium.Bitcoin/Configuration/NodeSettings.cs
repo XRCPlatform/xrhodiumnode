@@ -390,7 +390,7 @@ namespace BRhodium.Bitcoin.Configuration
         {
             Guard.NotNull(network, nameof(network));
 
-            var defaults = Default();
+            var defaults = Default(network);
 
             var builder = new StringBuilder();
             builder.AppendLine("Usage:");
@@ -427,7 +427,7 @@ namespace BRhodium.Bitcoin.Configuration
         /// <param name="network">The network to base the defaults off.</param>
         public static void BuildDefaultConfigurationFile(StringBuilder builder, Network network)
         {
-            var defaults = Default();
+            var defaults = Default(network);
 
             builder.AppendLine("####Node Settings####");
             builder.AppendLine($"#Accept non-standard transactions. Default {(defaults.RequireStandard?1:0)}.");
