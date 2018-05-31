@@ -256,7 +256,10 @@ namespace BRhodium.Bitcoin.Features.Miner
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
-        }
+        }        
+
+
+        
 
         [ActionName("getblocktemplate")]
         [ActionDescription("")]
@@ -405,16 +408,14 @@ namespace BRhodium.Bitcoin.Features.Miner
         [ActionDescription("")]
         public IActionResult SubmitBlock(string hex)
         {
-            var response = new SubmitBlockModel();
             try
             {
-
-                //hex = "00000020ca641282f1695e1f07e4406c815c97145f4809ef1899621ef7c142190ae1cb0bf5c9a586c5d6ad7cd45ee5e524f5f98f202d8676820a3ec9b0943ebb7a84105a03bb0b5bffff7f20000ddbdd020100000003bb0b5b010000000000000000000000000000000000000000000000000000000000000000ffffffff03014800ffffffff0100f2052a010000000000000000";
                 if (string.IsNullOrEmpty(hex))
                 {
-                    response.Code = "-1";
-                    response.Message = "Empty block hex supplied";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
+                    var error = new Utilities.JsonContract.ErrorModel();
+                    error.Code = "-1";
+                    error.Message = "Empty block hex supplied";
+                    return this.Json(ResultHelper.BuildResultResponse(error));
                 }
 
                 ChainedHeader chainTip2 = this.consensusLoop.Tip;
@@ -426,7 +427,6 @@ namespace BRhodium.Bitcoin.Features.Miner
 
 
                 var hexBytes = Encoders.Hex.DecodeData(hex);
-                //var hexBytes = Encoders.Hex.DecodeData("00000020a7c2fe86a220229e95ff4508c5aefca57474bb10b54308688f535044b24998158e238d32e6d0e16873acf46cb4756b4b7fe3f94649b0b96d6b6343b691dbecc2fdafc85affff0f1f0002be4a0201000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1d53044830df5a0820000000000000000d2f6e6f64655374726174756d2f0000000002eb51b8fe000000001976a914393edc35e70f071ba3c982ad2579872c9ab9978588ac14ae4701000000001976a9145c5b3aa410fcbe1da66f8e6734035634077cb23588ac0000000001000000fdafc85a010000000000000000000000000000000000000000000000000000000000000000ffffffff025200ffffffff0180b2e60e000000001976a914824f74b33d3f8ad032e0ee3f79c5775061ddad2388ac00000000");
 
                 //var orgHeaderHex = block.Header.ToHex(this.Network);
                 var orgBlockHex = block.ToHex(this.Network);
@@ -474,35 +474,22 @@ namespace BRhodium.Bitcoin.Features.Miner
 
                 if (blockValidationContext.Error != null)
                 {
-                    response.Code = blockValidationContext.Error.Code;
-                    response.Message = blockValidationContext.Error.Message;
-                    return this.Json(ResultHelper.BuildResultResponse(response));
+                    var error = new Utilities.JsonContract.ErrorModel();
+                    error.Code = blockValidationContext.Error.Code;
+                    error.Message = blockValidationContext.Error.Message;
+                    return this.Json(ResultHelper.BuildResultResponse("rejected", error));
                 }             
 
-                var json = this.Json(response);
+                var json = this.Json(null);//if no errors expected response is null
                 return json;
             }
             catch (Exception e)
             {
-                response.Code = "-22";
-                response.Message = "Block decode failed";
-
-                //response.RaiseError(new Error("Block decode failed", -22));
-                /*
-                 * 
-                 * {
-	                    "result": null,
-	                    "error": {
-		                    "code": -22,
-		                    "message": "Block decode failed"
-	                    },
-	                    "id": null
-                    }
-                    */
-
+                var error = new Utilities.JsonContract.ErrorModel();
+                error.Code = "-22";
+                error.Message = e.Message;
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return this.Json(ResultHelper.BuildResultResponse(response));
-                //return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+                return this.Json(ResultHelper.BuildResultResponse("rejected",error));
             }
         }
 
