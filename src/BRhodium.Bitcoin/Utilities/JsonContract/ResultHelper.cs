@@ -8,32 +8,25 @@ namespace BRhodium.Bitcoin.Utilities.JsonContract
     {
         public static ResultModel BuildResultResponse(object obj)
         {
-            if (obj is ErrorModel)
-            {
-                ResultModel resultModel = new ResultModel
-                {
-                    Result = null,
-                    Error = obj,
-                    Id = 0
-                };
-                return resultModel;
-            }
-            return new ResultModel
-            {
-                Result = obj,
-                Error = null,
-                Id = 0
-            };
+            return BuildResultResponse(obj, null, 0);
         }
-        public static ResultModel BuildResultResponse(object obj, ErrorModel err)
+
+        public static ResultModel BuildResultResponse(object obj, string error, int id)
         {
-            return new ResultModel
+            ResultModel resultModel = new ResultModel
             {
                 Result = obj,
-                Error = err,
-                Id = 0
+                Error = new List<ErrorModel>(),
+                Id = id
             };
 
+            if (string.IsNullOrEmpty(error))
+            {
+                resultModel.Error = null;
+            }
+
+            return resultModel;
         }
+       
     }
 }
