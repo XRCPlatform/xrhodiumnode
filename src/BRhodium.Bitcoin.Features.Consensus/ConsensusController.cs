@@ -10,21 +10,35 @@ using System.Net;
 using BRhodium.Bitcoin.Utilities.JsonErrors;
 using System;
 using BRhodium.Bitcoin.Features.Consensus.Models;
+using BRhodium.Bitcoin.Features.BlockStore;
+using BRhodium.Bitcoin.Configuration;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
     public class ConsensusController : FeatureController
     {
         private readonly ILogger logger;
-
+        private readonly ILoggerFactory loggerFactory;
         public IConsensusLoop ConsensusLoop { get; private set; }
-
-        public ConsensusController(ILoggerFactory loggerFactory, IChainState chainState = null,
-            IConsensusLoop consensusLoop = null, ConcurrentChain chain = null)
+        private BlockStoreCache blockStoreCache;
+        private readonly IBlockRepository blockRepository;
+        private readonly NodeSettings nodeSettings;
+        public ConsensusController(
+            ILoggerFactory loggerFactory,
+            IBlockRepository blockRepository,
+            NodeSettings nodeSettings,
+            IChainState chainState = null,
+            IConsensusLoop consensusLoop = null,
+            ConcurrentChain chain = null
+            )
             : base(chainState: chainState, chain: chain)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.loggerFactory = loggerFactory;
             this.ConsensusLoop = consensusLoop;
+            this.nodeSettings = nodeSettings;
+            this.blockRepository = blockRepository;
+            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
         }
 
         [ActionName("getbestblockhash")]
@@ -51,7 +65,11 @@ namespace BRhodium.Bitcoin.Features.Consensus
             ChainedHeader block = this.Chain.GetBlock(height);
             return block == null || block.Height > bestBlock.Height ? null : block.HashBlock;
         }
-
+        [ActionName("gettransaction")]
+        [ActionDescription("Returns a transaction details.")]
+        public IActionResult GetTransaction(string[] args)
+        {
+        }
         [ActionName("getblock")]
         [ActionDescription("Returns a block details.")]
         public IActionResult GetBlock(string[] args)
@@ -89,9 +107,10 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 {
                     blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1));
                 }
-                if (currentBlock.BlockDataAvailability == BlockDataAvailabilityState.BlockAvailable && currentBlock.Block != null)
+                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).Result;
+                if (fullBlock != null)
                 {
-                    foreach (var tx in currentBlock?.Block.Transactions)
+                    foreach (var tx in fullBlock.Transactions)
                     {
                         blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
                     }
