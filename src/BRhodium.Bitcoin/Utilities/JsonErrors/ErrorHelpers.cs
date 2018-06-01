@@ -7,18 +7,13 @@ namespace BRhodium.Bitcoin.Utilities.JsonErrors
     {
         public static ErrorResult BuildErrorResponse(HttpStatusCode statusCode, string message, string description)
         {
-            ErrorResponse errorResponse = new ErrorResponse
+            ErrorModel errorResponse = new ErrorModel
             {
-                Errors = new List<ErrorModel>
-                {
-                    new ErrorModel
-                    {
-                        Status = (int) statusCode,
-                        Message = message,
-                        Description = description
-                    }
-                }
+                Status = (int)statusCode,
+                Message = message,
+                Description = description
             };
+           
 
             return new ErrorResult((int)statusCode, errorResponse);
         }
