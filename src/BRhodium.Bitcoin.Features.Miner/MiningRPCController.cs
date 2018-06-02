@@ -398,7 +398,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }             
 
-                var json = this.Json(response);
+                var json = this.Json(ResultHelper.BuildResultResponse(response));
                 return json;
             }
             catch (Exception e)
