@@ -23,16 +23,17 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 
         public int BlockIndex { get; set; }
 
-        public int BlockTime { get; set; }
+        public long BlockTime { get; set; }
 
         public string TxId { get; set; }
 
         public string NormTxId { get; set; }
 
-        public int Time { get; set; }
-        public int TimeReceived { get; set; }
+        public long Time { get; set; }
+        public long TimeReceived { get; set; }
 
         public List<TransactionDetail> Details { get; set; }
+        public string Hex { get; set; }
     }   
 
     
