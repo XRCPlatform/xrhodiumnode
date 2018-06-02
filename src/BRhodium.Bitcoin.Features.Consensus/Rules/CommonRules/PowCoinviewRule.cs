@@ -269,6 +269,12 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <returns>Reward amount.</returns>
         public virtual Money GetProofOfWorkReward(int height)
         {
+            //BTR Premine
+            if (height == 1)
+            {
+                return new Money(1050000 * Money.COIN);
+            }
+
             int halvings = height / this.consensusParams.SubsidyHalvingInterval;
             // Force block reward to zero when right shift is undefined.
             if (halvings >= 64)

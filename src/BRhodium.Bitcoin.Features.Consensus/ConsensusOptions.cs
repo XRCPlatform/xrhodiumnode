@@ -101,9 +101,9 @@ namespace BRhodium.Bitcoin.Features.Consensus
             this.MaxStandardTxWeight = 400000;
             this.MaxBlockBaseSize = 1000000;
             this.MaxBlockSigopsCost = 80000;
-            this.MaxMoney = 21000000 * Money.COIN;
-            this.CoinbaseMaturity = 100;
-            this.ProofOfWorkReward = Money.Coins(50);
+            this.MaxMoney = 2100000 * Money.COIN;
+            this.CoinbaseMaturity = 1;
+            this.ProofOfWorkReward = Money.Coins((decimal)2.5);
 
             // No long reorg protection on PoW.
             this.MaxReorgLength = 0;

@@ -734,7 +734,13 @@ namespace NBitcoin
 
         public Money GetReward(int nHeight)
         {
-            long nSubsidy = new Money(50 * Money.COIN);
+            if (nHeight == 1)
+            {
+                return new Money(1050000 * Money.COIN);
+            }
+
+            var money = 2.5 * Money.COIN;
+            long nSubsidy = new Money((long)money);
             int halvings = nHeight / this.Consensus.SubsidyHalvingInterval;
 
             // Force block reward to zero when right shift is undefined.
