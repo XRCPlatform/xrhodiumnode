@@ -15,34 +15,13 @@ using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Configuration;
 using BRhodium.Bitcoin.Utilities;
+using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
     public class WalletRPCController : FeatureController
     {
-        public WalletRPCController(
-            IServiceProvider serviceProvider, 
-            IWalletManager walletManager, 
-            ILoggerFactory loggerFactory, 
-            IFullNode fullNode, 
-            IBlockRepository blockRepository,
-            NodeSettings nodeSettings,
-            Network network)
-        {
-            this.walletManager = walletManager;
-            this.serviceProvider = serviceProvider;
-            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.Network = fullNode.Network;
-
-            this.loggerFactory = loggerFactory;
-            this.nodeSettings = nodeSettings;
-            this.blockRepository = blockRepository;
-            this.network = network;
-            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
-        }
-
         internal IServiceProvider serviceProvider;
-
         public IWalletManager walletManager { get; set; }
 
         /// <summary>Instance logger.</summary>
@@ -52,6 +31,32 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly IBlockRepository blockRepository;
         private readonly NodeSettings nodeSettings;
         private readonly Network network;
+        public IConsensusLoop ConsensusLoop { get; private set; }
+
+        public WalletRPCController(
+            IServiceProvider serviceProvider, 
+            IWalletManager walletManager, 
+            ILoggerFactory loggerFactory, 
+            IFullNode fullNode, 
+            IBlockRepository blockRepository,
+            NodeSettings nodeSettings,
+            Network network,
+            IConsensusLoop consensusLoop = null)
+        {
+            this.walletManager = walletManager;
+            this.serviceProvider = serviceProvider;
+            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.Network = fullNode.Network;
+            this.ConsensusLoop = consensusLoop;
+
+            this.loggerFactory = loggerFactory;
+            this.nodeSettings = nodeSettings;
+            this.blockRepository = blockRepository;
+            this.network = network;
+            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
+        }
+
+        
 
 
         [ActionName("sendtoaddress")]
@@ -206,54 +211,69 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
-                UnspentOutputReference currentTransaction = null;
-                string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-                foreach (var item in this.walletManager.GetSpendableTransactionsInWallet(walletName,0))
-                {
-                    if (item.Transaction.Id.Equals(reqTransactionId)) {
-                        currentTransaction = item;
-                        break;
-                    }
-                }
+                //UnspentOutputReference currentTransaction = null;
+                //string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
+                
+                //foreach (var item in this.walletManager.GetSpendableTransactionsInWallet(walletName,0))
+                //{
+                //    if (item.Transaction.Id.Equals(reqTransactionId)) {
+                //        currentTransaction = item;
+                //        break;
+                //    }
+                //}
+                //var x = this.ConsensusLoop.UTXOSet.FetchCoinsAsync(new uint256[1] { reqTransactionId }).GetAwaiter().GetResult();
 
-                //var block = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).Result; //this brings block hash for given transaction
-                var currentGlobalTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).Result;
-                if (currentTransaction == null || currentGlobalTransaction == null)
+
+                var block = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
+                var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
+                if (currentTransaction == null)
                 {
                     var response = new Utilities.JsonContract.ErrorModel();
                     response.Code = "-5";
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
-              
-                var transactionResponse = new TransactionModel();
-                transactionResponse.NormTxId = string.Format("{0:x8}", currentTransaction.Transaction.Id);
-                transactionResponse.TxId = string.Format("{0:x8}", currentTransaction.Transaction.Id);
-                transactionResponse.Confirmations = -1;// this.ConsensusLoop.Chain.Tip.Height - currentTransaction.Transaction.BlockHeight
-                transactionResponse.BlockHash = string.Format("{0:x8}", currentTransaction.Transaction.BlockHash);
-                transactionResponse.BlockTime = currentTransaction.Transaction.CreationTime.ToUnixTimeMilliseconds();
+
                 
-                transactionResponse.Time = currentGlobalTransaction.Time;
-                transactionResponse.TimeReceived = currentGlobalTransaction.Time;
-                transactionResponse.BlockIndex = currentTransaction.Transaction.Index;//The index of the transaction in the block that includes it
+
+                var transactionResponse = new TransactionModel();
+                var transactionHash = currentTransaction.GetHash();
+                transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
+                transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
+                transactionResponse.Confirmations = 0;// this.ConsensusLoop.Chain.Tip.Height - currentTransaction.Transaction.BlockHeight
+                transactionResponse.BlockHash = string.Format("{0:x8}", block);
+                transactionResponse.BlockTime = currentTransaction.Time;
+                
+                transactionResponse.Time = currentTransaction.Time;
+                transactionResponse.TimeReceived = currentTransaction.Time;
+                //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
   
                 transactionResponse.Details = new List<TransactionDetail>();
-                //foreach (var item in currentGlobalTransaction.Outputs)
-                //{
-                //    var detail = new TransactionDetail();
-                //    detail.Account = item.ScriptPubKey.GetSignerAddress(this.network).ToString();
-                //    detail.Category = "receive";
-                //    detail.Amount = (double)item.Value.Satoshi / 100000000;
-                //}
+                foreach (var item in currentTransaction.Outputs)
+                {
+                    var detail = new TransactionDetail();
+                    var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
+                    if (address != null)
+                    {
+                        detail.Account = address.Address;
+                        detail.Address = address.Address;
+                    }
+                    else {
+                        detail.Address = item.ScriptPubKey.ToString();
+                    }
+                    detail.Category = "receive";
+                    detail.Amount = (double)item.Value.Satoshi / 100000000;
+                    transactionResponse.Details.Add(detail);
+                }
 
-                var detail = new TransactionDetail();
-                detail.Account = currentTransaction.Account.Name;
-                detail.Address = currentTransaction.Address.Address;
-                detail.Category = "receive"; //this need to be worked out for other non coinbase transactions
-                detail.Amount = (double)currentTransaction.Transaction.SpendableAmount(false).Satoshi / 100000000;
-                //detail.Fee = currentTransaction.Transaction.Transaction.GetFee().Satoshi / 100000000;                
-                transactionResponse.Details.Add(detail);
-                transactionResponse.Hex = currentGlobalTransaction.ToHex();
+                //var detail = new TransactionDetail();
+                //detail.Account = currentTransaction.Account.Name;
+                //detail.Address = currentTransaction.Address.Address;
+                //detail.Category = "receive"; //this need to be worked out for other non coinbase transactions
+                //detail.Amount = (double)currentTransaction.Transaction.SpendableAmount(false).Satoshi / 100000000;
+                ////detail.Fee = currentTransaction.Transaction.Transaction.GetFee().Satoshi / 100000000;                
+               
+                transactionResponse.Hex = currentTransaction.ToHex();
 
 
                 var json = ResultHelper.BuildResultResponse(transactionResponse);

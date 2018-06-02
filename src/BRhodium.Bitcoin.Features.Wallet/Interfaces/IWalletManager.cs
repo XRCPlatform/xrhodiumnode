@@ -197,6 +197,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <param name="wallet">The wallet to save.</param>
         void SaveWallet(Wallet wallet);
+        /// <summary>
+        /// Performs pubsighash to address translation so that friendly address can be displayed in wallet. 
+        /// </summary>
+        /// <param name="scriptSig"></param>
+        /// <returns>HD Address that can be used for various rendering operations.</returns>
+        HdAddress GetAddressByPubKeyHash(Script scriptSig);
 
         /// <summary>
         /// Saves all the loaded wallets into the file system.

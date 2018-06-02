@@ -17,6 +17,8 @@ using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using BRhodium.Bitcoin.P2P.Protocol.Payloads;
 using BRhodium.Bitcoin.Utilities;
+using BRhodium.Bitcoin.Features.BlockStore;
+using System.Collections.Generic;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.IntegrationTests")]
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.MemoryPool.Tests")]
@@ -133,7 +135,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
         /// <summary>Provider of time functions.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
-
+        private readonly IBlockRepository blockRepository;
         /// <summary>
         /// Initialize a new instance of <see cref="ConsensusLoop"/>.
         /// </summary>
@@ -169,6 +171,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             NodeSettings nodeSettings,
             IPeerBanning peerBanning,
             IConsensusRules consensusRules,
+            IBlockRepository blockRepository,
             IStakeChain stakeChain = null)
         {
             Guard.NotNull(asyncLoopFactory, nameof(asyncLoopFactory));
@@ -202,7 +205,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             this.nodeSettings = nodeSettings;
             this.peerBanning = peerBanning;
             this.ConsensusRules = consensusRules;
-
+            this.blockRepository = blockRepository;
             // chain of stake info can be null if POS is not enabled
             this.StakeChain = stakeChain;
         }
@@ -459,7 +462,10 @@ namespace BRhodium.Bitcoin.Features.Consensus
             // Persist the changes to the coinview. This will likely only be stored in memory,
             // unless the coinview treashold is reached.
             this.logger.LogTrace("Saving coinview changes.");
+
+            await this.blockRepository.PutAsync(context.BlockValidationContext.ChainedHeader.HashBlock, new List<Block> { context.BlockValidationContext.Block }).ConfigureAwait(false);
             await this.UTXOSet.SaveChangesAsync(context.Set.GetCoins(this.UTXOSet), null, this.Tip.HashBlock, context.BlockValidationContext.ChainedHeader.HashBlock).ConfigureAwait(false);
+            
 
             // Set the new tip.
             this.Tip = context.BlockValidationContext.ChainedHeader;

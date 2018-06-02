@@ -12,6 +12,7 @@ using System;
 using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Configuration;
+using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
@@ -155,16 +156,21 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 {
                     blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1));
                 }
-                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).Result;                
-                if (fullBlock != null)
-                {
-                    //blockModel.Nonce = fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
-                    foreach (var tx in fullBlock.Transactions)
-                    {
-                        blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
-                    }
-                }
+                //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
+                //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
 
+
+
+                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
+                if (fullBlock == null)
+                {
+                    throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
+                }
+                //blockModel.Nonce = fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+                foreach (var tx in fullBlock.Transactions)
+                {
+                    blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
+                }
                 var json = ResultHelper.BuildResultResponse(blockModel);
                 return this.Json(json);
             }
