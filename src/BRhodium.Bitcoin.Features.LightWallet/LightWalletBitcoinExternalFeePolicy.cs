@@ -43,7 +43,7 @@ namespace BRhodium.Bitcoin.Features.LightWallet
             this.nodeLifetime = nodeLifetime;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.nodeSettings = settings;
-            this.maxTxFee = new Money(0.1M, MoneyUnit.BTC);
+            this.maxTxFee = new Money(0.1M, MoneyUnit.BTR);
             this.initializedOnce = false;
         }
 

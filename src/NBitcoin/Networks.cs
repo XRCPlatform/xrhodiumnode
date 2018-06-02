@@ -8,6 +8,24 @@ using NBitcoin.Protocol;
 
 namespace NBitcoin
 {
+    public enum CoinType
+    {
+        /// <summary>
+        /// Bitcoin
+        /// </summary>
+        Bitcoin = 0,
+
+        /// <summary>
+        /// Testnet (all coins)
+        /// </summary>
+        Testnet = 1,
+
+        /// <summary>
+        /// BRhodium
+        /// </summary>
+        BRhodium = 66666
+    }
+
     public partial class Network
     {
         /// <summary> Bitcoin maximal value for the calculated time offset. If the value is over this limit, the time syncing feature will be switched off. </summary>
@@ -86,7 +104,7 @@ namespace NBitcoin
             network.Consensus.BIP9Deployments[BIP9Deployments.TestDummy] = new BIP9DeploymentsParameters(28, 1199145601, 1230767999);
             network.Consensus.BIP9Deployments[BIP9Deployments.CSV] = new BIP9DeploymentsParameters(0, 1462060800, 1493596800);
             network.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 1479168000, 1510704000);
-            network.Consensus.CoinType = 0;
+            network.Consensus.CoinType = (int)CoinType.Bitcoin;
             network.Consensus.DefaultAssumeValid = new uint256("0x000000000000000000174f783cc20c1415f90c4d17c9a5bcd06ba67207c9bc80"); // 518180
 
             network.genesis = CreateGenesisBlock(network.Consensus.ConsensusFactory, 1231006505, 2083236893, 0x1d00ffff, 1, Money.Coins(50m));
@@ -199,7 +217,7 @@ namespace NBitcoin
             network.Consensus.BIP9Deployments[BIP9Deployments.TestDummy] = new BIP9DeploymentsParameters(28, 1199145601, 1230767999);
             network.Consensus.BIP9Deployments[BIP9Deployments.CSV] = new BIP9DeploymentsParameters(0, 1456790400, 1493596800);
             network.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 1462060800, 1493596800);
-            network.Consensus.CoinType = 1;
+            network.Consensus.CoinType = (int)CoinType.Testnet;
             network.Consensus.DefaultAssumeValid = new uint256("0x000000000000015682a21fc3b1e5420435678cba99cace2b07fe69b668467651"); // 1292762
 
             // Modify the testnet genesis block so the timestamp is valid for a later start.
@@ -353,7 +371,7 @@ namespace NBitcoin
             //network.Consensus.ConsensusFactory = new PosConsensusFactory() { Consensus = network.Consensus };
             //network.Consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             //network.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
-            //network.Consensus.CoinType = 105;
+            //network.Consensus.CoinType = (int)CoinType.BRhodium;
             //network.Consensus.DefaultAssumeValid = new uint256("0x55a8205ae4bbf18f4d238c43f43005bd66e0b1f679b39e2c5c62cf6903693a5e"); // 795970
 
             //network.genesis = CreateBRhodiumGenesisBlock(network.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
@@ -473,7 +491,7 @@ namespace NBitcoin
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
             network.Consensus.IsProofOfStake = false;
-            network.Consensus.CoinType = 66666;
+            network.Consensus.CoinType = (int)CoinType.BRhodium;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 
@@ -559,7 +577,7 @@ namespace NBitcoin
             network.Consensus.IsProofOfStake = false;
             network.Consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             network.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
-            network.Consensus.CoinType = 66666;
+            network.Consensus.CoinType = (int)CoinType.BRhodium;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 

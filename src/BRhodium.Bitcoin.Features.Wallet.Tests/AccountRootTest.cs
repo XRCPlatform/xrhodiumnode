@@ -1,4 +1,5 @@
 ﻿using Xunit;
+using NBitcoin;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests
 {

@@ -11,6 +11,7 @@ using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Models;
 using BRhodium.Bitcoin.Utilities.JsonContract;
 using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Bitcoin.Features.Wallet.Controllers;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -22,6 +23,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.serviceProvider = serviceProvider;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.Network = fullNode.Network;
+            this.FullNode = fullNode;
         }
 
         internal IServiceProvider serviceProvider;
@@ -170,5 +172,53 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
+        [ActionName("generatenewwallet")]
+        public Mnemonic GenerateNewWallet(string walletName, string password)
+        {
+            var w = this.walletManager as WalletManager;
+            return w.CreateWallet(password, walletName);
+        }
+
+        [ActionName("getwallet")]
+        public HdAccount GetWallet(string walletName)
+        {
+            var w = this.walletManager;
+            var wallet = w.GetWalletByName(walletName);
+            return wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
+        }
+
+        [ActionName("sendmoney")]
+        public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
+        {
+            var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+            var w = this.walletManager as WalletManager;
+            var walletReference = new WalletAccountReference()
+            {
+                AccountName = hdAcccountName,
+                WalletName = walletName
+            };
+
+            var context = new TransactionBuildContext(
+                walletReference,
+                new[]
+                {
+                         new Recipient {
+                             Amount = new Money(satoshi, MoneyUnit.Satoshi),
+                             ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
+                         }
+                }.ToList(), password)
+            {
+                MinConfirmations = 0,
+                FeeType = FeeType.Medium,
+                Sign = true
+            };
+
+            var controller = this.FullNode.NodeService<WalletController>();
+
+            var fundTransaction = transaction.BuildTransaction(context);
+            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+
+            return fundTransaction;
+        }
     }
 }

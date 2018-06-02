@@ -236,7 +236,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             {
                 var amountSat = 10 * i;
                 Transaction tx = this.MakeRandomTx(amountSat);
-                var entry = new TxMempoolEntry(tx, Money.FromUnit(0.1m, MoneyUnit.MilliBTC), DateTimeOffset.Now.ToUnixTimeSeconds(), i * 100, i, amountSat, i == 0, 10, null, new PowConsensusOptions());
+                var entry = new TxMempoolEntry(tx, Money.FromUnit(0.1m, MoneyUnit.MilliBTR), DateTimeOffset.Now.ToUnixTimeSeconds(), i * 100, i, amountSat, i == 0, 10, null, new PowConsensusOptions());
                 entry.UpdateFeeDelta(numTx - i);
                 entries.Add(entry);
             }

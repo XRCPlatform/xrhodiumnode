@@ -60,8 +60,8 @@ namespace NBitcoin
 
     public enum MoneyUnit : int
     {
-        BTC = 100000000,
-        MilliBTC = 100000,
+        BTR = 100000000,
+        MilliBTR = 100000,
         Bit = 100,
         Satoshi = 1
     }
@@ -292,7 +292,7 @@ namespace NBitcoin
 
             try
             {
-                nRet = new Money(value, MoneyUnit.BTC);
+                nRet = new Money(value, MoneyUnit.BTR);
                 return true;
             }
             catch(OverflowException)
@@ -858,11 +858,11 @@ namespace NBitcoin
                 i++;
             }
             var unit = format[i];
-            var unitToUseInCalc = MoneyUnit.BTC;
+            var unitToUseInCalc = MoneyUnit.BTR;
             switch(unit)
             {
                 case 'B':
-                    unitToUseInCalc = MoneyUnit.BTC;
+                    unitToUseInCalc = MoneyUnit.BTR;
                     break;
             }
             var val = Convert.ToDecimal(arg) / (int)unitToUseInCalc;
