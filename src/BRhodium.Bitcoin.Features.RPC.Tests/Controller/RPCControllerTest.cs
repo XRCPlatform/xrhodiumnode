@@ -126,7 +126,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
             var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].Message);
+            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].ErrorCode);
             Assert.Equal(400, errorValue.Errors[0].Status);
         }
 
@@ -195,7 +195,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
             var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("RPC method 'getblockheader' not found.", errorValue.Errors[0].Message);
+            Assert.Equal("RPC method 'getblockheader' not found.", errorValue.Errors[0].ErrorCode);
             Assert.Equal(400, errorValue.Errors[0].Status);
         }
 
@@ -210,7 +210,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
             var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].Message);
+            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].ErrorCode);
             Assert.Equal(400, errorValue.Errors[0].Status);
         }
 

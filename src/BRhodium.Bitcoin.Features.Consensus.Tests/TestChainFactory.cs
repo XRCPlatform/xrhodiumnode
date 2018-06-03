@@ -25,6 +25,7 @@ using BRhodium.Bitcoin.Tests.Common;
 using BRhodium.Bitcoin.Utilities;
 using Xunit;
 using Xunit.Sdk;
+using BRhodium.Bitcoin.Features.BlockStore;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests
 {
@@ -60,6 +61,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public Checkpoints Checkpoints { get; set; }
 
         public IPeerAddressManager PeerAddressManager { get; set; }
+        public BlockRepository BlockRepository { get; internal set; }
     }
 
     /// <summary>
@@ -80,6 +82,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             testChainContext.ConnectionSettings.Load(testChainContext.NodeSettings);
             testChainContext.LoggerFactory = testChainContext.NodeSettings.LoggerFactory;
             testChainContext.DateTimeProvider = DateTimeProvider.Default;
+           
 
             network.Consensus.Options = new PowConsensusOptions();
 
@@ -104,7 +107,26 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             testChainContext.PeerBanning = new PeerBanning(testChainContext.ConnectionManager, testChainContext.LoggerFactory, testChainContext.DateTimeProvider, testChainContext.PeerAddressManager);
             NodeDeployments deployments = new NodeDeployments(testChainContext.Network, testChainContext.Chain);
             ConsensusRules consensusRules = new PowConsensusRules(testChainContext.Network, testChainContext.LoggerFactory, testChainContext.DateTimeProvider, testChainContext.Chain, deployments, consensusSettings, testChainContext.Checkpoints, new InMemoryCoinView(new uint256()), new Mock<ILookaheadBlockPuller>().Object).Register(new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration());
-            testChainContext.Consensus = new ConsensusLoop(new AsyncLoopFactory(testChainContext.LoggerFactory), new NodeLifetime(), testChainContext.Chain, cachedCoinView, blockPuller, new NodeDeployments(network, testChainContext.Chain), testChainContext.LoggerFactory, new ChainState(new InvalidBlockHashStore(testChainContext.DateTimeProvider)), testChainContext.ConnectionManager, testChainContext.DateTimeProvider, new Signals.Signals(), consensusSettings, testChainContext.NodeSettings, testChainContext.PeerBanning, consensusRules);
+
+            testChainContext.BlockRepository = new BlockRepository(network, testChainContext.NodeSettings.DataFolder, DateTimeProvider.Default, testChainContext.LoggerFactory);
+
+            testChainContext.Consensus = new ConsensusLoop(
+                new AsyncLoopFactory(testChainContext.LoggerFactory),
+                new NodeLifetime(),
+                testChainContext.Chain, 
+                cachedCoinView, 
+                blockPuller, 
+                new NodeDeployments(network, testChainContext.Chain), 
+                testChainContext.LoggerFactory, 
+                new ChainState(new InvalidBlockHashStore(testChainContext.DateTimeProvider)), 
+                testChainContext.ConnectionManager, 
+                testChainContext.DateTimeProvider, 
+                new Signals.Signals(), 
+                consensusSettings, 
+                testChainContext.NodeSettings, 
+                testChainContext.PeerBanning,               
+                consensusRules, 
+                testChainContext.BlockRepository);
             await testChainContext.Consensus.StartAsync();
 
             return testChainContext;

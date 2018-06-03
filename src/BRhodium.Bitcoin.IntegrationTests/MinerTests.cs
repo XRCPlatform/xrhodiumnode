@@ -26,6 +26,7 @@ using BRhodium.Bitcoin.P2P.Peer;
 using BRhodium.Bitcoin.P2P.Protocol.Payloads;
 using BRhodium.Bitcoin.Utilities;
 using Xunit;
+using BRhodium.Bitcoin.Features.BlockStore;
 
 namespace BRhodium.Bitcoin.IntegrationTests
 {
@@ -161,8 +162,10 @@ namespace BRhodium.Bitcoin.IntegrationTests
                 LookaheadBlockPuller blockPuller = new LookaheadBlockPuller(this.chain, connectionManager, new LoggerFactory());
                 PeerBanning peerBanning = new PeerBanning(connectionManager, loggerFactory, dateTimeProvider, peerAddressManager);
                 NodeDeployments deployments = new NodeDeployments(this.network, this.chain);
+                var blockRepository = new BlockRepository(network, nodeSettings.DataFolder, DateTimeProvider.Default, loggerFactory);
+
                 ConsensusRules consensusRules = new PowConsensusRules(this.network, loggerFactory, dateTimeProvider, this.chain, deployments, consensusSettings, new Checkpoints(), this.cachedCoinView, blockPuller).Register(new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration());
-                this.consensus = new ConsensusLoop(new AsyncLoopFactory(loggerFactory), new NodeLifetime(), this.chain, this.cachedCoinView, blockPuller, new NodeDeployments(this.network, this.chain), loggerFactory, new ChainState(new InvalidBlockHashStore(dateTimeProvider)), connectionManager, dateTimeProvider, new Signals.Signals(), consensusSettings, nodeSettings, peerBanning, consensusRules);
+                this.consensus = new ConsensusLoop(new AsyncLoopFactory(loggerFactory), new NodeLifetime(), this.chain, this.cachedCoinView, blockPuller, new NodeDeployments(this.network, this.chain), loggerFactory, new ChainState(new InvalidBlockHashStore(dateTimeProvider)), connectionManager, dateTimeProvider, new Signals.Signals(), consensusSettings, nodeSettings, peerBanning, consensusRules, blockRepository);
                 await this.consensus.StartAsync();
 
                 this.entry.Fee(11);

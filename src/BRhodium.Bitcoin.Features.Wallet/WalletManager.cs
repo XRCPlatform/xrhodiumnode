@@ -1463,5 +1463,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 },
                 TimeSpans.FiveSeconds);
         }
+
+        public HdAddress GetAddressByPubKeyHash(Script scriptSig)
+        {
+            if (this.keysLookup.ContainsKey(scriptSig))
+            {
+                return this.keysLookup[scriptSig];
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

@@ -79,7 +79,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Unable to get model", error.Message);
+            Assert.Equal("Unable to get model", error.ErrorCode);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Formatting error", error.Message);
+            Assert.Equal("Formatting error", error.ErrorCode);
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Wallet not found.", error.Message);
+            Assert.Equal("Wallet not found.", error.ErrorCode);
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Invalid password (or invalid Network)", error.Message);
+            Assert.Equal("Invalid password (or invalid Network)", error.ErrorCode);
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Unable to get wallet", error.Message);
+            Assert.Equal("Unable to get wallet", error.ErrorCode);
         }
 
         [Fact]
@@ -204,7 +204,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Contains("Staking cannot start", error.Message);
+            Assert.Contains("Staking cannot start", error.ErrorCode);
 
             this.posMinting.Verify(pm => pm.Stake(It.IsAny<PosMinting.WalletSecret>()), Times.Never);
         }

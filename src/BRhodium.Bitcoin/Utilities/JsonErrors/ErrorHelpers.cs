@@ -10,7 +10,7 @@ namespace BRhodium.Bitcoin.Utilities.JsonErrors
             ErrorModel errorResponse = new ErrorModel
             {
                 Status = (int)statusCode,
-                Message = message,
+                ErrorCode = message,
                 Description = description
             };
            

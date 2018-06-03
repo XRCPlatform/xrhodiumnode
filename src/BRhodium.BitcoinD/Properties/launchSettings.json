@@ -1,7 +1,8 @@
 {
   "profiles": {
     "BRhodium.BitcoinD": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-reindex-chainstate"
     },
     "BRhodium.BitcoinD Test": {
       "commandName": "Project",
