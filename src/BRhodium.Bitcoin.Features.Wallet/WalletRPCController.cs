@@ -173,80 +173,52 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         [ActionName("generatenewwallet")]
-        public IActionResult GenerateNewWallet(string walletName, string password)
+        public Mnemonic GenerateNewWallet(string walletName, string password)
         {
-            try
-            {
-                var w = this.walletManager as WalletManager;
-                var mnemonic = w.CreateWallet(password, walletName);
-
-                return this.Json(ResultHelper.BuildResultResponse(mnemonic));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+            var w = this.walletManager as WalletManager;
+            return w.CreateWallet(password, walletName);
         }
 
         [ActionName("getwallet")]
-        public IActionResult GetWallet(string walletName)
+        public HdAccount GetWallet(string walletName)
         {
-            try
-            {
-                var w = this.walletManager;
-                var wallet = w.GetWalletByName(walletName);
-                var hdaccount = wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
-
-                return this.Json(ResultHelper.BuildResultResponse(hdaccount));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+            var w = this.walletManager;
+            var wallet = w.GetWalletByName(walletName);
+            return wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
         }
 
         [ActionName("sendmoney")]
-        public IActionResult SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
+        public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
         {
-            try
+            var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+            var w = this.walletManager as WalletManager;
+            var walletReference = new WalletAccountReference()
             {
-                var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-                var w = this.walletManager as WalletManager;
-                var walletReference = new WalletAccountReference()
-                {
-                    AccountName = hdAcccountName,
-                    WalletName = walletName
-                };
+                AccountName = hdAcccountName,
+                WalletName = walletName
+            };
 
-                var context = new TransactionBuildContext(
-                    walletReference,
-                    new[]
-                    {
+            var context = new TransactionBuildContext(
+                walletReference,
+                new[]
+                {
                          new Recipient {
                              Amount = new Money(satoshi, MoneyUnit.Satoshi),
                              ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
                          }
-                    }.ToList(), password)
-                {
-                    MinConfirmations = 0,
-                    FeeType = FeeType.Medium,
-                    Sign = true
-                };
-
-                var controller = this.FullNode.NodeService<WalletController>();
-
-                var fundTransaction = transaction.BuildTransaction(context);
-                controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
-
-                return this.Json(ResultHelper.BuildResultResponse(fundTransaction));
-            }
-            catch (Exception e)
+                }.ToList(), password)
             {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+                MinConfirmations = 0,
+                FeeType = FeeType.Medium,
+                Sign = true
+            };
+
+            var controller = this.FullNode.NodeService<WalletController>();
+
+            var fundTransaction = transaction.BuildTransaction(context);
+            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+
+            return fundTransaction;
         }
     }
 }
