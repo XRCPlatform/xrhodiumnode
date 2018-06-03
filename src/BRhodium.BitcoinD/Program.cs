@@ -60,7 +60,7 @@ namespace BRhodium.BitcoinD
         //BTR X13 Miner
         private static void TryStartMiner(string[] args, IFullNode node)
         {
-            var addres = "RZ7DDbGGbW1axE99PpBEhTaJJ8FrkR2CsV";  //mine.Replace("mine =", string.Empty);
+            var addres = "RsTGVF9k18dYUVS3svetnjCryeyXm7wozw";  //mine.Replace("mine =", string.Empty);
             var pubkey = BitcoinAddress.Create(addres, node.Network);
             node.NodeService<IPowMining>().Mine(pubkey.ScriptPubKey);
         }

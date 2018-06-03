@@ -14,8 +14,8 @@ namespace BRhodium.Bitcoin.Utilities.JsonErrors
         [JsonProperty(PropertyName = "status")]
         public int Status { get; set; }
 
-        [JsonProperty(PropertyName = "message")]
-        public string Message { get; set; }
+        [JsonProperty(PropertyName = "error")]
+        public string ErrorCode { get; set; }
 
         [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }

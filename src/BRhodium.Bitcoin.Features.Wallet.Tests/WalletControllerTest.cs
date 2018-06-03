@@ -204,7 +204,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.FormatException", error.Description);
-            Assert.Equal("Invalid language 'invalidlanguage'. Choices are: English, French, Spanish, Japanese, ChineseSimplified and ChineseTraditional.", error.Message);
+            Assert.Equal("Invalid language 'invalidlanguage'. Choices are: English, French, Spanish, Japanese, ChineseSimplified and ChineseTraditional.", error.ErrorCode);
         }
 
         [Fact]
@@ -253,7 +253,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Name cannot be empty.", error.Message);
+            Assert.Equal("Name cannot be empty.", error.ErrorCode);
         }
 
         [Fact]
@@ -282,7 +282,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(409, error.Status);
-            Assert.Equal(errorMessage, error.Message);
+            Assert.Equal(errorMessage, error.ErrorCode);
         }
 
         [Fact]
@@ -310,7 +310,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("There was a problem creating a wallet.", error.Message);
+            Assert.Equal("There was a problem creating a wallet.", error.ErrorCode);
         }
 
         [Fact]
@@ -364,7 +364,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.Message);
+            Assert.Equal("A password is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -393,7 +393,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(409, error.Status);
-            Assert.Equal(errorMessage, error.Message);
+            Assert.Equal(errorMessage, error.ErrorCode);
         }
 
         [Fact]
@@ -422,7 +422,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(404, error.Status);
             Assert.StartsWith("System.IO.FileNotFoundException", error.Description);
-            Assert.Equal("Wallet not found.", error.Message);
+            Assert.Equal("Wallet not found.", error.ErrorCode);
         }
 
         [Fact]
@@ -451,7 +451,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.FormatException", error.Description);
-            Assert.Equal("Formatting failed.", error.Message);
+            Assert.Equal("Formatting failed.", error.ErrorCode);
         }
 
         [Fact]
@@ -500,7 +500,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.Message);
+            Assert.Equal("A password is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -526,7 +526,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(404, error.Status);
             Assert.StartsWith("System.IO.FileNotFoundException", error.Description);
-            Assert.Equal("This wallet was not found at the specified location.", error.Message);
+            Assert.Equal("This wallet was not found at the specified location.", error.ErrorCode);
         }
 
         [Fact]
@@ -552,7 +552,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(403, error.Status);
             Assert.StartsWith("System.Security.SecurityException", error.Description);
-            Assert.Equal("Wrong password, please try again.", error.Message);
+            Assert.Equal("Wrong password, please try again.", error.ErrorCode);
         }
 
         [Fact]
@@ -660,7 +660,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Invalid name.", error.Message);
+            Assert.Equal("Invalid name.", error.ErrorCode);
         }
 
         [Fact]
@@ -1016,7 +1016,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving wallets.", error.Message);
+            Assert.Equal("Issue retrieving wallets.", error.ErrorCode);
         }
 
         [Fact]
@@ -1225,7 +1225,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A walletname is required.", error.Message);
+            Assert.Equal("A walletname is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1248,7 +1248,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving accounts.", error.Message);
+            Assert.Equal("Issue retrieving accounts.", error.ErrorCode);
         }
 
         [Fact]
@@ -1299,7 +1299,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving address balance.", error.Message);
+            Assert.Equal("Issue retrieving address balance.", error.ErrorCode);
         }
 
         [Fact]
@@ -1320,7 +1320,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("An address is required.", error.Message);
+            Assert.Equal("An address is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1461,7 +1461,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A walletname is required.", error.Message);
+            Assert.Equal("A walletname is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1493,7 +1493,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue building transaction.", error.Message);
+            Assert.Equal("Issue building transaction.", error.ErrorCode);
         }
 
         [Fact]
@@ -1562,7 +1562,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("Hex required.", error.Message);
+            Assert.Equal("Hex required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1626,7 +1626,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("something happened.", error.Message);
+            Assert.Equal("something happened.", error.ErrorCode);
         }
 
         [Fact]
@@ -1667,7 +1667,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.Message);
+            Assert.Equal("A password is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1691,7 +1691,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.Message);
+            Assert.StartsWith("Wallet not found.", error.ErrorCode);
         }
 
         [Fact]
@@ -1752,7 +1752,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("A wallet name is required.", error.Message);
+            Assert.Equal("A wallet name is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1775,7 +1775,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.Message);
+            Assert.StartsWith("Wallet not found.", error.ErrorCode);
         }
 
         [Fact]
@@ -1817,7 +1817,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
-            Assert.Equal("An account name is required.", error.Message);
+            Assert.Equal("An account name is required.", error.ErrorCode);
         }
 
         [Fact]
@@ -1841,7 +1841,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.Equal(400, error.Status);
             Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.Message);
+            Assert.StartsWith("Wallet not found.", error.ErrorCode);
         }
 
         [Fact]
@@ -1931,7 +1931,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             ErrorModel error = errorResponse.Errors[0];
             Assert.NotNull(errorResult.StatusCode);
             Assert.Equal((int)HttpStatusCode.BadRequest, errorResult.StatusCode.Value);
-            Assert.Equal("There was an error in the model.", error.Message);
+            Assert.Equal("There was an error in the model.", error.ErrorCode);
         }
 
         [Fact]

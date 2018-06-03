@@ -45,7 +45,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.minTxFee = nodeSettings.MinTxFeeRate;
             this.fallbackFee = nodeSettings.FallbackTxFeeRate;
             this.payTxFee = new FeeRate(0);
-            this.maxTxFee = new Money(0.1M, MoneyUnit.BTC);
+            this.maxTxFee = new Money(0.1M, MoneyUnit.BTR);
             this.minRelayTxFee = nodeSettings.MinRelayTxFeeRate;
         }
 

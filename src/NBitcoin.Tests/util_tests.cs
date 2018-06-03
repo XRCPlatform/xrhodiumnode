@@ -242,10 +242,10 @@ namespace NBitcoin.Tests
         {
             var tests = new[]
             {
-                new object[]{ 1.23456789m, MoneyUnit.BTC, 123456789m, MoneyUnit.Satoshi  },
-                new object[]{ 1.23456789m, MoneyUnit.BTC, 1234.56789m, MoneyUnit.MilliBTC  },
-                new object[]{ 1.23456789m, MoneyUnit.BTC, 1234567.89m, MoneyUnit.Bit  },
-                new object[]{ 1.23456789m, MoneyUnit.BTC, 1.23456789m, MoneyUnit.BTC  },
+                new object[]{ 1.23456789m, MoneyUnit.BTR, 123456789m, MoneyUnit.Satoshi  },
+                new object[]{ 1.23456789m, MoneyUnit.BTR, 1234.56789m, MoneyUnit.MilliBTR  },
+                new object[]{ 1.23456789m, MoneyUnit.BTR, 1234567.89m, MoneyUnit.Bit  },
+                new object[]{ 1.23456789m, MoneyUnit.BTR, 1.23456789m, MoneyUnit.BTR  },
             };
 
             foreach(var test in tests)
@@ -415,8 +415,8 @@ namespace NBitcoin.Tests
         [Trait("UnitTest", "UnitTest")]
         public void MoneyUnitSanityCheck()
         {
-            Money.FromUnit(10m, MoneyUnit.BTC);
-            Money.FromUnit(10m, MoneyUnit.MilliBTC);
+            Money.FromUnit(10m, MoneyUnit.BTR);
+            Money.FromUnit(10m, MoneyUnit.MilliBTR);
             Money.FromUnit(10m, MoneyUnit.Bit);
             Money.FromUnit(10m, MoneyUnit.Satoshi);
 

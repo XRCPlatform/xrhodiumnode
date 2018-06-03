@@ -141,6 +141,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                     response.Code = "-5";
                     response.Message = "Block not found";
                     return this.Json(ResultHelper.BuildResultResponse(response));
+                    //return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, response.Code, response.Message);
                 }
 
                 var blockModel = new BlockModel();

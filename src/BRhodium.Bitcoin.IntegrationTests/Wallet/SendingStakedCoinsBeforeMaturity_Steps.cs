@@ -66,7 +66,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.Wallet
 
             var errorResponse = error.Value as ErrorResponse;
             errorResponse?.Errors.Count.Should().Be(1);
-            errorResponse?.Errors[0].Message.Should().Be(ConsensusErrors.BadTransactionPrematureCoinbaseSpending.Message);
+            errorResponse?.Errors[0].ErrorCode.Should().Be(ConsensusErrors.BadTransactionPrematureCoinbaseSpending.Message);
         }
 
         private IActionResult SendTransaction(IActionResult transactionResult)

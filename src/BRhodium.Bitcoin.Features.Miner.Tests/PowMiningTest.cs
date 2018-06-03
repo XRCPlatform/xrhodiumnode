@@ -620,7 +620,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
             var transaction = this.Network.Consensus.ConsensusFactory.CreateTransaction();
             transaction.AddInput(TxIn.CreateCoinbase(newHeight));
-            transaction.AddOutput(new TxOut(new Money(1, MoneyUnit.BTC), ScriptPubKey));
+            transaction.AddOutput(new TxOut(new Money(1, MoneyUnit.BTR), ScriptPubKey));
             block.Transactions.Add(transaction);
 
             block.Header.Bits = block.Header.GetWorkRequired(this.Network, prevBlock);
