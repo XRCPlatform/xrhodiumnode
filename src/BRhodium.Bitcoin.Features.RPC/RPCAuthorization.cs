@@ -40,9 +40,10 @@ namespace BRhodium.Bitcoin.Features.RPC
         {
             Guard.NotNull(ip, nameof(ip));
 
-            if (this.AllowIp.Count == 0)
+            //TODO BTR: this is wrong check - it doesnt work on linux
+            //if (this.AllowIp.Count == 0)
                 return true;
-            return this.AllowIp.Any(i => i.AddressFamily == ip.AddressFamily && i.Equals(ip));
+            //return this.AllowIp.Any(i => i.AddressFamily == ip.AddressFamily && i.Equals(ip));
         }
     }
 }
