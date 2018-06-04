@@ -219,33 +219,49 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
-            var walletReference = new WalletAccountReference()
-            {
-                AccountName = hdAcccountName,
-                WalletName = walletName
-            };
 
-            var context = new TransactionBuildContext(
-                walletReference,
-                new[]
+            var isValid = false;
+            if (BitcoinPubKeyAddress.IsValid(targetAddress, ref this.Network))
+            {
+                isValid = true;
+            }
+            else if (BitcoinScriptAddress.IsValid(targetAddress, ref this.Network))
+            {
+                isValid = true;
+            }
+
+            if (isValid)
+            {
+                var walletReference = new WalletAccountReference()
                 {
+                    AccountName = hdAcccountName,
+                    WalletName = walletName
+                };
+
+                var context = new TransactionBuildContext(
+                    walletReference,
+                    new[]
+                    {
                          new Recipient {
                              Amount = new Money(satoshi, MoneyUnit.Satoshi),
                              ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
                          }
-                }.ToList(), password)
-            {
-                MinConfirmations = 0,
-                FeeType = FeeType.Medium,
-                Sign = true
-            };
+                    }.ToList(), password)
+                {
+                    MinConfirmations = 0,
+                    FeeType = FeeType.Medium,
+                    Sign = true
+                };
 
-            var controller = this.FullNode.NodeService<WalletController>();
+                var controller = this.FullNode.NodeService<WalletController>();
 
-            var fundTransaction = transaction.BuildTransaction(context);
-            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+                var fundTransaction = transaction.BuildTransaction(context);
+                controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
 
-            return fundTransaction;
+                return fundTransaction;
+            }
+
+            return null;
         }
 
         [ActionName("gettransaction")]
