@@ -12,7 +12,8 @@ using System;
 using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Features.Consensus.CoinViews;
+using NBitcoin.RPC;
+
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
@@ -124,8 +125,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         [ActionDescription("Returns a block details.")]
         public IActionResult GetBlock(string[] args)
         {
-            try
-            {
+                // exceptions correctly handled and formated at RPCMiddleware layer
                 var blockHash = uint256.Parse(args[0]);
                 if (blockHash == null)
                 {
@@ -137,11 +137,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 var currentBlock = this.ConsensusLoop.Chain.GetBlock(blockHash);
                 if (currentBlock == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Block not found";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
-                    //return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, response.Code, response.Message);
+                    throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
                 }
 
                 var blockModel = new BlockModel();
@@ -174,12 +170,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 }
                 var json = ResultHelper.BuildResultResponse(blockModel);
                 return this.Json(json);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+          
         }
 
     }

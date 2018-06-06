@@ -264,7 +264,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 //UnspentOutputReference currentTransaction = null;
                 //string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-                
+
                 //foreach (var item in this.walletManager.GetSpendableTransactionsInWallet(walletName,0))
                 //{
                 //    if (item.Transaction.Id.Equals(reqTransactionId)) {
@@ -273,10 +273,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 //    }
                 //}
                 //var x = this.ConsensusLoop.UTXOSet.FetchCoinsAsync(new uint256[1] { reqTransactionId }).GetAwaiter().GetResult();        
-
+                Block block = null;
                 var blockHash = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
-
-                var block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
+                if (blockHash != null) {
+                    block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
+                }
+                
                 var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
                 if (currentTransaction == null)
                 {
