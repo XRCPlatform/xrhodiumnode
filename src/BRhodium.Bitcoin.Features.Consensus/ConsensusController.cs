@@ -151,11 +151,11 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 blockModel.Height = currentBlock.Height;
                 if (this.ConsensusLoop.Chain.Tip.Height > currentBlock.Height)
                 {
-                    blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1));
+                    blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
                 }
                 //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
                 //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
-
+                blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
 
 
                 Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
@@ -163,7 +163,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 {
                     throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
                 }
-                //blockModel.Nonce = fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+               
                 foreach (var tx in fullBlock.Transactions)
                 {
                     blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));

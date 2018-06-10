@@ -67,8 +67,8 @@ namespace BRhodium.Bitcoin.Features.RPC
                 var rpcEx = (ConsensusErrorException)ex;
                 JObject response = CreateErrorConsensus(rpcEx.ConsensusError.Code, rpcEx.ConsensusError.Message);
                 httpContext.Response.ContentType = "application/json";
-                httpContext.Response.StatusCode = 400;
-                await httpContext.Response.WriteAsync(response.ToString(Formatting.Indented));
+                httpContext.Response.StatusCode = 200;
+                await httpContext.Response.WriteAsync(response.ToString(Formatting.None));
             }
             else if (ex is RPCException)
             {
@@ -150,10 +150,13 @@ namespace BRhodium.Bitcoin.Features.RPC
         }
         private static JObject CreateErrorConsensus(string code, string message)
         {
+            JObject response = new JObject();
+            response.Add("result", null);
             JObject error = new JObject();
+            response.Add("error", error);
             error.Add("code", code);
             error.Add("message", message);
-            return error;
+            return response;
         }
     }
 }
