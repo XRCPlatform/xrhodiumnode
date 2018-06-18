@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using BRhodium.Bitcoin.Configuration;
 using BRhodium.Bitcoin.Utilities;
+using BRhodium.Bitcoin.Features.Consensus;
 
 namespace BRhodium.Bitcoin.Features.RPC
 {
@@ -58,6 +59,21 @@ namespace BRhodium.Bitcoin.Features.RPC
             else if (ex is ConfigurationException)
             {
                 JObject response = CreateError(RPCErrorCode.RPC_INTERNAL_ERROR, ex.Message);
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsync(response.ToString(Formatting.Indented));
+            }
+            else if (ex is ConsensusErrorException)
+            {
+                var rpcEx = (ConsensusErrorException)ex;
+                JObject response = CreateErrorConsensus(rpcEx.ConsensusError.Code, rpcEx.ConsensusError.Message);
+                httpContext.Response.ContentType = "application/json";
+                httpContext.Response.StatusCode = 200;
+                await httpContext.Response.WriteAsync(response.ToString(Formatting.None));
+            }
+            else if (ex is RPCException)
+            {
+                var rpcEx = (RPCException)ex;
+                JObject response = CreateError(rpcEx.RPCCode, rpcEx.RPCCodeMessage);
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsync(response.ToString(Formatting.Indented));
             }
@@ -129,6 +145,16 @@ namespace BRhodium.Bitcoin.Features.RPC
             JObject error = new JObject();
             response.Add("error", error);
             error.Add("code", (int)code);
+            error.Add("message", message);
+            return response;
+        }
+        private static JObject CreateErrorConsensus(string code, string message)
+        {
+            JObject response = new JObject();
+            response.Add("result", null);
+            JObject error = new JObject();
+            response.Add("error", error);
+            error.Add("code", code);
             error.Add("message", message);
             return response;
         }

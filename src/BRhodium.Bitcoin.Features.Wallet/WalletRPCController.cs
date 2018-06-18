@@ -17,6 +17,9 @@ using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Configuration;
 using BRhodium.Bitcoin.Utilities;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
+using NBitcoin.RPC;
+using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -35,10 +38,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public IConsensusLoop ConsensusLoop { get; private set; }
 
         public WalletRPCController(
-            IServiceProvider serviceProvider, 
-            IWalletManager walletManager, 
-            ILoggerFactory loggerFactory, 
-            IFullNode fullNode, 
+            IServiceProvider serviceProvider,
+            IWalletManager walletManager,
+            ILoggerFactory loggerFactory,
+            IFullNode fullNode,
             IBlockRepository blockRepository,
             NodeSettings nodeSettings,
             Network network,
@@ -58,7 +61,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
         }
 
-        
+
 
 
         [ActionName("sendtoaddress")]
@@ -99,9 +102,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
-
+        /// <summary>
+        /// If [account] is not specified, returns the server's total available balance.
+        /// If [account] is specified, returns the balance in the account. 
+        /// </summary>
+        /// <param name="account">The account to get the balance for.</param>
+        /// <returns>The balance of the account or the total wallet.</returns>
         [ActionName("getbalance")]
-        [ActionDescription("Gets the current consensus tip height.")]
+        [ActionDescription("Gets account balance")]
         public IActionResult GetBalance(string address)
         {
             try
@@ -182,22 +190,40 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
-
+        private static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
         [ActionName("getaccount")]
         [ActionDescription("")]
         public IActionResult GetAccount(string address)
         {
-            try
+            if (string.IsNullOrEmpty(address))
             {
-                string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
+                throw new ArgumentNullException("address");
+            }
 
-                return this.Json(ResultHelper.BuildResultResponse(walletName));
-            }
-            catch (Exception e)
+            string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+            if (walletCombix != null)
             {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+                return this.Json(ResultHelper.BuildResultResponse(walletCombix));
             }
+
+            foreach (var currWalletName in this.walletManager.GetWalletsNames())
+            {
+                foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                {
+                    foreach (var walletAddress in currAccount.ExternalAddresses)
+                    {
+                        if (walletAddress.Address.ToString().Equals(address))
+                        {
+                            walletCombix = $"{currAccount.Name}/{currWalletName}";
+                            walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                            return this.Json(ResultHelper.BuildResultResponse(walletCombix));
+                        }
+                    }
+                }
+            }
+            //if this point is reached the address is not in any wallets
+            throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
+           
         }
         [ActionName("generatenewwallet")]
         public Mnemonic GenerateNewWallet(string walletName, string password)
@@ -264,6 +290,60 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return null;
         }
 
+        [ActionName("sendmany")]
+        public uint256 Sendmany(string hdAcccountName, string toBitcoinAddresses, int minconf, string password)
+        {
+            string acccountName = "";
+            string walletName = "";
+            if (string.IsNullOrEmpty(hdAcccountName))
+            {
+                throw new ArgumentNullException("hdAcccountName");
+            }
+            if (string.IsNullOrEmpty(toBitcoinAddresses))
+            {
+                throw new ArgumentNullException("toBitcoinAddresses");
+            }
+            if (hdAcccountName.Contains("/"))
+            {
+                acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
+                walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/")+1);//, hdAcccountName.Length - hdAcccountName.IndexOf("/")
+            }
+            else
+            {//get default account wallet name
+                acccountName = hdAcccountName;
+                walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
+            }
+
+            var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+            var w = this.walletManager as WalletManager;
+            var walletReference = new WalletAccountReference(walletName, acccountName);
+            Dictionary<string, decimal> toBitcoinAddress = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(toBitcoinAddresses);
+
+            List<Recipient> recipients = new List<Recipient>();
+            foreach (var item in toBitcoinAddress)
+            {
+                recipients.Add(new Recipient
+                {
+                    Amount = new Money(item.Value, MoneyUnit.BTR),
+                    ScriptPubKey = BitcoinAddress.Create(item.Key, this.Network).ScriptPubKey
+                });
+            };
+
+            var context = new TransactionBuildContext(walletReference, recipients, password)
+            {
+                MinConfirmations = minconf,
+                FeeType = FeeType.Medium,
+                Sign = true
+            };
+
+            var controller = this.FullNode.NodeService<WalletController>();
+
+            var fundTransaction = transaction.BuildTransaction(context);
+            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+
+            return fundTransaction.GetHash();
+        }
+
         [ActionName("gettransaction")]
         [ActionDescription("Returns a wallet (only local transactions) transaction detail.")]
         public IActionResult GetTransaction(string[] args)
@@ -280,7 +360,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 //UnspentOutputReference currentTransaction = null;
                 //string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-                
+
                 //foreach (var item in this.walletManager.GetSpendableTransactionsInWallet(walletName,0))
                 //{
                 //    if (item.Transaction.Id.Equals(reqTransactionId)) {
@@ -289,10 +369,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 //    }
                 //}
                 //var x = this.ConsensusLoop.UTXOSet.FetchCoinsAsync(new uint256[1] { reqTransactionId }).GetAwaiter().GetResult();        
-
+                Block block = null;
+                ChainedHeader chainedHeader = null;
                 var blockHash = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
+                if (blockHash != null)
+                {
+                    block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
+                    chainedHeader = this.ConsensusLoop.Chain.GetBlock(blockHash);
+                }
 
-                var block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
                 var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
                 if (currentTransaction == null)
                 {
@@ -300,44 +385,57 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     response.Code = "-5";
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
-                }                
+                }
 
                 var transactionResponse = new TransactionModel();
                 var transactionHash = currentTransaction.GetHash();
                 transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
                 transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
-                if (block != null)
+                if (block != null && chainedHeader != null)
                 {
-                    transactionResponse.Confirmations = 0;//this.ConsensusLoop.Chain.Tip.Height - block.Header.Height;
+                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; // ExtractBlockHeight(block.Transactions.First().Inputs.First().ScriptSig);
                     transactionResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
                 }
-                
+
                 transactionResponse.BlockHash = string.Format("{0:x8}", blockHash);
-               
-                
+
+
                 transactionResponse.Time = currentTransaction.Time;
                 transactionResponse.TimeReceived = currentTransaction.Time;
                 //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
-  
+
                 transactionResponse.Details = new List<TransactionDetail>();
                 foreach (var item in currentTransaction.Outputs)
                 {
                     var detail = new TransactionDetail();
                     var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
-                    if (address != null)
+
+                    if (address == null)
                     {
-                        detail.Account = address.Address;
-                        detail.Address = address.Address;
+                        var response = new Utilities.JsonContract.ErrorModel();
+                        response.Code = "-5";
+                        response.Message = "Invalid or non-wallet transaction id";
+                        return this.Json(ResultHelper.BuildResultResponse(response));
                     }
-                    else {
-                        detail.Address = item.ScriptPubKey.ToString();
+
+                    detail.Account = address.Address;
+                    detail.Address = address.Address;
+
+                    if (transactionResponse.Confirmations < 10)
+                    {
+                        detail.Category = "receive";
                     }
-                    detail.Category = "generate";
+                    else
+                    {
+                        detail.Category = "generate";
+                    }
+
+
                     detail.Amount = (double)item.Value.Satoshi / 100000000;
                     transactionResponse.Details.Add(detail);
                 }
-                  
-               
+
+
                 transactionResponse.Hex = currentTransaction.ToHex();
 
 
@@ -349,6 +447,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        private int ExtractBlockHeight(Script scriptSig)
+        {
+            int retval = 0;
+            foreach (var item in scriptSig.ToOps())
+            {
+                //item.PushData.
+                break;
+            }
+            return retval;
         }
     }
 }

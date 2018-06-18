@@ -12,7 +12,8 @@ using System;
 using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Features.Consensus.CoinViews;
+using NBitcoin.RPC;
+
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
@@ -53,6 +54,22 @@ namespace BRhodium.Bitcoin.Features.Consensus
             Guard.NotNull(this.ChainState, nameof(this.ChainState));
             return this.ChainState?.ConsensusTip?.HashBlock;
         }
+        [ActionName("invalidateblock")]
+        [ActionDescription("Get the hash of the block at the consensus tip.")]
+        public uint256 InvalidateBlockHash(string[] args)
+        {
+            Guard.NotNull(this.ChainState, nameof(this.ChainState));
+            var blockHash = uint256.Parse(args[0]);
+            if (blockHash == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
+            }
+            this.ChainState.MarkBlockInvalid(blockHash);
+            //this.blockRepository.DeleteAsync(blockHash).GetAwaiter().GetResult();
+
+            return this.ChainState?.ConsensusTip?.HashBlock;
+        }
+        
 
         [ActionName("getblockhash")]
         [ActionDescription("Gets the hash of the block at the given height.")]
@@ -124,24 +141,16 @@ namespace BRhodium.Bitcoin.Features.Consensus
         [ActionDescription("Returns a block details.")]
         public IActionResult GetBlock(string[] args)
         {
-            try
-            {
+                // exceptions correctly handled and formated at RPCMiddleware layer
                 var blockHash = uint256.Parse(args[0]);
                 if (blockHash == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Block not found";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
+                   throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
                 }
                 var currentBlock = this.ConsensusLoop.Chain.GetBlock(blockHash);
                 if (currentBlock == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Block not found";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
-                    //return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, response.Code, response.Message);
+                    throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
                 }
 
                 var blockModel = new BlockModel();
@@ -155,11 +164,11 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 blockModel.Height = currentBlock.Height;
                 if (this.ConsensusLoop.Chain.Tip.Height > currentBlock.Height)
                 {
-                    blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1));
+                    blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
                 }
                 //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
                 //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
-
+                blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
 
 
                 Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
@@ -167,19 +176,14 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 {
                     throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
                 }
-                //blockModel.Nonce = fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+               
                 foreach (var tx in fullBlock.Transactions)
                 {
                     blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
                 }
                 var json = ResultHelper.BuildResultResponse(blockModel);
                 return this.Json(json);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+          
         }
 
     }

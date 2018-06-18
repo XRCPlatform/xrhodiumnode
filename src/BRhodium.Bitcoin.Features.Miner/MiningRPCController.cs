@@ -27,6 +27,7 @@ using BRhodium.Bitcoin.Utilities;
 using BRhodium.Bitcoin.Utilities.Extensions;
 using BRhodium.Bitcoin.Utilities.JsonContract;
 using BRhodium.Bitcoin.Utilities.JsonErrors;
+using NBitcoin.RPC;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {
@@ -227,37 +228,29 @@ namespace BRhodium.Bitcoin.Features.Miner
         [ActionDescription("")]
         public IActionResult GetMiningInfo()
         {
-            try
+            var miningInfo = new GetMiningInfo();
+
+            miningInfo.Chain = this.Network.Name;
+            miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
+            miningInfo.PooledTx = this.txMempool.MapTx.Count();
+            miningInfo.NetworkHashps = GetNetworkHashPS();
+            miningInfo.Blocks = this.ChainState?.ConsensusTip?.Height ?? 0;
+
+            ChainedHeader chainTip = this.consensusLoop.Tip;
+            int nExtraNonce = 0;
+            lock (lockGetBlockTemplate)
             {
-                var miningInfo = new GetMiningInfo();
+                BlockTemplate pblockTemplate = this.blockProvider.BuildPowBlock(chainTip, new Script());
+                nExtraNonce = this.powMining.IncrementExtraNonce(pblockTemplate.Block, chainTip, nExtraNonce);
+                var block = pblockTemplate.Block;
 
-                miningInfo.Chain = this.Network.Name;
-                miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
-                miningInfo.PooledTx = this.txMempool.MapTx.Count();
-                miningInfo.NetworkHashps = GetNetworkHashPS();
-                miningInfo.Blocks = this.ChainState?.ConsensusTip?.Height ?? 0;
-
-                ChainedHeader chainTip = this.consensusLoop.Tip;
-                int nExtraNonce = 0;
-                lock (lockGetBlockTemplate)
+                if (block != null)
                 {
-                    BlockTemplate pblockTemplate = this.blockProvider.BuildPowBlock(chainTip, new Script());
-                    nExtraNonce = this.powMining.IncrementExtraNonce(pblockTemplate.Block, chainTip, nExtraNonce);
-                    var block = pblockTemplate.Block;
-
-                    if (block != null)
-                    {
-                        miningInfo.CurrentBlockSize = block.GetSerializedSize();
-                        miningInfo.CurrentBlockTx = block.Transactions.Count();
-                    }
+                    miningInfo.CurrentBlockSize = block.GetSerializedSize();
+                    miningInfo.CurrentBlockTx = block.Transactions.Count();
                 }
-                return this.Json(ResultHelper.BuildResultResponse(miningInfo));
             }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+            return this.Json(ResultHelper.BuildResultResponse(miningInfo));
         }
         private static Object lockGetBlockTemplate = new Object();
         private static Object lockSubmitBlock = new Object();
@@ -265,109 +258,97 @@ namespace BRhodium.Bitcoin.Features.Miner
         [ActionDescription("")]
         public IActionResult GetBlockTemplate(string[] args)
         {
-            try
+            var blockTemplate = new GetBlockTemplateModel();
+
+            //generate template
+            ChainedHeader chainTip = this.consensusLoop.Tip;
+            int nExtraNonce = 0;
+            BlockTemplate pblockTemplate;
+            lock (lockGetBlockTemplate)
             {
-                var blockTemplate = new GetBlockTemplateModel();
+                pblockTemplate = this.blockProvider.BuildPowBlock(chainTip, new Script());
+                nExtraNonce = this.powMining.IncrementExtraNonce(pblockTemplate.Block, chainTip, nExtraNonce);
 
-                //generate template
-                ChainedHeader chainTip = this.consensusLoop.Tip;
-                int nExtraNonce = 0;
-                BlockTemplate pblockTemplate;
-                lock (lockGetBlockTemplate)
+                var block = pblockTemplate.Block;
+                var powCoinviewRule = this.consensusLoop.ConsensusRules.GetRule<PowCoinViewRule>();
+
+                if (block != null)
                 {
-                    pblockTemplate = this.blockProvider.BuildPowBlock(chainTip, new Script());
-                    nExtraNonce = this.powMining.IncrementExtraNonce(pblockTemplate.Block, chainTip, nExtraNonce);
+                    TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
 
-                    var block = pblockTemplate.Block;
-                    var powCoinviewRule = this.consensusLoop.ConsensusRules.GetRule<PowCoinViewRule>();
+                    blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
+                    blockTemplate.Curtime = DateTime.UtcNow.ToUnixTimestamp().ToString();
+                    blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+                    blockTemplate.Target = block.Header.Bits.ToString();
 
-                    if (block != null)
+                    blockTemplate.Transactions = new List<TransactionContractModel>();
+
+                    if (block.Transactions != null)
                     {
-                        TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-
-                        blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
-                        blockTemplate.Curtime = DateTime.UtcNow.ToUnixTimestamp().ToString();
-                        blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
-                        blockTemplate.Target = block.Header.Bits.ToString();
-
-                        blockTemplate.Transactions = new List<TransactionContractModel>();
-
-                        if (block.Transactions != null)
+                        for (int i = 0; i < block.Transactions.Count; i++)
                         {
-                            for (int i = 0; i < block.Transactions.Count; i++)
+                            var item = block.Transactions[i];
+                            if (!item.IsCoinBase)
                             {
-                                var item = block.Transactions[i];
-                                if (!item.IsCoinBase)
-                                {
-                                    var transaction = new TransactionContractModel();
+                                var transaction = new TransactionContractModel();
 
-                                    transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.ALT_PROTOCOL_VERSION, this.Network));
-                                    transaction.Hash = item.GetWitHash().ToString();
-                                    transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
+                                transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.ALT_PROTOCOL_VERSION, this.Network));
+                                transaction.Hash = item.GetWitHash().ToString();
+                                transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
 
-                                    transaction.Fee = pblockTemplate.VTxFees[i];
-                                    transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
-                                    transaction.Weight = item.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION);
+                                transaction.Fee = pblockTemplate.VTxFees[i];
+                                transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
+                                transaction.Weight = item.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION);
 
-                                    //test decode
-                                    var s = Transaction.Load(Encoders.Hex.DecodeData(transaction.Data), this.Network);
+                                //test decode
+                                //var s = Transaction.Load(Encoders.Hex.DecodeData(transaction.Data), this.Network);
 
-                                    blockTemplate.Transactions.Add(transaction);
-                                }
+                                blockTemplate.Transactions.Add(transaction);
                             }
                         }
-
-                        //uint256 hashMerkleRoot2 = BlockMerkleRootRule.BlockMerkleRoot(block, out bool mutated);
-                        //block.Transactions[0].Inputs[0].ScriptSig = null;
-                        //uint256 hashMerkleRoot21 = BlockMerkleRootRule.BlockMerkleRoot(block, out bool mutated1);
-
-                        blockTemplate.Height = chainTip.Height + 1;
-                        blockTemplate.Version = block.Header.Version;
-
-                        blockTemplate.Coinbaseaux = new CoinbaseauxFlagsContractModel();
-                        blockTemplate.Coinbaseaux.Flags = "062f503253482f";//"2f503253482f"
-                        blockTemplate.CoinbaseValue = powCoinviewRule.GetProofOfWorkReward(blockTemplate.Height).Satoshi;
-
-                        var mutable = new List<string>();
-                        mutable.Add("nonces");
-                        mutable.Add("time");
-                        mutable.Add("time/decrement");
-                        mutable.Add("time/increment");
-                        mutable.Add("transactions");
-                        mutable.Add("coinbase");
-                        mutable.Add("coinbase/create");
-                        mutable.Add("coinbase/append");
-                        mutable.Add("generation");
-                        mutable.Add("version/reduce");
-                        mutable.Add("prevblock");
-                        blockTemplate.Mutable = mutable;
-                        blockTemplate.NonceRange = "00000000ffffffff";
-
-                        var rules = new List<string>();
-                        rules.Add("csv");
-                        blockTemplate.Rules = rules;
-
-                        var capabilities = new List<string>();
-                        //capabilities.Add("proposal");
-                        blockTemplate.Capabilities = capabilities;
-
-                        blockTemplate.Vbavailable = new List<string>();
-                        blockTemplate.Vbrequired = 0;
-                        blockTemplate.Weightlimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockWeight;
-                        blockTemplate.Sigoplimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockSigopsCost;
-                        blockTemplate.Sizelimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockSerializedSize;
-
-                        blockTemplate.Mintime = chainTip.GetMedianTimePast().AddHours(2).ToUnixTimeSeconds();//+two hour rule
                     }
+
+                    blockTemplate.Height = chainTip.Height + 1;
+                    blockTemplate.Version = block.Header.Version;
+
+                    blockTemplate.Coinbaseaux = new CoinbaseauxFlagsContractModel();
+                    blockTemplate.Coinbaseaux.Flags = "062f503253482f";//"2f503253482f"
+                    blockTemplate.CoinbaseValue = powCoinviewRule.GetProofOfWorkReward(blockTemplate.Height).Satoshi;
+
+                    var mutable = new List<string>();
+                    mutable.Add("nonces");
+                    mutable.Add("time");
+                    mutable.Add("time/decrement");
+                    mutable.Add("time/increment");
+                    mutable.Add("transactions");
+                    mutable.Add("coinbase");
+                    mutable.Add("coinbase/create");
+                    mutable.Add("coinbase/append");
+                    mutable.Add("generation");
+                    mutable.Add("version/reduce");
+                    mutable.Add("prevblock");
+                    blockTemplate.Mutable = mutable;
+                    blockTemplate.NonceRange = "00000000ffffffff";
+
+                    var rules = new List<string>();
+                    rules.Add("csv");
+                    blockTemplate.Rules = rules;
+
+                    var capabilities = new List<string>();
+                    //capabilities.Add("proposal");
+                    blockTemplate.Capabilities = capabilities;
+
+                    blockTemplate.Vbavailable = new List<string>();
+                    blockTemplate.Vbrequired = 0;
+                    blockTemplate.Weightlimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockWeight;
+                    blockTemplate.Sigoplimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockSigopsCost;
+                    blockTemplate.Sizelimit = this.Network.Consensus.Option<PowConsensusOptions>().MaxBlockSerializedSize;
+
+                    blockTemplate.Mintime = chainTip.GetMedianTimePast().AddHours(2).ToUnixTimeSeconds();//+two hour rule
                 }
-                var json = ResultHelper.BuildResultResponse(blockTemplate);
-                return this.Json(json);
             }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+            var json = ResultHelper.BuildResultResponse(blockTemplate);
+            return this.Json(json);
         }
 
         [ActionName("submitblock")]
@@ -375,50 +356,47 @@ namespace BRhodium.Bitcoin.Features.Miner
         public IActionResult SubmitBlock(string hex)
         {
             var response = new SubmitBlockModel();
-            try
+            
+            lock (lockSubmitBlock)
             {
-                lock (lockSubmitBlock)
+                if (string.IsNullOrEmpty(hex))
                 {
-                    if (string.IsNullOrEmpty(hex))
-                    {
-                        response.Code = "-1";
-                        response.Message = "Empty block hex supplied";
-                        return this.Json(ResultHelper.BuildResultResponse(response));
-                    }
-
-                    var hexBytes = Encoders.Hex.DecodeData(hex);
-                    var pblock = PowBlock.Load(hexBytes, this.Network);
-
-                    var chainTip = this.consensusLoop.Chain.Tip;
-
-                    var newChain = new ChainedHeader(pblock.Header, pblock.GetHash(), chainTip);
-
-                    if (newChain.ChainWork <= chainTip.ChainWork)
-                        throw new Exception("Wrong chain work");
-
-                    var blockValidationContext = new BlockValidationContext { Block = pblock };
-
-                    this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
-
-                    if (blockValidationContext.Error != null)
-                    {
-                        response.Code = blockValidationContext.Error.Code;
-                        response.Message = blockValidationContext.Error.Message;
-                        return this.Json(ResultHelper.BuildResultResponse(response));
-                    }
-
-                    var json = this.Json(ResultHelper.BuildResultResponse(response));
-                    return json;
+                    throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Empty block hex supplied", null, false);
                 }
-            }
-            catch (Exception e)
-            {
-                response.Code = "-22";
-                response.Message = "Block decode failed";
 
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return this.Json(ResultHelper.BuildResultResponse(response));
-            }            
+                var hexBytes = Encoders.Hex.DecodeData(hex);
+                var pblock = PowBlock.Load(hexBytes, this.Network);
+
+                if (pblock == null)
+                {
+                    throw new RPCException(RPCErrorCode.RPC_DESERIALIZATION_ERROR, "Empty block hex supplied", null, false);
+                }
+
+                var chainTip = this.consensusLoop.Chain.Tip;
+
+                var newChain = new ChainedHeader(pblock.Header, pblock.GetHash(), chainTip);
+
+                if (newChain.ChainWork <= chainTip.ChainWork)
+                {
+                    throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Wrong chain work", null, false);
+                }
+                    
+                var blockValidationContext = new BlockValidationContext { Block = pblock };
+
+                this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
+
+                if (blockValidationContext.Error != null)
+                {
+                    blockValidationContext.Error.Throw();// not sure if consesus error should have non 200 status code
+                    //response.Code = blockValidationContext.Error.Code;
+                    //response.Message = blockValidationContext.Error.Message;                   
+                    //return this.Json(ResultHelper.BuildResultResponse(response));
+                }
+                 
+                var json = this.Json(ResultHelper.BuildResultResponse(""));// if block is successfuly accepted return null
+                return json;
+            }
+           
         }
 
         public double GetNetworkHashPS()

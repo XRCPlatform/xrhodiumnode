@@ -110,14 +110,14 @@ namespace BRhodium.Bitcoin.IntegrationTests.Wallet
 
             this.transactionBuildContext = new TransactionBuildContext(
                 new WalletAccountReference(WalletName, WalletAccountName),
-                new[]
+                (new[]
                 {
-                    new Recipient
+                    new Features.Wallet.Recipient
                     {
                         Amount = this.nodeTwoBalance - Money.COIN,
                         ScriptPubKey = sendToNodeOne.ScriptPubKey
                     }
-                }.ToList(),
+                }).ToList(),
                 WalletPassword);
 
             var transaction = this.nodes[NodeTwo].FullNode.WalletTransactionHandler().BuildTransaction(this.transactionBuildContext);
