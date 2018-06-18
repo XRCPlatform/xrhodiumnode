@@ -54,6 +54,22 @@ namespace BRhodium.Bitcoin.Features.Consensus
             Guard.NotNull(this.ChainState, nameof(this.ChainState));
             return this.ChainState?.ConsensusTip?.HashBlock;
         }
+        [ActionName("invalidateblock")]
+        [ActionDescription("Get the hash of the block at the consensus tip.")]
+        public uint256 InvalidateBlockHash(string[] args)
+        {
+            Guard.NotNull(this.ChainState, nameof(this.ChainState));
+            var blockHash = uint256.Parse(args[0]);
+            if (blockHash == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
+            }
+            this.ChainState.MarkBlockInvalid(blockHash);
+            //this.blockRepository.DeleteAsync(blockHash).GetAwaiter().GetResult();
+
+            return this.ChainState?.ConsensusTip?.HashBlock;
+        }
+        
 
         [ActionName("getblockhash")]
         [ActionDescription("Gets the hash of the block at the given height.")]
@@ -129,10 +145,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 var blockHash = uint256.Parse(args[0]);
                 if (blockHash == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Block not found";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
+                   throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
                 }
                 var currentBlock = this.ConsensusLoop.Chain.GetBlock(blockHash);
                 if (currentBlock == null)
