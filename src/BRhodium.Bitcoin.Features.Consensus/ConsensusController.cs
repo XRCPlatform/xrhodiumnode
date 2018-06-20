@@ -170,17 +170,20 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
                 blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
 
+                if (blockModel.Height > 0)
+                {
+                    Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
+                    if (fullBlock == null)
+                    {
+                        throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
+                    }
 
-                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
-                if (fullBlock == null)
-                {
-                    throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
+                    foreach (var tx in fullBlock.Transactions)
+                    {
+                        blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
+                    }
                 }
-               
-                foreach (var tx in fullBlock.Transactions)
-                {
-                    blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
-                }
+                
                 var json = ResultHelper.BuildResultResponse(blockModel);
                 return this.Json(json);
           
