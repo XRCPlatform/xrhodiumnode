@@ -13,6 +13,7 @@ using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Utilities;
+using System.Linq;
 
 namespace BRhodium.BitcoinD
 {
@@ -42,11 +43,11 @@ namespace BRhodium.BitcoinD
                     .UseWallet()
                     .Build();
 
-                //BTR TEST MINER
-                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TryStartMiner(args, node); });
-
                 //BTR Generate Prime Wallet
-                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); });
+                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
+
+                //BTR TEST MINER
+                //Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
 
                 if (node != null)
                     await node.RunAsync();
@@ -58,11 +59,16 @@ namespace BRhodium.BitcoinD
         }
 
         //BTR X13 Miner
-        private static void TryStartMiner(string[] args, IFullNode node)
+        private static void TryStartMiner(string[] args, IFullNode fullNode)
         {
-            var addres = "RsTGVF9k18dYUVS3svetnjCryeyXm7wozw";  //mine.Replace("mine =", string.Empty);
-            var pubkey = BitcoinAddress.Create(addres, node.Network);
-            node.NodeService<IPowMining>().Mine(pubkey.ScriptPubKey);
+            var walletManager = fullNode.NodeService<IWalletManager>() as WalletManager;
+            var wallet = walletManager.GetWalletByName("rhodium.genesis");
+            
+            var hdaccount = wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
+            var address = hdaccount.ExternalAddresses.First();
+
+            var pubkey = BitcoinAddress.Create(address.Address, fullNode.Network);
+            fullNode.NodeService<IPowMining>().Mine(pubkey.ScriptPubKey);
         }
 
         //BTR Wallet TEST
@@ -70,13 +76,26 @@ namespace BRhodium.BitcoinD
         {
             var walletManager = fullNode.NodeService<IWalletManager>() as WalletManager;
 
-            // WalletFeature walletManager = fullNode.w.NodeFeature<WalletFeature>();
-            // walletManager.
-            var password = "thisisourrootwallet";
-            var passphrase = "this is my magic passphrase this is my magic passphrase this is my magic passphrase";
+            var isExist = false;
 
-            // create the wallet
-            var mnemonic = walletManager.CreateWallet(password, "rhodium.genesis", passphrase);
+            try
+            {
+                var wallet = walletManager.GetWalletByName("rhodium.genesis");
+                isExist = true;
+            }
+            catch (Exception)
+            {
+                //exist then nothing
+            }
+
+            if (!isExist)
+            {
+                var password = "thisisourrootwallet";
+                var passphrase = "this is my magic passphrase this is my magic passphrase this is my magic passphrase";
+
+                // create the wallet
+                var mnemonic = walletManager.CreateWallet(password, "rhodium.genesis", passphrase);
+            }
         }
     }
 }

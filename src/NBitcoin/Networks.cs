@@ -468,7 +468,7 @@ namespace NBitcoin
                 DefaultPort = 16665,
                 RPCPort = 16661,
                 MaxTimeOffsetSeconds = BRhodiumMaxTimeOffsetSeconds,
-                MaxTipAge = BRhodiumDefaultMaxTipAgeInSeconds,
+                MaxTipAge = 604800, //one week
                 MinTxFee = 10000,
                 FallbackFee = 60000,
                 MinRelayTxFee = 10000
@@ -482,8 +482,10 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP65] = 0;
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-            network.Consensus.PowLimit = new Target(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
-            network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //easy to mine
+            network.Consensus.PowLimit = new Target(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.244137132
+            network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.465 
+            //network.Consensus.PowLimit = new Target(uint256.Parse("00000031ffce0000000000000000000000000000000000000000000000000000")); //0.02
+
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
             network.Consensus.PowAllowMinDifficultyBlocks = true;
@@ -527,10 +529,7 @@ namespace NBitcoin
 
             //network.SeedNodes.AddRange(new[]
             //{
-            //    new NetworkAddress(IPAddress.Parse("51.140.231.125"), network.DefaultPort), // danger cloud node
-            //    new NetworkAddress(IPAddress.Parse("13.70.81.5"), 3389), // beard cloud node  
-            //    new NetworkAddress(IPAddress.Parse("191.235.85.131"), 3389), // fassa cloud node  
-            //    new NetworkAddress(IPAddress.Parse("52.232.58.52"), 26178), // neurosploit public node
+            //    new NetworkAddress(IPAddress.Parse("138.197.183.100"), network.DefaultPort), // danger cloud node
             //});
 
             Network.Register(network);
