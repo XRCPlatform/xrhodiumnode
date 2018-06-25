@@ -33,6 +33,9 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
         public double Difficulty { get; set; }
 
         public string NextBlockHash { get; set; }
+
+        public string PreviousBlockHash { get; set; }
+
         public BlockModel()
         {
             Tx = new List<string>();
