@@ -26,6 +26,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 {
     public class WalletRPCController : FeatureController
     {
+        private const string DEFAULT_ACCOUNT_NAME = "account 0";
         internal IServiceProvider serviceProvider;
         public IWalletManager walletManager { get; set; }
 
@@ -359,17 +360,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
-                //UnspentOutputReference currentTransaction = null;
-                //string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-
-                //foreach (var item in this.walletManager.GetSpendableTransactionsInWallet(walletName,0))
-                //{
-                //    if (item.Transaction.Id.Equals(reqTransactionId)) {
-                //        currentTransaction = item;
-                //        break;
-                //    }
-                //}
-                //var x = this.ConsensusLoop.UTXOSet.FetchCoinsAsync(new uint256[1] { reqTransactionId }).GetAwaiter().GetResult();        
+               
                 Block block = null;
                 ChainedHeader chainedHeader = null;
                 var blockHash = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
@@ -452,16 +443,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Retrieves the history of a wallet.
         /// </summary>
-        /// <param name="hdAcccountName">The hdAcccountName.</param>
         /// <param name="walletName">walletName</param>
+        /// <param name="hdAcccountName">The hdAcccountName. (Optional) default = "account 0"</param>
         /// <returns></returns>s
         [ActionName("gethistory")]
         [ActionDescription("Returns a wallet (only local transactions) history.")]
-        public IActionResult GetHistory(string hdAcccountName, string walletName)
+        public IActionResult GetHistory(string walletName, string hdAcccountName)
         {
-            Guard.NotNull(hdAcccountName, nameof(hdAcccountName));
             Guard.NotNull(walletName, nameof(walletName));
-
+            if (String.IsNullOrEmpty(hdAcccountName)) {
+                hdAcccountName = DEFAULT_ACCOUNT_NAME;
+            }
 
             try
             {
@@ -551,7 +543,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             var spendingTransactionId = transaction.SpendingDetails.TransactionId;
                             TransactionItemModel sentItem = new TransactionItemModel
                             {
-                                Type = TransactionItemType.Send,
+                                Type = TransactionItemType.Sent,
                                 Id = spendingTransactionId,
                                 Timestamp = transaction.SpendingDetails.CreationTime,
                                 ConfirmedInBlock = transaction.SpendingDetails.BlockHeight,
@@ -605,7 +597,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     });
                 }
 
-                return this.Json(model);
+                return this.Json(ResultHelper.BuildResultResponse(model));
             }
             catch (Exception e)
             {

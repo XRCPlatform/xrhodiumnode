@@ -406,7 +406,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             var spendingTransactionId = transaction.SpendingDetails.TransactionId;
                             TransactionItemModel sentItem = new TransactionItemModel
                             {
-                                Type = TransactionItemType.Send,
+                                Type = TransactionItemType.Sent,
                                 Id = spendingTransactionId,
                                 Timestamp = transaction.SpendingDetails.CreationTime,
                                 ConfirmedInBlock = transaction.SpendingDetails.BlockHeight,

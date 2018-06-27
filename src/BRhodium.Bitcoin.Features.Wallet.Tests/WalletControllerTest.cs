@@ -823,7 +823,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             resultingTransactionModel = historyModel.TransactionsHistory.ElementAt(1);
 
-            Assert.Equal(TransactionItemType.Send, resultingTransactionModel.Type);
+            Assert.Equal(TransactionItemType.Sent, resultingTransactionModel.Type);
             Assert.Null(resultingTransactionModel.ToAddress);
             Assert.Equal(spendingDetails.TransactionId, resultingTransactionModel.Id);
             Assert.Equal(spendingDetails.CreationTime, resultingTransactionModel.Timestamp);
@@ -984,7 +984,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             TransactionItemModel resultingTransactionModel = historyModel.TransactionsHistory.ElementAt(0);
 
-            Assert.Equal(TransactionItemType.Send, resultingTransactionModel.Type);
+            Assert.Equal(TransactionItemType.Sent, resultingTransactionModel.Type);
             Assert.Equal(new uint256(15), resultingTransactionModel.Id);
             Assert.Equal(10, resultingTransactionModel.ConfirmedInBlock);
             Assert.Equal(new Money(80), resultingTransactionModel.Amount);
@@ -1094,7 +1094,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             resultingTransactionModel = historyModel.TransactionsHistory.ElementAt(1);
 
-            Assert.Equal(TransactionItemType.Send, resultingTransactionModel.Type);
+            Assert.Equal(TransactionItemType.Sent, resultingTransactionModel.Type);
             Assert.Null(resultingTransactionModel.ToAddress);
             Assert.Equal(spendingDetails.TransactionId, resultingTransactionModel.Id);
             Assert.Equal(spendingDetails.CreationTime, resultingTransactionModel.Timestamp);
@@ -1109,7 +1109,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             resultingTransactionModel = historyModel.TransactionsHistory.ElementAt(2);
 
-            Assert.Equal(TransactionItemType.Send, resultingTransactionModel.Type);
+            Assert.Equal(TransactionItemType.Sent, resultingTransactionModel.Type);
             Assert.Null(resultingTransactionModel.ToAddress);
             Assert.Equal(spendingDetails2.TransactionId, resultingTransactionModel.Id);
             Assert.Equal(spendingDetails2.CreationTime, resultingTransactionModel.Timestamp);

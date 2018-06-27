@@ -103,7 +103,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.Wallet
 
             var accountHistory = walletHistory.AccountsHistoryModel.FirstOrDefault();
 
-            accountHistory?.TransactionsHistory?.Where(txn => txn.Type == TransactionItemType.Send).Count().Should().Be(0);
+            accountHistory?.TransactionsHistory?.Where(txn => txn.Type == TransactionItemType.Sent).Count().Should().Be(0);
         }
 
         private void the_transaction_was_not_received()
