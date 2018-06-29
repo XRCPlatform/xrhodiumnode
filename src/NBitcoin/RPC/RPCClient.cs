@@ -244,13 +244,13 @@ namespace NBitcoin.RPC
                 var bitcoinFolder = Path.Combine(localAppData, "Bitcoin");
 
                 var mainnet = Path.Combine(bitcoinFolder, ".cookie");
-                RegisterDefaultCookiePath(Network.Main, mainnet);
+                RegisterDefaultCookiePath(Network.BRhodiumRegTest, mainnet);
 
-                var testnet = Path.Combine(bitcoinFolder, "testnet3", ".cookie");
-                RegisterDefaultCookiePath(Network.TestNet, testnet);
+                var testnet = Path.Combine(bitcoinFolder, "BRhodiumTest", ".cookie");
+                RegisterDefaultCookiePath(Network.BRhodiumRegTest, testnet);
 
                 var regtest = Path.Combine(bitcoinFolder, "regtest", ".cookie");
-                RegisterDefaultCookiePath(Network.RegTest, regtest);
+                RegisterDefaultCookiePath(Network.BRhodiumRegTest, regtest);
             }
 #endif
         }
