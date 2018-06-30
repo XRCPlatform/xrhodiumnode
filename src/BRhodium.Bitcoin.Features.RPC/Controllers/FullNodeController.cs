@@ -13,6 +13,11 @@ using BRhodium.Bitcoin.Features.RPC.Models;
 using BRhodium.Bitcoin.Interfaces;
 using BRhodium.Bitcoin.Utilities;
 using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Bitcoin.Utilities.JsonContract;
+using BRhodium.Bitcoin.Utilities.JsonErrors;
+using System.Net;
+using BRhodium.Bitcoin.Features.BlockStore;
+using System.Collections.Generic;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -144,31 +149,39 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
         [ActionName("getinfo")]
         [ActionDescription("Gets general information about the full node.")]
-        public GetInfoModel GetInfo()
+        public IActionResult GetInfo()
         {
-            var model = new GetInfoModel
+            try
             {
-                Version = this.FullNode?.Version?.ToUint() ?? 0,
-                ProtocolVersion = (uint)(this.Settings?.ProtocolVersion ?? NodeSettings.SupportedProtocolVersion),
-                Blocks = this.ChainState?.ConsensusTip?.Height ?? 0,
-                TimeOffset = this.ConnectionManager?.ConnectedPeers?.GetMedianTimeOffset() ?? 0,
-                Connections = this.ConnectionManager?.ConnectedPeers?.Count(),
-                Proxy = string.Empty,
-                Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
-                Testnet = this.Network.IsTest(),
-                RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
-                Errors = string.Empty,
+                var model = new GetInfoModel
+                {
+                    Version = this.FullNode?.Version?.ToUint() ?? 0,
+                    ProtocolVersion = (uint)(this.Settings?.ProtocolVersion ?? NodeSettings.SupportedProtocolVersion),
+                    Blocks = this.ChainState?.ConsensusTip?.Height ?? 0,
+                    TimeOffset = this.ConnectionManager?.ConnectedPeers?.GetMedianTimeOffset() ?? 0,
+                    Connections = this.ConnectionManager?.ConnectedPeers?.Count(),
+                    Proxy = string.Empty,
+                    Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
+                    Testnet = this.Network.IsTest(),
+                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
+                    Errors = string.Empty,
 
-                //TODO: Wallet related infos: walletversion, balance, keypNetwoololdest, keypoolsize, unlocked_until, paytxfee
-                WalletVersion = null,
-                Balance = null,
-                KeypoolOldest = null,
-                KeypoolSize = null,
-                UnlockedUntil = null,
-                PayTxFee = null
-            };
+                    //TODO: Wallet related infos: walletversion, balance, keypNetwoololdest, keypoolsize, unlocked_until, paytxfee
+                    WalletVersion = null,
+                    Balance = null,
+                    KeypoolOldest = null,
+                    KeypoolSize = null,
+                    UnlockedUntil = null,
+                    PayTxFee = null
+                };
 
-            return model;
+                return this.Json(ResultHelper.BuildResultResponse(model));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         /// <summary>
@@ -256,6 +269,62 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         private Target GetNetworkDifficulty()
         {
             return this.networkDifficulty?.GetNetworkDifficulty();
+        }
+
+        [ActionName("getlatestblocks")]
+        public IActionResult GetLatestBlocks(int limit)
+        {
+            try
+            {
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                var result = new List<ChainBlockModel>();
+
+                for (int i = 0; i < limit; i++)
+                {
+                    var height = chainRepository.Height;
+                    if ((height - i) >= 0)
+                    {
+                        var chainedHeader = chainRepository.GetBlock(height - i);
+                        var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                        var newBlock = new ChainBlockModel();
+                        newBlock.Size = block.GetSerializedSize();
+                        newBlock.Height = chainedHeader.Height;
+                        newBlock.Age = chainedHeader.Header.BlockTime;
+
+                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                        {
+                            newBlock.Transactions = new List<TransactionChainBlockModel>();
+
+                            foreach (var itemTransaction in block.Transactions)
+                            {
+                                var newTransaction = new TransactionChainBlockModel();
+                                newTransaction.Hash = itemTransaction.GetHash().ToString();
+                                newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
+
+                                newBlock.Transactions.Add(newTransaction);
+                            }
+
+                            newBlock.TotalSatoshi = newBlock.Transactions.Sum(a => a.Satoshi);
+                        }
+
+                        result.Add(newBlock);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
     }
 }
