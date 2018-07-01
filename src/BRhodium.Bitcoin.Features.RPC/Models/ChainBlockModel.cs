@@ -21,6 +21,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
 
         [JsonProperty(Order = 4, PropertyName = "size")]
         public int Size { get; set; }
+
+        [JsonProperty(Order = 5, PropertyName = "hash")]
+        public string Hash { get; set; }
     }
 
     public class TransactionChainBlockModel

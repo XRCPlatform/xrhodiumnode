@@ -293,6 +293,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         newBlock.Size = block.GetSerializedSize();
                         newBlock.Height = chainedHeader.Height;
                         newBlock.Age = chainedHeader.Header.BlockTime;
+                        newBlock.Hash = chainedHeader.HashBlock.ToString();
 
                         if ((block.Transactions != null) && (block.Transactions.Count() > 0))
                         {
