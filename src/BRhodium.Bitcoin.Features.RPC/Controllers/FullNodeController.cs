@@ -327,5 +327,58 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        [ActionName("getblock")]
+        public IActionResult GetBlock(string hash)
+        {
+            try
+            {
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                var result = new ChainBlockModel();
+
+                var block = blockStoreManager.BlockRepository.GetAsync(new uint256(hash)).Result;
+                var chainedHeader = chainRepository.GetBlock(new uint256(hash));
+
+                var chainedNextHeader = chainRepository.GetBlock(chainedHeader.Height + 1);
+
+                if (block != null)
+                {
+                    result.Size = block.GetSerializedSize();
+                    result.Height = chainedHeader.Height;
+                    result.Age = chainedHeader.Header.BlockTime;
+                    result.Hash = chainedHeader.HashBlock.ToString();
+                    result.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
+                    result.Version = block.Header.Version;
+                    result.Difficult = block.Header.Bits.Difficulty;
+                    result.PrevHash = block.Header.HashPrevBlock.ToString();
+                    result.NextHash = chainedNextHeader != null ? chainedNextHeader.Header.GetHash().ToString() : null;
+                    result.MerkleRoot = block.Header.HashMerkleRoot.ToString();
+
+                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                    {
+                        result.Transactions = new List<TransactionChainBlockModel>();
+
+                        foreach (var itemTransaction in block.Transactions)
+                        {
+                            var newTransaction = new TransactionChainBlockModel();
+                            newTransaction.Hash = itemTransaction.GetHash().ToString();
+                            newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
+                            result.Transactions.Add(newTransaction);
+                        }
+
+                        result.TotalSatoshi = result.Transactions.Sum(a => a.Satoshi);
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }
