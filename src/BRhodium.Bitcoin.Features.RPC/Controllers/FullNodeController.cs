@@ -271,8 +271,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             return this.networkDifficulty?.GetNetworkDifficulty();
         }
 
-        [ActionName("getlatestblocks")]
-        public IActionResult GetLatestBlocks(int limit)
+        [ActionName("getexplorerlatestblocks")]
+        public IActionResult GetExplorerLatestBlocks(int limit)
         {
             try
             {
@@ -328,8 +328,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
-        [ActionName("getblock")]
-        public IActionResult GetBlock(string hash)
+        [ActionName("getexplorerblock")]
+        public IActionResult GetExplorerBlock(string hash)
         {
             try
             {
