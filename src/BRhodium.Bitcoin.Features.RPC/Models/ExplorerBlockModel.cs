@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.RPC.Models
 {
-    public class ChainBlockModel
+    public class ExplorerBlockModel
     {
         [JsonProperty(Order = 0, PropertyName = "height")]
         public int Height { get; set; }
@@ -14,7 +14,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public DateTimeOffset Age { get; set; }
 
         [JsonProperty(Order = 2, PropertyName = "transactions")]
-        public List<TransactionChainBlockModel> Transactions { get; set; }
+        public List<ExplorerTransactionModel> Transactions { get; set; }
 
         [JsonProperty(Order = 3, PropertyName = "totalsatoshi")]
         public double TotalSatoshi { get; set; }
@@ -47,7 +47,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public string MerkleRoot { get; set; }
     }
 
-    public class TransactionChainBlockModel
+    public class ExplorerTransactionModel
     {
         [JsonProperty(Order = 0, PropertyName = "hash")]
         public string Hash { get; set; }
@@ -56,18 +56,27 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public double Satoshi { get; set; }
 
         [JsonProperty(Order = 2, PropertyName = "addressfrom")]
-        public List<TransactionAddressModel> AddressFrom { get; set; }
+        public List<ExplorerAddressModel> AddressFrom { get; set; }
 
-        [JsonProperty(Order = 2, PropertyName = "addressto")]
-        public List<TransactionAddressModel> AddressTo { get; set; }
+        [JsonProperty(Order = 3, PropertyName = "addressto")]
+        public List<ExplorerAddressModel> AddressTo { get; set; }
+
+        [JsonProperty(Order = 4, PropertyName = "time")]
+        public DateTimeOffset Time { get; set; }
+
+        [JsonProperty(Order = 5, PropertyName = "size")]
+        public int Size { get; set; }
     }
 
-    public class TransactionAddressModel
+    public class ExplorerAddressModel
     {
         [JsonProperty(Order = 0, PropertyName = "address")]
         public string Address { get; set; }
 
         [JsonProperty(Order = 1, PropertyName = "satoshi")]
         public double Satoshi { get; set; }
+
+        [JsonProperty(Order = 1, PropertyName = "scripts")]
+        public string Scripts { get; set; }
     }
 }
