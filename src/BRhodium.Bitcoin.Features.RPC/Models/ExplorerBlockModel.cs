@@ -66,6 +66,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
 
         [JsonProperty(Order = 5, PropertyName = "size")]
         public int Size { get; set; }
+
+        [JsonProperty(Order = 6, PropertyName = "blockhash")]
+        public string BlockHash { get; set; }
     }
 
     public class ExplorerAddressModel

@@ -102,6 +102,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                                 var newTransaction = new ExplorerTransactionModel();
                                 newTransaction.Hash = itemTransaction.GetHash().ToString();
                                 newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
+                                newTransaction.BlockHash = block.GetHash().ToString();
 
                                 newBlock.Transactions.Add(newTransaction);
                             }
@@ -161,11 +162,14 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         foreach (var itemTransaction in block.Transactions)
                         {
                             var newTransaction = new ExplorerTransactionModel();
+                            newTransaction.AddressTo = new List<ExplorerAddressModel>();
+                            newTransaction.AddressFrom = new List<ExplorerAddressModel>();
+
                             newTransaction.Hash = itemTransaction.GetHash().ToString();
                             newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
                             newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
                             newTransaction.Size = itemTransaction.GetSerializedSize();
-                            result.Transactions.Add(newTransaction);
+                            newTransaction.BlockHash = block.GetHash().ToString();
 
                             if (itemTransaction.Inputs != null)
                             {
@@ -175,6 +179,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                                     var newAddress = new ExplorerAddressModel();
                                     newAddress.Address = address.ToString();
+
+                                    newTransaction.AddressFrom.Add(newAddress);
                                 }
                             }
 
@@ -188,17 +194,93 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                                     newAddress.Address = address.ToString();
                                     newAddress.Satoshi = itemOutput.Value.Satoshi;
                                     newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
+
+                                    newTransaction.AddressTo.Add(newAddress);
                                 }
                             }
 
-                            var s = new TxOutList(itemTransaction);
+                            result.Transactions.Add(newTransaction);
 
                             //TODO: fee
-                            //var e = s.AsCoins().ToArray();
-                            //var ss = itemTransaction.GetFee(e);
                         }
 
                         result.TotalSatoshi = result.Transactions.Sum(a => a.Satoshi);
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getexplorertransaction")]
+        public IActionResult GetExplorerTransaction(string hash)
+        {
+            try
+            {
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                var result = new ExplorerTransactionModel();
+
+                for (int i = this.Chain.Height; i > 0; i--)
+                {
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                    {
+                        foreach (var itemTransaction in block.Transactions)
+                        {
+                            if (itemTransaction.GetHash().ToString() == hash)
+                            {
+                                var newTransaction = new ExplorerTransactionModel();
+                                newTransaction.AddressTo = new List<ExplorerAddressModel>();
+                                newTransaction.AddressFrom = new List<ExplorerAddressModel>();
+
+                                newTransaction.Hash = itemTransaction.GetHash().ToString();
+                                newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
+                                newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
+                                newTransaction.Size = itemTransaction.GetSerializedSize();
+                                newTransaction.BlockHash = block.GetHash().ToString();
+
+                                if (itemTransaction.Inputs != null)
+                                {
+                                    foreach (var itemInput in itemTransaction.Inputs)
+                                    {
+                                        var address = itemInput.ScriptSig.GetScriptAddress(this.Network);
+
+                                        var newAddress = new ExplorerAddressModel();
+                                        newAddress.Address = address.ToString();
+
+                                        newTransaction.AddressFrom.Add(newAddress);
+                                    }
+                                }
+
+                                if (itemTransaction.Outputs != null)
+                                {
+                                    foreach (var itemOutput in itemTransaction.Outputs)
+                                    {
+                                        var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
+
+                                        var newAddress = new ExplorerAddressModel();
+                                        newAddress.Address = address.ToString();
+                                        newAddress.Satoshi = itemOutput.Value.Satoshi;
+                                        newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
+
+                                        newTransaction.AddressTo.Add(newAddress);
+                                    }
+                                }
+
+                                result = newTransaction;
+
+                                break;
+                            }
+                        }
                     }
                 }
 
