@@ -69,6 +69,73 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             this.consensusLoop = consensusLoop;
         }
 
+        private ExplorerBlockModel ParseExplorerBlock(Block block, ChainedHeader chainedHeader, ChainedHeader chainedNextHeader = null)
+        {
+            var result = new ExplorerBlockModel();
+            result.Size = block.GetSerializedSize();
+            result.Height = chainedHeader.Height;
+            result.Age = chainedHeader.Header.BlockTime;
+            result.Hash = chainedHeader.HashBlock.ToString();
+            result.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
+            result.Version = block.Header.Version;
+            result.Difficult = block.Header.Bits.Difficulty;
+            result.PrevHash = block.Header.HashPrevBlock.ToString();
+            result.NextHash = chainedNextHeader != null ? chainedNextHeader.Header.GetHash().ToString() : null;
+            result.MerkleRoot = block.Header.HashMerkleRoot.ToString();
+
+            if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+            {
+                result.Transactions = new List<ExplorerTransactionModel>();
+
+                foreach (var itemTransaction in block.Transactions)
+                {
+                    var newTransaction = new ExplorerTransactionModel();
+                    newTransaction.AddressTo = new List<ExplorerAddressModel>();
+                    newTransaction.AddressFrom = new List<ExplorerAddressModel>();
+
+                    newTransaction.Hash = itemTransaction.GetHash().ToString();
+                    newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
+                    newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
+                    newTransaction.Size = itemTransaction.GetSerializedSize();
+                    newTransaction.BlockHash = block.GetHash().ToString();
+
+                    if (itemTransaction.Inputs != null)
+                    {
+                        foreach (var itemInput in itemTransaction.Inputs)
+                        {
+                            var address = itemInput.ScriptSig.GetScriptAddress(this.Network);
+
+                            var newAddress = new ExplorerAddressModel();
+                            newAddress.Address = address.ToString();
+
+                            newTransaction.AddressFrom.Add(newAddress);
+                        }
+                    }
+
+                    if (itemTransaction.Outputs != null)
+                    {
+                        foreach (var itemOutput in itemTransaction.Outputs)
+                        {
+                            var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
+
+                            var newAddress = new ExplorerAddressModel();
+                            newAddress.Address = address.ToString();
+                            newAddress.Satoshi = itemOutput.Value.Satoshi;
+                            newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
+
+                            newTransaction.AddressTo.Add(newAddress);
+                        }
+                    }
+
+                    result.Transactions.Add(newTransaction);
+                }
+
+                result.TotalSatoshi = result.Transactions.Sum(a => a.Satoshi);
+            }
+
+            return result;
+        }
+
         [ActionName("getexplorerlatestblocks")]
         public IActionResult GetExplorerLatestBlocks(int limit)
         {
@@ -79,6 +146,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 var result = new List<ExplorerBlockModel>();
 
+                ChainedHeader chainedNextHeader = null;
+
                 for (int i = 0; i < limit; i++)
                 {
                     var height = chainRepository.Height;
@@ -87,28 +156,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var chainedHeader = chainRepository.GetBlock(height - i);
                         var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
-                        var newBlock = new ExplorerBlockModel();
-                        newBlock.Size = block.GetSerializedSize();
-                        newBlock.Height = chainedHeader.Height;
-                        newBlock.Age = chainedHeader.Header.BlockTime;
-                        newBlock.Hash = chainedHeader.HashBlock.ToString();
+                        var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
 
-                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
-                        {
-                            newBlock.Transactions = new List<ExplorerTransactionModel>();
-
-                            foreach (var itemTransaction in block.Transactions)
-                            {
-                                var newTransaction = new ExplorerTransactionModel();
-                                newTransaction.Hash = itemTransaction.GetHash().ToString();
-                                newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
-                                newTransaction.BlockHash = block.GetHash().ToString();
-
-                                newBlock.Transactions.Add(newTransaction);
-                            }
-
-                            newBlock.TotalSatoshi = newBlock.Transactions.Sum(a => a.Satoshi);
-                        }
+                        chainedNextHeader = chainedHeader;
 
                         result.Add(newBlock);
                     }
@@ -144,68 +194,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (block != null)
                 {
-                    result.Size = block.GetSerializedSize();
-                    result.Height = chainedHeader.Height;
-                    result.Age = chainedHeader.Header.BlockTime;
-                    result.Hash = chainedHeader.HashBlock.ToString();
-                    result.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
-                    result.Version = block.Header.Version;
-                    result.Difficult = block.Header.Bits.Difficulty;
-                    result.PrevHash = block.Header.HashPrevBlock.ToString();
-                    result.NextHash = chainedNextHeader != null ? chainedNextHeader.Header.GetHash().ToString() : null;
-                    result.MerkleRoot = block.Header.HashMerkleRoot.ToString();
-
-                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
-                    {
-                        result.Transactions = new List<ExplorerTransactionModel>();
-
-                        foreach (var itemTransaction in block.Transactions)
-                        {
-                            var newTransaction = new ExplorerTransactionModel();
-                            newTransaction.AddressTo = new List<ExplorerAddressModel>();
-                            newTransaction.AddressFrom = new List<ExplorerAddressModel>();
-
-                            newTransaction.Hash = itemTransaction.GetHash().ToString();
-                            newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
-                            newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
-                            newTransaction.Size = itemTransaction.GetSerializedSize();
-                            newTransaction.BlockHash = block.GetHash().ToString();
-
-                            if (itemTransaction.Inputs != null)
-                            {
-                                foreach (var itemInput in itemTransaction.Inputs)
-                                {
-                                    var address = itemInput.ScriptSig.GetScriptAddress(this.Network);
-
-                                    var newAddress = new ExplorerAddressModel();
-                                    newAddress.Address = address.ToString();
-
-                                    newTransaction.AddressFrom.Add(newAddress);
-                                }
-                            }
-
-                            if (itemTransaction.Outputs != null)
-                            {
-                                foreach (var itemOutput in itemTransaction.Outputs)
-                                {
-                                    var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
-
-                                    var newAddress = new ExplorerAddressModel();
-                                    newAddress.Address = address.ToString();
-                                    newAddress.Satoshi = itemOutput.Value.Satoshi;
-                                    newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
-
-                                    newTransaction.AddressTo.Add(newAddress);
-                                }
-                            }
-
-                            result.Transactions.Add(newTransaction);
-
-                            //TODO: fee
-                        }
-
-                        result.TotalSatoshi = result.Transactions.Sum(a => a.Satoshi);
-                    }
+                    result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -225,9 +214,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                var result = new ExplorerTransactionModel();
+                var result = new ExplorerBlockModel();
+                ChainedHeader chainedNextHeader = null;
 
-                for (int i = this.Chain.Height; i > 0; i--)
+                for (int i = this.Chain.Height; i >= 0; i--)
                 {
                     var chainedHeader = chainRepository.GetBlock(i);
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
@@ -238,49 +228,50 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         {
                             if (itemTransaction.GetHash().ToString() == hash)
                             {
-                                var newTransaction = new ExplorerTransactionModel();
-                                newTransaction.AddressTo = new List<ExplorerAddressModel>();
-                                newTransaction.AddressFrom = new List<ExplorerAddressModel>();
-
-                                newTransaction.Hash = itemTransaction.GetHash().ToString();
-                                newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
-                                newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
-                                newTransaction.Size = itemTransaction.GetSerializedSize();
-                                newTransaction.BlockHash = block.GetHash().ToString();
-
-                                if (itemTransaction.Inputs != null)
-                                {
-                                    foreach (var itemInput in itemTransaction.Inputs)
-                                    {
-                                        var address = itemInput.ScriptSig.GetScriptAddress(this.Network);
-
-                                        var newAddress = new ExplorerAddressModel();
-                                        newAddress.Address = address.ToString();
-
-                                        newTransaction.AddressFrom.Add(newAddress);
-                                    }
-                                }
-
-                                if (itemTransaction.Outputs != null)
-                                {
-                                    foreach (var itemOutput in itemTransaction.Outputs)
-                                    {
-                                        var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
-
-                                        var newAddress = new ExplorerAddressModel();
-                                        newAddress.Address = address.ToString();
-                                        newAddress.Satoshi = itemOutput.Value.Satoshi;
-                                        newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
-
-                                        newTransaction.AddressTo.Add(newAddress);
-                                    }
-                                }
-
-                                result = newTransaction;
-
+                                result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+                                chainedNextHeader = chainedHeader;
                                 break;
                             }
                         }
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getexploreraddress")]
+        public IActionResult GetExplorerAddress(long offset, List<int> ignore, string address)
+        {
+            try
+            {
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                var result = new List<ExplorerBlockModel>();
+                ChainedHeader chainedNextHeader = null;
+
+                for (int i = this.Chain.Height; i > offset; i--)
+                {
+                    if (ignore.Contains(i))
+                    {
+                        continue;
+                    }
+
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                    {
+
+                        var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+
+                        result.Add(newBlock);
                     }
                 }
 
