@@ -21,6 +21,8 @@ using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using BRhodium.Bitcoin.Features.Wallet.Helpers;
+using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
+using BRhodium.Bitcoin.Connection;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -37,7 +39,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly NodeSettings nodeSettings;
         private readonly Network network;
         public IConsensusLoop ConsensusLoop { get; private set; }
-
+        public IBroadcasterManager broadcasterManager;
+        private readonly IConnectionManager connectionManager;
         public WalletRPCController(
             IServiceProvider serviceProvider,
             IWalletManager walletManager,
@@ -46,6 +49,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             IBlockRepository blockRepository,
             NodeSettings nodeSettings,
             Network network,
+            IBroadcasterManager broadcasterManager,
+            IConnectionManager connectionManager,
             IConsensusLoop consensusLoop = null)
         {
             this.walletManager = walletManager;
@@ -53,6 +58,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.Network = fullNode.Network;
             this.FullNode = fullNode;
+            this.broadcasterManager = broadcasterManager;
+            this.connectionManager = connectionManager;
             this.ConsensusLoop = consensusLoop;
 
             this.loggerFactory = loggerFactory;
@@ -289,6 +296,42 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             return null;
+        }
+
+        [ActionName("sendrawtransaction")]
+        [ActionDescription("Sends a raw transaction.")]
+        public IActionResult SendRawTransaction(string hexString)
+        {
+            Guard.NotEmpty(hexString, "hexstring");
+
+            if (!this.connectionManager.ConnectedPeers.Any())
+            {
+                throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
+            }
+
+            try
+            {
+                var transaction = Transaction.Load(hexString, this.Network);
+                var controller = this.FullNode.NodeService<WalletController>();
+
+                var transactionRequest = new SendTransactionRequest(transaction.ToHex());
+
+                this.broadcasterManager.BroadcastTransactionAsync(transaction).GetAwaiter().GetResult();
+                TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
+
+                if (!string.IsNullOrEmpty(entry?.ErrorMessage))
+                {
+                    this.logger.LogError("Exception occurred: {0}", entry.ErrorMessage);
+                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, entry.ErrorMessage, "Transaction Exception");
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         [ActionName("sendmany")]
