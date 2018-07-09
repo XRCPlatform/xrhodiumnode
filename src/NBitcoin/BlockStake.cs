@@ -337,7 +337,7 @@ namespace NBitcoin
         /// </summary>
         private BlockSignature blockSignature = new BlockSignature();
 
-        internal PowBlock(BlockHeader blockHeader) : base(blockHeader)
+        public PowBlock(BlockHeader blockHeader) : base(blockHeader)
         {
         }
 

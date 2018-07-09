@@ -18,6 +18,7 @@ using BRhodium.Bitcoin.Utilities.JsonErrors;
 using System.Net;
 using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -117,6 +118,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         foreach (var itemOutput in itemTransaction.Outputs)
                         {
                             var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
+                            if (address == null) address = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
 
                             var newAddress = new ExplorerAddressModel();
                             newAddress.Address = address.ToString();
@@ -192,8 +194,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 var chainedNextHeader = chainRepository.GetBlock(chainedHeader.Height + 1);
 
-                if (block != null)
+                if (chainedHeader != null)
                 {
+                    if (block == null) block = new PowBlock(chainedHeader.Header);
                     result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
                 }
 
@@ -246,7 +249,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         [ActionName("getexploreraddress")]
-        public IActionResult GetExplorerAddress(long offset, List<int> ignore, string address)
+        public IActionResult GetExplorerAddress(long offset, string ignoreJson, string address)
         {
             try
             {
@@ -256,9 +259,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 var result = new List<ExplorerBlockModel>();
                 ChainedHeader chainedNextHeader = null;
 
+                var ignoreArray = JsonConvert.DeserializeObject<List<int>>(ignoreJson);
+
                 for (int i = this.Chain.Height; i > offset; i--)
                 {
-                    if (ignore.Contains(i))
+                    if (ignoreArray.Contains(i))
                     {
                         continue;
                     }
@@ -266,13 +271,85 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     var chainedHeader = chainRepository.GetBlock(i);
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
-                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                    try
+                    {
+                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                        {                                    
+                            var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+
+                            if (newBlock.Transactions != null)
+                            {
+                                foreach (var itemTx in newBlock.Transactions)
+                                {
+                                    if (itemTx.AddressFrom != null)
+                                    {
+                                        if (itemTx.AddressFrom.Exists(a => a.Address == address))
+                                        {
+                                            result.Add(newBlock);
+                                            continue;
+                                        }
+
+                                        if (itemTx.AddressTo.Exists(a => a.Address == address))
+                                        {
+                                            result.Add(newBlock);
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
                     {
 
-                        var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
-
-                        result.Add(newBlock);
+                        var s = e; 
                     }
+                    
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+
+        [ActionName("getexploreraddressbyheight")]
+        public IActionResult GetExplorerAddressByHeight(string heightsJson)
+        {
+            try
+            {
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                var result = new List<ExplorerBlockModel>();
+                ChainedHeader chainedNextHeader = null;
+
+                var heightsArray = JsonConvert.DeserializeObject<List<int>>(heightsJson);
+
+                foreach (var itemHeight in heightsArray)
+                {
+                    var chainedHeader = chainRepository.GetBlock(itemHeight);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    try
+                    {
+                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                        {
+                            var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+
+                            result.Add(newBlock);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+
+                        var s = e;
+                    }
+
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
