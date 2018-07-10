@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NBitcoin;
 
@@ -24,6 +25,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// The last processed block.
         /// </summary>
         uint256 WalletTipHash { get; set; }
+
+        ConcurrentBag<Wallet> Wallets { get; }
 
         /// <summary>
         /// Lists all spendable transactions from all accounts in the wallet.

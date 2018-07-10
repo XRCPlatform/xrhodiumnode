@@ -111,20 +111,33 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
         /// <summary>
-        /// If [account] is not specified, returns the server's total available balance.
-        /// If [account] is specified, returns the balance in the account. 
+        /// If [walletName] is not specified, returns the server's total available balance.
+        /// If [walletName] is specified, returns the balance in the account.
+        /// If [walletName] is "*", get the balance of all accounts.
         /// </summary>
-        /// <param name="account">The account to get the balance for.</param>
+        /// <param name="walletName">The account to get the balance for.</param>
         /// <returns>The balance of the account or the total wallet.</returns>
         [ActionName("getbalance")]
         [ActionDescription("Gets account balance")]
-        public IActionResult GetBalance(string address)
+        public IActionResult GetBalance(string walletName)
         {
             try
             {
                 WalletBalanceModel model = new WalletBalanceModel();
 
-                var accounts = this.walletManager.GetAccounts("rhodium.genesis").ToList();
+                var accounts = new List<HdAccount>();
+                if (walletName == "*")
+                {
+                    foreach (var wallet in this.walletManager.Wallets)
+                    {
+                        accounts.Concat(this.walletManager.GetAccounts(wallet.Name).ToList());
+                    }
+                }
+                else
+                {
+                    accounts = this.walletManager.GetAccounts(walletName).ToList();
+                }
+
                 var totalBalance = new Money(0);
 
                 foreach (var account in accounts)
