@@ -334,6 +334,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 foreach (var itemHeight in heightsArray)
                 {
                     var chainedHeader = chainRepository.GetBlock(itemHeight);
+                    if (chainedHeader == null) continue;
+
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
                     try
