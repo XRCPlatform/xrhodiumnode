@@ -262,7 +262,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 var ignoreArray = JsonConvert.DeserializeObject<List<int>>(ignoreJson);
 
-                for (int i = this.Chain.Height; i > offset; i--)
+                for (int i = this.Chain.Height; i >= offset; i--)
                 {
                     if (ignoreArray.Contains(i))
                     {
