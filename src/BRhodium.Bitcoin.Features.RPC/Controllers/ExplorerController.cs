@@ -158,6 +158,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var chainedHeader = chainRepository.GetBlock(height - i);
                         var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
+                        if (block == null) block = new PowBlock(chainedHeader.Header);
                         var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
 
                         chainedNextHeader = chainedHeader;
@@ -225,7 +226,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     var chainedHeader = chainRepository.GetBlock(i);
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
-                    if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                    if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
                     {
                         foreach (var itemTransaction in block.Transactions)
                         {
@@ -273,7 +274,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                     try
                     {
-                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
+                        if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
                         {                                    
                             var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
 
@@ -302,7 +303,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     catch (Exception e)
                     {
 
-                        var s = e; 
+                        //be quite
                     }
                     
                 }
@@ -337,17 +338,16 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                     try
                     {
-                        if ((block.Transactions != null) && (block.Transactions.Count() > 0))
-                        {
-                            var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+                        if (block == null) block = new PowBlock(chainedHeader.Header);
 
-                            result.Add(newBlock);
-                        }
+                        var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+
+                        result.Add(newBlock);
                     }
                     catch (Exception e)
                     {
 
-                        var s = e;
+                        //be quite
                     }
 
                 }
