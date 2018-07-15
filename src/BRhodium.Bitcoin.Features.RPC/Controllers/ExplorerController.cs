@@ -104,7 +104,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     {
                         foreach (var itemInput in itemTransaction.Inputs)
                         {
-                            var address = itemInput.ScriptSig.GetScriptAddress(this.Network);
+                            var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
+                            if (address == null) itemInput.ScriptSig.GetScriptAddress(this.Network);
 
                             var newAddress = new ExplorerAddressModel();
                             newAddress.Address = address.ToString();
