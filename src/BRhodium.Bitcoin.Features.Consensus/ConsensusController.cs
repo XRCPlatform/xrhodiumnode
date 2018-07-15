@@ -172,6 +172,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
                 if (blockModel.Height > 0)
                 {
+                     blockModel.PreviousBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height - 1).Header.GetHash());
                     Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
                     if (fullBlock == null)
                     {
