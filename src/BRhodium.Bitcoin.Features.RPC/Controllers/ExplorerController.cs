@@ -98,7 +98,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                     newTransaction.Hash = itemTransaction.GetHash().ToString();
                     newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
-                    newTransaction.Time = DateTimeOffset.FromUnixTimeSeconds(itemTransaction.Time);
+                    newTransaction.Time = chainedHeader.Header.BlockTime;
                     newTransaction.Size = itemTransaction.GetSerializedSize();
                     newTransaction.BlockHash = block.GetHash().ToString();
 
