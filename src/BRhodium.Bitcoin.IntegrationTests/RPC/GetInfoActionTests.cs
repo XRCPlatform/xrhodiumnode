@@ -19,7 +19,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.RPC
 
             Assert.NotNull(fullNode.NodeService<INetworkDifficulty>(true));
 
-            GetInfoModel info = controller.GetInfo();
+            var info = (GetInfoModel)controller.GetInfo();
 
             NodeSettings nodeSettings = NodeSettings.Default();
             uint expectedProtocolVersion = (uint)nodeSettings.ProtocolVersion;

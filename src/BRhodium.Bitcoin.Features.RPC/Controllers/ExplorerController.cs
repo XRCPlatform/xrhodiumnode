@@ -88,6 +88,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 result.Transactions = new List<ExplorerTransactionModel>();
 
+                var feeRate = new FeeRate(this.Settings.MinTxFeeRate.FeePerK);
+
                 foreach (var itemTransaction in block.Transactions)
                 {
                     var newTransaction = new ExplorerTransactionModel();
@@ -105,12 +107,15 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         foreach (var itemInput in itemTransaction.Inputs)
                         {
                             var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
-                            if (address == null) itemInput.ScriptSig.GetScriptAddress(this.Network);
+                            //if (address == null) address = itemInput.ScriptSig.GetScriptAddress(this.Network);
 
-                            var newAddress = new ExplorerAddressModel();
-                            newAddress.Address = address.ToString();
+                            if (address != null)
+                            {
+                                var newAddress = new ExplorerAddressModel();
+                                newAddress.Address = address.ToString();
 
-                            newTransaction.AddressFrom.Add(newAddress);
+                                newTransaction.AddressFrom.Add(newAddress);
+                            }
                         }
                     }
 
@@ -128,6 +133,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                             newTransaction.AddressTo.Add(newAddress);
                         }
+                    }
+
+                    //calculate fee
+                    if (!itemTransaction.IsCoinBase)
+                    {
+                        var fee = feeRate.GetFee(itemTransaction);
+                        result.TransactionFees += fee.Satoshi;
                     }
 
                     result.Transactions.Add(newTransaction);
