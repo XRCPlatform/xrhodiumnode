@@ -45,8 +45,6 @@ namespace BRhodium.Bitcoin.Utilities
             string newFilePath = $"{filePath}.{uniqueId}.new";
             string tempFilePath = $"{filePath}.{uniqueId}.temp";
 
-            //File.WriteAllText(newFilePath, JsonConvert.SerializeObject(toSave, Formatting.Indented));
-
             using (StreamWriter file = File.CreateText(newFilePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
