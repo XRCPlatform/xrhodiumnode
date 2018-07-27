@@ -1,8 +1,10 @@
 | Windows | Linux | OS X
 | :---- | :------ | :---- |
 
-Bitcoin Rhodium
-===============
+Bitcoin Rhodium (BTR) - BRhodium, BitcoinRh
+===========================================
+
+Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
 Bitcoin Implementation in C#
 ----------------------------
