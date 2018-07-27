@@ -9,7 +9,7 @@ namespace BRhodium.Node.P2P.Protocol.Payloads
     [Payload("getheaders")]
     public class GetHeadersPayload : Payload
     {
-        private uint version = (uint)ProtocolVersion.PROTOCOL_VERSION;
+        private uint version = (uint)ProtocolVersion.BTR_PROTOCOL_VERSION;
         public ProtocolVersion Version
         {
             get

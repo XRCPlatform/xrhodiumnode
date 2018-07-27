@@ -355,7 +355,7 @@ namespace NBitcoin
             });
         }
 
-        ProtocolVersion protocolVersion = ProtocolVersion.PROTOCOL_VERSION;
+        ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION;
         public ProtocolVersion ProtocolVersion
         {
             get

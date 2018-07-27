@@ -5,8 +5,19 @@
     /// </summary>
     public enum ProtocolVersion : uint
     {
+        /// <summary>
+        /// BTR Protocol
+        /// </summary>
+        BTR_PROTOCOL_VERSION = 80000,
+
+        /// <summary>
+        /// Default protocols
+        /// </summary>
         PROTOCOL_VERSION = 70012,
 
+        /// <summary>
+        /// ALT Protocol
+        /// </summary>
         ALT_PROTOCOL_VERSION = 70000,
 
         /// <summary>

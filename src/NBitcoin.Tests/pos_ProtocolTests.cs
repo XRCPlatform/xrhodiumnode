@@ -46,7 +46,7 @@ namespace NBitcoin.Tests
                     },
                     new
                     {
-                        Version = ProtocolVersion.PROTOCOL_VERSION,
+                        Version = ProtocolVersion.BTR_PROTOCOL_VERSION,
                         Message = "7035220576657261636b000000000000000000005df6e0e2",
                         Test = new Action<object>(o=>
                             {

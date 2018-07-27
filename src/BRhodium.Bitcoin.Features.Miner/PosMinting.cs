@@ -829,7 +829,7 @@ namespace BRhodium.Bitcoin.Features.Miner
             }
 
             // Limit size.
-            int serializedSize = coinstakeContext.CoinstakeTx.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION, SerializationType.Network);
+            int serializedSize = coinstakeContext.CoinstakeTx.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION, SerializationType.Network);
             if (serializedSize >= (MaxBlockSizeGen / 5))
             {
                 this.logger.LogTrace("Coinstake size {0} bytes exceeded limit {1} bytes.", serializedSize, MaxBlockSizeGen / 5);

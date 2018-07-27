@@ -274,10 +274,10 @@ namespace NBitcoin
 
         public BlockHeader Header => this.header;
 
-        public uint256 GetHash()
+        public uint256 GetHash(Network network = null)
         {
             // Block's hash is his header's hash.
-            return this.header.GetHash();
+            return ((PowBlockHeader)this.header).GetHash(network);
         }
 
         public Transaction AddTransaction(Transaction tx)

@@ -33,7 +33,7 @@ namespace BRhodium
             {
                 //for testing
                 //args = new string[] { "-regtest" };
-                args = new string[] { "-testnet" };
+                //args = new string[] { "-testnet" };
                 NodeSettings nodeSettings = new NodeSettings(args:args, loadConfiguration:false);
 
                 var node = new FullNodeBuilder()
