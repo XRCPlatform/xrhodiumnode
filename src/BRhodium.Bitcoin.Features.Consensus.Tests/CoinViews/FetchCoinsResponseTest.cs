@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests.CoinViews

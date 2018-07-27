@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Tests

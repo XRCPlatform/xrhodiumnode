@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Mining;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Miner.Tests

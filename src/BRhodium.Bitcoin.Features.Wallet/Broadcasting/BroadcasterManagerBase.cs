@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using ConcurrentCollections;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Broadcasting
 {

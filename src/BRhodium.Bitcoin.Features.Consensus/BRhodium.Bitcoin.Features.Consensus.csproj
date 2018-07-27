@@ -29,8 +29,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.BlockStore\BRhodium.Bitcoin.Features.BlockStore.csproj" />
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

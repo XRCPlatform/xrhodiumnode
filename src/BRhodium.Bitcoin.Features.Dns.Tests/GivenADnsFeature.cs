@@ -6,10 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Internal;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.P2P;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Dns.Tests

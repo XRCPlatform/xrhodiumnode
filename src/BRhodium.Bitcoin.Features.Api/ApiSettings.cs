@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Timers;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 

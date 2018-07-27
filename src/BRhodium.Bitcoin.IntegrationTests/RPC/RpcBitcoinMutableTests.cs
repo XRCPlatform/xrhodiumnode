@@ -1,9 +1,9 @@
 ﻿using NBitcoin;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// These tests are for RPC tests that require modifying the chain/nodes. 

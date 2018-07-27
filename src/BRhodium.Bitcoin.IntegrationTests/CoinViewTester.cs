@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class CoinViewTester
     {

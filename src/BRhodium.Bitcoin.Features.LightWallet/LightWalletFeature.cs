@@ -6,28 +6,28 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.LightWallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Notifications;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.LightWallet
 {
     /// <summary>
     /// Feature for a full-block SPV wallet.
     /// </summary>
-    /// <seealso cref="BRhodium.Bitcoin.Builder.Feature.FullNodeFeature" />
+    /// <seealso cref="BRhodium.Node.Builder.Feature.FullNodeFeature" />
     public class LightWalletFeature : FullNodeFeature, INodeStats, IFeatureStats
     {
         /// <summary>Logger factory to create loggers.</summary>

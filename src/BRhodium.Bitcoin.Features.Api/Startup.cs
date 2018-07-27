@@ -67,12 +67,12 @@ namespace BRhodium.Bitcoin.Features.Api
             // Register the Swagger generator, defining one or more Swagger documents
             services.AddSwaggerGen(setup =>
             {
-                setup.SwaggerDoc("v1", new Info { Title = "BRhodium.Bitcoin.Api", Version = "v1" });
+                setup.SwaggerDoc("v1", new Info { Title = "BRhodium.Node.Api", Version = "v1" });
 
                 //Set the comments path for the swagger json and ui.
                 var basePath = PlatformServices.Default.Application.ApplicationBasePath;
-                var apiXmlPath = Path.Combine(basePath, "BRhodium.Bitcoin.Api.xml");
-                var walletXmlPath = Path.Combine(basePath, "BRhodium.Bitcoin.LightWallet.xml");
+                var apiXmlPath = Path.Combine(basePath, "BRhodium.Node.Api.xml");
+                var walletXmlPath = Path.Combine(basePath, "BRhodium.Node.LightWallet.xml");
 
                 if (File.Exists(apiXmlPath))
                 {
@@ -102,7 +102,7 @@ namespace BRhodium.Bitcoin.Features.Api
             // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "BRhodium.Bitcoin.Api V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "BRhodium.Node.Api V1");
             });
         }
     }

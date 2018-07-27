@@ -12,8 +12,8 @@ using DNS.Protocol;
 using DNS.Protocol.ResourceRecords;
 using DNS.Protocol.Utils;
 using Microsoft.Extensions.Logging;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Dns
 {

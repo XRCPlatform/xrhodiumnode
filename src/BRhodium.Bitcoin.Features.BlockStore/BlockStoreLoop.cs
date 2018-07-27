@@ -5,11 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.Base;
+using BRhodium.Node.BlockPulling;
 using BRhodium.Bitcoin.Features.BlockStore.LoopSteps;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {

@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
 using BRhodium.Bitcoin.Features.Notifications;
 using BRhodium.Bitcoin.Features.WatchOnlyWallet.Controllers;
 using BRhodium.Bitcoin.Features.WatchOnlyWallet.Notifications;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.WatchOnlyWallet
 {
@@ -15,7 +16,7 @@ namespace BRhodium.Bitcoin.Features.WatchOnlyWallet
     {
         private readonly IWatchOnlyWalletManager walletManager;
 
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         private IDisposable blockSubscriberdDisposable;
 
@@ -26,7 +27,7 @@ namespace BRhodium.Bitcoin.Features.WatchOnlyWallet
         /// </summary>
         /// <param name="walletManager">The wallet manager.</param>
         /// <param name="signals">The signals.</param>
-        public WatchOnlyWalletFeature(IWatchOnlyWalletManager walletManager, Signals.Signals signals)
+        public WatchOnlyWalletFeature(IWatchOnlyWalletManager walletManager, Signals signals)
         {
             this.walletManager = walletManager;
             this.signals = signals;

@@ -4,8 +4,8 @@ using System.Linq;
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonConverters;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonConverters;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {

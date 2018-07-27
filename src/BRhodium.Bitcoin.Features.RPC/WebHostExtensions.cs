@@ -2,8 +2,9 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder.Feature;
+using BRhodium.Node.Builder.Feature;
 using BRhodium.Bitcoin.Features.RPC.ModelBinders;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC
 {

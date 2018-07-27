@@ -8,18 +8,18 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Tests.Common.TestFramework;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Transactions
+namespace BRhodium.Node.IntegrationTests.Transactions
 {
     public partial class TransactionWithNullDataSpecification : BddSpecification
     {
         private NodeBuilder builder;
         private CoreNode senderNode;
         private CoreNode receiverNode;
-        private Features.Wallet.Wallet sendingWallet;
+        private Bitcoin.Features.Wallet.Wallet sendingWallet;
         private HdAddress senderAddress;
         private HdAddress receiverAddress;
         private WalletAccountReference sendingWalletAccountReference;

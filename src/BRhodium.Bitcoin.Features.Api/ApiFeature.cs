@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Api
 {

@@ -4,10 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     public class AsyncManualResetEventTest
     {

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using NBitcoin;
-using BRhodium.Bitcoin.IntegrationTests.Builders;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.Builders;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Miners
+namespace BRhodium.Node.IntegrationTests.Miners
 {
     public partial class ProofOfStakeMintCoinsSpecification
     {

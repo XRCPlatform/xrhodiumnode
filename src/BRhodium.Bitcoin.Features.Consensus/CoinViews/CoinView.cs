@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
 {

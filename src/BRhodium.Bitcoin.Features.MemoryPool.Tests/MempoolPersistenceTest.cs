@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
 {
@@ -279,7 +280,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Network.Main.Consensus.Options = new PosConsensusOptions();
             ConsensusRules consensusRules = new PowConsensusRules(Network.Main, loggerFactory, dateTimeProvider, chain, new NodeDeployments(Network.Main, chain), consensusSettings, new Checkpoints(), new InMemoryCoinView(new uint256()), new Mock<ILookaheadBlockPuller>().Object).Register(new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration());
             var mempoolValidator = new MempoolValidator(txMemPool, mempoolLock, dateTimeProvider, mempoolSettings, chain, coins, loggerFactory, settings, consensusRules);
-            var mempoolOrphans = new MempoolOrphans(mempoolLock, txMemPool, chain, new Signals.Signals(), mempoolValidator, coins, dateTimeProvider, mempoolSettings, loggerFactory);
+            var mempoolOrphans = new MempoolOrphans(mempoolLock, txMemPool, chain, new Signals(), mempoolValidator, coins, dateTimeProvider, mempoolSettings, loggerFactory);
             return new MempoolManager(mempoolLock, txMemPool, mempoolValidator, mempoolOrphans, dateTimeProvider, mempoolSettings, mempoolPersistence, coins, loggerFactory, settings.Network);
         }
     }

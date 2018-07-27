@@ -4,7 +4,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using BRhodium.Bitcoin.Features.WatchOnlyWallet.Models;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities.JsonErrors;
 
 namespace BRhodium.Bitcoin.Features.WatchOnlyWallet.Controllers
 {

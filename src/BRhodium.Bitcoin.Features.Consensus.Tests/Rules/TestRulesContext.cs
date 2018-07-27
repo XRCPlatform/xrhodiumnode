@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit.Sdk;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules

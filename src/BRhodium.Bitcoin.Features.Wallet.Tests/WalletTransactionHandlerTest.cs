@@ -6,11 +6,11 @@ using DBreeze.Utils;
 using FluentAssertions;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests

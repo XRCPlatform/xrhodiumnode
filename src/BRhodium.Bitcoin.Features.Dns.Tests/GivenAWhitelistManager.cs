@@ -10,10 +10,10 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.P2P;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Dns.Tests

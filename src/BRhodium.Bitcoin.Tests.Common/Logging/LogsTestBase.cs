@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging.Internal;
 using Moq;
 using NBitcoin;
 
-namespace BRhodium.Bitcoin.Tests.Common.Logging
+namespace BRhodium.Node.Tests.Common.Logging
 {
     public class LogsTestBase : TestBase
     {
@@ -24,7 +24,7 @@ namespace BRhodium.Bitcoin.Tests.Common.Logging
                .Returns(this.FullNodeLogger.Object)
                .Verifiable();
             /*
-            // TODO: Re-factor by moving to BRhodium.Bitcoin.Features.RPC.Tests or BRhodium.Bitcoin.IntegrationTests
+            // TODO: Re-factor by moving to BRhodium.Bitcoin.Features.RPC.Tests or BRhodium.Node.IntegrationTests
             this.mockLoggerFactory.Setup(l => l.CreateLogger(typeof(RPCFeature).FullName))
                 .Returns(this.rpcLogger.Object)
                  .Verifiable();

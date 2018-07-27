@@ -1,7 +1,7 @@
 ﻿using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.RPC.Models
 {

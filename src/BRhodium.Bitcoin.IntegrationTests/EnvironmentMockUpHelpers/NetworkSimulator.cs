@@ -6,7 +6,7 @@ using System.Threading;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Wallet;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     public class NetworkSimulator : IDisposable
     {

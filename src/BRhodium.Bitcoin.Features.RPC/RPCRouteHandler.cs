@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.RPC
 {

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus;
-using BRhodium.Bitcoin.Interfaces;
+using BRhodium.Node.Interfaces;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     public class ConsensusActionTests : BaseRPCControllerTest
     {

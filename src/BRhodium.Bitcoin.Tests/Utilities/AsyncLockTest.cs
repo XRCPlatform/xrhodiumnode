@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     /// <summary>
     /// Tests of <see cref="AsyncLock"/> class.

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     public class LinqExtensionsTest
     {

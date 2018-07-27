@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Connection;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {

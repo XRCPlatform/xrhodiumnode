@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
 {

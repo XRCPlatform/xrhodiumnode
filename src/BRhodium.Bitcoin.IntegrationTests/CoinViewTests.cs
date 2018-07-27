@@ -9,20 +9,20 @@ using NBitcoin;
 using NBitcoin.BitcoinCore;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Utilities;
 using Xunit;
 using static NBitcoin.Transaction;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class CoinViewTests
     {

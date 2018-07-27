@@ -2,11 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Connection;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class NodeSyncTests
     {

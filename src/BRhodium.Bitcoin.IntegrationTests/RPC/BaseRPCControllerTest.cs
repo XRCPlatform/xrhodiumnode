@@ -1,14 +1,14 @@
 ﻿using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.RPC;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// Base class for RPC tests.

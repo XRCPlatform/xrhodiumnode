@@ -5,11 +5,11 @@ using DBreeze;
 using DBreeze.DataTypes;
 using NBitcoin;
 using NBitcoin.BitcoinCore;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     /// <summary>
     /// Tests of DBreeze database and <see cref="DBreezeSerializer"/> class.

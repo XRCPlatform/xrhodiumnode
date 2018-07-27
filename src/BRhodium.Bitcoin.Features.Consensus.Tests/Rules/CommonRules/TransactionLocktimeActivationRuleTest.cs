@@ -18,7 +18,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         [Fact]
         public async Task RunAsync_DoesNotHaveBIP113Flag_TransactionNotFinal_ThrowsBadTransactionNonFinalConsensusErrorExceptionAsync()
         {
-            this.ruleContext.Flags = new Base.Deployments.DeploymentFlags();
+            this.ruleContext.Flags = new Node.Base.Deployments.DeploymentFlags();
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 12, };
 
             var transaction = new Transaction();
@@ -35,7 +35,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         [Fact]
         public async Task RunAsync_HasBIP113Flag_TransactionNotFinal_ThrowsBadTransactionNonFinalConsensusErrorExceptionAsync()
         {
-            this.ruleContext.Flags = new Base.Deployments.DeploymentFlags() { LockTimeFlags = Transaction.LockTimeFlags.MedianTimePast };
+            this.ruleContext.Flags = new Node.Base.Deployments.DeploymentFlags() { LockTimeFlags = Transaction.LockTimeFlags.MedianTimePast };
             this.ruleContext.BestBlock = new ContextBlockInformation()
             {
                 Height = 12,
@@ -55,7 +55,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         [Fact]
         public async Task RunAsync_DoesNotHaveBIP113Flag_TransactionFinal_DoesNotThrowExceptionAsync()
         {
-            this.ruleContext.Flags = new Base.Deployments.DeploymentFlags();
+            this.ruleContext.Flags = new Node.Base.Deployments.DeploymentFlags();
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 12, };
 
             var transaction = new Transaction();
@@ -68,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         [Fact]
         public async Task RunAsync_HasBIP113Flag_TransactionFinal_DoesNotThrowExceptionAsync()
         {
-            this.ruleContext.Flags = new Base.Deployments.DeploymentFlags() { LockTimeFlags = Transaction.LockTimeFlags.MedianTimePast };
+            this.ruleContext.Flags = new Node.Base.Deployments.DeploymentFlags() { LockTimeFlags = Transaction.LockTimeFlags.MedianTimePast };
             this.ruleContext.BestBlock = new ContextBlockInformation()
             {
                 Height = 12,

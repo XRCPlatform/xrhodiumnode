@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Tests

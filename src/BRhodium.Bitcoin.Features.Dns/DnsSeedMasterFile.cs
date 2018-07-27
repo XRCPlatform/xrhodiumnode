@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using DNS.Protocol;
 using DNS.Protocol.ResourceRecords;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Dns
 {

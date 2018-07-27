@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Policy;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {

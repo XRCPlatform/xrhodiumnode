@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol;
-using BRhodium.Bitcoin.P2P.Protocol.Behaviors;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Connection;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol;
+using BRhodium.Node.P2P.Protocol.Behaviors;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {
@@ -48,7 +49,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         private readonly IInitialBlockDownloadState initialBlockDownloadState;
 
         /// <summary>Peer notifications available to subscribe to.</summary>
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         /// <summary>Instance logger for the memory pool component.</summary>
         private readonly ILogger logger;
@@ -84,7 +85,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             MempoolOrphans orphans,
             IConnectionManager connectionManager,
             IInitialBlockDownloadState initialBlockDownloadState,
-            Signals.Signals signals,
+            Signals signals,
             ILogger logger,
             Network network)
         {
@@ -119,7 +120,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             MempoolOrphans orphans,
             IConnectionManager connectionManager,
             IInitialBlockDownloadState initialBlockDownloadState,
-            Signals.Signals signals,
+            Signals signals,
             ILoggerFactory loggerFactory,
             Network network)
             : this(validator, manager, orphans, connectionManager, initialBlockDownloadState, signals, loggerFactory.CreateLogger(typeof(MempoolBehavior).FullName), network)

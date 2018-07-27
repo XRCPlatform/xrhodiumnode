@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests

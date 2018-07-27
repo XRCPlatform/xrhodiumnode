@@ -8,8 +8,9 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {
@@ -34,7 +35,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         private readonly ConcurrentChain chain;
 
         /// <summary>Node notifications available to subscribe to.</summary>
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         /// <summary>Coin view of the memory pool.</summary>
         private readonly CoinView coinView;
@@ -82,7 +83,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             MempoolSchedulerLock mempoolLock,
             ITxMempool memPool,
             ConcurrentChain chain,
-            Signals.Signals signals,
+            Signals signals,
             IMempoolValidator validator,
             CoinView coinView,
             IDateTimeProvider dateTimeProvider,

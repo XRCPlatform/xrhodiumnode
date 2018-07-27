@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.BlockPulling;
 using BRhodium.Bitcoin.Features.Notifications.Interfaces;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Notifications
 {

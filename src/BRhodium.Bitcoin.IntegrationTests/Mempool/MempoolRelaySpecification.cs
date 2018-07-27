@@ -1,7 +1,7 @@
-﻿using BRhodium.Bitcoin.Tests.Common.TestFramework;
+﻿using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Mempool
+namespace BRhodium.Node.IntegrationTests.Mempool
 {
     public partial class MempoolRelaySpecification : BddSpecification
     {

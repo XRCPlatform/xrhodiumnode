@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Logging;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.Controllers;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Controllers;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonErrors;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {

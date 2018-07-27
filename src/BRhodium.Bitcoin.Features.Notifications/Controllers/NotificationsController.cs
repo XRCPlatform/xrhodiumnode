@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Notifications.Interfaces;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities.JsonErrors;
 
 namespace BRhodium.Bitcoin.Features.Notifications.Controllers
 {

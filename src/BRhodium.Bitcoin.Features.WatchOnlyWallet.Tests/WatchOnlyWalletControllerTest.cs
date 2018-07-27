@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using BRhodium.Bitcoin.Features.WatchOnlyWallet.Controllers;
 using BRhodium.Bitcoin.Features.WatchOnlyWallet.Models;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.WatchOnlyWallet.Tests

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using BRhodium.Bitcoin.Mining;
+using BRhodium.Node.Mining;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {

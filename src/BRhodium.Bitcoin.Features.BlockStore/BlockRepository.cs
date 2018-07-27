@@ -7,9 +7,9 @@ using DBreeze.DataTypes;
 using DBreeze.Utils;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {

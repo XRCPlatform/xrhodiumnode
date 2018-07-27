@@ -3,15 +3,16 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Connection;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Tests.LoopTests
 {

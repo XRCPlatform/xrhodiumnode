@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.RPC;
@@ -15,22 +15,23 @@ using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Notifications;
-using BRhodium.Bitcoin.Interfaces;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
     /// <summary>
     /// Wallet feature for the full node.
     /// </summary>
-    /// <seealso cref="BRhodium.Bitcoin.Builder.Feature.FullNodeFeature" />
-    /// <seealso cref="BRhodium.Bitcoin.Interfaces.INodeStats" />
+    /// <seealso cref="BRhodium.Node.Builder.Feature.FullNodeFeature" />
+    /// <seealso cref="BRhodium.Node.Interfaces.INodeStats" />
     public class WalletFeature : FullNodeFeature, INodeStats, IFeatureStats
     {
         private readonly IWalletSyncManager walletSyncManager;
 
         private readonly IWalletManager walletManager;
 
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         private IDisposable blockSubscriberDisposable;
 
@@ -60,7 +61,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public WalletFeature(
             IWalletSyncManager walletSyncManager,
             IWalletManager walletManager,
-            Signals.Signals signals,
+            Signals signals,
             ConcurrentChain chain,
             IConnectionManager connectionManager,
             BroadcasterBehavior broadcasterBehavior,

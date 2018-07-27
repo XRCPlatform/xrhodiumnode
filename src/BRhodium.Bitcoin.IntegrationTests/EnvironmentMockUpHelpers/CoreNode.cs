@@ -11,18 +11,18 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.Configuration.Logging;
+using BRhodium.Node.Configuration.Logging;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.Miner;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
-using static BRhodium.Bitcoin.BlockPulling.BlockPuller;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
+using static BRhodium.Node.BlockPulling.BlockPuller;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     public class CoreNode
     {

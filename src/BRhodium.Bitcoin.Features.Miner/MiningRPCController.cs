@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Controllers;
+using BRhodium.Node.Base;
+using BRhodium.Node.Controllers;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
@@ -21,13 +21,14 @@ using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
-using BRhodium.Bitcoin.Utilities.JsonContract;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Mining;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
+using BRhodium.Node.Utilities.JsonContract;
+using BRhodium.Node.Utilities.JsonErrors;
 using NBitcoin.RPC;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {

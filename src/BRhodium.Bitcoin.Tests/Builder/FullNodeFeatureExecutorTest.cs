@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Moq;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Builder
+namespace BRhodium.Node.Tests.Builder
 {
     public class FullNodeFeatureExecutorTest
     {

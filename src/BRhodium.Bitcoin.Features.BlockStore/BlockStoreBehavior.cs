@@ -4,13 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol;
-using BRhodium.Bitcoin.P2P.Protocol.Behaviors;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.Connection;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol;
+using BRhodium.Node.P2P.Protocol.Behaviors;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {

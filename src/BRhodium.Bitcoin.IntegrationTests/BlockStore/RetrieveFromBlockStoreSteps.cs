@@ -7,11 +7,11 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Tests.Common.TestFramework;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public partial class RetrieveFromBlockStoreSpecification : BddSpecification
     {
@@ -24,7 +24,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
         private string password = "P@ssw0rd";
         private WalletAccountReference miningWalletAccountReference;
         private HdAddress minerAddress;
-        private Features.Wallet.Wallet miningWallet;
+        private Bitcoin.Features.Wallet.Wallet miningWallet;
         private Key key;
         private int maturity;
         private uint256 wrongBlockId;

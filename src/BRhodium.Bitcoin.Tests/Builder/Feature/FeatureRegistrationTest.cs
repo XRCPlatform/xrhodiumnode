@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Builder.Feature
+namespace BRhodium.Node.Tests.Builder.Feature
 {
     public class FeatureRegistrationTest
     {

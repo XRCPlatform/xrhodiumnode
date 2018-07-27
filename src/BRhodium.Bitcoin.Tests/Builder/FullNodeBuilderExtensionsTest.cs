@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Builder
+namespace BRhodium.Node.Tests.Builder
 {
     public class FullNodeBuilderExtensionsTest
     {

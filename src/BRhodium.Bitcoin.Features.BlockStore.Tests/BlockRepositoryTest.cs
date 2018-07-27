@@ -2,8 +2,8 @@
 using System.Linq;
 using DBreeze;
 using NBitcoin;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Tests

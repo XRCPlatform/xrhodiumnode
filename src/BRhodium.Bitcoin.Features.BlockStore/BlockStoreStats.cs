@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {

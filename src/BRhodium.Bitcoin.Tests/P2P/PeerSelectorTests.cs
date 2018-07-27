@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.P2P;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.P2P
+namespace BRhodium.Node.Tests.P2P
 {
     public sealed class PeerSelectorTests : LogsTestBase
     {

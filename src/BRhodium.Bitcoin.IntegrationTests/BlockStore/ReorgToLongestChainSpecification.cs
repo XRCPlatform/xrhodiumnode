@@ -1,7 +1,7 @@
-﻿using BRhodium.Bitcoin.Tests.Common.TestFramework;
+﻿using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public partial class ReorgToLongestChainSpecification : BddSpecification
     {

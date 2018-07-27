@@ -7,8 +7,8 @@ using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 using BRhodium.Bitcoin.Features.Consensus;
 
 namespace BRhodium.Bitcoin.Features.RPC

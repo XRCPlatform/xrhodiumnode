@@ -8,11 +8,11 @@ using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.Builders;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.Builders;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using static BRhodium.Bitcoin.Features.Miner.PosMinting;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class ProofOfStakeSteps
     {

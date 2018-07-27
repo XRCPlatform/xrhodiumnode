@@ -1,4 +1,4 @@
-﻿using BRhodium.Bitcoin.Base;
+﻿using BRhodium.Node.Base;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.LightWallet.Broadcasting
 {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Tests.Common.Logging;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Tests.Common.Logging;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Miner.Tests

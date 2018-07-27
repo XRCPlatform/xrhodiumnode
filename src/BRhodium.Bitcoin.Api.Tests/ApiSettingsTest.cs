@@ -1,12 +1,12 @@
 ﻿using System;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Api;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Api.Tests
+namespace BRhodium.Node.Api.Tests
 {
     /// <summary>
     /// Tests the settings for the API features.

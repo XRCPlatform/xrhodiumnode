@@ -2,8 +2,8 @@
 using System.IO;
 using NBitcoin;
 using NBitcoin.Protocol;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Api;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.Consensus;
@@ -12,7 +12,7 @@ using BRhodium.Bitcoin.Features.Miner;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     public class BitcoinCoreRunner : NodeRunner
     {

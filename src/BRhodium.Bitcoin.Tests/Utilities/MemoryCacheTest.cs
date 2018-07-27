@@ -1,8 +1,8 @@
 ﻿using NBitcoin;
 using Xunit;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     public class MemoryCacheTest
     {

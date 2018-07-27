@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.BlockPulling;
 using BRhodium.Bitcoin.Features.Notifications.Controllers;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.Notifications.Tests
 {
@@ -21,7 +22,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
         public void Given_SyncActionIsCalled_When_QueryParameterIsNullOrEmpty_Then_ReturnBadRequest(string from)
         {
             var chain = new Mock<ConcurrentChain>();
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);
             IActionResult result = notificationController.SyncFrom(from);
@@ -45,7 +46,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             ChainedHeader chainedHeader = new ChainedHeader(new BlockHeader(), hash, null);
             var chain = new Mock<ConcurrentChain>();
             chain.Setup(c => c.GetBlock(heightLocation)).Returns(chainedHeader);
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             // Act
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);
@@ -67,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             ChainedHeader chainedHeader = new ChainedHeader(new BlockHeader(), hash, null);
             var chain = new Mock<ConcurrentChain>();
             chain.Setup(c => c.GetBlock(uint256.Parse(hashLocation))).Returns(chainedHeader);
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             // Act
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);
@@ -86,7 +87,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             
             var chain = new Mock<ConcurrentChain>();
             chain.Setup(c => c.GetBlock(uint256.Parse(hashLocation))).Returns((ChainedHeader)null);
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             // Act
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);
@@ -108,7 +109,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             // Set up
             string hashLocation = "notAValidHash";
             var chain = new Mock<ConcurrentChain>();
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             // Act
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);
@@ -123,7 +124,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             // Set up
             var chain = new Mock<ConcurrentChain>();
             chain.Setup(c => c.GetBlock(15)).Returns((ChainedHeader)null);
-            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
+            var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());
 
             // Act
             var notificationController = new NotificationsController(blockNotification.Object, chain.Object);

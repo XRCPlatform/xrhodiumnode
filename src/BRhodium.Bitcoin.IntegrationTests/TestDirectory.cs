@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class TestDirectory : IDisposable
     {

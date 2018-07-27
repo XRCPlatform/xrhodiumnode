@@ -5,7 +5,7 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using BRhodium.Bitcoin.Features.Wallet;
-using BRhodium.Bitcoin.Utilities.JsonConverters;
+using BRhodium.Node.Utilities.JsonConverters;
 
 namespace BRhodium.Bitcoin.Features.WatchOnlyWallet
 {

@@ -32,9 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Common\BRhodium.Bitcoin.Tests.Common.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

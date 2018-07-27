@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Api
 {

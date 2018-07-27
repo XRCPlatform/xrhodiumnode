@@ -4,9 +4,9 @@ using FluentAssertions;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Wallet;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class SharedSteps
     {

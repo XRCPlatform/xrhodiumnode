@@ -9,10 +9,10 @@ using BRhodium.Bitcoin.Features.Notifications.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Notifications;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.LightWallet.Tests

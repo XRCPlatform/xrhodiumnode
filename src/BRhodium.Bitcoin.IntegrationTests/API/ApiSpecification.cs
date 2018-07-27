@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.API
+namespace BRhodium.Node.IntegrationTests.API
 {
     public partial class ApiSpecification
     {

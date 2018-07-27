@@ -20,9 +20,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using BRhodium.Bitcoin.Features.RPC.Controllers;
 using BRhodium.Bitcoin.Features.RPC.Models;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 {

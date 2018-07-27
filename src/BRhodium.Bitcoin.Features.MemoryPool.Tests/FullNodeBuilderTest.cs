@@ -1,15 +1,16 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using Xunit;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
 {

@@ -4,21 +4,22 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Signals;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.Consensus.Tests")]
 
@@ -36,7 +37,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
         private readonly IConnectionManager connectionManager;
 
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         /// <summary>Manager of the longest fully validated chain of blocks.</summary>
         private readonly IConsensusLoop consensusLoop;
@@ -69,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             CoinView coinView,
             IChainState chainState,
             IConnectionManager connectionManager,
-            Signals.Signals signals,
+            Signals signals,
             IConsensusLoop consensusLoop,
             NodeDeployments nodeDeployments,
             ILoggerFactory loggerFactory,

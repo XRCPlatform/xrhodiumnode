@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.LightWallet

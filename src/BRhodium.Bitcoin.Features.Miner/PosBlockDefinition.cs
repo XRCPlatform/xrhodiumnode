@@ -4,8 +4,8 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Mining;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 

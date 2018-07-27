@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Validations;
-using BRhodium.Bitcoin.Utilities.ValidationAttributes;
+using BRhodium.Node.Utilities.ValidationAttributes;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Models
 {

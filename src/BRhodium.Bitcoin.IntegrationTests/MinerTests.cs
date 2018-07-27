@@ -6,29 +6,29 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.Miner;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Mining;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 using Xunit;
 using BRhodium.Bitcoin.Features.BlockStore;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class MinerTests
     {

@@ -7,7 +7,7 @@ using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

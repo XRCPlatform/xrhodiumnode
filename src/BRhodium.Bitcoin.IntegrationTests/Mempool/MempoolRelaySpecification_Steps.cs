@@ -2,12 +2,12 @@
 using FluentAssertions;
 using FluentAssertions.Common;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Mempool
+namespace BRhodium.Node.IntegrationTests.Mempool
 {
     public partial class MempoolRelaySpecification
     {

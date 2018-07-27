@@ -1,8 +1,8 @@
-﻿using BRhodium.Bitcoin.Tests.Common.TestFramework;
+﻿using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit;
 // ReSharper disable ArrangeThisQualifier
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public partial class ProofOfWorkSpendingSpecification : BddSpecification
     {

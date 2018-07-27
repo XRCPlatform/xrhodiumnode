@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public static class FullNodeTestBuilderExtension
     {

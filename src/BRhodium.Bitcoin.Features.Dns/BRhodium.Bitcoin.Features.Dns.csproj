@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

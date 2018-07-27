@@ -1,7 +1,7 @@
 ﻿using System;
 using NBitcoin;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Utilities.JsonConverters;
+using BRhodium.Node.Utilities.JsonConverters;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Models
 {

@@ -32,12 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Miner\BRhodium.Bitcoin.Features.Miner.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.RPC\BRhodium.Bitcoin.Features.RPC.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Common\BRhodium.Bitcoin.Tests.Common.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Wallet.Common\BRhodium.Bitcoin.Tests.Wallet.Common.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

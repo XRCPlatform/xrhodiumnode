@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.P2P.Peer;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.P2P.Peer;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// Abstract base class for RPC Test Fixtures for both Bitcoin and BRhodium networks.

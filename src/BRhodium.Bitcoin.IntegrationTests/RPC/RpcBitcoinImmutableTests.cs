@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using NBitcoin;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// Bitcoin test fixture for RPC tests.

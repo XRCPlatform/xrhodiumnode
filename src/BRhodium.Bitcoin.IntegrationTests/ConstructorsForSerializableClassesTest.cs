@@ -5,7 +5,7 @@ using System.Linq;
 using NBitcoin;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class ConstructorsForSerializableClassesTest
     {

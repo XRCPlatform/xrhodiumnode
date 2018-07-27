@@ -4,11 +4,11 @@ using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// Tests of RPC controller action "getstakinginfo".

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules

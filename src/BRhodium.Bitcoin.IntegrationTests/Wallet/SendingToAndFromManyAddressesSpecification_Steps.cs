@@ -6,12 +6,12 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.Builders;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Tests.Common.TestFramework;
+using BRhodium.Node.IntegrationTests.Builders;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Wallet
+namespace BRhodium.Node.IntegrationTests.Wallet
 {
     public partial class SendingToAndFromManyAddressesSpecification : BddSpecification
     {
@@ -112,7 +112,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.Wallet
                 new WalletAccountReference(WalletName, WalletAccountName),
                 (new[]
                 {
-                    new Features.Wallet.Recipient
+                    new Bitcoin.Features.Wallet.Recipient
                     {
                         Amount = this.nodeTwoBalance - Money.COIN,
                         ScriptPubKey = sendToNodeOne.ScriptPubKey

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {

@@ -4,11 +4,11 @@ using System.Net;
 using DNS.Protocol;
 using DNS.Protocol.ResourceRecords;
 using Microsoft.Extensions.Logging;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.P2P;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 
 namespace BRhodium.Bitcoin.Features.Dns
 {

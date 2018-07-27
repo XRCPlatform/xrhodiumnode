@@ -2,13 +2,13 @@ using System;
 using System.Net;
 using NBitcoin;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
     /// BRhodium test fixture for RPC tests.

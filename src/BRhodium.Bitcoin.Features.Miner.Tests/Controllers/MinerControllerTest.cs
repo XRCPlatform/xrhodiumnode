@@ -3,16 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NBitcoin;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Base;
+using BRhodium.Node.Base;
 using BRhodium.Bitcoin.Features.Miner.Controllers;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
+using BRhodium.Node;
+using BRhodium.Node.Configuration;
 
 namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
 {
@@ -170,7 +172,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
                 .Returns(this.walletManager.Object);
 
             this.fullNode.Setup(f => f.NodeFeature<MiningFeature>(true))
-                .Returns(new MiningFeature(Network.Main, new MinerSettings(), Configuration.NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, null, this.posMinting.Object));
+                .Returns(new MiningFeature(Network.Main, new MinerSettings(), NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, null, this.posMinting.Object));
 
             var result = this.controller.StartStaking(new StartStakingRequest() { Name = "myWallet", Password = "password1" });
 
@@ -194,7 +196,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests.Controllers
             this.timeSyncBehaviorState.Setup(ts => ts.IsSystemTimeOutOfSync).Returns(true);
 
             this.fullNode.Setup(f => f.NodeFeature<MiningFeature>(true))
-                .Returns(new MiningFeature(Network.Main, new MinerSettings(), Configuration.NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, null, this.posMinting.Object));
+                .Returns(new MiningFeature(Network.Main, new MinerSettings(), NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, null, this.posMinting.Object));
 
             var result = this.controller.StartStaking(new StartStakingRequest() { Name = "myWallet", Password = "password1" });
 

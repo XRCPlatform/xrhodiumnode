@@ -2,10 +2,10 @@
 using System.Reactive.Subjects;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Signals;
+using BRhodium.Node.Signals;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Signals
+namespace BRhodium.Node.Tests.Signals
 {
     public class SignalerTest
     {

@@ -5,12 +5,12 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
@@ -18,14 +18,15 @@ using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.Miner;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Mining;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
 using Xunit.Sdk;
 using BRhodium.Bitcoin.Features.BlockStore;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests
 {
@@ -121,7 +122,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
                 new ChainState(new InvalidBlockHashStore(testChainContext.DateTimeProvider)), 
                 testChainContext.ConnectionManager, 
                 testChainContext.DateTimeProvider, 
-                new Signals.Signals(), 
+                new Signals(), 
                 consensusSettings, 
                 testChainContext.NodeSettings, 
                 testChainContext.PeerBanning,               

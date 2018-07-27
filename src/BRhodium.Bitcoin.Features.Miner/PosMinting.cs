@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
@@ -18,9 +18,9 @@ using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Mining;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {

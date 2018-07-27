@@ -1,7 +1,7 @@
-﻿using BRhodium.Bitcoin.Tests.Common.TestFramework;
+﻿using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Miners
+namespace BRhodium.Node.IntegrationTests.Miners
 {
     public partial class ProofOfStakeMintCoinsSpecification : BddSpecification
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-using BRhodium.Bitcoin.Interfaces;
+using BRhodium.Node.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.LightWallet
 {

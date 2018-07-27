@@ -1,9 +1,9 @@
 ﻿using System;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     public class DateTimeProviderTest
     {

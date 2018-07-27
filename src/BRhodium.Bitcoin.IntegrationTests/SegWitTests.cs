@@ -1,13 +1,13 @@
 ﻿using System;
 using NBitcoin;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.Base.Deployments;
+using BRhodium.Node.Base.Deployments;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Utilities.Extensions;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class SegWitTests
     {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.BlockStore.LoopSteps;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
-using static BRhodium.Bitcoin.BlockPulling.BlockPuller;
+using static BRhodium.Node.BlockPulling.BlockPuller;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Tests.LoopTests
 {

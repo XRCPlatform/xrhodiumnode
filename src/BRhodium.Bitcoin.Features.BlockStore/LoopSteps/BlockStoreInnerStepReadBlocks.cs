@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.BlockPulling;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.LoopSteps
 {

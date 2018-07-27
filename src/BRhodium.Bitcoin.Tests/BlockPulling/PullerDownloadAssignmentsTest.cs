@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.BlockPulling
+namespace BRhodium.Node.Tests.BlockPulling
 {
     /// <summary>
     /// Tests of <see cref="PullerDownloadAssignments"/> class.

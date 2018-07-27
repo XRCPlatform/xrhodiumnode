@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "BRhodium": {
+      "commandName": "Project",
+      "commandLineArgs": "-reindex-chainstate"
+    },
+    "BRhodium Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    }
+  }
+}

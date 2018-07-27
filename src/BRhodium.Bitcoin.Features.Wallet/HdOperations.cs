@@ -1,6 +1,6 @@
 ﻿using System;
 using NBitcoin;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {

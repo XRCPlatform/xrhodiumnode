@@ -5,20 +5,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Controllers;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Controllers;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.RPC.Models;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
-using BRhodium.Bitcoin.Utilities.JsonContract;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
+using BRhodium.Node.Utilities.JsonContract;
+using BRhodium.Node.Utilities.JsonErrors;
 using System.Net;
 using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -53,7 +54,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             Network network = null,
             ConcurrentChain chain = null,
             IChainState chainState = null,
-            Connection.IConnectionManager connectionManager = null)
+            Node.Connection.IConnectionManager connectionManager = null)
             : base(
                   fullNode: fullNode,
                   nodeSettings: nodeSettings,

@@ -3,16 +3,16 @@ using System.IO;
 using System.Net;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.P2P
+namespace BRhodium.Node.Tests.P2P
 {
     public sealed class PeerAddressManagerBehaviourTests : LogsTestBase
     {

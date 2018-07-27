@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using NBitcoin;
 
-namespace BRhodium.Bitcoin.Tests.Common
+namespace BRhodium.Node.Tests.Common
 {
     public class Transactions
     {

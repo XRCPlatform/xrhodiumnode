@@ -1,6 +1,6 @@
 ﻿using System;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;

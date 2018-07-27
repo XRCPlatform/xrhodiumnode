@@ -4,17 +4,18 @@ using System.Security;
 using Moq;
 using NBitcoin;
 using Newtonsoft.Json;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.Miner.Tests.Controllers;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
 using Xunit;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Miner.Tests
 {
@@ -139,7 +140,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             this.timeSyncBehaviorState.Setup(ts => ts.IsSystemTimeOutOfSync).Returns(true);
 
             this.fullNode.Setup(f => f.NodeFeature<MiningFeature>(true))
-                .Returns(new MiningFeature(Network.Main, new MinerSettings(), Configuration.NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, this.powMining.Object, this.posMinting.Object));
+                .Returns(new MiningFeature(Network.Main, new MinerSettings(), NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, this.powMining.Object, this.posMinting.Object));
 
             var exception = Assert.Throws<ConfigurationException>(() =>
             {
@@ -157,7 +158,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
               .Returns(this.fixture.wallet);
 
             this.fullNode.Setup(f => f.NodeFeature<MiningFeature>(true))
-                .Returns(new MiningFeature(Network.Main, new MinerSettings(), Configuration.NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, this.powMining.Object, this.posMinting.Object));
+                .Returns(new MiningFeature(Network.Main, new MinerSettings(), NodeSettings.Default(), this.LoggerFactory.Object, this.timeSyncBehaviorState.Object, this.powMining.Object, this.posMinting.Object));
 
             var result = this.controller.StartStaking("myWallet", "password1");
 

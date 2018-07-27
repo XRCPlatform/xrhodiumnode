@@ -1,7 +1,7 @@
 ﻿using NBitcoin;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Notifications
 {

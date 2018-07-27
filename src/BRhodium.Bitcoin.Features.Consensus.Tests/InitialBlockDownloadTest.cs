@@ -1,8 +1,8 @@
 ﻿using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests

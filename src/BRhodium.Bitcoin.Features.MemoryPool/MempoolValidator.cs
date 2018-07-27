@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Protocol;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {

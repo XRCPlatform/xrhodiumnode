@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
-using BRhodium.Bitcoin.Controllers;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Controllers;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {

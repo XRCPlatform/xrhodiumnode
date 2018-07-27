@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Builders
+namespace BRhodium.Node.IntegrationTests.Builders
 {
     public class NodeGroupBuilder : IDisposable
     {

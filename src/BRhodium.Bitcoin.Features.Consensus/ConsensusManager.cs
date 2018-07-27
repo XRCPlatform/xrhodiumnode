@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

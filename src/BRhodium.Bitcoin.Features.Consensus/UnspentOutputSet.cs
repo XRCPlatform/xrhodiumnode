@@ -2,7 +2,7 @@
 using System.Linq;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

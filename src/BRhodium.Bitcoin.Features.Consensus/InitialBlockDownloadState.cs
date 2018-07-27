@@ -1,8 +1,8 @@
 ﻿using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

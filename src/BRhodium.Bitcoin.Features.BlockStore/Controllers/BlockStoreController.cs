@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.BlockStore.Models;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities.JsonErrors;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
 {

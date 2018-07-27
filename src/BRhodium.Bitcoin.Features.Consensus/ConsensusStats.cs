@@ -3,14 +3,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

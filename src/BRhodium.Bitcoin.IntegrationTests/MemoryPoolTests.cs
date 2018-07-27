@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.MemoryPool;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class MemoryPoolTests
     {

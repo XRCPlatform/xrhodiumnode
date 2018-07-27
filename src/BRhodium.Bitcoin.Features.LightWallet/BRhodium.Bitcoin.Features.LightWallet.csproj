@@ -22,10 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Notifications\BRhodium.Bitcoin.Features.Notifications.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Wallet\BRhodium.Bitcoin.Features.Wallet.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
   </ItemGroup>
 
 </Project>

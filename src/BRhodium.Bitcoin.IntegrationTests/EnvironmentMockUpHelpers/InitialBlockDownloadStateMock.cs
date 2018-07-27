@@ -1,12 +1,12 @@
 ﻿using System;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     public class InitialBlockDownloadStateMock : IInitialBlockDownloadState
     {

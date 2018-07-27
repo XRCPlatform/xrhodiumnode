@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using BRhodium.Bitcoin.P2P;
+using BRhodium.Node.P2P;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.P2P
+namespace BRhodium.Node.Tests.P2P
 {
     public class SelfEndpointTrackerTests
     {

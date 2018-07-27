@@ -7,10 +7,10 @@ using System.Security;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.Wallet.Tests")]
 

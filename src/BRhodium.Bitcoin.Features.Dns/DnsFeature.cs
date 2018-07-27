@@ -3,9 +3,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Dns
 {

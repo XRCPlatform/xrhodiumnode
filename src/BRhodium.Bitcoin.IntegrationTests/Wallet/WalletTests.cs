@@ -9,10 +9,10 @@ using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Wallet
+namespace BRhodium.Node.IntegrationTests.Wallet
 {
     public class WalletTests
     {

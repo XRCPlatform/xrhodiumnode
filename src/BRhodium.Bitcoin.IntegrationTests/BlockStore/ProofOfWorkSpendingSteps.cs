@@ -6,11 +6,11 @@ using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.Builders;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.IntegrationTests.Builders;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public partial class ProofOfWorkSpendingSpecification
     {

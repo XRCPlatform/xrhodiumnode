@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Api\BRhodium.Bitcoin.Features.Api.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.BlockStore\BRhodium.Bitcoin.Features.BlockStore.csproj" />
@@ -42,7 +43,6 @@
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Wallet\BRhodium.Bitcoin.Features.Wallet.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.WatchOnlyWallet\BRhodium.Bitcoin.Features.WatchOnlyWallet.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Common\BRhodium.Bitcoin.Tests.Common.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin\BRhodium.Bitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

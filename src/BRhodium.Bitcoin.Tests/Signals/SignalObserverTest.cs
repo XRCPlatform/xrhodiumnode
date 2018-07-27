@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Tests.Common.Logging;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Tests.Common.Logging;
 
-namespace BRhodium.Bitcoin.Tests.Signals
+namespace BRhodium.Node.Tests.Signals
 {
     public class SignalObserverTest : LogsTestBase
     {

@@ -1,10 +1,10 @@
-﻿using BRhodium.Bitcoin.Tests.Common.TestFramework;
+﻿using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit;
 
 // Disable warnings about "this" qualifier to make the Specification more readable
 // ReSharper disable ArrangeThisQualifier
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public partial class RetrieveFromBlockStoreSpecification : BddSpecification
     {

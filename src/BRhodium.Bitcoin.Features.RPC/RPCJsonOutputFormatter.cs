@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.RPC
 {

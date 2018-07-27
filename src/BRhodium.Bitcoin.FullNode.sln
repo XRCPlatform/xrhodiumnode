@@ -3,17 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{5B331FD3-D493-46A9-928B-B786FC6F3103}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		Settings.StyleCop = Settings.StyleCop
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin", "BRhodium.Bitcoin\BRhodium.Bitcoin.csproj", "{094AECD5-E0D8-43A9-A0BD-39B01F51A1F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Node", "BRhodium.Node\BRhodium.Node.csproj", "{094AECD5-E0D8-43A9-A0BD-39B01F51A1F2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.IntegrationTests", "BRhodium.Bitcoin.IntegrationTests\BRhodium.Bitcoin.IntegrationTests.csproj", "{800A5906-C050-4E75-9D7C-0CB1C404A0F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.BitcoinD", "BRhodium.BitcoinD\BRhodium.BitcoinD.csproj", "{878232F0-1FF1-4836-B5BC-E9B1279AA616}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium", "BRhodium\BRhodium.csproj", "{878232F0-1FF1-4836-B5BC-E9B1279AA616}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Tests", "BRhodium.Bitcoin.Tests\BRhodium.Bitcoin.Tests.csproj", "{94FEB14E-D123-486D-A24D-D2BE725D96E3}"
 EndProject
@@ -53,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.Consensus.Tests", "BRhodium.Bitcoin.Features.Consensus.Tests\BRhodium.Bitcoin.Features.Consensus.Tests.csproj", "{84433C94-9CB7-4D6F-B2C1-C16B6F7F277C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Cli", "BRhodium.Bitcoin.Cli\BRhodium.Bitcoin.Cli.csproj", "{BCC67768-8333-4723-842D-1A79C084CE3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Cli", "BRhodium.Cli\BRhodium.Cli.csproj", "{BCC67768-8333-4723-842D-1A79C084CE3B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.LightWallet.Tests", "BRhodium.Bitcoin.Features.LightWallet.Tests\BRhodium.Bitcoin.Features.LightWallet.Tests.csproj", "{D04BAFE7-F475-4709-8560-0570415BAE09}"
 EndProject
@@ -62,14 +56,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Features", "Features", "{15D29FFD-6142-4DC5-AFFD-10BA0CA55C45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.Api", "BRhodium.Bitcoin.Features.Api\BRhodium.Bitcoin.Features.Api.csproj", "{FB78D861-F3DF-412D-8A3D-D1756ADA39D4}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A1638E4-4D1B-46EE-8F5B-76282EB33041}"
-	ProjectSection(SolutionItems) = preProject
-		..\.travis.yml = ..\.travis.yml
-		..\appveyor.yml = ..\appveyor.yml
-		..\build.sh = ..\build.sh
-		..\PushNuget.ps1 = ..\PushNuget.ps1
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "NBitcoin\NBitcoin.csproj", "{2051FCAC-D4C7-498D-B935-2E9E6DEA0C29}"
 EndProject
@@ -81,7 +67,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Features.Dns.Tests", "BRhodium.Bitcoin.Features.Dns.Tests\BRhodium.Bitcoin.Features.Dns.Tests.csproj", "{CB7A2800-8E98-4CD5-A88A-832E03AF7ABF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.BRhodiumDnsD", "BRhodium.BRhodiumDnsD\BRhodium.BRhodiumDnsD.csproj", "{978482B2-AE17-421E-AD6F-ED9667C6B8A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Dns", "BRhodium.Dns\BRhodium.Dns.csproj", "{978482B2-AE17-421E-AD6F-ED9667C6B8A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Tests.Wallet.Common", "BRhodium.Bitcoin.Tests.Wallet.Common\BRhodium.Bitcoin.Tests.Wallet.Common.csproj", "{A52CC0A6-D860-418C-8B08-8A1388D96D71}"
 EndProject

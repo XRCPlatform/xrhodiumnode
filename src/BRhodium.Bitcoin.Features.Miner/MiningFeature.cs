@@ -3,18 +3,18 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
+using BRhodium.Node.Base;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.Miner.Controllers;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
-using BRhodium.Bitcoin.Mining;
+using BRhodium.Node.Mining;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {

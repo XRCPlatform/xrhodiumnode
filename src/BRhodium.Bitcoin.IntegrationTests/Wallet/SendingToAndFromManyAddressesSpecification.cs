@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.Wallet
+namespace BRhodium.Node.IntegrationTests.Wallet
 {
     public partial class SendingToAndFromManyAddressesSpecification 
     {

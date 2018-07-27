@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using BRhodium.Bitcoin.IntegrationTests.Miners;
-using BRhodium.Bitcoin.IntegrationTests.Wallet;
+using BRhodium.Node.IntegrationTests.Miners;
+using BRhodium.Node.IntegrationTests.Wallet;
 using Xunit;
 using Xunit.Sdk;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     internal class Program
     {

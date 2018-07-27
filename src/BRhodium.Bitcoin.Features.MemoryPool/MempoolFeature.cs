@@ -4,15 +4,16 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.Interfaces;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Signals;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.MemoryPool.Tests")]
 
@@ -25,7 +26,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
     public class MempoolFeature : FullNodeFeature, IFeatureStats
     {
         /// <summary>Node notifications available to subscribe to.</summary>
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         /// <summary>Connection manager for managing node connections.</summary>
         private readonly IConnectionManager connectionManager;
@@ -61,7 +62,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <param name="mempoolSettings">Mempool settings.</param>
         public MempoolFeature(
             IConnectionManager connectionManager,
-            Signals.Signals signals,
+            Signals signals,
             MempoolSignaled mempoolSignaled,
             MempoolBehavior mempoolBehavior,
             MempoolManager mempoolManager,

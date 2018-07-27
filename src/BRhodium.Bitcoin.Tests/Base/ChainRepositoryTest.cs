@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using DBreeze;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Base;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Base
+namespace BRhodium.Node.Tests.Base
 {
     public class ChainRepositoryTest : TestBase
     {

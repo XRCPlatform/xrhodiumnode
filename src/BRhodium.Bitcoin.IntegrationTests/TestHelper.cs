@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Base;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 
-namespace BRhodium.Bitcoin.IntegrationTests
+namespace BRhodium.Node.IntegrationTests
 {
     public class TestHelper
     {

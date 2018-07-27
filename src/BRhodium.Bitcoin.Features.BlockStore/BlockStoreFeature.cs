@@ -5,16 +5,17 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.BlockStore.Controllers;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Signals;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.BlockStore.Tests")]
 
@@ -24,7 +25,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
     {
         protected readonly ConcurrentChain chain;
 
-        protected readonly Signals.Signals signals;
+        protected readonly Signals signals;
 
         protected readonly IBlockRepository blockRepository;
 
@@ -57,7 +58,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         public BlockStoreFeature(
             ConcurrentChain chain,
             IConnectionManager connectionManager,
-            Signals.Signals signals,
+            Signals signals,
             IBlockRepository blockRepository,
             IBlockStoreCache blockStoreCache,
             StoreBlockPuller blockPuller,

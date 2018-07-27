@@ -4,24 +4,25 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.Miner;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Mining;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 using BRhodium.Bitcoin.Features.BlockStore;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
 {
@@ -89,7 +90,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             NodeDeployments deployments = new NodeDeployments(network, chain);
             ConsensusRules consensusRules = new PowConsensusRules(network, loggerFactory, dateTimeProvider, chain, deployments, consensusSettings, new Checkpoints(), new InMemoryCoinView(new uint256()), new Mock<ILookaheadBlockPuller>().Object).Register(new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration());
             var blockRepository = new BlockRepository(network, nodeSettings.DataFolder, DateTimeProvider.Default, loggerFactory);
-            ConsensusLoop consensusLoop = new ConsensusLoop(new AsyncLoopFactory(loggerFactory), new NodeLifetime(), chain, cachedCoinView, blockPuller, deployments, loggerFactory, new ChainState(new InvalidBlockHashStore(dateTimeProvider)), connectionManager, dateTimeProvider, new Signals.Signals(), consensusSettings, nodeSettings, peerBanning, consensusRules, blockRepository);
+            ConsensusLoop consensusLoop = new ConsensusLoop(new AsyncLoopFactory(loggerFactory), new NodeLifetime(), chain, cachedCoinView, blockPuller, deployments, loggerFactory, new ChainState(new InvalidBlockHashStore(dateTimeProvider)), connectionManager, dateTimeProvider, new Signals(), consensusSettings, nodeSettings, peerBanning, consensusRules, blockRepository);
             await consensusLoop.StartAsync();
 
             BlockPolicyEstimator blockPolicyEstimator = new BlockPolicyEstimator(new MempoolSettings(nodeSettings), loggerFactory, nodeSettings);

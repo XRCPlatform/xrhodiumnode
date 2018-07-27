@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BRhodium.Bitcoin.P2P.Protocol;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
+using BRhodium.Node.P2P.Protocol;
+using BRhodium.Node.P2P.Protocol.Payloads;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

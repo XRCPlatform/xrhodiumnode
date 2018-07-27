@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.RPC.Controllers;
 using BRhodium.Bitcoin.Features.RPC.Models;
-using BRhodium.Bitcoin.Interfaces;
+using BRhodium.Node.Interfaces;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     public class GetInfoActionTests : BaseRPCControllerTest
     {

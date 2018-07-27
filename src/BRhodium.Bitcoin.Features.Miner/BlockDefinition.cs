@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
+using BRhodium.Node.Base.Deployments;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
-using BRhodium.Bitcoin.Mining;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Mining;
+using BRhodium.Node.Utilities;
 using static BRhodium.Bitcoin.Features.Miner.PowBlockDefinition;
 
 namespace BRhodium.Bitcoin.Features.Miner

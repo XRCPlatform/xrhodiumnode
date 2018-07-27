@@ -8,8 +8,9 @@ using NBitcoin;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonErrors;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {

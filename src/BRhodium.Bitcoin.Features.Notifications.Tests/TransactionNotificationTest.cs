@@ -1,7 +1,7 @@
 ﻿using System;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Signals;
+using BRhodium.Node.Signals;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Notifications.Tests

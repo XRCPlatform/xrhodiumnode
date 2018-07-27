@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Api
 {

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.Connection;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 using System.Timers;
 
 namespace BRhodium.Bitcoin.Features.BlockStore

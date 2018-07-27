@@ -21,7 +21,7 @@ namespace BRhodium.Bitcoin.Features.Api
                 builder.AddApplicationPart(controllerType.ServiceType.GetTypeInfo().Assembly);
             }
 
-            builder.AddApplicationPart(typeof(Controllers.NodeController).Assembly);
+            builder.AddApplicationPart(typeof(Node.Controllers.NodeController).Assembly);
             builder.AddControllersAsServices();
             return builder;
         }

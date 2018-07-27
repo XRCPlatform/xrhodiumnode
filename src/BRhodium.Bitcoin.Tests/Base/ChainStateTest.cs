@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Base;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Base
+namespace BRhodium.Node.Tests.Base
 {
     /// <summary>
     /// Tests of <see cref="ChainState"/> class.

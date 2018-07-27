@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.P2P.Protocol;
-using BRhodium.Bitcoin.P2P.Protocol.Behaviors;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.P2P.Protocol;
+using BRhodium.Node.P2P.Protocol.Behaviors;
+using BRhodium.Node.P2P.Protocol.Payloads;
 
 namespace BRhodium.Bitcoin.Features.Notifications
 {

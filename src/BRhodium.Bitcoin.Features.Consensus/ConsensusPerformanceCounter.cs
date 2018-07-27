@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
-using BRhodium.Bitcoin.Configuration.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration.Logging;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {

@@ -1,5 +1,5 @@
 ﻿using NBitcoin;
-using BRhodium.Bitcoin.Signals;
+using BRhodium.Node.Signals;
 
 namespace BRhodium.Bitcoin.Features.WatchOnlyWallet.Notifications
 {

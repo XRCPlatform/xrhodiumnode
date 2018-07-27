@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.Tests.Common.TestFramework
+namespace BRhodium.Node.Tests.Common.TestFramework
 {
     [DebuggerStepThrough()]
     public abstract class BddSpecification : IDisposable

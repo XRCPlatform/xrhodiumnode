@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using Moq;
-using BRhodium.Bitcoin.BlockPulling;
+using BRhodium.Node.BlockPulling;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.BlockPulling
+namespace BRhodium.Node.Tests.BlockPulling
 {
     /// <summary>
     /// Tests of <see cref="QualityScore"/> class.

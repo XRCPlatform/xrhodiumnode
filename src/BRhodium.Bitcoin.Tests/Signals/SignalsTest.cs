@@ -1,21 +1,21 @@
 ﻿using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Signals;
+using BRhodium.Node.Signals;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Signals
+namespace BRhodium.Node.Tests.Signals
 {
     public class SignalsTest
     {
         private Mock<ISignaler<Block>> blockSignaler;
-        private Bitcoin.Signals.Signals signals;
+        private BRhodium.Node.Signals.Signals signals;
         private Mock<ISignaler<Transaction>> transactionSignaler;
 
         public SignalsTest()
         {
             this.blockSignaler = new Mock<ISignaler<Block>>();
             this.transactionSignaler = new Mock<ISignaler<Transaction>>();
-            this.signals = new Bitcoin.Signals.Signals(this.blockSignaler.Object, this.transactionSignaler.Object);
+            this.signals = new BRhodium.Node.Signals.Signals(this.blockSignaler.Object, this.transactionSignaler.Object);
         }
 
         [Fact]

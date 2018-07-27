@@ -18,7 +18,7 @@ using BRhodium.Bitcoin.Features.MemoryPool;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     internal static class FullNodeExt
     {
@@ -234,7 +234,7 @@ namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
             while (true)
             {
                 var bitcoinDProcesses = Process.GetProcessesByName("bitcoind");
-                var applicableBitcoinDProcesses = bitcoinDProcesses.Where(b => b.MainModule.FileName.Contains("BRhodium.Bitcoin.IntegrationTests"));
+                var applicableBitcoinDProcesses = bitcoinDProcesses.Where(b => b.MainModule.FileName.Contains("BRhodium.Node.IntegrationTests"));
                 if (!applicableBitcoinDProcesses.Any())
                     break;
 

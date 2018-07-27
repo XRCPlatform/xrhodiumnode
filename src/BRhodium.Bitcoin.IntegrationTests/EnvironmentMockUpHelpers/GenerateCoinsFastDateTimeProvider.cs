@@ -1,10 +1,10 @@
 ﻿using System;
 using NBitcoin;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.Extensions;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.Extensions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
+namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 {
     /// <summary>
     /// This date time provider substitutes the node's usual DTP when running certain

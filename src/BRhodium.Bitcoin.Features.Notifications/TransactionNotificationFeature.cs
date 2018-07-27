@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Builder.Feature;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Builder.Feature;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Notifications.Controllers;
 
 namespace BRhodium.Bitcoin.Features.Notifications

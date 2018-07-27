@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Connection;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Utilities;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Notifications.Tests
@@ -77,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             var lookAheadBlockPuller = new LookaheadBlockPuller(chain, connectionManager.Object, new Mock<ILoggerFactory>().Object);
             var lifetime = new NodeLifetime();
 
-            var notification = new BlockNotification(this.LoggerFactory.Object, chain, lookAheadBlockPuller, new Signals.Signals(), new AsyncLoopFactory(new LoggerFactory()), lifetime);
+            var notification = new BlockNotification(this.LoggerFactory.Object, chain, lookAheadBlockPuller, new Signals(), new AsyncLoopFactory(new LoggerFactory()), lifetime);
             notification.SyncFrom(blocks[0].GetHash());
             notification.SyncFrom(blocks[0].GetHash());
 

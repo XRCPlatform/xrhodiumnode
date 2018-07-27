@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration.Logging;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration.Logging;
 
 namespace BRhodium.Bitcoin.Features.Dns
 {

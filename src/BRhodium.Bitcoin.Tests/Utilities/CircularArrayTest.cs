@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     /// <summary>
     /// Tests of <see cref="CircularArray{T}"/> class.

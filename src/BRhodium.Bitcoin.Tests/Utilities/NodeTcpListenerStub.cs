@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.Tests.Utilities
+namespace BRhodium.Node.Tests.Utilities
 {
     public class NodeTcpListenerStub : IDisposable
     {

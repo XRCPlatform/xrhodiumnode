@@ -8,8 +8,8 @@ using DBreeze.DataTypes;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.BitcoinCore;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
 {

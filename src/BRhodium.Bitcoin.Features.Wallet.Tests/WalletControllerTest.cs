@@ -7,16 +7,16 @@ using System.Security;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests

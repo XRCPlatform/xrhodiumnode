@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
-using BRhodium.Bitcoin.P2P;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Connection;
+using BRhodium.Node.P2P;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests

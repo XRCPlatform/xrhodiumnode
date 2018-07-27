@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
-using BRhodium.Bitcoin.Base.Deployments;
+using BRhodium.Node.Base.Deployments;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using Xunit;
 using static NBitcoin.Transaction;

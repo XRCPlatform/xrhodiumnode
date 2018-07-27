@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.NodeConfiguration
+namespace BRhodium.Node.Tests.NodeConfiguration
 {
     public class NodeSettingsTest
     {

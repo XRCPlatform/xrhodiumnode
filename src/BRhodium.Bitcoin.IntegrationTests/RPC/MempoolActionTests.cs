@@ -5,7 +5,7 @@ using NBitcoin;
 using BRhodium.Bitcoin.Features.MemoryPool;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     public class MempoolActionTests : BaseRPCControllerTest
     {

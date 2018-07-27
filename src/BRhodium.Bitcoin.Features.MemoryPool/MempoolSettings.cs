@@ -2,7 +2,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {

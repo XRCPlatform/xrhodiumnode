@@ -8,18 +8,19 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using Newtonsoft.Json.Linq;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.RPC.Controllers;
 using BRhodium.Bitcoin.Features.RPC.Models;
-using BRhodium.Bitcoin.Interfaces;
-using BRhodium.Bitcoin.P2P.Peer;
-using BRhodium.Bitcoin.Tests.Common.Logging;
-using BRhodium.Bitcoin.Tests.Wallet.Common;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.P2P.Peer;
+using BRhodium.Node.Tests.Common.Logging;
+using BRhodium.Node.Tests.Wallet.Common;
+using BRhodium.Node.Utilities;
 using Xunit;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 {

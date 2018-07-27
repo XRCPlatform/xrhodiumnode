@@ -1,12 +1,12 @@
 ﻿using NBitcoin;
-using BRhodium.Bitcoin.Builder;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Builder;
+using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.RPC;
-using BRhodium.Bitcoin.Tests.Common;
+using BRhodium.Node.Tests.Common;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.RPC
+namespace BRhodium.Node.IntegrationTests.RPC
 {
     public class RPCSettingsTest : TestBase
     {

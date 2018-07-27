@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Configuration;
+using BRhodium.Node.Configuration;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Tests

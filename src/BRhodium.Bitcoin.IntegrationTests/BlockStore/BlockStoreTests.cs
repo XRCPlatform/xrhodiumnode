@@ -5,11 +5,11 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.BlockStore;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Utilities;
 using Xunit;
 
-namespace BRhodium.Bitcoin.IntegrationTests.BlockStore
+namespace BRhodium.Node.IntegrationTests.BlockStore
 {
     public class BlockStoreTests
     {

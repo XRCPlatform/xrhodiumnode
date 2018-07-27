@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Helpers;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.Utilities;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities;
+using BRhodium.Node.Utilities.JsonErrors;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {

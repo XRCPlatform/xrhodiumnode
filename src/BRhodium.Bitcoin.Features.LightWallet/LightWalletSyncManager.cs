@@ -7,8 +7,8 @@ using BRhodium.Bitcoin.Features.Notifications.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Notifications;
-using BRhodium.Bitcoin.Signals;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Signals;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.LightWallet
 {

@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using NBitcoin;
 using NBitcoin.RPC;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.RPC
 {

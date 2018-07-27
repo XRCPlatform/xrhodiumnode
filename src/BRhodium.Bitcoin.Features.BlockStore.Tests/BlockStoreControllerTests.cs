@@ -7,8 +7,8 @@ using Moq;
 using NBitcoin;
 using BRhodium.Bitcoin.Features.BlockStore.Controllers;
 using BRhodium.Bitcoin.Features.BlockStore.Models;
-using BRhodium.Bitcoin.Tests.Common;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Tests.Common;
+using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Tests

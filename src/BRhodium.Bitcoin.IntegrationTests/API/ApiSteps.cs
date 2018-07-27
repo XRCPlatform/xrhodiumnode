@@ -12,12 +12,12 @@ using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.IntegrationTests.Builders;
-using BRhodium.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
-using BRhodium.Bitcoin.Tests.Common.TestFramework;
+using BRhodium.Node.IntegrationTests.Builders;
+using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
+using BRhodium.Node.Tests.Common.TestFramework;
 using Xunit.Abstractions;
 
-namespace BRhodium.Bitcoin.IntegrationTests.API
+namespace BRhodium.Node.IntegrationTests.API
 {
     public partial class ApiSpecification : BddSpecification
     {

@@ -7,10 +7,10 @@ using DBreeze;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
+using BRhodium.Node.Base;
 using Xunit;
 
-namespace BRhodium.Bitcoin.Tests.Base
+namespace BRhodium.Node.Tests.Base
 {
     public class BestChainSelectorTest
     {

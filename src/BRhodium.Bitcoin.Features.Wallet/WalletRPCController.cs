@@ -5,24 +5,25 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Controllers;
+using BRhodium.Node.Controllers;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Bitcoin.Features.Wallet.Models;
-using BRhodium.Bitcoin.Utilities.JsonContract;
-using BRhodium.Bitcoin.Utilities.JsonErrors;
+using BRhodium.Node.Utilities.JsonContract;
+using BRhodium.Node.Utilities.JsonErrors;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Utilities;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using BRhodium.Bitcoin.Features.Wallet.Helpers;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Connection;
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -411,7 +412,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var reqTransactionId = uint256.Parse(args[0]);
                 if (reqTransactionId == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
                     response.Code = "-5";
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
@@ -429,7 +430,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
                 if (currentTransaction == null)
                 {
-                    var response = new Utilities.JsonContract.ErrorModel();
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
                     response.Code = "-5";
                     response.Message = "Invalid or non-wallet transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
@@ -460,7 +461,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     if (address == null)
                     {
-                        var response = new Utilities.JsonContract.ErrorModel();
+                        var response = new Node.Utilities.JsonContract.ErrorModel();
                         response.Code = "-5";
                         response.Message = "Invalid or non-wallet transaction id";
                         return this.Json(ResultHelper.BuildResultResponse(response));

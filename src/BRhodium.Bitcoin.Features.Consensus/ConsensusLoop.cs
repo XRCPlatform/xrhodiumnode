@@ -5,22 +5,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using BRhodium.Bitcoin.Base;
-using BRhodium.Bitcoin.Base.Deployments;
-using BRhodium.Bitcoin.BlockPulling;
-using BRhodium.Bitcoin.Configuration;
-using BRhodium.Bitcoin.Configuration.Settings;
-using BRhodium.Bitcoin.Connection;
+using BRhodium.Node.Base;
+using BRhodium.Node.Base.Deployments;
+using BRhodium.Node.BlockPulling;
+using BRhodium.Node.Configuration;
+using BRhodium.Node.Configuration.Settings;
+using BRhodium.Node.Connection;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.Consensus.Rules;
 using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
-using BRhodium.Bitcoin.P2P.Protocol.Payloads;
-using BRhodium.Bitcoin.Utilities;
+using BRhodium.Node.P2P.Protocol.Payloads;
+using BRhodium.Node.Utilities;
 using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
+using BRhodium.Node.Signals;
 
-[assembly: InternalsVisibleTo("BRhodium.Bitcoin.IntegrationTests")]
+[assembly: InternalsVisibleTo("BRhodium.Node.IntegrationTests")]
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.MemoryPool.Tests")]
 
 namespace BRhodium.Bitcoin.Features.Consensus
@@ -119,7 +120,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         private readonly IConnectionManager connectionManager;
 
         /// <summary>A signaler that used to signal messages between features.</summary>
-        private readonly Signals.Signals signals;
+        private readonly Signals signals;
 
         /// <summary>A lock object that synchronizes access to the <see cref="ConsensusLoop.AcceptBlockAsync"/> and the reorg part of <see cref="ConsensusLoop.PullerLoopAsync"/> methods.</summary>
         private readonly AsyncLock consensusLock;
@@ -166,7 +167,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             IChainState chainState,
             IConnectionManager connectionManager,
             IDateTimeProvider dateTimeProvider,
-            Signals.Signals signals,
+            Signals signals,
             ConsensusSettings consensusSettings,
             NodeSettings nodeSettings,
             IPeerBanning peerBanning,
@@ -453,7 +454,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         /// Validates a block using the consensus rules and executes it (processes it and adds it as a tip to consensus).
         /// </summary>
         /// <param name="context">A context that contains all information required to validate the block.</param>
-        internal async Task ValidateAndExecuteBlockAsync(RuleContext context)
+        public async Task ValidateAndExecuteBlockAsync(RuleContext context)
         {
             this.logger.LogTrace("()");
 
