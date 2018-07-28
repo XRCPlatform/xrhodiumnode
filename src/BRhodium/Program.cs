@@ -47,24 +47,24 @@ namespace BRhodium
                     .Build();
 
                 //BTR Generate Prime Wallet
-                Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
+                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
 
                 //BTR TEST MINER
-                Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
+                //Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
 
                 //BTR Generate Prime Wallet
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreateSecondaryWallet(node); }).GetAwaiter();
 
                 //BTR Send Transaction
-                /*Task.Delay(TimeSpan.FromSeconds(20)).ContinueWith((t) =>
-                {
-                    var walletController = node.NodeService<WalletRPCController>();
-                    var walletManager = node.NodeService<IWalletManager>() as WalletManager;
-                    var wallet = walletManager.GetWalletByName("rhodium.genesis");
-                    var hdaccount = wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
+                //Task.Delay(TimeSpan.FromSeconds(20)).ContinueWith((t) =>
+                //{
+                //    var walletController = node.NodeService<WalletRPCController>();
+                //    var walletManager = node.NodeService<IWalletManager>() as WalletManager;
+                //    var wallet = walletManager.GetWalletByName("rhodium.genesis");
+                //    var hdaccount = wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
 
-                    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", "RaCtq4PtQkqf68qhvEvwag1SYFqak1p8zG", "thisisourrootwallet", new Money(1, MoneyUnit.BTR).Satoshi);
-                }).GetAwaiter();*/
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", "RbFHJsMRFWHt5J1xEaB5x78qaybgmTR4Hb", "thisisourrootwallet", new Money(1, MoneyUnit.BTR).Satoshi);
+                //}).GetAwaiter();
 
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => {
 

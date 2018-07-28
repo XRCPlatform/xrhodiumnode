@@ -59,7 +59,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// 4 weight units (WU) per byte. Witness data (signatures used to unlock existing coins so that they can be spent) costs 1 WU per byte.
         /// <seealso cref="http://learnmeabitcoin.com/faq/segregated-witness"/>
         /// </summary>
-        public const int DefaultBlockMaxWeight = DefaultBlockBaseMaxSize; // no witnes
+        public const int DefaultBlockMaxWeight = DefaultBlockBaseMaxSize; // no witness
 
         /// <summary>Default for "-blockmaxsize", which controls the maximum size of block the mining code will create.</summary>
         public const int DefaultBlockMaxSize = DefaultBlockBaseMaxSize;

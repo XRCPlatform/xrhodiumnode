@@ -214,8 +214,8 @@ namespace NBitcoin
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
 
-            network.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (61) };
-            network.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (123) };
+            network.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (65) };
+            network.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (128) };
             network.Base58Prefixes[(int)Base58Type.SECRET_KEY] = new byte[] { (100) };
             network.Base58Prefixes[(int)Base58Type.ENCRYPTED_SECRET_KEY_NO_EC] = new byte[] { 0x01, 0x42 };
             network.Base58Prefixes[(int)Base58Type.ENCRYPTED_SECRET_KEY_EC] = new byte[] { 0x01, 0x43 };
@@ -227,7 +227,7 @@ namespace NBitcoin
             network.Base58Prefixes[(int)Base58Type.ASSET_ID] = new byte[] { 23 };
             network.Base58Prefixes[(int)Base58Type.COLORED_ADDRESS] = new byte[] { 0x13 };
 
-            var encoder = new Bech32Encoder("rh");
+            var encoder = new Bech32Encoder("th");
             network.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             network.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
 
@@ -297,8 +297,8 @@ namespace NBitcoin
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
 
-            network.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (61) };
-            network.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (123) };
+            network.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (65) };
+            network.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (128) };
             network.Base58Prefixes[(int)Base58Type.SECRET_KEY] = new byte[] { (100) };
             network.Base58Prefixes[(int)Base58Type.ENCRYPTED_SECRET_KEY_NO_EC] = new byte[] { 0x01, 0x42 };
             network.Base58Prefixes[(int)Base58Type.ENCRYPTED_SECRET_KEY_EC] = new byte[] { 0x01, 0x43 };
@@ -310,7 +310,7 @@ namespace NBitcoin
             network.Base58Prefixes[(int)Base58Type.ASSET_ID] = new byte[] { 23 };
             network.Base58Prefixes[(int)Base58Type.COLORED_ADDRESS] = new byte[] { 0x13 };
 
-            var encoder = new Bech32Encoder("rh");
+            var encoder = new Bech32Encoder("th");
             network.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             network.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
 
