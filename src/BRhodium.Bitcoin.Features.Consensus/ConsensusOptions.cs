@@ -93,20 +93,28 @@ namespace BRhodium.Bitcoin.Features.Consensus
         /// </summary>
         public PowConsensusOptions()
         {
-            this.MaxBlockSerializedSize = 4000000;
-            this.MaxBlockWeight = 4000000;
+            //https://bitcoin.stackexchange.com/questions/69468/what-is-the-current-maximum-bitcoin-block-size-in-mb
+            this.MaxBlockSerializedSize = 4 * 1000 * 1000;
+            this.MaxBlockWeight = (this.MaxBlockSerializedSize * 3) + this.MaxBlockSerializedSize; 
             this.WitnessScaleFactor = 4;
             this.SerializeTransactionNoWitness = 0x40000000;
             this.MaxStandardVersion = 2;
-            this.MaxStandardTxWeight = 400000;
-            this.MaxBlockBaseSize = 1000000;
+            this.MaxStandardTxWeight = ((this.MaxBlockSerializedSize * 3) + this.MaxBlockSerializedSize) / 10;
+            this.MaxBlockBaseSize = 4 * 1000 * 1000;
             this.MaxBlockSigopsCost = 80000;
             this.MaxMoney = 2100000 * Money.COIN;
-            this.CoinbaseMaturity = 1;
+            this.CoinbaseMaturity = 50;
             this.ProofOfWorkReward = Money.Coins((decimal)2.5);
 
             // No long reorg protection on PoW.
             this.MaxReorgLength = 0;
+        }
+
+        public PowConsensusOptions TestPowConsensusOptions()
+        {
+            var production = this;
+            production.CoinbaseMaturity = 1;
+            return production;
         }
     }
 

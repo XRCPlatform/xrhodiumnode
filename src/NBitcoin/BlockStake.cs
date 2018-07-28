@@ -337,6 +337,8 @@ namespace NBitcoin
     /// </summary>
     public class PowBlock : Block
     {
+        public new const uint MaxBlockSize = 4 * 1000 * 1000;
+
         /// <summary>
         /// A block signature - signed by one of the coin base txout[N]'s owner.
         /// </summary>

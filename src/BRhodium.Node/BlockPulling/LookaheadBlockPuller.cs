@@ -115,7 +115,7 @@ namespace BRhodium.Node.BlockPulling
     public class LookaheadBlockPuller : BlockPuller, ILookaheadBlockPuller, IDisposable
     {
         /// <summary>Maximal size of a block in bytes.</summary>
-        private const int MaxBlockSize = 2000000;
+        private const int MaxBlockSize = 4 * 1000 * 1000;
 
         /// <summary>Number of milliseconds for a single waiting round for the next block in the <see cref="NextBlockCore"/> loop.</summary>
         private const int WaitNextBlockRoundTimeMs = 100;
