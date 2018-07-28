@@ -47,10 +47,10 @@ namespace BRhodium
                     .Build();
 
                 //BTR Generate Prime Wallet
-                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
+                Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
 
                 //BTR TEST MINER
-                //Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
+                Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
 
                 //BTR Generate Prime Wallet
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreateSecondaryWallet(node); }).GetAwaiter();

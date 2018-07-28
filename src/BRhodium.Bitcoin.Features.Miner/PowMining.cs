@@ -48,8 +48,10 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <summary>Default for "-blockmintxfee", which sets the minimum feerate for a transaction in blocks created by mining code.</summary>
         public const int DefaultBlockMinTxFee = 1000;
 
-        /// <summary>Default for "-blockmaxsize", which controls the maximum size of block the mining code will create.</summary>
-        public const int DefaultBlockMaxSize = (4 * 1000 * 1000) - 250000; // default value 750000 => 250000 (from 1MB) is correction;
+        /// <summary>
+        /// Base size from PowConsensusOptions()
+        /// </summary>
+        private const int DefaultBlockBaseMaxSize = 4 * 1000 * 1000;
 
         /// <summary>
         /// Default for "-blockmaxweight", which controls the maximum block weight the mining code can create.
@@ -57,7 +59,10 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// 4 weight units (WU) per byte. Witness data (signatures used to unlock existing coins so that they can be spent) costs 1 WU per byte.
         /// <seealso cref="http://learnmeabitcoin.com/faq/segregated-witness"/>
         /// </summary>
-        public const int DefaultBlockMaxWeight = ((DefaultBlockMaxSize * 3) + DefaultBlockMaxSize) - 1000000; // default value 3000000 => 1000000 (From 4 MB) is correction;
+        public const int DefaultBlockMaxWeight = DefaultBlockBaseMaxSize; // no witnes
+
+        /// <summary>Default for "-blockmaxsize", which controls the maximum size of block the mining code will create.</summary>
+        public const int DefaultBlockMaxSize = DefaultBlockBaseMaxSize;
 
         private uint256 hashPrevBlock;
 

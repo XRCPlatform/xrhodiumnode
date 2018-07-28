@@ -94,13 +94,15 @@ namespace BRhodium.Bitcoin.Features.Consensus
         public PowConsensusOptions()
         {
             //https://bitcoin.stackexchange.com/questions/69468/what-is-the-current-maximum-bitcoin-block-size-in-mb
-            this.MaxBlockSerializedSize = 4 * 1000 * 1000;
-            this.MaxBlockWeight = (this.MaxBlockSerializedSize * 3) + this.MaxBlockSerializedSize; 
-            this.WitnessScaleFactor = 4;
+            //Block weight = Base size * 3 + Total size. (rationale[3]) 
+
+            this.MaxBlockBaseSize = 4 * 1000 * 1000;
+            this.MaxBlockWeight = this.MaxBlockBaseSize;
+            this.MaxBlockSerializedSize = this.MaxBlockWeight;
+            this.WitnessScaleFactor = 1;
             this.SerializeTransactionNoWitness = 0x40000000;
             this.MaxStandardVersion = 2;
-            this.MaxStandardTxWeight = ((this.MaxBlockSerializedSize * 3) + this.MaxBlockSerializedSize) / 10;
-            this.MaxBlockBaseSize = 4 * 1000 * 1000;
+            this.MaxStandardTxWeight = this.MaxBlockWeight / 10;
             this.MaxBlockSigopsCost = 80000;
             this.MaxMoney = 2100000 * Money.COIN;
             this.CoinbaseMaturity = 50;
