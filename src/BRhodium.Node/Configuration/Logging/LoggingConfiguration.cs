@@ -51,7 +51,7 @@ namespace BRhodium.Node.Configuration.Logging
             //{ "libevent", "" },
             //{ "lock", "" },
             //{ "mempoolrej", "" },
-            { "net", $"{nameof(BRhodium)}.{nameof(FullNode)}.{nameof(Connection)}.*" },
+            { "net", $"{nameof(BRhodium)}.{nameof(Node)}.{nameof(Connection)}.*" },
             //{ "proxy", "" },
             //{ "prune", "" },
             //{ "rand", "" },
@@ -62,8 +62,8 @@ namespace BRhodium.Node.Configuration.Logging
             //{ "zmq", "" },
 
             // Short Names
-            { "configuration", $"{nameof(BRhodium)}.{nameof(FullNode)}.{nameof(Configuration)}.*" },
-            { "fullnode", $"{nameof(BRhodium)}.{nameof(FullNode)}.{nameof(FullNode)}" }
+            { "configuration", $"{nameof(BRhodium)}.{nameof(Node)}.{nameof(Configuration)}.*" },
+            { "fullnode", $"{nameof(BRhodium)}.{nameof(Node)}.{nameof(FullNode)}" }
         };
 
         public static void RegisterFeatureNamespace<T>(string key)
@@ -147,14 +147,14 @@ namespace BRhodium.Node.Configuration.Logging
             LogManager.Configuration.AddTarget(mainTarget);
 
             // Default logging level is Info for all components.
-            var defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(FullNode)}.*", NLog.LogLevel.Info, mainTarget);
+            var defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(Node)}.*", NLog.LogLevel.Info, mainTarget);
 
             if (settings.DebugArgs.Any())
             {
                 if (settings.DebugArgs[0] == "1")
                 {
                     // Increase all logging to Debug level.
-                    defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(FullNode)}.*", NLog.LogLevel.Debug, mainTarget);
+                    defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(Node)}.*", NLog.LogLevel.Debug, mainTarget);
                 }
                 else
                 {
@@ -238,7 +238,7 @@ namespace BRhodium.Node.Configuration.Logging
                     if (settings.DebugArgs[0] == "1")
                     {
                         // Increase all logging to Debug.
-                        consoleLoggerSettings.Switches.Add($"{nameof(BRhodium)}.{nameof(FullNode)}", Microsoft.Extensions.Logging.LogLevel.Debug);
+                        consoleLoggerSettings.Switches.Add($"{nameof(BRhodium)}.{nameof(Node)}", Microsoft.Extensions.Logging.LogLevel.Debug);
                     }
                     else
                     {
