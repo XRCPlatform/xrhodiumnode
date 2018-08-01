@@ -48,7 +48,7 @@ namespace NBitcoin
     // TODO: Make NetworkOptions required in the constructors of this class.
     public partial class BitcoinStream
     {
-        int maxArraySize = 1024 * 1024;
+        int maxArraySize = 4 * 1024 * 1024;
         public int MaxArraySize
         {
             get

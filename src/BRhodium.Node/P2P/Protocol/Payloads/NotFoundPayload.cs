@@ -41,7 +41,7 @@ namespace BRhodium.Node.P2P.Protocol.Payloads
         public override void ReadWriteCore(BitcoinStream stream)
         {
             int old = stream.MaxArraySize;
-            stream.MaxArraySize = 5000;
+            //stream.MaxArraySize = 5000; BTR: why we have limit of max block size
             stream.ReadWrite(ref this.inventory);
             stream.MaxArraySize = old;
         }

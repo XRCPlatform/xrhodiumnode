@@ -63,7 +63,7 @@ namespace BRhodium
                 //    var wallet = walletManager.GetWalletByName("rhodium.genesis");
                 //    var hdaccount = wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
 
-                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", "RbFHJsMRFWHt5J1xEaB5x78qaybgmTR4Hb", "thisisourrootwallet", new Money(1, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", "RfNNdYZyorTPWADryhnSCjh5MN1yx7ymyg", "thisisourrootwallet", new Money(1, MoneyUnit.BTR).Satoshi);
                 //}).GetAwaiter();
 
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => {
