@@ -141,7 +141,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             
             CancellationTokenSource source = new CancellationTokenSource();
             var token = source.Token;
-            signals.Setup(s => s.SignalBlock(It.Is<Block>(b => b.GetHash() == blocks[0].GetHash())))
+            signals.Setup(s => s.SignalBlock(It.Is<Block>(b => b.GetHash(this.Network) == blocks[0].GetHash(this.Network))))
                 .Callback(() => {
                     source.Cancel();
                 }).Verifiable();

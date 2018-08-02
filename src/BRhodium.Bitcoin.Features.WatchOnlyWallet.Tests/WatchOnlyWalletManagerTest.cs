@@ -268,7 +268,7 @@ namespace BRhodium.Bitcoin.Features.WatchOnlyWallet.Tests
 
             WatchOnlyWallet wallet = new WatchOnlyWallet
             {
-                CoinType = CoinType.Bitcoin,
+                CoinType = CoinType.BRhodium,
                 Network = Network.TestNet,
                 CreationTime = now,
                 WatchedAddresses = new ConcurrentDictionary<string, WatchedAddress>()

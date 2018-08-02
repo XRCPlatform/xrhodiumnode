@@ -1012,7 +1012,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = CoinType.Bitcoin,
+                CoinType = CoinType.BRhodium,
                 Accounts = new List<HdAccount> { new HdAccount { Name = "Account 3" } }
             });
             walletManager.Wallets.Add(wallet);
@@ -1080,10 +1080,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 20;
             var wallet3 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 56;
             walletManager.Wallets.Add(wallet);
             walletManager.Wallets.Add(wallet2);
@@ -1104,15 +1104,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = CoinType.Bitcoin,
+                CoinType = CoinType.BRhodium,
                 LastBlockSyncedHeight = 12
             });
 
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 20;
             var wallet3 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 56;
             walletManager.Wallets.Add(wallet);
             walletManager.Wallets.Add(wallet2);
@@ -1167,11 +1167,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(15);
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 20;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(20);
             var wallet3 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 56;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(56);
             walletManager.Wallets.Add(wallet);
@@ -1194,17 +1194,17 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(15);
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = CoinType.Bitcoin,
+                CoinType = CoinType.BRhodium,
                 LastBlockSyncedHeight = 12,
                 LastBlockSyncedHash = new uint256(12)
             });
 
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 20;
             wallet2.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(20);
             var wallet3 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.Bitcoin;
+            wallet3.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 56;
             wallet3.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(56);
             walletManager.Wallets.Add(wallet);

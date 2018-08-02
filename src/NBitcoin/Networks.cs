@@ -11,9 +11,9 @@ namespace NBitcoin
     public enum CoinType
     {
         /// <summary>
-        /// Bitcoin
+        /// BRhodium
         /// </summary>
-        Bitcoin = 0,
+        BRhodium = 10291,
 
         /// <summary>
         /// Testnet (all coins)
@@ -21,9 +21,9 @@ namespace NBitcoin
         Testnet = 1,
 
         /// <summary>
-        /// BRhodium
+        /// RegTest
         /// </summary>
-        BRhodium = 66666
+        RegTest = 102910
     }
 
     public partial class Network
@@ -78,8 +78,8 @@ namespace NBitcoin
                 RootFolderName = BRhodiumRootFolderName,
                 DefaultConfigFilename = BRhodiumDefaultConfigFilename,
                 Magic = magic,
-                DefaultPort = 16665,
-                RPCPort = 16661,
+                DefaultPort = 37270,
+                RPCPort = 19660,
                 MaxTimeOffsetSeconds = BRhodiumMaxTimeOffsetSeconds,
                 MaxTipAge = 604800, //one week
                 MinTxFee = 1000,
@@ -205,7 +205,7 @@ namespace NBitcoin
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
             network.Consensus.IsProofOfStake = false;
-            network.Consensus.CoinType = (int)CoinType.BRhodium;
+            network.Consensus.CoinType = (int)CoinType.Testnet;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 
@@ -288,7 +288,7 @@ namespace NBitcoin
             network.Consensus.IsProofOfStake = false;
             network.Consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             network.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
-            network.Consensus.CoinType = (int)CoinType.BRhodium;
+            network.Consensus.CoinType = (int)CoinType.RegTest;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 

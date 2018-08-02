@@ -108,7 +108,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var expectedBlockHash = this.chain.GetBlock(4).Header.GetHash();
             Assert.Equal(expectedBlockHash, walletSyncManager.WalletTip.Header.GetHash());
-            this.walletManager.Verify(w => w.ProcessBlock(It.Is<Block>(b => b.GetHash() == blockToProcess.GetHash()), It.Is<ChainedHeader>(c => c.Header.GetHash() == expectedBlockHash)));
+            this.walletManager.Verify(w => w.ProcessBlock(It.Is<Block>(b => b.GetHash(this.Network) == blockToProcess.GetHash(this.Network)), It.Is<ChainedHeader>(c => c.Header.GetHash() == expectedBlockHash)));
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
         private static Block ExpectBlock(Block block)
         {
-            return It.Is<Block>(b => b.GetHash() == block.GetHash());
+            return It.Is<Block>(b => b.GetHash(Network.BRhodiumMain) == block.GetHash(Network.BRhodiumMain));
         }
 
         private class WalletSyncManagerOverride : WalletSyncManager

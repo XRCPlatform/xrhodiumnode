@@ -202,7 +202,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 wallet.AccountsRoot.Add(new AccountRoot()
                 {
-                    CoinType = CoinType.Bitcoin,
+                    CoinType = CoinType.BRhodium,
                     Accounts = new List<HdAccount>
                     {
                         new HdAccount
