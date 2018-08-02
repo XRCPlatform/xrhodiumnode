@@ -367,11 +367,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
                 walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/")+1);//, hdAcccountName.Length - hdAcccountName.IndexOf("/")
             }
-            else
-            {//get default account wallet name
-                acccountName = hdAcccountName;
-                walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-            }
+           
 
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
@@ -662,15 +658,39 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
-        private int ExtractBlockHeight(Script scriptSig)
+
+        /// <summary>
+        /// The createrawtransaction RPC creates an unsigned serialized transaction that spends a previous output to a new output with a P2PKH or P2SH address. The transaction is not stored in the wallet or transmitted to the network.
+        /// </summary>
+        /// <param name="request">The transaction parameters.</param>
+        /// <returns>All the details of the transaction, including the hex used to execute it.</returns>
+        [ActionName("createrawtransaction")]
+        [ActionDescription("Create a transaction spending the given inputs and creating new outputs. Outputs can be addresses or data. Returns hex - encoded raw transaction.")]
+        public IActionResult CreateRawTransaction(string inputs, string outputs)
         {
-            int retval = 0;
-            foreach (var item in scriptSig.ToOps())
+            try
             {
-                //item.PushData.
-                break;
+                TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
+                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
+
+                Transaction transaction = new Transaction();
+                foreach (var input in txIns)
+                {
+                    transaction.AddInput(input);
+                }
+                foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
+                {
+                    var destination = BitcoinAddress.Create(entry.Key, this.network).ScriptPubKey;
+                    transaction.AddOutput(new TxOut(new Money(entry.Value,MoneyUnit.MilliBTR), destination));
+                }
+                return this.Json(transaction);
             }
-            return retval;
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
+
     }
 }

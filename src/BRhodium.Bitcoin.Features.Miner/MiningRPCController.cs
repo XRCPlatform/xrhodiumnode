@@ -99,6 +99,24 @@ namespace BRhodium.Bitcoin.Features.Miner
             this.ChainState = chainState;
             this.Network = fullNode.Network;
         }
+        /// <summary>
+        /// Generates UTXOs to each unused addres in account used for stress testing
+        /// </summary>
+        /// <param name="walletName"></param>
+        /// <param name="accountName"></param>
+        /// <returns></returns>
+        [ActionName("generateToAccountAddresses")]
+        [ActionDescription("Tries to mine a given number of blocks and returns a list of block header hashes.")]
+        public List<uint256> Generate(string walletName, string accountName)
+        {
+            WalletAccountReference accountReference = accountReference = new WalletAccountReference(walletName, accountName);
+            List<uint256> res = new List<uint256>();
+            foreach (HdAddress address in this.walletManager.GetUnusedAddresses(accountReference, 10))
+            {
+                res.AddRange(this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)1, int.MaxValue));
+            }
+            return res;
+        }
 
         /// <summary>
         /// Tries to mine one or more blocks.
