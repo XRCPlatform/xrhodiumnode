@@ -260,7 +260,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             var w = this.walletManager;
             var wallet = w.GetWalletByName(walletName);
-            return wallet.GetAccountsByCoinType(CoinType.BRhodium).ToArray().First();
+            return wallet.GetAccountsByCoinType((CoinType)this.network.Consensus.CoinType).ToArray().First();
         }
 
         [ActionName("sendmoney")]
@@ -649,7 +649,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         TransactionsHistory = transactionItems.OrderByDescending(t => t.Timestamp).ToList(),
                         Name = accountHistory.Account.Name,
-                        CoinType = CoinType.BRhodium,
+                        CoinType = (CoinType)this.network.Consensus.CoinType,
                         HdPath = accountHistory.Account.HdPath
                     });
                 }
