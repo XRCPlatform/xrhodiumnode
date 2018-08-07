@@ -176,7 +176,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>The maximum allowed size for a serialized block, in bytes (network rule).</summary>
-        public const int MaxBlockSize = 1000000;
+        public const int MaxBlockSize = 4 * 1000 * 1000;
 
         ///<summary>The maximum size for mined blocks.</summary>
         public const int MaxBlockSizeGen = MaxBlockSize / 2;
@@ -829,7 +829,7 @@ namespace BRhodium.Bitcoin.Features.Miner
             }
 
             // Limit size.
-            int serializedSize = coinstakeContext.CoinstakeTx.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION, SerializationType.Network);
+            int serializedSize = coinstakeContext.CoinstakeTx.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION, SerializationType.Network);
             if (serializedSize >= (MaxBlockSizeGen / 5))
             {
                 this.logger.LogTrace("Coinstake size {0} bytes exceeded limit {1} bytes.", serializedSize, MaxBlockSizeGen / 5);

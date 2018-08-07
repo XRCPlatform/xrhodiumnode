@@ -1167,7 +1167,7 @@ namespace NBitcoin
             vout = new TxOutList(this);
         }
 
-        internal Transaction(string hex, ProtocolVersion version = ProtocolVersion.PROTOCOL_VERSION)
+        internal Transaction(string hex, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
             : this()
         {
             this.FromBytes(Encoders.Hex.DecodeData(hex), version);
@@ -1179,7 +1179,7 @@ namespace NBitcoin
             this.FromBytes(bytes);
         }
 
-        public static Transaction Load(string hex, Network network, ProtocolVersion version = ProtocolVersion.PROTOCOL_VERSION)
+        public static Transaction Load(string hex, Network network, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
         {
             if (hex == null)
                 throw new ArgumentNullException(nameof(hex));

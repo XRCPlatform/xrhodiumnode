@@ -382,9 +382,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             return tx.GetSerializedSize(
                        (ProtocolVersion)
-                       ((uint)ProtocolVersion.PROTOCOL_VERSION | consensusOptions.SerializeTransactionNoWitness),
+                       ((uint)ProtocolVersion.BTR_PROTOCOL_VERSION | consensusOptions.SerializeTransactionNoWitness),
                        SerializationType.Network) * (consensusOptions.WitnessScaleFactor - 1) +
-                   tx.GetSerializedSize(ProtocolVersion.PROTOCOL_VERSION, SerializationType.Network);
+                   tx.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION, SerializationType.Network);
         }
 
         /// <summary>

@@ -150,7 +150,7 @@ namespace NBitcoin
         {
         }
 
-        public PosTransaction(string hex, ProtocolVersion version = ProtocolVersion.PROTOCOL_VERSION) : this()
+        public PosTransaction(string hex, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION) : this()
         {
             this.FromBytes(Encoders.Hex.DecodeData(hex), version);
         }
@@ -294,8 +294,13 @@ namespace NBitcoin
         /// <summary>Current header version.</summary>
         public override int CurrentVersion => 666;
 
-        /// <inheritdoc />
         public override uint256 GetHash()
+        {
+            return this.GetHash(null);
+        }
+
+        /// <inheritdoc />
+        public uint256 GetHash(Network network = null)
         {
             uint256 hash = null;
             uint256[] innerHashes = this.hashes;
@@ -306,7 +311,7 @@ namespace NBitcoin
             if (hash != null)
                 return hash;
 
-            hash = Hashes.Hash256(this.ToBytes());
+            hash = Hashes.Hash256(this.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, network));
 
             innerHashes = this.hashes;
             if (innerHashes != null)
@@ -332,6 +337,8 @@ namespace NBitcoin
     /// </summary>
     public class PowBlock : Block
     {
+        public new const uint MaxBlockSize = 4 * 1000 * 1000;
+
         /// <summary>
         /// A block signature - signed by one of the coin base txout[N]'s owner.
         /// </summary>
@@ -363,7 +370,7 @@ namespace NBitcoin
         {
         }
 
-        public PowTransaction(string hex, ProtocolVersion version = ProtocolVersion.PROTOCOL_VERSION) : this()
+        public PowTransaction(string hex, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION) : this()
         {
             this.FromBytes(Encoders.Hex.DecodeData(hex), version);
         }

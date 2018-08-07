@@ -715,7 +715,7 @@ namespace NBitcoin
             return new BitcoinScriptAddress(scriptId, this);
         }
         /*
-        public Message ParseMessage(byte[] bytes, ProtocolVersion version = ProtocolVersion.PROTOCOL_VERSION)
+        public Message ParseMessage(byte[] bytes, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
         {
             BitcoinStream bstream = new BitcoinStream(bytes);
             Message message = new Message();

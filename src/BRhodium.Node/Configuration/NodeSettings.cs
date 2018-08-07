@@ -46,7 +46,7 @@ namespace BRhodium.Node.Configuration
         /// <param name="agent">The nodes user agent that will be shared with peers.</param>
         /// <param name="args">The command-line arguments.</param>
         /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
-        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.ALT_PROTOCOL_VERSION, 
+        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION, 
             string agent = "BRhodiumBitcoin", string[] args = null, bool loadConfiguration = true)
         {
             this.Agent = agent;

@@ -195,8 +195,10 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 .AddFeature<ConsensusFeature>()
                 .FeatureServices(services =>
                 {
-                    // TODO: this should be set on the network build
+                    
                     fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions();
+                    if (fullNodeBuilder.Network.Name != Network.BRhodiumBaseName)
+                        fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions().TestPowConsensusOptions();
 
                     services.AddSingleton<ICheckpoints, Checkpoints>();
                     services.AddSingleton<NBitcoin.Consensus.ConsensusOptions, PowConsensusOptions>();
