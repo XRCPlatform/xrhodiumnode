@@ -515,6 +515,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 // Get a list of all the transactions found in an account (or in a wallet if no account is specified), with the addresses associated with them.
                 IEnumerable<AccountHistory> accountsHistory = this.walletManager.GetHistory(walletName, hdAcccountName);
 
+                var feeRate = new FeeRate(this.nodeSettings.MinTxFeeRate.FeePerK);
+                var blockManager = this.FullNode.NodeService<BlockStoreManager>();
+
                 foreach (var accountHistory in accountsHistory)
                 {
                     List<TransactionItemModel> transactionItems = new List<TransactionItemModel>();
@@ -626,8 +629,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             // This is our best shot at finding the total value of inputs for this transaction.
                             var inputsAmount = new Money(spendingDetails.Where(t => t.Transaction.SpendingDetails.TransactionId == spendingTransactionId).Sum(t => t.Transaction.Amount));
 
+                            //calculation of fee based on transaction
+                            var currentTransaction = blockManager.BlockRepository.GetTrxAsync(spendingTransactionId).GetAwaiter().GetResult();
+                            if (currentTransaction != null) sentItem.Fee = feeRate.GetFee(currentTransaction);
+
                             // The fee is calculated as follows: funds in utxo - amount spent - amount sent as change.
-                            sentItem.Fee = inputsAmount - sentItem.Amount - (changeAddress == null ? 0 : changeAddress.Transaction.Amount);
+                            //OLD: sentItem.Fee = inputsAmount - sentItem.Amount - (changeAddress == null ? 0 : changeAddress.Transaction.Amount);
 
                             // Mined/staked coins add more coins to the total out.
                             // That makes the fee negative. If that's the case ignore the fee.
