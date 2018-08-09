@@ -27,6 +27,10 @@ using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
+    /// <summary>
+    /// Wallet Controller RPCs method
+    /// </summary>
+    /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
     public class WalletRPCController : FeatureController
     {
         private const string DEFAULT_ACCOUNT_NAME = "account 0";
@@ -71,9 +75,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
         }
 
-
-
-
+        /// <summary>
+        /// Sends to address.
+        /// </summary>
+        /// <param name="bitcoinAddress">The bitcoin address.</param>
+        /// <param name="amount">The amount.</param>
+        /// <returns></returns>
         [ActionName("sendtoaddress")]
         [ActionDescription("Sends money to a bitcoin address.")]
         public uint256 SendToAddress(BitcoinAddress bitcoinAddress, Money amount)
@@ -93,6 +100,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
 
+        /// <summary>
+        /// Dumps the priv key.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        /// <returns></returns>
         [ActionName("dumpprivkey")]
         [ActionDescription("Gets private key of given wallet address")]
         public IActionResult DumpPrivKey(string address)
@@ -112,6 +124,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
         /// <summary>
         /// If [walletName] is not specified, returns the server's total available balance.
         /// If [walletName] is specified, returns the balance in the account.
@@ -213,7 +226,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+
         private static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
+        /// <summary>
+        /// Gets the account.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">address</exception>
+        /// <exception cref="RPCException">Wallet not initialized - null - false</exception>
         [ActionName("getaccount")]
         [ActionDescription("")]
         public IActionResult GetAccount(string address)
@@ -244,10 +266,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                 }
             }
+
             //if this point is reached the address is not in any wallets
             throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
-           
         }
+
+        /// <summary>
+        /// Generates the new wallet.
+        /// </summary>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="password">The password.</param>
+        /// <returns></returns>
         [ActionName("generatenewwallet")]
         public Mnemonic GenerateNewWallet(string walletName, string password)
         {
@@ -255,6 +284,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return w.CreateWallet(password, walletName);
         }
 
+        /// <summary>
+        /// Gets the wallet.
+        /// </summary>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <returns></returns>
         [ActionName("getwallet")]
         public HdAccount GetWallet(string walletName)
         {
@@ -263,6 +297,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return wallet.GetAccountsByCoinType((CoinType)this.network.Consensus.CoinType).ToArray().First();
         }
 
+        /// <summary>
+        /// Sends the money.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="targetAddress">The target address.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="satoshi">The satoshi.</param>
+        /// <returns></returns>
         [ActionName("sendmoney")]
         public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
         {
@@ -313,6 +356,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return null;
         }
 
+        /// <summary>
+        /// Sends the raw transaction.
+        /// </summary>
+        /// <param name="hexString">The hexadecimal string.</param>
+        /// <returns></returns>
+        /// <exception cref="WalletException">Can't send transaction: sending transaction requires at least on connection.</exception>
         [ActionName("sendrawtransaction")]
         [ActionDescription("Sends a raw transaction.")]
         public IActionResult SendRawTransaction(string hexString)
@@ -349,6 +398,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
+        /// <summary>
+        /// Sendmanies the specified hd acccount name.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="toBitcoinAddresses">To bitcoin addresses.</param>
+        /// <param name="minconf">The minconf.</param>
+        /// <param name="password">The password.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// hdAcccountName
+        /// or
+        /// toBitcoinAddresses
+        /// </exception>
         [ActionName("sendmany")]
         public uint256 Sendmany(string hdAcccountName, string toBitcoinAddresses, int minconf, string password)
         {
@@ -399,6 +461,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return fundTransaction.GetHash();
         }
 
+        /// <summary>
+        /// Gets the transaction.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns></returns>
         [ActionName("gettransaction")]
         [ActionDescription("Returns a wallet (only local transactions) transaction detail.")]
         public IActionResult GetTransaction(string[] args)
@@ -493,6 +560,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
         /// <summary>
         /// Retrieves the history of a wallet.
         /// </summary>

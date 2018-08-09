@@ -22,6 +22,10 @@ using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
+    /// <summary>
+    /// Full Node Controller RPCs method
+    /// </summary>
+    /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
     public class FullNodeController : FeatureController
     {
         /// <summary>Instance logger.</summary>
@@ -69,19 +73,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             this.consensusLoop = consensusLoop;
         }
 
-        [ActionName("stop")]
-        [ActionDescription("Stops the full node.")]
-        public Task Stop()
-        {
-            if (this.FullNode != null)
-            {
-                this.FullNode.Dispose();
-                this.FullNode = null;
-            }
-
-            return Task.CompletedTask;
-        }
-
+        /// <summary>
+        /// Gets the raw transaction asynchronous.
+        /// </summary>
+        /// <param name="txid">The txid.</param>
+        /// <param name="verbose">The verbose.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">txid</exception>
         [ActionName("getrawtransaction")]
         [ActionDescription("Gets a raw, possibly pooled, transaction from the full node.")]
         public async Task<TransactionModel> GetRawTransactionAsync(string txid, int verbose = 0)
@@ -141,6 +139,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             return new GetTxOutModel(unspentOutputs, vout, this.Network, this.Chain.Tip);
         }
 
+        /// <summary>
+        /// Gets the block count.
+        /// </summary>
+        /// <returns></returns>
         [ActionName("getblockcount")]
         [ActionDescription("Gets the current consensus tip height.")]
         public int GetBlockCount()
@@ -148,6 +150,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             return this.consensusLoop?.Tip.Height ?? -1;
         }
 
+        /// <summary>
+        /// Gets the information.
+        /// </summary>
+        /// <returns></returns>
         [ActionName("getinfo")]
         [ActionDescription("Gets general information about the full node.")]
         public IActionResult GetInfo()
@@ -215,45 +221,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
             return model;
         }
-
-        /// <summary>
-        /// Returns information about a bitcoin address
-        /// </summary>
-        /// <param name="address">bech32 or base58 BitcoinAddress to validate.</param>
-        /// <returns>ValidatedAddress containing a boolean indicating address validity</returns>
-        //[ActionName("validateaddress")]
-        //[ActionDescription("Returns information about a bech32 or base58 bitcoin address")]
-        //public ValidatedAddress ValidateAddress(string address)
-        //{
-        //    if (string.IsNullOrEmpty(address))
-        //        throw new ArgumentNullException("address");
-
-        //    var res = new ValidatedAddress();
-        //    res.IsValid = false;
-
-        //    // P2WPKH
-        //    if (BitcoinWitPubKeyAddress.IsValid(address, ref this.Network, out Exception _))
-        //    {
-        //        res.IsValid = true;
-        //    }
-        //    // P2WSH
-        //    else if (BitcoinWitScriptAddress.IsValid(address, ref this.Network, out Exception _))
-        //    {
-        //        res.IsValid = true;
-        //    }
-        //    // P2PKH
-        //    else if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
-        //    {
-        //        res.IsValid = true;
-        //    }
-        //    // P2SH
-        //    else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
-        //    {
-        //        res.IsValid = true;
-        //    }
-
-        //    return res;
-        //}
 
         private async Task<ChainedHeader> GetTransactionBlockAsync(uint256 trxid)
         {

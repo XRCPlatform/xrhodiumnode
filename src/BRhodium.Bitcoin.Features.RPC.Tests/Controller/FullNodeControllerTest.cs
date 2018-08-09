@@ -58,25 +58,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         }
 
         [Fact]
-        public async Task Stop_WithoutFullNode_DoesNotThrowExceptionAsync()
-        {
-            IFullNode fullNode = null;
-
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
-                this.consensusLoop.Object, fullNode, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
-
-            await this.controller.Stop().ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task Stop_WithFullNode_DisposesFullNodeAsync()
-        {
-            await this.controller.Stop().ConfigureAwait(false);
-
-            this.fullNode.Verify(f => f.Dispose());
-        }
-
-        [Fact]
         public async Task GetRawTransactionAsync_TransactionCannotBeFound_ReturnsNullAsync()
         {
             uint256 txId = new uint256(12142124);

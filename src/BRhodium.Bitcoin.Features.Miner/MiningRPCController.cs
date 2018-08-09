@@ -32,9 +32,11 @@ using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Miner
 {
+
     /// <summary>
-    /// RPC controller for calls related to PoW mining and PoS minting.
+    /// RPC controller for calls related to PoW mining
     /// </summary>
+    /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
     [Controller]
     public class MiningRPCController : FeatureController
     {
@@ -99,6 +101,7 @@ namespace BRhodium.Bitcoin.Features.Miner
             this.ChainState = chainState;
             this.Network = fullNode.Network;
         }
+
         /// <summary>
         /// Generates UTXOs to each unused addres in account used for stress testing
         /// </summary>
@@ -221,11 +224,20 @@ namespace BRhodium.Bitcoin.Features.Miner
             return res;
         }
 
+        /// <summary>
+        /// Gets the network difficulty.
+        /// </summary>
+        /// <returns></returns>
         private Target GetNetworkDifficulty()
         {
             return this.networkDifficulty?.GetNetworkDifficulty();
         }
 
+        /// <summary>
+        /// Gets the difficulty.
+        /// </summary>
+        /// <param name="hash">The hash.</param>
+        /// <returns></returns>
         [ActionName("getdifficulty")]
         [ActionDescription("Result—the current difficulty.")]
         public IActionResult GetDifficulty(string hash)
@@ -243,6 +255,10 @@ namespace BRhodium.Bitcoin.Features.Miner
             }
         }
 
+        /// <summary>
+        /// Gets the mining information.
+        /// </summary>
+        /// <returns></returns>
         [ActionName("getmininginfo")]
         [ActionDescription("")]
         public IActionResult GetMiningInfo()
@@ -271,8 +287,14 @@ namespace BRhodium.Bitcoin.Features.Miner
             }
             return this.Json(ResultHelper.BuildResultResponse(miningInfo));
         }
+
         private static Object lockGetBlockTemplate = new Object();
         private static Object lockSubmitBlock = new Object();
+        /// <summary>
+        /// Gets the block template.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns></returns>
         [ActionName("getblocktemplate")]
         [ActionDescription("")]
         public IActionResult GetBlockTemplate(string[] args)
@@ -370,6 +392,18 @@ namespace BRhodium.Bitcoin.Features.Miner
             return this.Json(json);
         }
 
+        /// <summary>
+        /// Submits the block.
+        /// </summary>
+        /// <param name="hex">The hexadecimal.</param>
+        /// <returns></returns>
+        /// <exception cref="RPCException">
+        /// Empty block hex supplied - null - false
+        /// or
+        /// Empty block hex supplied - null - false
+        /// or
+        /// Wrong chain work - null - false
+        /// </exception>
         [ActionName("submitblock")]
         [ActionDescription("")]
         public IActionResult SubmitBlock(string hex)
@@ -418,11 +452,21 @@ namespace BRhodium.Bitcoin.Features.Miner
            
         }
 
+        /// <summary>
+        /// Gets the network hash ps.
+        /// </summary>
+        /// <returns>Return double value od ps</returns>
         public double GetNetworkHashPS()
         {
             return GetNetworkHashPS(120, -1);
         }
 
+        /// <summary>
+        /// Gets the network hash ps.
+        /// </summary>
+        /// <param name="lookup">The lookup.</param>
+        /// <param name="height">The height.</param>
+        /// <returns></returns>
         private double GetNetworkHashPS(int lookup, int height)
         {
             var pb = this.consensusLoop.Chain.Tip;
