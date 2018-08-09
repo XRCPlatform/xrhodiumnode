@@ -26,6 +26,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
     /// Full Node Controller RPCs method
     /// </summary>
     /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
+    [Controller]
     public class FullNodeController : FeatureController
     {
         /// <summary>Instance logger.</summary>
@@ -78,7 +79,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         /// <param name="txid">The txid.</param>
         /// <param name="verbose">The verbose.</param>
-        /// <returns></returns>
+        /// <returns>TransactionModel rpc format</returns>
         /// <exception cref="ArgumentException">txid</exception>
         [ActionName("getrawtransaction")]
         [ActionDescription("Gets a raw, possibly pooled, transaction from the full node.")]
@@ -142,7 +143,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Gets the block count.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Return block count</returns>
         [ActionName("getblockcount")]
         [ActionDescription("Gets the current consensus tip height.")]
         public int GetBlockCount()
@@ -153,7 +154,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Gets the information.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>GetInfoModel rpc format</returns>
         [ActionName("getinfo")]
         [ActionDescription("Gets general information about the full node.")]
         public IActionResult GetInfo()
