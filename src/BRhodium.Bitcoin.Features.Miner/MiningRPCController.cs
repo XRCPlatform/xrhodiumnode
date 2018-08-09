@@ -148,61 +148,6 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Starts staking a wallet.
-        /// </summary>
-        /// <param name="walletName">The name of the wallet.</param>
-        /// <param name="walletPassword">The password of the wallet.</param>
-        /// <returns></returns>
-        [ActionName("startstaking")]
-        [ActionDescription("Starts staking a wallet.")]
-        public bool StartStaking(string walletName, string walletPassword)
-        {
-            Guard.NotEmpty(walletName, nameof(walletName));
-            Guard.NotEmpty(walletPassword, nameof(walletPassword));
-
-            this.logger.LogTrace("({0}:{1})", nameof(walletName), walletName);
-
-            Wallet.Wallet wallet = this.walletManager.GetWallet(walletName);
-
-            // Check the password
-            try
-            {
-                Key.Parse(wallet.EncryptedSeed, walletPassword, wallet.Network);
-            }
-            catch (Exception ex)
-            {
-                throw new SecurityException(ex.Message);
-            }
-
-            this.fullNode.NodeFeature<MiningFeature>(true).StartStaking(walletName, walletPassword);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Implements "getstakinginfo" RPC call.
-        /// </summary>
-        /// <param name="isJsonFormat">Indicates whether to provide data in JSON or binary format.</param>
-        /// <returns>Staking information RPC response.</returns>
-        [ActionName("getstakinginfo")]
-        [ActionDescription("Gets the staking information.")]
-        public GetStakingInfoModel GetStakingInfo(bool isJsonFormat = true)
-        {
-            this.logger.LogTrace("({0}:{1})", nameof(isJsonFormat), isJsonFormat);
-
-            if (!isJsonFormat)
-            {
-                this.logger.LogError("Binary serialization is not supported for RPC '{0}'.", nameof(this.GetStakingInfo));
-                throw new NotImplementedException();
-            }
-
-            GetStakingInfoModel model = this.posMinting != null ? this.posMinting.GetGetStakingInfoModel() : new GetStakingInfoModel();
-
-            this.logger.LogTrace("(-):{0}", model);
-            return model;
-        }
-
-        /// <summary>
         /// Finds first available wallet and its account.
         /// </summary>
         /// <returns>Reference to wallet account.</returns>

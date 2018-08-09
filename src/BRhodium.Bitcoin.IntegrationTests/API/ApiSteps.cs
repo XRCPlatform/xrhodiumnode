@@ -114,16 +114,6 @@ namespace BRhodium.Node.IntegrationTests.API
             this.response = this.httpClient.GetStringAsync($"{this.apiUri}api/rpc/listmethods").GetAwaiter().GetResult();
         }
 
-        private void staking_is_enabled_but_nothing_is_staked()
-        {
-            var miningRpcController = this.nodes[PosNode].FullNode.NodeService<MiningRPCController>();
-            var stakingInfo = miningRpcController.GetStakingInfo();
-
-            stakingInfo.Should().NotBeNull();
-            stakingInfo.Enabled.Should().BeTrue();
-            stakingInfo.Staking.Should().BeFalse();
-        }
-
         private void the_blockhash_is_returned()
         {
             this.response.Should().Be("\"" + Network.BRhodiumRegTest.Consensus.HashGenesisBlock + "\"");

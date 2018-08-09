@@ -13,14 +13,6 @@ namespace BRhodium.Node.IntegrationTests.API
         }
 
         [Fact]
-        public void Startstaking_enables_staking_but_nothing_staked()
-        {
-            Given(a_proof_of_stake_node_with_api_enabled);
-            When(staking_is_started);
-            Then(staking_is_enabled_but_nothing_is_staked);
-        }
-
-        [Fact]
         public void Getblockhash_via_rpc_callbyname_returns_the_blockhash()
         {
             Given(a_proof_of_stake_node_with_api_enabled);
