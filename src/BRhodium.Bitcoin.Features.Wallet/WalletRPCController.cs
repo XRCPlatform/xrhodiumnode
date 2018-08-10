@@ -48,6 +48,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public IConsensusLoop ConsensusLoop { get; private set; }
         public IBroadcasterManager broadcasterManager;
         private readonly IConnectionManager connectionManager;
+
+        //wallet address mapping on the node
+        private static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
+        private static Dictionary<string, DateTime> walletPassphrase = new Dictionary<string, DateTime>();
+
         public WalletRPCController(
             IServiceProvider serviceProvider,
             IWalletManager walletManager,
@@ -100,9 +105,57 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return new WalletAccountReference(w, account.Name);
         }
 
+        /// <summary>
+        /// Wallets the passphrase.
+        /// 
+        /// <p>Example: <br/>
+        /// Set the passphrase for 2 minutes to perform a transaction<br/>
+        /// walletpassphrase "my pass phrase" 120</p>
+        /// <p>Perform a send(requires passphrase set)<br/>
+        /// sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p>
+        /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
+        /// walletlock </p>
+        /// </summary>
+        /// <param name="passphrase">The passphrase.</param>
+        /// <param name="timeout">The timeout in seconds. Limited to 1073741824 sec.</param>
+        /// <returns>Null or success</returns>
+        [ActionName("walletpassphrase")]
+        [ActionDescription("Stores the wallet decryption key in memory for 'timeout' seconds.")]
+        public IActionResult WalletPassphrase(string passphrase, int timeout)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(passphrase))
+                {
+                    throw new ArgumentNullException("passphrase");
+                }
+                if ((timeout <= 0) || (timeout > 1073741824))
+                {
+                    throw new ArgumentNullException("timeout");
+                }
+
+                var dateExpiration = DateTime.Now.AddSeconds(timeout);
+                walletPassphrase.Add(passphrase, dateExpiration);
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
 
         /// <summary>
         /// Dumps the priv key.
+        /// 
+        /// <p>Example: <br/>
+        /// Set the passphrase for 2 minutes to perform a transaction<br/>
+        /// walletpassphrase "my pass phrase" 120</p>
+        /// <p>Perform a send(requires passphrase set)<br/>
+        /// sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p>
+        /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
+        /// walletlock </p>
         /// </summary>
         /// <param name="address">The address.</param>
         /// <returns>Private key</returns>
@@ -112,12 +165,94 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             try
             {
-                var mywallet = this.walletManager.GetWallet("rhodium.genesis");
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                var passCount = walletPassphrase.Count();
+                for (int i = passCount; i > 0; i--)
+                {
+                    var item = walletPassphrase.ElementAt(i - 1);
+                    if (item.Value < DateTime.Now)
+                    {
+                        walletPassphrase.Remove(item.Key);
+                    }
+                }
+                if (walletPassphrase.Count() == 0)
+                {
+                    throw new ArgumentNullException("passphrase");
+                }
 
-                Key privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, "thisisourrootwallet", this.Network);
-                var secret = new BitcoinSecret(privateKey, this.Network);
-                var stringPrivateKey = secret.ToString();
-                return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
+                //we need to find wallet
+                string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+                if (walletCombix == null)
+                {
+                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    {
+                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        {
+                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            {
+                                if (walletAddress.Address.ToString().Equals(address))
+                                {
+                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                string walletName = walletCombix.Split('/')[1];
+                var mywallet = this.walletManager.GetWallet(walletName);
+
+                //try to decript wallet
+                foreach (var item in walletPassphrase)
+                {
+                    try
+                    {
+                        var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, item.Key, this.Network);
+
+                        var secret = new BitcoinSecret(privateKey, this.Network);
+                        var stringPrivateKey = secret.ToString();
+                        return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+
+                throw new ArgumentNullException("passphrase");
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Lock the wallets.
+        /// 
+        /// <p>Example: <br/>
+        /// Set the passphrase for 2 minutes to perform a transaction<br/>
+        /// walletpassphrase "my pass phrase" 120</p>
+        /// <p>Perform a send(requires passphrase set)<br/>
+        /// sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p>
+        /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
+        /// walletlock </p>
+        /// </summary>
+        /// <returns></returns>
+        [ActionName("walletlock")]
+        [ActionDescription("Removes the wallet encryption key from memory, locking the wallet.")]
+        public IActionResult WalletLock()
+        {
+            try
+            {
+                walletPassphrase.Clear();
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
             {
@@ -228,8 +363,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
-
-        private static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
         /// <summary>
         /// Gets the account.
         /// </summary>

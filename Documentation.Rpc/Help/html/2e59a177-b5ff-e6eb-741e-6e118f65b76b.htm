@@ -11,7 +11,12 @@
             The createrawtransaction RPC creates an unsigned serialized transaction that spends a previous output to a new output with a P2PKH or P2SH address. The transaction is not stored in the wallet or transmitted to the network.
             </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e7cf32e4-cdb7-9eed-833a-4a5132f21fcf.htm">DumpPrivKey</a></td><td><div class="summary">
             Dumps the priv key.
-            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="2c606368-80f5-ad24-aff6-30da6b6d5e44.htm">GenerateNewWallet</a></td><td><div class="summary">
+            
+            <p>Example: <br />
+            Set the passphrase for 2 minutes to perform a transaction<br />
+            walletpassphrase "my pass phrase" 120</p><p>Perform a send(requires passphrase set)<br />
+            sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p><p>Clear the passphrase since we are done before 2 minutes is up<br />
+            walletlock </p></div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="2c606368-80f5-ad24-aff6-30da6b6d5e44.htm">GenerateNewWallet</a></td><td><div class="summary">
             Generates the new wallet.
             </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="45c6b538-23db-f574-3e74-7f51132ff26c.htm">GetBalance</a></td><td><div class="summary">
             If [walletName] is not specified, returns the server's total available balance.
@@ -33,4 +38,18 @@
             Sends to address.
             </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="34cfc699-1847-c2ac-45ec-628db86f43fa.htm">ValidateAddress</a></td><td><div class="summary">
             Returns information about a bitcoin address
-            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID4RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="8026c358-1c8b-7008-0037-ba6f9621977f.htm">BRhodium.Bitcoin.Features.Wallet Namespace</a></div><div class="seeAlsoStyle"><span class="nolink">FeatureController</span></div></div></div></div><div id="pageFooter" class="pageFooter"><p><a href="https://www.bitcoinrh.org/" target="_blank">@ 2018 BitCoin Rhodium</a></p> </div></body></html>
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="ebf593fc-d19e-18d4-6795-014954b936ca.htm">WalletLock</a></td><td><div class="summary">
+            Lock the wallets.
+            
+            <p>Example: <br />
+            Set the passphrase for 2 minutes to perform a transaction<br />
+            walletpassphrase "my pass phrase" 120</p><p>Perform a send(requires passphrase set)<br />
+            sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p><p>Clear the passphrase since we are done before 2 minutes is up<br />
+            walletlock </p></div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="0d8dc741-685e-3fd3-5420-f220cdf09011.htm">WalletPassphrase</a></td><td><div class="summary">
+            Wallets the passphrase.
+            
+            <p>Example: <br />
+            Set the passphrase for 2 minutes to perform a transaction<br />
+            walletpassphrase "my pass phrase" 120</p><p>Perform a send(requires passphrase set)<br />
+            sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p><p>Clear the passphrase since we are done before 2 minutes is up<br />
+            walletlock </p></div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID4RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="8026c358-1c8b-7008-0037-ba6f9621977f.htm">BRhodium.Bitcoin.Features.Wallet Namespace</a></div><div class="seeAlsoStyle"><span class="nolink">FeatureController</span></div></div></div></div><div id="pageFooter" class="pageFooter"><p><a href="https://www.bitcoinrh.org/" target="_blank">@ 2018 BitCoin Rhodium</a></p> </div></body></html>
