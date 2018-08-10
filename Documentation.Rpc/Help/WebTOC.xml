@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <HelpTOC>
 
-  <HelpTOCNode Id="8a75c7b2-7d88-433b-8e50-e1c9c12dc575" Title="RPC Namespaces" Url="html/d75eb659-6335-53f6-af7a-81814a21ab7f.htm">
-    <HelpTOCNode Id="9c605cba-2fa9-4522-8368-fb26bf3f0164" Title="BRhodium.Bitcoin.Features.Miner" Url="html/7c055b6e-ba60-761f-919f-a8eead3bb920.htm">
-      <HelpTOCNode Id="1a804b7a-0698-4b54-bf78-72514c54d8ed" Title="MiningRPCController Class" Url="html/627b847c-b8bb-ebdd-1c56-3a2629c27748.htm">
-        <HelpTOCNode Id="c0fb8f09-585f-498b-85ce-0b4e7ec4274d" Title="MiningRPCController Methods" Url="html/cecab391-92b0-6ebf-672c-2b7551d4c2de.htm">
+  <HelpTOCNode Id="c8a8e2e7-e25d-4dee-913e-2c0e9e09d3bf" Title="RPC Namespaces" Url="html/d75eb659-6335-53f6-af7a-81814a21ab7f.htm">
+    <HelpTOCNode Id="8afd05d9-6814-4f7d-821c-93301245d741" Title="BRhodium.Bitcoin.Features.Miner" Url="html/7c055b6e-ba60-761f-919f-a8eead3bb920.htm">
+      <HelpTOCNode Id="a0911fc6-7d1f-430e-ada8-5e627321db0f" Title="MiningRPCController Class" Url="html/627b847c-b8bb-ebdd-1c56-3a2629c27748.htm">
+        <HelpTOCNode Id="014f5b2e-6b3d-4313-b20f-d3844a8db089" Title="MiningRPCController Methods" Url="html/cecab391-92b0-6ebf-672c-2b7551d4c2de.htm">
           <HelpTOCNode Title="GetBlockTemplate Method " Url="html/1589baca-1c2b-89a9-b75d-065b0701e4fa.htm" />
           <HelpTOCNode Title="GetDifficulty Method " Url="html/46dff047-5562-1d5b-7449-77620bdddc45.htm" />
           <HelpTOCNode Title="GetMiningInfo Method " Url="html/3b5ef38e-4fc1-08b8-d53e-06bcb7ac09d7.htm" />
@@ -13,9 +13,9 @@
         </HelpTOCNode>
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="13629e07-2db5-40e0-aaae-a67a761b8d30" Title="BRhodium.Bitcoin.Features.RPC.Controllers" Url="html/a9eeb838-d10e-5b16-cf7b-ccd8cbee9b55.htm">
-      <HelpTOCNode Id="eab0899c-c814-41a5-9b85-83b8fcc7c01e" Title="FullNodeController Class" Url="html/29af7f90-f974-78a4-d1ab-1d64d5dcd1f8.htm">
-        <HelpTOCNode Id="2b7c9cd9-1905-49b8-8669-3646589319e7" Title="FullNodeController Methods" Url="html/00aa48c9-8db2-c32b-5280-56c5f3e13392.htm">
+    <HelpTOCNode Id="4741eb77-032e-4176-89b8-384e9ac37807" Title="BRhodium.Bitcoin.Features.RPC.Controllers" Url="html/a9eeb838-d10e-5b16-cf7b-ccd8cbee9b55.htm">
+      <HelpTOCNode Id="7c889e66-5a1f-483f-8eb2-55a8264fa097" Title="FullNodeController Class" Url="html/29af7f90-f974-78a4-d1ab-1d64d5dcd1f8.htm">
+        <HelpTOCNode Id="376caad9-1c83-455e-b2da-8c913a1c5054" Title="FullNodeController Methods" Url="html/00aa48c9-8db2-c32b-5280-56c5f3e13392.htm">
           <HelpTOCNode Title="GetBlockCount Method " Url="html/0a445c18-d45a-678b-81d7-486b556fc299.htm" />
           <HelpTOCNode Title="GetBlockHeader Method " Url="html/bf596490-cef5-d110-85c4-ca4d96148f2f.htm" />
           <HelpTOCNode Title="GetInfo Method " Url="html/a3efc171-1b7b-ba67-300a-3319c13483af.htm" />
@@ -24,9 +24,9 @@
         </HelpTOCNode>
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="27afc975-c4df-4d93-b480-3bb0916ce088" Title="BRhodium.Bitcoin.Features.Wallet" Url="html/8026c358-1c8b-7008-0037-ba6f9621977f.htm">
-      <HelpTOCNode Id="fbf99f62-58d4-4748-a770-0240924ee7bf" Title="WalletRPCController Class" Url="html/2e59a177-b5ff-e6eb-741e-6e118f65b76b.htm">
-        <HelpTOCNode Id="4415830a-26c8-48a0-a62b-a2a8bc877843" Title="WalletRPCController Methods" Url="html/cdce7ab9-fb0f-d837-f007-6af91459258a.htm">
+    <HelpTOCNode Id="d74a092f-819a-49a7-b26a-5957aa88d896" Title="BRhodium.Bitcoin.Features.Wallet" Url="html/8026c358-1c8b-7008-0037-ba6f9621977f.htm">
+      <HelpTOCNode Id="dbb01420-e030-40e0-89ce-db6373c46085" Title="WalletRPCController Class" Url="html/2e59a177-b5ff-e6eb-741e-6e118f65b76b.htm">
+        <HelpTOCNode Id="77b2e956-18cf-4fe8-9c88-030b70abb1ef" Title="WalletRPCController Methods" Url="html/cdce7ab9-fb0f-d837-f007-6af91459258a.htm">
           <HelpTOCNode Title="CreateRawTransaction Method " Url="html/df042bf1-59b9-6deb-3aad-430f359f9fa7.htm" />
           <HelpTOCNode Title="DumpPrivKey Method " Url="html/e7cf32e4-cdb7-9eed-833a-4a5132f21fcf.htm" />
           <HelpTOCNode Title="GenerateNewWallet Method " Url="html/2c606368-80f5-ad24-aff6-30da6b6d5e44.htm" />
@@ -37,7 +37,7 @@
           <HelpTOCNode Title="Sendmany Method " Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
           <HelpTOCNode Title="SendMoney Method " Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
           <HelpTOCNode Title="SendRawTransaction Method " Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
-          <HelpTOCNode Title="SendToAddress Method " Url="html/6fd1d456-8fce-5bb7-57c0-a4b677559b61.htm" />
+          <HelpTOCNode Title="SendToAddress Method " Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
           <HelpTOCNode Title="ValidateAddress Method " Url="html/34cfc699-1847-c2ac-45ec-628db86f43fa.htm" />
           <HelpTOCNode Title="WalletLock Method " Url="html/ebf593fc-d19e-18d4-6795-014954b936ca.htm" />
           <HelpTOCNode Title="WalletPassphrase Method " Url="html/0d8dc741-685e-3fd3-5420-f220cdf09011.htm" />

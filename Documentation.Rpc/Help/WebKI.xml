@@ -43,7 +43,7 @@
   <HelpKINode Title="Sendmany method" Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
   <HelpKINode Title="SendMoney method" Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
   <HelpKINode Title="SendRawTransaction method" Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
-  <HelpKINode Title="SendToAddress method" Url="html/6fd1d456-8fce-5bb7-57c0-a4b677559b61.htm" />
+  <HelpKINode Title="SendToAddress method" Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
   <HelpKINode Title="SubmitBlock method" Url="html/f106ba99-955f-f5d2-e9aa-6d6f16b03538.htm" />
   <HelpKINode Title="ValidateAddress method" Url="html/34cfc699-1847-c2ac-45ec-628db86f43fa.htm" />
   <HelpKINode Title="WalletLock method" Url="html/ebf593fc-d19e-18d4-6795-014954b936ca.htm" />
@@ -62,7 +62,7 @@
   <HelpKINode Title="WalletRPCController.Sendmany method" Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
   <HelpKINode Title="WalletRPCController.SendMoney method" Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
   <HelpKINode Title="WalletRPCController.SendRawTransaction method" Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
-  <HelpKINode Title="WalletRPCController.SendToAddress method" Url="html/6fd1d456-8fce-5bb7-57c0-a4b677559b61.htm" />
+  <HelpKINode Title="WalletRPCController.SendToAddress method" Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
   <HelpKINode Title="WalletRPCController.ValidateAddress method" Url="html/34cfc699-1847-c2ac-45ec-628db86f43fa.htm" />
   <HelpKINode Title="WalletRPCController.WalletLock method" Url="html/ebf593fc-d19e-18d4-6795-014954b936ca.htm" />
   <HelpKINode Title="WalletRPCController.WalletPassphrase method" Url="html/0d8dc741-685e-3fd3-5420-f220cdf09011.htm" />
