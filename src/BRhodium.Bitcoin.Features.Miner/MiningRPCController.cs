@@ -122,54 +122,6 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Tries to mine one or more blocks.
-        /// </summary>
-        /// <param name="blockCount">Number of blocks to mine.</param>
-        /// <returns>uint256 list rpc format</returns>
-        /// <remarks>It is possible that less than the required number of blocks will be mined because the generating function only
-        /// tries all possible header nonces values.</remarks>
-        [ActionName("generate")]
-        [ActionDescription("Tries to mine a given number of blocks and returns a list of block header hashes.")]
-        public List<uint256> Generate(int blockCount)
-        {
-            this.logger.LogTrace("({0}:{1})", nameof(blockCount), blockCount);
-            if (blockCount <= 0)
-            {
-                throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "The number of blocks to mine must be higher than zero.");
-            }
-
-            WalletAccountReference accountReference = this.GetAccount();
-            HdAddress address = this.walletManager.GetUnusedAddress(accountReference);
-
-            List<uint256> res = this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)blockCount, int.MaxValue);
-
-            this.logger.LogTrace("(-):*.{0}={1}", nameof(res.Count), res.Count);
-            return res;
-        }
-
-        /// <summary>
-        /// Finds first available wallet and its account.
-        /// </summary>
-        /// <returns>Reference to wallet account.</returns>
-        private WalletAccountReference GetAccount()
-        {
-            this.logger.LogTrace("()");
-
-            string walletName = this.walletManager.GetWalletsNames().FirstOrDefault();
-            if (walletName == null)
-                throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "No wallet found");
-
-            HdAccount account = this.walletManager.GetAccounts(walletName).FirstOrDefault();
-            if (account == null)
-                throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "No account found on wallet");
-
-            var res = new WalletAccountReference(walletName, account.Name);
-
-            this.logger.LogTrace("(-):'{0}'", res);
-            return res;
-        }
-
-        /// <summary>
         /// Gets the network difficulty.
         /// </summary>
         /// <returns>Difficult of network</returns>
