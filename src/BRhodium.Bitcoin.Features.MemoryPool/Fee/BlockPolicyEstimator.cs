@@ -90,10 +90,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         private const double DefaultDecay = .998;
 
         /// <summary>Value for infinite priority.</summary>
-        public const double InfPriority = 1e9 * 21000000ul * Money.COIN;
-
+        public const double InfPriority = 1e9 * 2100000ul * Money.COIN;
+        
         /// <summary>Maximum money value.</summary>
-        private static readonly Money MaxMoney = new Money(21000000 * Money.COIN);
+        private static readonly Money MaxMoney = new Money(2100000 * Money.COIN);
 
         /// <summary>Value for infinite fee rate.</summary>
         private static readonly double InfFeeRate = MaxMoney.Satoshi;
