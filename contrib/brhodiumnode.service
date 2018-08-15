@@ -1,0 +1,21 @@
+[Unit]
+Description=BitcoinRhodium Node
+After=network.target
+
+[Service]
+User=mining
+Group=mining
+
+Type=simple
+PIDFile=/var/lib/brhodiumd/brhodiumd.pid
+ExecStart=/usr/bin/brhodiumnode
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

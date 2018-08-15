@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+/usr/bin/dotnet /usr/share/brhodiumnode/BRhodium.BitcoinD.dll
