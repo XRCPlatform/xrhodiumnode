@@ -175,7 +175,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_SingleBlock_ReturnsGeneratedBlock()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 BlockValidationContext callbackBlockValidationContext = null;
                 this.consensusLoop.Setup(c => c.AcceptBlockAsync(It.IsAny<BlockValidationContext>()))
@@ -206,7 +206,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_SingleBlock_ChainedBlockNotPresentInBlockValidationContext_ReturnsEmptyList()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 BlockValidationContext callbackBlockValidationContext = null;
 
@@ -235,7 +235,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_SingleBlock_ValidationContextError_ReturnsEmptyList()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 BlockValidationContext callbackBlockValidationContext = null;
 
@@ -266,7 +266,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_SingleBlock_BlockValidationContextErrorInvalidPrevTip_ContinuesExecution_ReturnsGeneratedBlock()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 BlockValidationContext callbackBlockValidationContext = null;
 
@@ -306,7 +306,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_SingleBlock_MaxTriesReached_StopsGeneratingBlocks_ReturnsEmptyList()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 BlockValidationContext callbackBlockValidationContext = null;
                 this.consensusLoop.Setup(c => c.AcceptBlockAsync(It.IsAny<BlockValidationContext>())).Callback<BlockValidationContext>((context) =>
@@ -345,7 +345,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_MultipleBlocks_ReturnsGeneratedBlocks()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 List<BlockValidationContext> callbackBlockValidationContexts = new List<BlockValidationContext>();
                 ChainedHeader lastChainedHeader = null;
@@ -413,7 +413,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_MultipleBlocks_ChainedBlockNotPresentInBlockValidationContext_ReturnsValidGeneratedBlocks()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 List<BlockValidationContext> callbackBlockValidationContexts = new List<BlockValidationContext>();
                 ChainedHeader lastChainedHeader = null;
@@ -457,7 +457,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         [Fact]
         public void GenerateBlocks_MultipleBlocks_BlockValidationContextError_ReturnsValidGeneratedBlocks()
         {
-            this.ExecuteUsingNonProofOfStakeSettings(() =>
+            this.ExecuteUsingSettings(() =>
             {
                 List<BlockValidationContext> callbackBlockValidationContexts = new List<BlockValidationContext>();
 
@@ -554,7 +554,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             return blockTemplate;
         }
 
-        private void ExecuteUsingNonProofOfStakeSettings(Action action)
+        private void ExecuteUsingSettings(Action action)
         {
             action();
         }
@@ -567,11 +567,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
         public MockPowBlockProvider(PowBlockDefinition blockDefinition)
         {
             this.blockDefinition = blockDefinition;
-        }
-
-        public BlockTemplate BuildPosBlock(ChainedHeader chainTip, Script script)
-        {
-            throw new NotImplementedException();
         }
 
         public BlockTemplate BuildPowBlock(ChainedHeader chainTip, Script script)

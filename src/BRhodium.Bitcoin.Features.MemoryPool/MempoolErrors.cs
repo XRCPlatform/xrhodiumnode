@@ -118,9 +118,6 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <summary>'coinbase' error returns a <see cref="RejectInvalid"/> reject code.</summary>
         public static MempoolError Coinbase = new MempoolError(RejectInvalid, "coinbase");
 
-        /// <summary>'coinstake' error returns a <see cref="RejectInvalid"/> reject code.</summary>
-        public static MempoolError Coinstake = new MempoolError(RejectInvalid, "coinstake");
-
         /// <summary>'non-final' error returns a <see cref="RejectNonstandard"/> reject code.</summary>
         public static MempoolError NonFinal = new MempoolError(RejectNonstandard, "non-final");
 

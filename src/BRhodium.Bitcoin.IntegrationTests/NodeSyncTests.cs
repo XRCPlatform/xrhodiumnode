@@ -135,9 +135,9 @@ namespace BRhodium.Node.IntegrationTests
             var m = Network.Main;
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var BRhodiumMiner = builder.CreateBRhodiumPosNode();
-                var BRhodiumSyncer = builder.CreateBRhodiumPosNode();
-                var BRhodiumReorg = builder.CreateBRhodiumPosNode();
+                var BRhodiumMiner = builder.CreateBRhodiumPowNode();
+                var BRhodiumSyncer = builder.CreateBRhodiumPowNode();
+                var BRhodiumReorg = builder.CreateBRhodiumPowNode();
 
                 builder.StartAll();
                 BRhodiumMiner.NotInIBD();
@@ -222,10 +222,10 @@ namespace BRhodium.Node.IntegrationTests
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 // This represents local node.
-                var BRhodiumMinerLocal = builder.CreateBRhodiumPosNode();
+                var BRhodiumMinerLocal = builder.CreateBRhodiumPowNode();
 
                 // This represents remote, which blocks are received by local node using its puller.
-                var BRhodiumMinerRemote = builder.CreateBRhodiumPosNode();
+                var BRhodiumMinerRemote = builder.CreateBRhodiumPowNode();
 
                 builder.StartAll();
                 BRhodiumMinerLocal.NotInIBD();

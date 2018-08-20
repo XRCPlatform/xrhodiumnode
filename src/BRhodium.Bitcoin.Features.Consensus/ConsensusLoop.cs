@@ -77,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Blocks are coming from <see cref="ILookaheadBlockPuller"/> or Miner/Staker and get validated by get validated by the <see cref="IConsensusRules" /> engine.
+    /// Blocks are coming from <see cref="ILookaheadBlockPuller"/> or Miner and get validated by get validated by the <see cref="IConsensusRules" /> engine.
     /// See either the <see cref="FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration"/> for PoW or the <see cref="FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration"/> for PoS.
     /// </para>
     /// </remarks>
@@ -85,9 +85,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
     {
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
-
-        /// <summary>Information holding POS data chained.</summary>
-        public IStakeChain StakeChain { get; }
 
         /// <summary>A puller that can pull blocks from peers on demand.</summary>
         public LookaheadBlockPuller Puller { get; }
@@ -155,7 +152,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
         /// <param name="nodeSettings">Settings for the full node.</param>
         /// <param name="peerBanning">Handles the banning of peers.</param>
         /// <param name="consensusRules">The consensus rules to validate.</param>
-        /// <param name="stakeChain">Information holding POS data chained.</param>
         public ConsensusLoop(
             IAsyncLoopFactory asyncLoopFactory,
             INodeLifetime nodeLifetime,
@@ -172,8 +168,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             NodeSettings nodeSettings,
             IPeerBanning peerBanning,
             IConsensusRules consensusRules,
-            IBlockRepository blockRepository,
-            IStakeChain stakeChain = null)
+            IBlockRepository blockRepository)
         {
             Guard.NotNull(asyncLoopFactory, nameof(asyncLoopFactory));
             Guard.NotNull(nodeLifetime, nameof(nodeLifetime));
@@ -207,8 +202,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
             this.peerBanning = peerBanning;
             this.ConsensusRules = consensusRules;
             this.blockRepository = blockRepository;
-            // chain of stake info can be null if POS is not enabled
-            this.StakeChain = stakeChain;
         }
 
         /// <inheritdoc/>

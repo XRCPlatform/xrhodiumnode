@@ -116,9 +116,6 @@ namespace BRhodium.Node.Utilities
             if (type == typeof(Block))
                 return Block.Load(bytes, this.Network);
 
-            if (type == typeof(BlockStake))
-                return new BlockStake(bytes);
-
             throw new NotSupportedException();
         }
     }

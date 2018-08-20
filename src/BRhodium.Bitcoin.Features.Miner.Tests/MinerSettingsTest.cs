@@ -22,7 +22,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
             var nodeSettings = new NodeSettings(args:new string[] {
                 "-mine=true",
-                "-stake=true",
                 "-walletname=mytestwallet",
                 "-walletpassword=test",
                 "-mineaddress=TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms"
@@ -31,7 +30,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             minersettings.Load(nodeSettings);
 
             Assert.True(minersettings.Mine);
-            Assert.True(minersettings.Stake);
             Assert.Equal("mytestwallet", minersettings.WalletName);
             Assert.Equal("test", minersettings.WalletPassword);
             Assert.Equal("TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms", minersettings.MineAddress);
@@ -51,7 +49,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
             var nodeSettings = new NodeSettings(args:new string[] {
                 "-mine=false",
-                "-stake=true",
                 "-walletname=mytestwallet",
                 "-walletpassword=test",
                 "-mineaddress=TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms"
@@ -60,7 +57,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             minersettings.Load(nodeSettings);
 
             Assert.False(minersettings.Mine);
-            Assert.True(minersettings.Stake);
             Assert.Equal("mytestwallet", minersettings.WalletName);
             Assert.Equal("test", minersettings.WalletPassword);
             Assert.Null(minersettings.MineAddress);
@@ -80,7 +76,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
             var nodeSettings = new NodeSettings(args:new string[] {
                 "-mine=true",
-                "-stake=false",
                 "-walletname=mytestwallet",
                 "-walletpassword=test",
                 "-mineaddress=TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms"
@@ -89,7 +84,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             minersettings.Load(nodeSettings);
 
             Assert.True(minersettings.Mine);
-            Assert.False(minersettings.Stake);
             Assert.Null(minersettings.WalletName);
             Assert.Null(minersettings.WalletPassword);
             Assert.Equal("TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms", minersettings.MineAddress);

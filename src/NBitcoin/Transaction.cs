@@ -1255,10 +1255,6 @@ namespace NBitcoin
             {
                 stream.ReadWrite(ref nVersion);
 
-                // the POS time stamp
-                if (this is PosTransaction)
-                    stream.ReadWrite(ref this.nTime);
-
                 /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
                 stream.ReadWrite<TxInList, TxIn>(ref vin);
 
@@ -1308,10 +1304,6 @@ namespace NBitcoin
             {
                 var version = (witSupported && (vin.Count == 0 && vout.Count > 0)) ? nVersion | NoDummyInput : nVersion;
                 stream.ReadWrite(ref version);
-
-                // the POS time stamp
-                if (this is PosTransaction)
-                    stream.ReadWrite(ref this.nTime);
 
                 if (witSupported)
                 {
@@ -1453,20 +1445,7 @@ namespace NBitcoin
             }
         }
 
-        public bool IsCoinStake
-        {
-            get
-            {
-                // ppcoin: the coin stake transaction is marked with the first output empty
-                return this.Inputs.Any() 
-                    && !this.Inputs.First().PrevOut.IsNull 
-                    && this.Outputs.Count() >= 2 
-                    && this.Outputs.First().IsEmpty;
-            }
-        }
-
         public static uint CURRENT_VERSION = 2;
-        public static uint MAX_STANDARD_TX_SIZE = 100000;
 
         public TxOut AddOutput(Money money, IDestination destination)
         {

@@ -19,7 +19,7 @@ using BRhodium.Node.Mining;
 namespace BRhodium.Bitcoin.Features.Miner
 {
     /// <summary>
-    /// Provides an ability to mine or stake.
+    /// Provides an ability to mine.
     /// </summary>
     public class MiningFeature : FullNodeFeature
     {
@@ -34,9 +34,6 @@ namespace BRhodium.Bitcoin.Features.Miner
 
         /// <summary>POW miner.</summary>
         private readonly IPowMining powMining;
-
-        /// <summary>POS staker.</summary>
-        private readonly IPosMinting posMinting;
 
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
@@ -53,22 +50,19 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <param name="loggerFactory">Factory to be used to create logger for the node.</param>
         /// <param name="timeSyncBehaviorState">State of time synchronization feature that stores collected data samples.</param>
         /// <param name="powMining">POW miner.</param>
-        /// <param name="posMinting">POS staker.</param>
         public MiningFeature(
             Network network,
             MinerSettings minerSettings,
             NodeSettings nodeSettings,
             ILoggerFactory loggerFactory,
             ITimeSyncBehaviorState timeSyncBehaviorState,
-            IPowMining powMining,
-            IPosMinting posMinting = null)
+            IPowMining powMining)
         {
             this.network = network;
             this.minerSettings = minerSettings;
             this.nodeSettings = nodeSettings;
             this.powMining = powMining;
             this.timeSyncBehaviorState = timeSyncBehaviorState;
-            this.posMinting = posMinting;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
         }
 
@@ -98,48 +92,6 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Starts staking a wallet.
-        /// </summary>
-        /// <param name="walletName">The name of the wallet.</param>
-        /// <param name="walletPassword">The password of the wallet.</param>
-        public void StartStaking(string walletName, string walletPassword)
-        {
-            if (this.timeSyncBehaviorState.IsSystemTimeOutOfSync)
-            {
-                var errorMessage = "Staking cannot start, your system time does not match that of other nodes on the network." + Environment.NewLine
-                                    + "Please adjust your system time and restart the node.";
-                this.logger.LogError(errorMessage);
-                throw new ConfigurationException(errorMessage);
-            }
-
-            if (!string.IsNullOrEmpty(walletName) && !string.IsNullOrEmpty(walletPassword))
-            {
-                this.logger.LogInformation("Staking enabled on wallet '{0}'.", walletName);
-
-                this.posMinting.Stake(new PosMinting.WalletSecret
-                {
-                    WalletPassword = walletPassword,
-                    WalletName = walletName
-                });
-            }
-            else
-            {
-                var errorMessage = "Staking not started, wallet name or password were not provided.";
-                this.logger.LogError(errorMessage);
-                throw new ConfigurationException(errorMessage);
-            }
-        }
-
-        /// <summary>
-        /// Stop a staking wallet.
-        /// </summary>
-        public void StopStaking()
-        {
-            this.posMinting?.StopStake();
-            this.logger.LogInformation("Staking stopped.");
-        }
-
-        /// <summary>
         /// Stop a Proof of Work miner.
         /// </summary>
         public void StopMining()
@@ -164,30 +116,19 @@ namespace BRhodium.Bitcoin.Features.Miner
                     this.powMining.Mine(BitcoinAddress.Create(mineToAddress, this.network).ScriptPubKey);
                 }
             }
-
-            if (this.minerSettings.Stake)
-            {
-                this.StartStaking(this.minerSettings.WalletName, this.minerSettings.WalletPassword);
-            }
         }
 
         /// <inheritdoc />
         public override void Dispose()
         {
             this.StopMining();
-            this.StopStaking();
         }
 
         /// <inheritdoc />
         public override void ValidateDependencies(IFullNodeServiceProvider services)
         {
-            if (services.ServiceProvider.GetService<IPosMinting>() != null)
-            {
-                services.Features.EnsureFeature<WalletFeature>();
-            }
-
             // Mining and staking require block store feature.
-            if (this.minerSettings.Mine || this.minerSettings.Stake)
+            if (this.minerSettings.Mine)
             {
                 services.Features.EnsureFeature<BlockStoreFeature>();
                 StoreSettings blockSettings = services.ServiceProvider.GetService<StoreSettings>();
@@ -234,12 +175,12 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Adds POW and POS miner components to the node, so that it can mine or stake.
+        /// Adds POW components to the node, so that it can mine.
         /// </summary>
         /// <param name="fullNodeBuilder">The object used to build the current node.</param>
         /// <param name="setup">Callback routine to be called when miner settings are loaded.</param>
         /// <returns>The full node builder, enriched with the new component.</returns>
-        public static IFullNodeBuilder AddPowPosMining(this IFullNodeBuilder fullNodeBuilder, Action<MinerSettings> setup = null)
+        public static IFullNodeBuilder AddPowMining(this IFullNodeBuilder fullNodeBuilder, Action<MinerSettings> setup = null)
         {
             LoggingConfiguration.RegisterFeatureNamespace<MiningFeature>("mining");
 
@@ -253,10 +194,8 @@ namespace BRhodium.Bitcoin.Features.Miner
                     .FeatureServices(services =>
                     {
                         services.AddSingleton<IPowMining, PowMining>();
-                        services.AddSingleton<IPosMinting, PosMinting>();
                         services.AddSingleton<IBlockProvider, BlockProvider>();
                         services.AddSingleton<BlockDefinition, PowBlockDefinition>();
-                        services.AddSingleton<BlockDefinition, PosBlockDefinition>();
                         services.AddSingleton<MinerController>();
                         services.AddSingleton<MiningRPCController>();
                         services.AddSingleton<MinerSettings>(new MinerSettings(setup));

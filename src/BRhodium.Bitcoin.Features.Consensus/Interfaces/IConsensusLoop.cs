@@ -22,9 +22,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Interfaces
         /// <summary>A puller that can pull blocks from peers on demand.</summary>
         LookaheadBlockPuller Puller { get; }
 
-        /// <summary>Information holding POS data chained.</summary>
-        IStakeChain StakeChain { get; }
-
         /// <summary>The current tip of the chain that has been validated.</summary>
         ChainedHeader Tip { get; }
 
@@ -37,7 +34,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Interfaces
         /// <summary>
         /// A method that will accept a new block to the node.
         /// The block will be validated and the <see cref="CoinView"/> db will be updated.
-        /// If it's a new block that was mined or staked it will extend the chain and the new block will set <see cref="ConcurrentChain.Tip"/>.
+        /// If it's a new block that was mined it will extend the chain and the new block will set <see cref="ConcurrentChain.Tip"/>.
         /// </summary>
         /// <param name="blockValidationContext">Information about the block to validate.</param>
         Task AcceptBlockAsync(BlockValidationContext blockValidationContext);

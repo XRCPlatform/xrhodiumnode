@@ -185,17 +185,8 @@ namespace NBitcoin
         /// </summary>
         public int CoinType { get; set; }
 
-        public BigInteger ProofOfStakeLimit { get; set; }
-
-        public BigInteger ProofOfStakeLimitV2 { get; set; }
-
         /// <summary>PoW blocks are not accepted after block with height <see cref="Consensus.LastPOWBlock"/>.</summary>
         public int LastPOWBlock { get; set; }
-
-        /// <summary>
-        /// An indicator whether this is a Proof Of Stake network.
-        /// </summary>
-        public bool IsProofOfStake { get; set; }
 
         /// <summary>The default hash to use for assuming valid blocks.</summary>
         public uint256 DefaultAssumeValid { get; set; }
@@ -224,10 +215,7 @@ namespace NBitcoin
                 SubsidyHalvingInterval = this.SubsidyHalvingInterval,
                 MinimumChainWork = this.MinimumChainWork,
                 CoinType = this.CoinType,
-                IsProofOfStake = this.IsProofOfStake,
                 LastPOWBlock = this.LastPOWBlock,
-                ProofOfStakeLimit = this.ProofOfStakeLimit,
-                ProofOfStakeLimitV2 = this.ProofOfStakeLimitV2,
                 DefaultAssumeValid = this.DefaultAssumeValid,
                 ConsensusFactory = this.ConsensusFactory,
             };

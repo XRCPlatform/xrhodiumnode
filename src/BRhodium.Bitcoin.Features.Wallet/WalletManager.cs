@@ -866,7 +866,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         // Include the keys that are in the wallet but that are for receiving
                         // addresses (which would mean the user paid itself). 
                         // We also exclude the keys involved in a staking transaction.
-                        return !addr.IsChangeAddress() && !transaction.IsCoinStake;
+                        return !addr.IsChangeAddress();
                     });
 
                     this.AddSpendingTransactionToWallet(transaction, paidOutTo, tTx.Id, tTx.Index, blockHeight, block);
@@ -922,7 +922,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var newTransaction = new TransactionData
                 {
                     Amount = amount,
-                    IsCoinStake = transaction.IsCoinStake == false ? (bool?)null : true,
                     BlockHeight = blockHeight,
                     BlockHash = block?.GetHash(),
                     Id = transactionHash,
@@ -1046,8 +1045,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     Payments = payments,
                     CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.Time ?? transaction.Time),
                     BlockHeight = blockHeight,
-                    Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null,
-                    IsCoinStake = transaction.IsCoinStake == false ? (bool?)null : true
+                    Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null
                 };
 
                 spentTransaction.SpendingDetails = spendingDetails;

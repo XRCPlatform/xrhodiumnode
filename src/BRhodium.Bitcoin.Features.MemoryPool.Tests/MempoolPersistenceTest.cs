@@ -277,7 +277,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             var coins = new InMemoryCoinView(settings.Network.GenesisHash);
             var chain = new ConcurrentChain(Network.Main.GetGenesis().Header);
             var mempoolPersistence = new MempoolPersistence(settings, loggerFactory);
-            Network.Main.Consensus.Options = new PosConsensusOptions();
+            Network.Main.Consensus.Options = new PowConsensusOptions();
             ConsensusRules consensusRules = new PowConsensusRules(Network.Main, loggerFactory, dateTimeProvider, chain, new NodeDeployments(Network.Main, chain), consensusSettings, new Checkpoints(), new InMemoryCoinView(new uint256()), new Mock<ILookaheadBlockPuller>().Object).Register(new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration());
             var mempoolValidator = new MempoolValidator(txMemPool, mempoolLock, dateTimeProvider, mempoolSettings, chain, coins, loggerFactory, settings, consensusRules);
             var mempoolOrphans = new MempoolOrphans(mempoolLock, txMemPool, chain, new Signals(), mempoolValidator, coins, dateTimeProvider, mempoolSettings, loggerFactory);

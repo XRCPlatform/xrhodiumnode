@@ -56,11 +56,11 @@ namespace BRhodium.Dns
                     // Build the Dns full node.
                     node = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseWallet()
-                        .AddPowPosMining()
+                        .AddPowMining()
                         .UseApi()
                         .AddRPC()
                         .UseDns(serviceTest)
@@ -71,7 +71,7 @@ namespace BRhodium.Dns
                     // Build the Dns node.
                     node = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseApi()
                         .AddRPC()
                         .UseDns(serviceTest)

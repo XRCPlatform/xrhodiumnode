@@ -57,11 +57,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         }
 
         /// <summary>
-        /// This gets called when the coin stake block gets created in <see cref="Features.Miner.PosMinting"/>.
         /// This gets called when the transaction's time gets set in <see cref="Features.Miner.PowBlockDefinition"/>.
-        /// <para>
-        /// Please see the <see cref="Features.Miner.PosMinting.GenerateBlocksAsync"/> method.
-        /// </para>
         /// <para>
         /// Please see the <see cref="Features.Miner.PowBlockDefinition.CreateCoinbase"/> method.
         /// </para>

@@ -102,7 +102,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
     public enum TransactionItemType
     {
         Received,
-        Sent,
-        Staked
+        Sent
     }
 }

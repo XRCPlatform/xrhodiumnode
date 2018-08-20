@@ -13,11 +13,6 @@ namespace BRhodium.Bitcoin.Features.Miner
     public class MinerSettings
     {
         /// <summary>
-        /// Enable the node to stake.
-        /// </summary>
-        public bool Stake { get; private set; }
-
-        /// <summary>
         /// Enable the node to mine.
         /// </summary>
         public bool Mine { get; private set; }
@@ -33,7 +28,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         public string WalletPassword { get; set; }
 
         /// <summary>
-        /// The wallet name to select outputs ot stake.
+        /// The wallet name to select outputs.
         /// </summary>
         public string WalletName { get; set; }
 
@@ -65,13 +60,6 @@ namespace BRhodium.Bitcoin.Features.Miner
             if (this.Mine)
                 this.MineAddress = config.GetOrDefault<string>("mineaddress", null);
 
-            this.Stake = config.GetOrDefault<bool>("stake", false);
-            if (this.Stake)
-            {
-                this.WalletName = config.GetOrDefault<string>("walletname", null);
-                this.WalletPassword = config.GetOrDefault<string>("walletpassword", null);
-            }
-
             this.callback?.Invoke(this);
         }
 
@@ -85,7 +73,6 @@ namespace BRhodium.Bitcoin.Features.Miner
             var builder = new StringBuilder();
 
             builder.AppendLine("-mine=<0 or 1>            Enable POW mining.");
-            builder.AppendLine("-stake=<0 or 1>           Enable POS.");
             builder.AppendLine("-mineaddress=<string>     The address to use for mining (empty string to select an address from the wallet).");
             builder.AppendLine("-walletname=<string>      The wallet name to use when staking.");
             builder.AppendLine("-walletpassword=<string>  Password to unlock the wallet.");
@@ -103,8 +90,6 @@ namespace BRhodium.Bitcoin.Features.Miner
             builder.AppendLine("####Miner Settings####");
             builder.AppendLine("#Enable POW mining.");
             builder.AppendLine("#mine=0");
-            builder.AppendLine("#Enable POS.");
-            builder.AppendLine("#stake=0");
             builder.AppendLine("#The address to use for mining (empty string to select an address from the wallet).");
             builder.AppendLine("#mineaddress=<string>");
             builder.AppendLine("#The wallet name to use when staking.");

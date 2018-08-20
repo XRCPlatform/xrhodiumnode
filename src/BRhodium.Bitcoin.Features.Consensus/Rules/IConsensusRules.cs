@@ -34,7 +34,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules
         /// <summary>
         /// A method that will accept a new block to the node.
         /// The block will be validated and the <see cref="CoinView"/> db will be updated.
-        /// If it's a new block that was mined or staked it will extend the chain and the new block will set <see cref="ConcurrentChain.Tip"/>.
+        /// If it's a new block that was mined it will extend the chain and the new block will set <see cref="ConcurrentChain.Tip"/>.
         /// </summary>
         /// <param name="blockValidationContext">Information about the block to validate.</param>
         Task AcceptBlockAsync(BlockValidationContext blockValidationContext);

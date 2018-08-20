@@ -188,16 +188,6 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             return CreateNode(new BRhodiumProofOfWorkMiningNode(this.GetNextDataFolderName()), Network.RegTest, start, "BRhodium.conf");
         }
 
-        public CoreNode CreateBRhodiumPosNode(bool start = false)
-        {
-            return CreateNode(new BRhodiumBitcoinPosRunner(this.GetNextDataFolderName()), Network.RegTest, start, "BRhodium.conf");
-        }
-
-        public CoreNode CreateBRhodiumPosApiNode(bool start = false)
-        {
-            return CreateNode(new BRhodiumPosApiRunner(this.GetNextDataFolderName()), Network.RegTest, start, "BRhodium.conf");
-        }
-
         public CoreNode CloneBRhodiumNode(CoreNode cloneNode)
         {
             var node = new CoreNode(new BRhodiumBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, Network.RegTest, "bitcoin.conf");

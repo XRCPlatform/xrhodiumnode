@@ -38,18 +38,6 @@ namespace BRhodium.Node.IntegrationTests.Builders
             return this;
         }
 
-        public NodeGroupBuilder CreateBRhodiumPosNode(string nodeName)
-        {
-            this.nodes.Add(nodeName, this.nodeBuilder.CreateBRhodiumPosNode());
-            return this;
-        }
-
-        public NodeGroupBuilder CreateBRhodiumPosApiNode(string nodeName)
-        {
-            this.nodes.Add(nodeName, this.nodeBuilder.CreateBRhodiumPosApiNode());
-            return this;
-        }
-
         public NodeGroupBuilder NotInIBD()
         {
             this.nodes.Last().Value.NotInIBD();

@@ -11,20 +11,10 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <summary>Defines how proof of work blocks are built.</summary>
         private readonly PowBlockDefinition powBlockDefinition;
 
-        /// <summary>Defines how proof of stake blocks are built.</summary>
-        private readonly PosBlockDefinition posBlockDefinition;
-
         /// <param name="definitions">A list of block definitions that the builder can utilize.</param>
         public BlockProvider(IEnumerable<BlockDefinition> definitions)
         {
             this.powBlockDefinition = definitions.OfType<PowBlockDefinition>().FirstOrDefault();
-            this.posBlockDefinition = definitions.OfType<PosBlockDefinition>().FirstOrDefault();
-        }
-
-        /// <inheritdoc/>
-        public BlockTemplate BuildPosBlock(ChainedHeader chainTip, Script script)
-        {
-            return this.posBlockDefinition.Build(chainTip, script);
         }
 
         /// <inheritdoc/>

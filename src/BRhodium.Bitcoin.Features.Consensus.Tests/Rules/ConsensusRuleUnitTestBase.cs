@@ -82,22 +82,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
         }
     }
 
-    public class PosConsensusRuleUnitTestBase : ConsensusRuleUnitTestBase
-    {
-        protected Mock<IStakeChain> stakeChain;
-        protected Mock<IStakeValidator> stakeValidator;
-        protected Mock<ILookaheadBlockPuller> lookaheadBlockPuller;
-        protected Mock<CoinView> coinView;
-
-        public PosConsensusRuleUnitTestBase() : base(Network.BRhodiumTest)
-        {
-            this.stakeChain = new Mock<IStakeChain>();
-            this.stakeValidator = new Mock<IStakeValidator>();
-            this.lookaheadBlockPuller = new Mock<ILookaheadBlockPuller>();
-            this.coinView = new Mock<CoinView>();
-        }
-    }
-
     public class ConsensusRuleUnitTestBase<T> where T : ConsensusRules
     {
         protected Network network;
@@ -188,28 +172,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
         public override TestConsensusRules InitializeConsensusRules()
         {
             return new TestConsensusRules(this.network, this.loggerFactory.Object, this.dateTimeProvider.Object, this.concurrentChain, this.nodeDeployments, this.consensusSettings, this.checkpoints.Object);
-        }
-    }
-
-    public class TestPosConsensusRulesUnitTestBase : ConsensusRuleUnitTestBase<TestPosConsensusRules>
-    {
-        protected Mock<IStakeChain> stakeChain;
-        protected Mock<IStakeValidator> stakeValidator;
-        protected Mock<ILookaheadBlockPuller> lookaheadBlockPuller;
-        protected Mock<CoinView> coinView;
-
-        public TestPosConsensusRulesUnitTestBase() : base(Network.BRhodiumTest)
-        {
-            this.stakeChain = new Mock<IStakeChain>();
-            this.stakeValidator = new Mock<IStakeValidator>();
-            this.lookaheadBlockPuller = new Mock<ILookaheadBlockPuller>();
-            this.coinView = new Mock<CoinView>();
-            this.consensusRules = InitializeConsensusRules();
-        }
-
-        public override TestPosConsensusRules InitializeConsensusRules()
-        {
-            return new TestPosConsensusRules(this.network, this.loggerFactory.Object, this.dateTimeProvider.Object, this.concurrentChain, this.nodeDeployments, this.consensusSettings, this.checkpoints.Object, this.coinView.Object, this.lookaheadBlockPuller.Object, this.stakeChain.Object, this.stakeValidator.Object);
         }
     }
 }

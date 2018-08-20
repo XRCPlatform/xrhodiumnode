@@ -2,45 +2,6 @@
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
-    // The default setting of values on the consensus options
-    // should be removed in to the initialization of each
-    // network this are network specific values
-    public class PosConsensusOptions : PowConsensusOptions
-    {
-        public new Money ProofOfWorkReward { get; set; }
-
-        public Money ProofOfStakeReward { get; set; }
-
-        public Money PremineReward { get; set; }
-
-        public long PremineHeight { get; set; }
-
-        public long StakeMinConfirmations { get; set; }
-
-        public long StakeMinAge { get; set; }
-
-        /// <summary>Time to elapse before new modifier is computed.</summary>
-        public long StakeModifierInterval { get; set; }
-
-        /// <summary>
-        /// Initializes the default values.
-        /// </summary>
-        public PosConsensusOptions()
-        {
-            this.MaxMoney = long.MaxValue;
-            this.CoinbaseMaturity = 50;
-
-            this.ProofOfWorkReward = Money.Coins(4);
-            this.ProofOfStakeReward = Money.COIN;
-            this.PremineReward = Money.Coins(98000000);
-            this.PremineHeight = 2;
-            this.StakeMinConfirmations = 50;
-            this.StakeMinAge = 60;
-            this.StakeModifierInterval = 10 * 60;
-            this.MaxReorgLength = 500;
-        }
-    }
-
     /// <summary>
     /// A set of options with default values of the Bitcoin network
     /// This can be easily overridable for alternative networks (i.e BRhodium)

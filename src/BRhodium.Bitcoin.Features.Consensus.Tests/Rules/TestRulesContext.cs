@@ -70,30 +70,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
     }
 
     /// <summary>
-    /// Test PoS consensus rules for unit tests.
-    /// </summary>
-    public class TestPosConsensusRules : PosConsensusRules
-    {
-        private Mock<IRuleRegistration> ruleRegistration;
-
-        public TestPosConsensusRules(Network network, ILoggerFactory loggerFactory, IDateTimeProvider dateTimeProvider, ConcurrentChain chain, NodeDeployments nodeDeployments, ConsensusSettings consensusSettings, ICheckpoints checkpoints, CoinView uxtoSet, ILookaheadBlockPuller lookaheadBlockPuller, IStakeChain stakeChain, IStakeValidator stakeValidator)
-            : base(network, loggerFactory, dateTimeProvider, chain, nodeDeployments, consensusSettings, checkpoints, uxtoSet, lookaheadBlockPuller, stakeChain, stakeValidator)
-        {
-            this.ruleRegistration = new Mock<IRuleRegistration>();
-        }
-
-        public T RegisterRule<T>() where T : ConsensusRule, new()
-        {
-            T rule = new T();
-            this.ruleRegistration.Setup(r => r.GetRules())
-                .Returns(new List<ConsensusRule>() { rule });
-
-            this.Register(this.ruleRegistration.Object);
-            return rule;
-        }
-    }
-
-    /// <summary>
     /// Factory for creating the test chain.
     /// Much of this logic was taken directly from the embedded TestContext class in MinerTest.cs in the integration tests.
     /// </summary>

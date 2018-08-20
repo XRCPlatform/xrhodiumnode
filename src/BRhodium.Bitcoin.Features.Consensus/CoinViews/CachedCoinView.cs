@@ -90,9 +90,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
             get { return this.inner; }
         }
 
-        /// <summary>Storage of POS block information.</summary>
-        private readonly StakeChainStore stakeChainStore;
-
         /// <summary>Information about cached items mapped by transaction IDs the cached item's unspent outputs belong to.</summary>
         /// <remarks>All access to this object has to be protected by <see cref="lockobj"/>.</remarks>
         private readonly Dictionary<uint256, CacheItem> unspents;
@@ -116,9 +113,8 @@ namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
         /// <param name="inner">Underlaying coinview with database storage.</param>
         /// <param name="dateTimeProvider">Provider of time functions.</param>
         /// <param name="loggerFactory">Factory to be used to create logger for the puller.</param>
-        /// <param name="stakeChainStore">Storage of POS block information.</param>
-        public CachedCoinView(DBreezeCoinView inner, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory, StakeChainStore stakeChainStore = null) :
-            this(dateTimeProvider, loggerFactory, stakeChainStore)
+        public CachedCoinView(DBreezeCoinView inner, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory) :
+            this(dateTimeProvider, loggerFactory)
         {
             Guard.NotNull(inner, nameof(inner));
             this.inner = inner;
@@ -130,13 +126,12 @@ namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
         /// <param name="inner">Underlaying coinview with memory based storage.</param>
         /// <param name="dateTimeProvider">Provider of time functions.</param>
         /// <param name="loggerFactory">Factory to be used to create logger for the puller.</param>
-        /// <param name="stakeChainStore">Storage of POS block information.</param>
         /// <remarks>
         /// This is used for testing the coinview.
         /// It allows a coin view that only has in-memory entries.
         /// </remarks>
-        public CachedCoinView(InMemoryCoinView inner, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory, StakeChainStore stakeChainStore = null) :
-            this(dateTimeProvider, loggerFactory, stakeChainStore)
+        public CachedCoinView(InMemoryCoinView inner, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory) :
+            this(dateTimeProvider, loggerFactory)
         {
             Guard.NotNull(inner, nameof(inner));
             this.inner = inner;
@@ -147,12 +142,10 @@ namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
         /// </summary>
         /// <param name="dateTimeProvider">Provider of time functions.</param>
         /// <param name="loggerFactory">Factory to be used to create logger for the puller.</param>
-        /// <param name="stakeChainStore">Storage of POS block information.</param>
-        private CachedCoinView(IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory, StakeChainStore stakeChainStore = null)
+        private CachedCoinView(IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.dateTimeProvider = dateTimeProvider;
-            this.stakeChainStore = stakeChainStore;
             this.MaxItems = CacheMaxItemsDefault;
             this.lockobj = new AsyncLock();
             this.unspents = new Dictionary<uint256, CacheItem>();
@@ -251,12 +244,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.CoinViews
                 this.logger.LogTrace("(-)[NOT_NOW]");
                 return;
             }
-
-            // Before flushing the coinview persist the stake store
-            // the stake store depends on the last block hash
-            // to be stored after the stake store is persisted.
-            if (this.stakeChainStore != null)
-                await this.stakeChainStore.FlushAsync(true);
 
             if (this.innerBlockHash == null)
                 this.innerBlockHash = await this.inner.GetBlockHashAsync().ConfigureAwait(false);

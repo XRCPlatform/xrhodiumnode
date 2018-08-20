@@ -804,42 +804,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         var transaction = item.Transaction;
                         var address = item.Address;
 
-                        // We don't show in history transactions that are outputs of staking transactions.
-                        if (transaction.IsCoinStake != null && transaction.IsCoinStake.Value && transaction.SpendingDetails == null)
-                        {
-                            continue;
-                        }
-
-                        // First we look for staking transaction as they require special attention.
-                        // A staking transaction spends one of our inputs into 2 outputs, paid to the same address.
-                        if (transaction.SpendingDetails?.IsCoinStake != null && transaction.SpendingDetails.IsCoinStake.Value)
-                        {
-                            // We look for the 2 outputs related to our spending input.
-                            List<FlatHistory> relatedOutputs = items.Where(h => h.Transaction.Id == transaction.SpendingDetails.TransactionId && h.Transaction.IsCoinStake != null && h.Transaction.IsCoinStake.Value).ToList();
-                            if (relatedOutputs.Any())
-                            {
-                                // Add staking transaction details.
-                                // The staked amount is calculated as the difference between the sum of the outputs and the input and should normally be equal to 1.
-                                TransactionItemModel stakingItem = new TransactionItemModel
-                                {
-                                    Type = TransactionItemType.Staked,
-                                    ToAddress = address.Address,
-                                    Amount = relatedOutputs.Sum(o => o.Transaction.Amount) - transaction.Amount,
-                                    Id = transaction.SpendingDetails.TransactionId,
-                                    Timestamp = transaction.SpendingDetails.CreationTime,
-                                    ConfirmedInBlock = transaction.SpendingDetails.BlockHeight
-                                };
-
-                                transactionItems.Add(stakingItem);
-                            }
-
-                            // No need for further processing if the transaction itself is the output of a staking transaction.
-                            if (transaction.IsCoinStake != null)
-                            {
-                                continue;
-                            }
-                        }
-
                         // Create a record for a 'receive' transaction.
                         if (!address.IsChangeAddress())
                         {
@@ -858,7 +822,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         }
 
                         // If this is a normal transaction (not staking) that has been spent, add outgoing fund transaction details.
-                        if (transaction.SpendingDetails != null && transaction.SpendingDetails.IsCoinStake == null)
+                        if (transaction.SpendingDetails != null)
                         {
                             // Create a record for a 'send' transaction.
                             var spendingTransactionId = transaction.SpendingDetails.TransactionId;
@@ -901,7 +865,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             // The fee is calculated as follows: funds in utxo - amount spent - amount sent as change.
                             //OLD: sentItem.Fee = inputsAmount - sentItem.Amount - (changeAddress == null ? 0 : changeAddress.Transaction.Amount);
 
-                            // Mined/staked coins add more coins to the total out.
+                            // Mined coins add more coins to the total out.
                             // That makes the fee negative. If that's the case ignore the fee.
                             if (sentItem.Fee < 0)
                                 sentItem.Fee = 0;

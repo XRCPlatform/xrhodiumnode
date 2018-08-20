@@ -546,17 +546,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             // TODO: fix this to use dedicated mempool rules.
             new CheckPowTransactionRule { Logger = this.logger }.CheckTransaction(this.network, this.ConsensusOptions, context.Transaction);
-            if(this.chain.Network.Consensus.IsProofOfStake)
-                new CheckPosTransactionRule { Logger = this.logger }.CheckTransaction(context.Transaction);
 
             // Coinbase is only valid in a block, not as a loose transaction
             if (context.Transaction.IsCoinBase)
                 context.State.Fail(MempoolErrors.Coinbase).Throw();
-
-            // Coinstake is only valid in a block, not as a loose transaction
-            // TODO: mempool needs to have seprate checks for POW/POS as part of the change to rules.
-            if (context.Transaction.IsCoinStake)
-                context.State.Fail(MempoolErrors.Coinstake).Throw();
 
             // TODO: Implement Witness Code
             // Bitcoin Ref: https://github.com/bitcoin/bitcoin/blob/ea729d55b4dbd17a53ced474a8457d4759cfb5a5/src/validation.cpp#L463-L467

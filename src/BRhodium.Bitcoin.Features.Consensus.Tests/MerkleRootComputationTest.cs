@@ -49,7 +49,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
 
         private uint256 ComputeMerkleRoot(List<uint256> leaves, out bool mutated)
         {
-            Network.Main.Consensus.Options = new PosConsensusOptions();
+            Network.Main.Consensus.Options = new PowConsensusOptions();
             return BlockMerkleRootRule.ComputeMerkleRoot(leaves, out mutated);
         }
     }

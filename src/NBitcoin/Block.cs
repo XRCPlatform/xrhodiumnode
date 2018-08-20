@@ -208,8 +208,6 @@ namespace NBitcoin
 
     public partial class Block : IBitcoinSerializable
     {
-        public const uint MaxBlockSize = 1000 * 1000;
-
         private BlockHeader header;
 
         // network and disk

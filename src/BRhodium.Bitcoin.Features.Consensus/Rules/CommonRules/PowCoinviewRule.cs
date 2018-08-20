@@ -58,7 +58,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
                 if (!context.SkipValidation)
                 {
                     // TODO: Simplify this condition.
-                    if (!tx.IsCoinBase && (!context.IsPoS || (context.IsPoS && !tx.IsCoinStake)))
+                    if (!tx.IsCoinBase)
                     {
                         if (!view.HaveInputs(tx))
                         {
@@ -94,7 +94,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
                     }
 
                     // TODO: Simplify this condition.
-                    if (!tx.IsCoinBase && (!context.IsPoS || (context.IsPoS && !tx.IsCoinStake)))
+                    if (!tx.IsCoinBase)
                     {
                         this.CheckInputs(tx, view, index.Height);
                         fees += view.GetValueIn(tx) - tx.TotalOut;

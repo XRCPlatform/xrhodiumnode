@@ -197,14 +197,6 @@ namespace BRhodium.Bitcoin.Features.Miner
 
                 BlockTemplate blockTemplate = this.blockProvider.BuildPowBlock(chainTip, reserveScript.ReserveFullNodeScript);
 
-                if (this.network.Consensus.IsProofOfStake)
-                {
-                    // Make sure the POS consensus rules are valid. This is required for generation of blocks inside tests,
-                    // where it is possible to generate multiple blocks within one second.
-                    if (blockTemplate.Block.Header.Time <= chainTip.Header.Time)
-                        continue;
-                }
-
                 nExtraNonce = this.IncrementExtraNonce(blockTemplate.Block, chainTip, nExtraNonce);
                 Block block = blockTemplate.Block;
 
@@ -246,7 +238,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                     return blocks;
                 }
 
-                this.logger.LogInformation("Mined new {0} block: '{1}'.", BlockStake.IsProofOfStake(blockValidationContext.Block) ? "POS" : "POW", blockValidationContext.ChainedHeader);
+                this.logger.LogInformation("Mined new {0} block: '{1}'.", "POW", blockValidationContext.ChainedHeader);
 
                 nHeight++;
                 blocks.Add(block.GetHash());
