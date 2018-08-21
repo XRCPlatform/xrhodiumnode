@@ -124,7 +124,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                 currentBlock.Header.Time = Utils.DateTimeToUnixTime(chain.Tip.GetMedianTimePast()) + 1;
                 Transaction txCoinbase = currentBlock.Transactions[0].Clone();
                 txCoinbase.Inputs.Clear();
-                txCoinbase.Version = 1;
+                txCoinbase.Version = 2;
                 txCoinbase.AddInput(new TxIn(new Script(new[] { Op.GetPushOp(blockinfo[i].extraNonce), Op.GetPushOp(chain.Height) })));
                 // Ignore the (optional) segwit commitment added by CreateNewBlock (as the hardcoded nonces don't account for this)
                 txCoinbase.AddOutput(new TxOut(Money.Zero, new Script()));

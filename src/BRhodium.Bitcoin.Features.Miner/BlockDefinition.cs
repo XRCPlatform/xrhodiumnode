@@ -194,7 +194,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// </summary>
         private void Configure()
         {
-            this.BlockSize = 1000;
+            this.BlockSize = 4000;
             this.BlockTemplate = new BlockTemplate(this.Network);
             this.BlockTx = 0;
             this.BlockWeight = 4000;
