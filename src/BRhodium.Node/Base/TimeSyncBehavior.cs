@@ -52,7 +52,7 @@ namespace BRhodium.Node.Base
     /// <para>
     /// Bitcoin allowed up to 70 minutes of time adjustment to be made using this mechanism.
     /// However, Bitcoin also allowed the blocks to be mined with timestamps that are off by up
-    /// to 2 hours. This is very unlike BRhodium' POS, which uses very narrow windows for block
+    /// to 2 hours. This is very unlike BRhodium', which uses very narrow windows for block
     /// timestamps. This is why we implemented our mechanism of time syncing with peers
     /// and adjusted time calculation slightly differently.
     /// </para>
@@ -73,7 +73,7 @@ namespace BRhodium.Node.Base
     /// This means that once the limit is reached, we replace oldest samples with the new ones.
     /// </para>
     /// <para>
-    /// Finally, as the POS chain is much more sensitive to correct time settings, our user
+    /// Finally, as the chain is much more sensitive to correct time settings, our user
     /// alerting mechanism is triggered much earlier (for much lower time difference) than
     /// the one in Bitcoin.
     /// </para>

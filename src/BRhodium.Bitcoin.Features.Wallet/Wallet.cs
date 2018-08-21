@@ -783,12 +783,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public Money Amount { get; set; }
 
         /// <summary>
-        /// A value indicating whether this is a coin stake transaction or not.
-        /// </summary>
-        [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsCoinStake { get; set; }
-
-        /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
         /// </summary>
         /// <remarks>
@@ -942,12 +936,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? BlockHeight { get; set; }
-
-        /// <summary>
-        /// A value indicating whether this is a coin stake transaction or not.
-        /// </summary>
-        [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsCoinStake { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.

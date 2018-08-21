@@ -27,17 +27,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
         }
     }
 
-    public class ContextStakeInformation
-    {
-        public BlockStake BlockStake { get; set; }
-
-        public Money TotalCoinStakeValueIn { get; set; }
-
-        public uint256 HashProofOfStake { get; set; }
-
-        public uint256 TargetProofOfStake { get; set; }
-    }
-
     /// <summary>
     /// Context that contains variety of information regarding blocks validation and execution.
     /// </summary>
@@ -48,8 +37,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
         public DateTimeOffset Time { get; set; }
 
         public ContextBlockInformation BestBlock { get; set; }
-
-        public ContextStakeInformation Stake { get; set; }
 
         public Target NextWorkRequired { get; set; }
 
@@ -68,11 +55,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
         /// <summary>The current tip of the chain that has been validated.</summary>
         public ChainedHeader ConsensusTip { get; set; }
-
-        public bool IsPoS
-        {
-            get { return this.Stake != null; }
-        }
 
         public RuleContext()
         {
@@ -99,14 +81,6 @@ namespace BRhodium.Bitcoin.Features.Consensus
         {
             this.BestBlock = new ContextBlockInformation(this.BlockValidationContext.ChainedHeader.Previous, this.Consensus);
             this.Time = now;
-        }
-
-        public void SetStake()
-        {
-            this.Stake = new ContextStakeInformation
-            {
-                BlockStake = new BlockStake(this.BlockValidationContext.Block)
-            };
         }
     }
 }

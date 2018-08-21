@@ -69,7 +69,7 @@ namespace BRhodium.Node.IntegrationTests
             this.WaitForNodeToSync(node);
 
             var spendable = node.FullNode.WalletManager().GetSpendableTransactionsInWallet(walletName);
-            var amountShouldBe = node.FullNode.Network.Consensus.Option<PosConsensusOptions>().PremineReward + node.FullNode.Network.Consensus.Option<PosConsensusOptions>().ProofOfWorkReward;
+            var amountShouldBe = node.FullNode.Network.Consensus.Option<PowConsensusOptions>().ProofOfWorkReward;
             spendable.Sum(s => s.Transaction.Amount).Should().Be(amountShouldBe);
         }
 

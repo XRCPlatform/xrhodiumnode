@@ -29,10 +29,6 @@ namespace BRhodium.Node.P2P.Protocol.Payloads
                 stream.ReadWrite(ref this.Header);
                 VarInt txCount = new VarInt(0);
                 stream.ReadWrite(ref txCount);
-
-                // BRhodium adds an additional byte to the end of a header need to investigate why.
-                if (stream.ConsensusFactory.Consensus.IsProofOfStake)
-                    stream.ReadWrite(ref txCount);
             }
         }
 

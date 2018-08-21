@@ -30,23 +30,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         }
 
         [Fact]
-        public async Task RunAsync_ProofOfWorkBlock_CheckPow_ValidPow_SetsStake_SetsNextWorkRequiredAsync()
-        {
-            this.network = Network.RegTest;
-            this.concurrentChain = MineChainWithHeight(2, this.network);
-            this.consensusRules = this.InitializeConsensusRules();
-
-            this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.Tip;
-            this.ruleContext.BlockValidationContext.Block = TestRulesContextFactory.MineBlock(this.network, this.concurrentChain);
-            this.ruleContext.CheckPow = true;
-            this.ruleContext.Consensus = this.network.Consensus;
-
-            await this.consensusRules.RegisterRule<CalculateWorkRule>().RunAsync(this.ruleContext);
-
-            Assert.Equal(0.465, this.ruleContext.NextWorkRequired.Difficulty);
-        }
-
-        [Fact]
         public async Task RunAsync_ProofOfWorkBlock_CheckPow_InValidPow_ThrowsHighHashConsensusErrorExceptionAsync()
         {
             this.ruleContext.BlockValidationContext = new BlockValidationContext()

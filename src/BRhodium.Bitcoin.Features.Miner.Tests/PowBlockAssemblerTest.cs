@@ -77,7 +77,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
                 Assert.NotEmpty(resultingTransaction.Inputs);
                 Assert.NotEmpty(resultingTransaction.Outputs);
                 Assert.True(resultingTransaction.IsCoinBase);
-                Assert.False(resultingTransaction.IsCoinStake);
                 Assert.Equal(TxIn.CreateCoinbase(6).ScriptSig, resultingTransaction.Inputs[0].ScriptSig);
                 Assert.Equal(this.powReward + txFee, resultingTransaction.TotalOut);
                 Assert.Equal(this.key.ScriptPubKey, resultingTransaction.Outputs[0].ScriptPubKey);
@@ -87,7 +86,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
                 Assert.NotEmpty(resultingTransaction.Inputs);
                 Assert.NotEmpty(resultingTransaction.Outputs);
                 Assert.False(resultingTransaction.IsCoinBase);
-                Assert.False(resultingTransaction.IsCoinStake);
                 Assert.Equal(new Money(400 * 1000 * 1000), resultingTransaction.TotalOut);
                 Assert.Equal(transaction.Inputs[0].PrevOut.Hash, resultingTransaction.Inputs[0].PrevOut.Hash);
                 Assert.Equal(transaction.Inputs[0].ScriptSig, transaction.Inputs[0].ScriptSig);
@@ -207,7 +205,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
                 var resultingTransaction = result.Block.Transactions[0];
                 Assert.Equal((uint)new DateTime(2017, 1, 7, 0, 0, 1, DateTimeKind.Utc).ToUnixTimestamp(), resultingTransaction.Time);
                 Assert.True(resultingTransaction.IsCoinBase);
-                Assert.False(resultingTransaction.IsCoinStake);
                 Assert.Equal(Money.Zero, resultingTransaction.TotalOut);
 
                 Assert.NotEmpty(resultingTransaction.Inputs);

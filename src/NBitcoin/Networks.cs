@@ -105,7 +105,6 @@ namespace NBitcoin
             network.Consensus.PowNoRetargeting = false;
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
-            network.Consensus.IsProofOfStake = false;
             network.Consensus.CoinType = (int)CoinType.BRhodium;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
@@ -204,7 +203,6 @@ namespace NBitcoin
             network.Consensus.PowNoRetargeting = false;
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
-            network.Consensus.IsProofOfStake = false;
             network.Consensus.CoinType = (int)CoinType.Testnet;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
@@ -285,9 +283,6 @@ namespace NBitcoin
             network.Consensus.PowNoRetargeting = false;
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
-            network.Consensus.IsProofOfStake = false;
-            network.Consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
-            network.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             network.Consensus.CoinType = (int)CoinType.RegTest;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };

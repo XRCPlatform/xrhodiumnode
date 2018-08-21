@@ -5,25 +5,12 @@ namespace NBitcoin.BitcoinCore
 {
     public class Coins : IBitcoinSerializable
     {
-        private bool fCoinStake;
         private uint nTime;
         private uint nHeight;
         private uint nVersion;
 
         // Determines whether transaction is a coinbase.
         public bool CoinBase { get; set; }
-
-        public bool CoinStake
-        {
-            get
-            {
-                return this.fCoinStake;
-            }
-            set
-            {
-                this.fCoinStake = value;
-            }
-        }
 
         public uint Time
         {
@@ -75,12 +62,6 @@ namespace NBitcoin.BitcoinCore
 
         public Coins(Transaction tx, int height)
         {
-            if (tx is PosTransaction)
-            {
-                this.fCoinStake = tx.IsCoinStake;
-                this.nTime = tx.Time;
-            }
-
             this.CoinBase = tx.IsCoinBase;
             this.Outputs = tx.Outputs.ToList();
             this.nVersion = tx.Version;
@@ -157,12 +138,6 @@ namespace NBitcoin.BitcoinCore
                 }
                 // coinbase height
                 stream.ReadWriteAsVarInt(ref this.nHeight);
-
-                if (stream.ConsensusFactory.Consensus.IsProofOfStake)
-                {
-                    stream.ReadWrite(ref this.fCoinStake);
-                    stream.ReadWrite(ref this.nTime);
-                }
             }
             else
             {
@@ -212,12 +187,6 @@ namespace NBitcoin.BitcoinCore
 
                 //// coinbase height
                 stream.ReadWriteAsVarInt(ref this.nHeight);
-
-                if (stream.ConsensusFactory.Consensus.IsProofOfStake)
-                {
-                    stream.ReadWrite(ref this.fCoinStake);
-                    stream.ReadWrite(ref this.nTime);
-                }
 
                 this.Cleanup();
                 this.UpdateValue();

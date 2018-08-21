@@ -46,9 +46,6 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <summary>PoW miner.</summary>
         private readonly IPowMining powMining;
 
-        /// <summary>PoS staker.</summary>
-        private readonly IPosMinting posMinting;
-
         /// <summary>Full node.</summary>
         private readonly IFullNode fullNode;
 
@@ -72,15 +69,13 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <param name="fullNode">Full node to offer mining RPC.</param>
         /// <param name="loggerFactory">Factory to be used to create logger for the node.</param>
         /// <param name="walletManager">The wallet manager.</param>
-        /// <param name="posMinting">PoS staker or null if PoS staking is not enabled.</param>
         public MiningRPCController(IPowMining powMining, IFullNode fullNode, ILoggerFactory loggerFactory, IWalletManager walletManager,
             INetworkDifficulty networkDifficulty = null,
             IBlockRepository blockRepository = null,
             ITxMempool txMempool = null,
             IConsensusLoop consensusLoop = null,
             IBlockProvider blockProvider = null,
-            IChainState chainState = null,
-            IPosMinting posMinting = null) : base(fullNode: fullNode)
+            IChainState chainState = null) : base(fullNode: fullNode)
         {
             Guard.NotNull(powMining, nameof(powMining));
             Guard.NotNull(fullNode, nameof(fullNode));
@@ -91,7 +86,6 @@ namespace BRhodium.Bitcoin.Features.Miner
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletManager = walletManager;
             this.powMining = powMining;
-            this.posMinting = posMinting;
 
             this.networkDifficulty = networkDifficulty;
             this.blockRepository = blockRepository;

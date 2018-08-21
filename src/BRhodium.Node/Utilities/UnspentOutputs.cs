@@ -19,7 +19,6 @@ namespace BRhodium.Node.Utilities
             this.Height = height;
             this.Version = tx.Version;
             this.IsCoinbase = tx.IsCoinBase;
-            this.IsCoinstake = tx.IsCoinStake;
             this.Time = tx.Time;
         }
 
@@ -32,7 +31,6 @@ namespace BRhodium.Node.Utilities
         private void SetCoins(Coins coins)
         {
             this.IsCoinbase = coins.CoinBase;
-            this.IsCoinstake = coins.CoinStake;
             this.Time = coins.Time;
             this.Height = coins.Height;
             this.Version = coins.Version;
@@ -47,7 +45,6 @@ namespace BRhodium.Node.Utilities
         {
             this.transactionId = unspent.TransactionId;
             this.IsCoinbase = unspent.IsCoinbase;
-            this.IsCoinstake = unspent.IsCoinstake;
             this.Time = unspent.Time;
             this.Height = unspent.Height;
             this.Version = unspent.Version;
@@ -69,8 +66,6 @@ namespace BRhodium.Node.Utilities
         public uint Version { get; private set; }
 
         public bool IsCoinbase { get; private set; }
-
-        public bool IsCoinstake { get; private set; }
 
         public uint Time { get; private set; }
 
@@ -143,7 +138,6 @@ namespace BRhodium.Node.Utilities
                 CoinBase = this.IsCoinbase,
                 Height = this.Height,
                 Version = this.Version,
-                CoinStake = this.IsCoinstake,
                 Time = this.Time
             };
             foreach (var output in this.Outputs)

@@ -23,7 +23,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
     {
         private MiningRPCController controller;
         private Mock<IFullNode> fullNode;
-        private Mock<IPosMinting> posMinting;
         private Mock<IWalletManager> walletManager;
         private Mock<ITimeSyncBehaviorState> timeSyncBehaviorState;
         private MiningRPCControllerFixture fixture;
@@ -34,7 +33,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             this.fixture = fixture;
             this.powMining = new Mock<IPowMining>();
             this.fullNode = new Mock<IFullNode>();
-            this.posMinting = new Mock<IPosMinting>();
             this.walletManager = new Mock<IWalletManager>();
             this.timeSyncBehaviorState = new Mock<ITimeSyncBehaviorState>();
             this.fullNode.Setup(f => f.NodeService<IWalletManager>(false))
