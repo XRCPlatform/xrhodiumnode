@@ -47,7 +47,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             var config = nodeSettings.ConfigReader;
 
             this.Prune = config.GetOrDefault<bool>("prune", false);
-            this.TxIndex = config.GetOrDefault<bool>("txindex", false);
+            this.TxIndex = config.GetOrDefault<bool>("txindex", true);
             this.ReIndex = config.GetOrDefault<bool>("reindex", false);
 
             this.callback?.Invoke(this);
@@ -78,7 +78,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         {
             builder.AppendLine("####BlockStore Settings####");
             builder.AppendLine($"#Enable to maintain a full transaction index.");
-            builder.AppendLine($"txindex=1");
+            builder.AppendLine($"#txindex=1");
             builder.AppendLine($"#Rebuild chain state and block index from block data files on disk.");
             builder.AppendLine($"#reindex=0");
             builder.AppendLine($"#Enable pruning to reduce storage requirements by enabling deleting of old blocks.");
