@@ -66,7 +66,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// Default for -maxmempool, maximum megabytes of mempool memory usage.
         /// </summary>
         /// <seealso cref = "MempoolSettings" />
-        public const int DefaultMaxMempoolSize = 300;
+        public const int DefaultMaxMempoolSize = 1200;
 
         /// <summary>
         /// Default limit free relay.
