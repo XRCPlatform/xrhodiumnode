@@ -35,7 +35,7 @@ namespace NBitcoin
     public class PowBlockHeader : BlockHeader
     {
         /// <summary>Current header version.</summary>
-        public override int CurrentVersion => 666;
+        public override int CurrentVersion => 45;
 
         public override uint256 GetHash()
         {

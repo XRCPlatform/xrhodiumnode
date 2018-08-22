@@ -23,7 +23,7 @@ namespace NBitcoin
         internal const int Size = 80;
 
         /// <summary>Current header version.</summary>
-        public virtual int CurrentVersion => 3;
+        public virtual int CurrentVersion => 45;
 
         private static BigInteger Pow256 = BigInteger.ValueOf(2).Pow(256);
 

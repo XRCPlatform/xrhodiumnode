@@ -110,7 +110,7 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
 
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 1025, network.Consensus.PowLimit.ToCompact(), 666, network);
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 1025, network.Consensus.PowLimit.ToCompact(), 45, network);
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
 
@@ -203,7 +203,7 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 666, network);
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 45, network);
             genesis.Header.Bits = network.Consensus.PowLimit;
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
@@ -270,7 +270,7 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 666, network);
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 45, network);
             genesis.Header.Bits = network.Consensus.PowLimit;
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
