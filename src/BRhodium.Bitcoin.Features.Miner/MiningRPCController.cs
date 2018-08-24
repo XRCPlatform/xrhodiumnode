@@ -232,14 +232,6 @@ namespace BRhodium.Bitcoin.Features.Miner
                                 transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
                                 transaction.Weight = item.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION);
 
-                                //         "depends" : [                (array) array of numbers
-                                //             n(numeric) transactions before this one(by 1 - based index in 'transactions' list) that must be present in the final block if this one is
-                                //             ,...
-                                //         ],
-                                //    }
-                                //      ,...
-                                //transaction.Depends = new Dictionary<string, long>();
-
                                 blockTemplate.Transactions.Add(transaction);
                             }
                         }
@@ -424,9 +416,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                 var hash = new uint256(txid);
                 var satoshi = Money.Satoshis(fee_delta);
 
-                var transaction = this.txMempool.Get(hash);
-                //??transaction.PrioritiseTransaction(hash, satoshi);
-
+                this.txMempool.PrioritiseTransaction(hash, satoshi);
             }
 
             var json = this.Json(ResultHelper.BuildResultResponse(true)); 

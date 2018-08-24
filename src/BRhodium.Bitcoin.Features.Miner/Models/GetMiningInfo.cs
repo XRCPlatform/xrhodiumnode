@@ -15,6 +15,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
         [JsonProperty(PropertyName = "currentblocksize")]
         public long CurrentBlockSize { get; set; }
 
+        /// <summary>Gets or sets the current block weight.</summary>
         [JsonProperty(PropertyName = "currentblockweight")]
         public long CurrentBlockWeight { get; set; }
 
