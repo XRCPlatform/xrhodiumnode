@@ -163,7 +163,7 @@ namespace NBitcoin
         private static Network InitBRhodiumTest()
         {
             var messageStart = new byte[4];
-            messageStart[0] = 0x32;
+            messageStart[0] = 0x35;
             messageStart[1] = 0x33;
             messageStart[2] = 0x34;
             messageStart[3] = 0x35;
