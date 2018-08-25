@@ -12,8 +12,10 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
        
         [JsonProperty(PropertyName = "target")]
         public string Target { get; set; }
+
         [JsonProperty(Order = 1,PropertyName = "bits")]
         public string Bits { get; set; }
+
         [JsonProperty(Order = 2,PropertyName = "curtime")]
         public string Curtime { get; set; }
 
@@ -64,6 +66,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
 
         [JsonProperty(PropertyName = "mintime")]
         public long Mintime { get; set; }
+
         [JsonProperty(PropertyName = "coinbasetxn")]
         public Transaction Coinbasetxn { get; internal set; }
     }
@@ -79,13 +82,14 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
         [JsonProperty(PropertyName = "hash")]
         public string Hash { get; set; }
         
-        [JsonProperty(PropertyName = "depends",NullValueHandling =NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "depends", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, long> Depends { get; set; }
 
         [JsonProperty(PropertyName = "Fee")]
         public long Fee { get; set; }
+
         [DefaultValue(-1L)]
-        [JsonProperty(PropertyName = "sigops",DefaultValueHandling =DefaultValueHandling.Ignore )]
+        [JsonProperty(PropertyName = "sigops", DefaultValueHandling = DefaultValueHandling.Ignore )]
         public long Sigops { get; set; }
 
         [JsonProperty(PropertyName = "weight")]

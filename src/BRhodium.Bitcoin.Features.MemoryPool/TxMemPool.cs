@@ -861,6 +861,42 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         }
 
         /// <summary>
+        /// Prioritize Transaction
+        /// </summary>
+        /// <param name="hash">hash of delta pair</param>
+        /// <param name="deltaFee"></param>
+        public void PrioritiseTransaction(uint256 hash, Money deltaFee)
+        {
+            //LOCK(cs);
+            var delta = this.mapDeltas.TryGet(hash);
+            if (delta == null)
+            {
+                delta = new DeltaPair();
+            }
+
+            delta.Delta = +deltaFee.Satoshi;
+            var it = this.MapTx.TryGet(hash);
+            it.UpdateFeeDelta(deltaFee.Satoshi);
+            delta.Amount = it.ModifiedFee;
+            this.mapDeltas.AddOrReplace(hash, delta);
+
+            var setAncestors = new SetEntries();
+            string dummy = string.Empty;
+            long nNoLimit = long.MaxValue;
+            CalculateMemPoolAncestors(it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, out dummy, false);
+
+            UpdateEntryForAncestors(it, setAncestors);
+
+            // Now update all descendants' modified fees with ancestors
+            var setDescendants = new SetEntries();
+            CalculateDescendants(it, setDescendants);
+            setDescendants.Remove(it);
+            UpdateAncestorsOf(true, it, setDescendants);
+
+            this.nTransactionsUpdated++;
+        }
+
+        /// <summary>
         /// Get the amount of dynamic memory being used by the memory pool.
         /// </summary>
         /// <returns>Number of bytes in use by memory pool.</returns>

@@ -12,11 +12,15 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
         public long Blocks { get; set; }
 
         /// <summary>Size of the next block the node wants to mine in bytes.</summary>
-        [JsonProperty(PropertyName = "currentBlockSize")]
+        [JsonProperty(PropertyName = "currentblocksize")]
         public long CurrentBlockSize { get; set; }
 
+        /// <summary>Gets or sets the current block weight.</summary>
+        [JsonProperty(PropertyName = "currentblockweight")]
+        public long CurrentBlockWeight { get; set; }
+
         /// <summary>Number of transactions the node wants to put in the next block.</summary>
-        [JsonProperty(PropertyName = "currentBlockTx")]
+        [JsonProperty(PropertyName = "currentblocktx")]
         public long CurrentBlockTx { get; set; }
 
         /// <summary>Target difficulty that the next block must meet.</summary>
@@ -28,7 +32,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
         public double NetworkHashps { get; set; }
 
         /// <summary>The size of the mempool.</summary>
-        [JsonProperty(PropertyName = "pooledTx")]
+        [JsonProperty(PropertyName = "pooledtx")]
         public long PooledTx { get; set; }
 
         /// <summary>Current network name as defined in BIP70 (main, test, regtest).</summary>

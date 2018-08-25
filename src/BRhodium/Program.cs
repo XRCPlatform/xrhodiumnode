@@ -17,6 +17,7 @@ using System.Linq;
 using BRhodium.Node.Base;
 using BRhodium.Node.P2P.Protocol.Behaviors;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
+using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 
 namespace BRhodium
 {
@@ -31,10 +32,9 @@ namespace BRhodium
         {
             try
             {
-                //for testing
                 //args = new string[] { "-regtest" };
                 //args = new string[] { "-testnet" };
-                NodeSettings nodeSettings = new NodeSettings(args:args, loadConfiguration:false);
+                NodeSettings nodeSettings = new NodeSettings(args: args, loadConfiguration: false);
 
                 var node = new FullNodeBuilder()
                     .UseNodeSettings(nodeSettings)

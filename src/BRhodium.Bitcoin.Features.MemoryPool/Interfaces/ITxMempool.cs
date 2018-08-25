@@ -242,5 +242,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// </summary>
         /// <param name="stream">Stream to write to.</param>
         void WriteFeeEstimates(BitcoinStream stream);
+
+        /// <summary>
+        /// Prioritises the transaction.
+        /// </summary>
+        /// <param name="hash">The hash.</param>
+        /// <param name="satoshi">The satoshi.</param>
+        void PrioritiseTransaction(uint256 hash, Money satoshi);
     }
 }

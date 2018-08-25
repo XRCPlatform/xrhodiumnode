@@ -147,7 +147,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Gets the mining information.
+        /// Returns a json object containing mining-related information.
         /// </summary>
         /// <returns>GetMiningInfo RPC format</returns>
         [ActionName("getmininginfo")]
@@ -155,8 +155,8 @@ namespace BRhodium.Bitcoin.Features.Miner
         public IActionResult GetMiningInfo()
         {
             var miningInfo = new GetMiningInfo();
-
-            miningInfo.Chain = this.Network.Name;
+ 
+            miningInfo.Chain = string.IsNullOrEmpty(this.Network.Name) ? string.Empty : this.Network.Name.Replace("BRhodium", string.Empty).ToLower();
             miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
             miningInfo.PooledTx = this.txMempool.MapTx.Count();
             miningInfo.NetworkHashps = GetNetworkHashPS();
@@ -173,9 +173,11 @@ namespace BRhodium.Bitcoin.Features.Miner
                 if (block != null)
                 {
                     miningInfo.CurrentBlockSize = block.GetSerializedSize();
+                    miningInfo.CurrentBlockWeight = miningInfo.CurrentBlockSize; //for compatibility
                     miningInfo.CurrentBlockTx = block.Transactions.Count();
                 }
             }
+
             return this.Json(ResultHelper.BuildResultResponse(miningInfo));
         }
 
@@ -184,11 +186,11 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// <summary>
         /// Gets the block template.
         /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>GetBlockTemplateModel rpc format</returns>
+        /// <param name="template_request">(json object, optional) A json object in the following spec</param>
+        /// <returns>It returns data needed to construct a block to work on. GetBlockTemplateModel RPC.</returns>
         [ActionName("getblocktemplate")]
         [ActionDescription("")]
-        public IActionResult GetBlockTemplate(string[] args)
+        public IActionResult GetBlockTemplate(string template_request)
         {
             var blockTemplate = new GetBlockTemplateModel();
 
@@ -206,8 +208,6 @@ namespace BRhodium.Bitcoin.Features.Miner
 
                 if (block != null)
                 {
-                    TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-
                     blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
                     blockTemplate.Curtime = DateTime.UtcNow.ToUnixTimestamp().ToString();
                     blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
@@ -232,9 +232,6 @@ namespace BRhodium.Bitcoin.Features.Miner
                                 transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
                                 transaction.Weight = item.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION);
 
-                                //test decode
-                                //var s = Transaction.Load(Encoders.Hex.DecodeData(transaction.Data), this.Network);
-
                                 blockTemplate.Transactions.Add(transaction);
                             }
                         }
@@ -244,7 +241,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                     blockTemplate.Version = block.Header.Version;
 
                     blockTemplate.Coinbaseaux = new CoinbaseauxFlagsContractModel();
-                    blockTemplate.Coinbaseaux.Flags = "062f503253482f";//"2f503253482f"
+                    blockTemplate.Coinbaseaux.Flags = "062f503253482f";
                     blockTemplate.CoinbaseValue = powCoinviewRule.GetProofOfWorkReward(blockTemplate.Height).Satoshi;
 
                     var mutable = new List<string>();
@@ -267,7 +264,7 @@ namespace BRhodium.Bitcoin.Features.Miner
                     blockTemplate.Rules = rules;
 
                     var capabilities = new List<string>();
-                    //capabilities.Add("proposal");
+
                     blockTemplate.Capabilities = capabilities;
 
                     blockTemplate.Vbavailable = new List<string>();
@@ -279,25 +276,26 @@ namespace BRhodium.Bitcoin.Features.Miner
                     blockTemplate.Mintime = chainTip.GetMedianTimePast().AddHours(2).ToUnixTimeSeconds();//+two hour rule
                 }
             }
+
             var json = ResultHelper.BuildResultResponse(blockTemplate);
             return this.Json(json);
         }
 
         /// <summary>
-        /// Submits the block.
+        /// Attempts to submit new block to network.
+        /// See https://en.bitcoin.it/wiki/BIP_0022 for full specification.
         /// </summary>
-        /// <param name="hex">The hexadecimal.</param>
-        /// <returns>SubmitBlockModel rpc format</returns>
+        /// <param name="hex">The hex-encoded block data to submit</param>
+        /// <param name="dummy">Dummy value, for compatibility with BIP22. This value is ignored.</param>
+        /// <returns>SubmitBlockModel RPC format</returns>
         /// <exception cref="RPCException">
-        /// Empty block hex supplied - null - false
-        /// or
         /// Empty block hex supplied - null - false
         /// or
         /// Wrong chain work - null - false
         /// </exception>
         [ActionName("submitblock")]
         [ActionDescription("")]
-        public IActionResult SubmitBlock(string hex)
+        public IActionResult SubmitBlock(string hex, string dummy = null)
         {
             var response = new SubmitBlockModel();
             
@@ -331,25 +329,28 @@ namespace BRhodium.Bitcoin.Features.Miner
 
                 if (blockValidationContext.Error != null)
                 {
-                    blockValidationContext.Error.Throw();// not sure if consesus error should have non 200 status code
-                    //response.Code = blockValidationContext.Error.Code;
-                    //response.Message = blockValidationContext.Error.Message;                   
-                    //return this.Json(ResultHelper.BuildResultResponse(response));
+                    blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
                  
-                var json = this.Json(ResultHelper.BuildResultResponse(""));// if block is successfuly accepted return null
+                var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
                 return json;
             }
            
         }
 
         /// <summary>
-        /// Gets the network hash ps.
+        /// Returns the estimated network hashes per second based on the last n blocks.
+        /// Pass in [nblocks] to override # of blocks, -1 specifies since last difficulty change.
+        /// Pass in [height] to estimate the network speed at the time when a certain block was found.
         /// </summary>
-        /// <returns>Return double value od ps</returns>
-        public double GetNetworkHashPS()
+        /// <param name="nblocks">The nblocks.</param>
+        /// <param name="height">The height.</param>
+        /// <returns>Hashes per second estimated</returns>
+        [ActionName("getnetworkhashps")]
+        [ActionDescription("")] 
+        public double GetNetworkHashPS(int nblocks = 120, int height = -1)
         {
-            return GetNetworkHash(120, -1);
+            return GetNetworkHash(nblocks, height);
         }
 
         /// <summary>
@@ -357,7 +358,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// </summary>
         /// <param name="lookup">The lookup.</param>
         /// <param name="height">The height.</param>
-        /// <returns></returns>
+        /// <returns>Hashes per second estimated</returns>
         private double GetNetworkHash(int lookup, int height)
         {
             var pb = this.consensusLoop.Chain.Tip;
@@ -393,6 +394,33 @@ namespace BRhodium.Bitcoin.Features.Miner
             var timeDiff = maxTime - minTime;
 
             return doubleWorkDiff / timeDiff;
+        }
+
+        /// <summary>
+        /// Accepts the transaction into mined blocks at a higher (or lower) priority.
+        /// </summary>
+        /// <param name="txid">The txid.</param>
+        /// <param name="fee_delta">The fee value (in satoshis) to add (or subtract, if negative)</param>
+        /// <returns>Returns true</returns>
+        [ActionName("prioritisetransaction")]
+        [ActionDescription("")]
+        public IActionResult PrioritizeTransaction(string txid, int fee_delta)
+        {
+            lock (lockSubmitBlock)
+            {
+                if (string.IsNullOrEmpty(txid) || fee_delta <= 0)
+                {
+                    throw new RPCException(RPCErrorCode.RPC_INVALID_PARAMETER, "Priority is no longer supported, dummy argument to prioritisetransaction must be 0.", null, false);
+                }
+
+                var hash = new uint256(txid);
+                var satoshi = Money.Satoshis(fee_delta);
+
+                this.txMempool.PrioritiseTransaction(hash, satoshi);
+            }
+
+            var json = this.Json(ResultHelper.BuildResultResponse(true)); 
+            return json;
         }
     }
 }
