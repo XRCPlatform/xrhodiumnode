@@ -21,12 +21,13 @@
   <HelpKINode Title="GetBalance method" Url="html/45c6b538-23db-f574-3e74-7f51132ff26c.htm" />
   <HelpKINode Title="GetBlockCount method" Url="html/0a445c18-d45a-678b-81d7-486b556fc299.htm" />
   <HelpKINode Title="GetBlockHeader method" Url="html/bf596490-cef5-d110-85c4-ca4d96148f2f.htm" />
-  <HelpKINode Title="GetBlockTemplate method" Url="html/1589baca-1c2b-89a9-b75d-065b0701e4fa.htm" />
+  <HelpKINode Title="GetBlockTemplate method" Url="html/ec8e4203-5f50-46a1-2a85-2e4a6f5fc124.htm" />
   <HelpKINode Title="GetDifficulty method" Url="html/46dff047-5562-1d5b-7449-77620bdddc45.htm" />
   <HelpKINode Title="GetHistory method" Url="html/e13c1157-3d7a-68c5-82c7-e53f9679f884.htm" />
   <HelpKINode Title="GetInfo method" Url="html/a3efc171-1b7b-ba67-300a-3319c13483af.htm" />
   <HelpKINode Title="GetMiningInfo method" Url="html/3b5ef38e-4fc1-08b8-d53e-06bcb7ac09d7.htm" />
-  <HelpKINode Title="GetNetworkHashPS method" Url="html/e8ba4660-de59-c998-15a0-a6bb12694a41.htm" />
+  <HelpKINode Title="GetNetworkDifficulty method" Url="html/97e6d5b3-7e84-bb15-9ba9-e65d6a824a30.htm" />
+  <HelpKINode Title="GetNetworkHashPS method" Url="html/bf6d4967-ee38-83bd-568b-bc5ffe1e60e5.htm" />
   <HelpKINode Title="GetRawTransactionAsync method" Url="html/8569f069-15e2-60a7-df22-9e1ca53af8d4.htm" />
   <HelpKINode Title="GetTransaction method" Url="html/69553609-ce70-5dd1-c5e9-75faea880ede.htm" />
   <HelpKINode Title="GetTxOutAsync method" Url="html/9a389694-86f4-1dbf-0463-4c5f4d801284.htm" />
@@ -35,16 +36,19 @@
     <HelpKINode Title="MiningRPCController Class" Url="html/627b847c-b8bb-ebdd-1c56-3a2629c27748.htm" />
     <HelpKINode Title="methods" Url="html/cecab391-92b0-6ebf-672c-2b7551d4c2de.htm" />
   </HelpKINode>
-  <HelpKINode Title="MiningRPCController.GetBlockTemplate method" Url="html/1589baca-1c2b-89a9-b75d-065b0701e4fa.htm" />
+  <HelpKINode Title="MiningRPCController.GetBlockTemplate method" Url="html/ec8e4203-5f50-46a1-2a85-2e4a6f5fc124.htm" />
   <HelpKINode Title="MiningRPCController.GetDifficulty method" Url="html/46dff047-5562-1d5b-7449-77620bdddc45.htm" />
   <HelpKINode Title="MiningRPCController.GetMiningInfo method" Url="html/3b5ef38e-4fc1-08b8-d53e-06bcb7ac09d7.htm" />
-  <HelpKINode Title="MiningRPCController.GetNetworkHashPS method" Url="html/e8ba4660-de59-c998-15a0-a6bb12694a41.htm" />
-  <HelpKINode Title="MiningRPCController.SubmitBlock method" Url="html/f106ba99-955f-f5d2-e9aa-6d6f16b03538.htm" />
+  <HelpKINode Title="MiningRPCController.GetNetworkDifficulty method" Url="html/97e6d5b3-7e84-bb15-9ba9-e65d6a824a30.htm" />
+  <HelpKINode Title="MiningRPCController.GetNetworkHashPS method" Url="html/bf6d4967-ee38-83bd-568b-bc5ffe1e60e5.htm" />
+  <HelpKINode Title="MiningRPCController.PrioritizeTransaction method" Url="html/633bd634-b2d3-7f0b-f0c3-a58abe11da0a.htm" />
+  <HelpKINode Title="MiningRPCController.SubmitBlock method" Url="html/c339031c-99bb-e000-2a7f-64cce2a03a79.htm" />
+  <HelpKINode Title="PrioritizeTransaction method" Url="html/633bd634-b2d3-7f0b-f0c3-a58abe11da0a.htm" />
   <HelpKINode Title="Sendmany method" Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
   <HelpKINode Title="SendMoney method" Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
   <HelpKINode Title="SendRawTransaction method" Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
   <HelpKINode Title="SendToAddress method" Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
-  <HelpKINode Title="SubmitBlock method" Url="html/f106ba99-955f-f5d2-e9aa-6d6f16b03538.htm" />
+  <HelpKINode Title="SubmitBlock method" Url="html/c339031c-99bb-e000-2a7f-64cce2a03a79.htm" />
   <HelpKINode Title="ValidateAddress method" Url="html/34cfc699-1847-c2ac-45ec-628db86f43fa.htm" />
   <HelpKINode Title="WalletLock method" Url="html/ebf593fc-d19e-18d4-6795-014954b936ca.htm" />
   <HelpKINode Title="WalletPassphrase method" Url="html/0d8dc741-685e-3fd3-5420-f220cdf09011.htm" />

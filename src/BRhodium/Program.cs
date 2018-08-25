@@ -17,6 +17,7 @@ using System.Linq;
 using BRhodium.Node.Base;
 using BRhodium.Node.P2P.Protocol.Behaviors;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
+using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 
 namespace BRhodium
 {
@@ -34,7 +35,7 @@ namespace BRhodium
                 //for testing
                 //args = new string[] { "-regtest" };
                 //args = new string[] { "-testnet" };
-                NodeSettings nodeSettings = new NodeSettings(args:args, loadConfiguration:false);
+                NodeSettings nodeSettings = new NodeSettings(args: args, loadConfiguration: false);
 
                 var node = new FullNodeBuilder()
                     .UseNodeSettings(nodeSettings)
@@ -46,6 +47,55 @@ namespace BRhodium
                     .UseWallet()
                     .Build();
 
+                Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => {
+                    TryPrioritizeTransaction(node);
+                }).GetAwaiter();
+
+                //BTR Generate Prime Wallet
+                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { CreatePrimaryWallet(node); }).GetAwaiter();
+
+                //BTR TEST MINER
+                //Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith((t) => { TryStartMiner(args, node); }).GetAwaiter();
+
+                //BTR Generate Prime Wallet
+                //Task.Delay(TimeSpan.FromSeconds(20)).ContinueWith((t) => { CreateSecondaryWallet(node); }).GetAwaiter();
+
+                //BTR Send Transaction
+                //Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith((t) =>
+                //{
+                //    var walletController = node.NodeService<WalletRPCController>();
+                //    var walletManager = node.NodeService<IWalletManager>() as WalletManager;
+                //    var wallet = walletManager.GetWalletByName("rhodium.genesis");
+                //    var wallet2 = walletManager.GetWalletByName("receiver.test");
+                //    var hdaccount = wallet.GetAccountsByCoinType((CoinType)node.Network.Consensus.CoinType).ToArray().First();
+
+                //    var hdaccount2 = wallet2.GetAccountsByCoinType((CoinType)node.Network.Consensus.CoinType).ToArray().First();
+
+                //    var address = hdaccount.ExternalAddresses.First();
+                //    var address2 = hdaccount2.ExternalAddresses.First();
+
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(1, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(2, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(3, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(4, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(5, MoneyUnit.BTR).Satoshi);
+                //    walletController.SendMoney(hdaccount.Name, "rhodium.genesis", address2.Address, "kokotnejapny1@", new Money(100, MoneyUnit.BTR).Satoshi);
+                //}).GetAwaiter();
+
+                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => {
+
+                //    var chainState = node.NodeService<IChainState>() as ChainState;
+                //    //var networkPeerBehavior = node.NodeService<INetworkPeerBehavior>() as ChainHeadersBehavior;
+                //    var consensusLoop = node.NodeService<IConsensusLoop>() as ConsensusLoop;
+
+                //    ChainedHeader tip = consensusLoop.Tip;
+
+                //    //var tip = new ChainedHeader(header, header.GetHash(), prev);
+                //    bool validated = consensusLoop.Chain.GetBlock(tip.HashBlock) != null || tip.Validate(node.Network);
+                //    validated &= !chainState.IsMarkedInvalid(tip.HashBlock);
+
+                //}).GetAwaiter();
+
                 if (node != null)
                     await node.RunAsync();
             }
@@ -53,6 +103,90 @@ namespace BRhodium
             {
                 Console.WriteLine("There was a problem initializing the node. Details: '{0}'", ex.Message);
             }
+        }
+
+        //BTR X13 Miner
+        private static void TryStartMiner(string[] args, IFullNode fullNode)
+        {
+            var walletManager = fullNode.NodeService<IWalletManager>() as WalletManager;
+            var wallet = walletManager.GetWalletByName("rhodium.genesis");
+
+            var hdaccount = wallet.GetAccountsByCoinType((CoinType)fullNode.Network.Consensus.CoinType).ToArray().First();
+
+            var address = hdaccount.ExternalAddresses.First();
+
+            var pubkey = BitcoinAddress.Create(address.Address, fullNode.Network);
+            fullNode.NodeService<IPowMining>().Mine(pubkey.ScriptPubKey);
+        }
+
+        //BTR Wallet TEST
+        public static void CreatePrimaryWallet(IFullNode fullNode)
+        {
+            var walletManager = fullNode.NodeService<IWalletManager>() as WalletManager;
+
+            var isExist = false;
+
+            try
+            {
+                var wallet = walletManager.GetWalletByName("rhodium.genesis");
+                isExist = true;
+            }
+            catch (Exception)
+            {
+                //exist then nothing
+            }
+
+            if (!isExist)
+            {
+                var password = "kokotnejapny1@";
+                var passphrase = "wing practice excess unaware chimney tourist practice involve fish demise across edit";
+
+                // create the wallet
+                var mnemonic = walletManager.CreateWallet(password, "rhodium.genesis", passphrase);
+            }
+        }
+
+        public static void CreateSecondaryWallet(IFullNode fullNode)
+        {
+            var walletManager = fullNode.NodeService<IWalletManager>() as WalletManager;
+
+            var isExist = false;
+
+            try
+            {
+                var wallet = walletManager.GetWalletByName("receiver.test");
+                isExist = true;
+            }
+            catch (Exception)
+            {
+                //exist then nothing
+            }
+
+            if (!isExist)
+            {
+                var password = "kokotnejapny2@";
+                var passphrase = "silent occur rocket animal midnight curve crowd kidney tiny recall mosquito cement";
+
+                // create the wallet
+                var mnemonic = walletManager.CreateWallet(password, "receiver.test", passphrase);
+            }
+        }
+
+        private static void TryPrioritizeTransaction(IFullNode fullNode)
+        {
+            var txMemPool2 = fullNode.NodeService<ITxMempool>() as TxMempool;
+            var entry = txMemPool2.MapTx.Last().Value;
+
+            txMemPool2.PrioritiseTransaction(entry.TransactionHash, Money.FromUnit(2, MoneyUnit.BTR));
+
+            //var wallet = walletManager.GetWalletByName("rhodium.genesis");
+
+            //var hdaccount = wallet.GetAccountsByCoinType((CoinType)fullNode.Network.Consensus.CoinType).ToArray().First();
+
+            //var address = hdaccount.ExternalAddresses.First();
+
+            //var pubkey = BitcoinAddress.Create(address.Address, fullNode.Network);
+            //fullNode.NodeService<IPowMining>().Mine(pubkey.ScriptPubKey);
         }
     }
 }

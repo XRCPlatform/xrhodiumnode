@@ -869,30 +869,31 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             //LOCK(cs);
             var delta = this.mapDeltas.TryGet(hash);
-            delta.Delta =+ deltaFee.Satoshi;
-            var it = this.MapTx.TryGet(hash);
-            it.UpdateFeeDelta(deltaFee.Satoshi);
-
-            if (it != this.MapTx.Last().Value)
+            if (delta == null)
             {
-                var setAncestors = new SetEntries();
-                string dummy = string.Empty;
-                long nNoLimit = long.MaxValue;
-                CalculateMemPoolAncestors(it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, out dummy, false);
-
-                UpdateEntryForAncestors(it, setAncestors);
-
-                // Now update all descendants' modified fees with ancestors
-                var setDescendants = new SetEntries();
-
-                CalculateDescendants(it, setDescendants);
-                setDescendants.Remove(it);
-
-                UpdateAncestorsOf(true, it, setDescendants);
-
-                this.nTransactionsUpdated++;
+                delta = new DeltaPair();
             }
 
+            delta.Delta = +deltaFee.Satoshi;
+            var it = this.MapTx.TryGet(hash);
+            it.UpdateFeeDelta(deltaFee.Satoshi);
+            delta.Amount = it.ModifiedFee;
+            this.mapDeltas.AddOrReplace(hash, delta);
+
+            var setAncestors = new SetEntries();
+            string dummy = string.Empty;
+            long nNoLimit = long.MaxValue;
+            CalculateMemPoolAncestors(it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, out dummy, false);
+
+            UpdateEntryForAncestors(it, setAncestors);
+
+            // Now update all descendants' modified fees with ancestors
+            var setDescendants = new SetEntries();
+            CalculateDescendants(it, setDescendants);
+            setDescendants.Remove(it);
+            UpdateAncestorsOf(true, it, setDescendants);
+
+            this.nTransactionsUpdated++;
         }
 
         /// <summary>
