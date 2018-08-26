@@ -14,6 +14,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using BRhodium.Node.P2P;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -29,8 +30,14 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         private readonly ILogger logger;
 
+        /// <summary>
+        /// The peer address manager
+        /// </summary>
+        private readonly IPeerAddressManager peerAddressManager;
+
         public NetworkController(
             ILoggerFactory loggerFactory,
+            IPeerAddressManager peerAddressManager,
             IFullNode fullNode = null,
             NodeSettings nodeSettings = null,
             Network network = null,
@@ -46,6 +53,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                   connectionManager: connectionManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.peerAddressManager = peerAddressManager;
         }
 
         /// <summary>
@@ -152,6 +160,33 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(peerList));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Clear all banned IPs.
+        /// </summary>
+        /// <returns>True/False</returns>
+        [ActionName("clearbanned")]
+        [ActionDescription("Result—the current difficulty.")]
+        public IActionResult ClearBanned()
+        {
+            try
+            {
+                foreach (var peer in this.peerAddressManager.Peers)
+                {
+                    peer.BanUntil = null;
+                    peer.BanReason = null;
+                    peer.BanTimeStamp = null;
+                    peer.BanScore = null;
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
             {
