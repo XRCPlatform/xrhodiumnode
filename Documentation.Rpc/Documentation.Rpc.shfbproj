@@ -52,6 +52,8 @@
     <ApiFilter>
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner" isExposed="False">
   <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController" filterName="MiningRPCController" isExposed="False">
+    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController.Generate" filterName="Generate" isExposed="True" />
+    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController.GenerateToAddress" filterName="GenerateToAddress" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController.GetBlockTemplate" filterName="GetBlockTemplate" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController.GetDifficulty" filterName="GetDifficulty" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.MiningRPCController.GetMiningInfo" filterName="GetMiningInfo" isExposed="True" />
@@ -87,7 +89,6 @@
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.GetTransaction" filterName="GetTransaction" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.GetWallet" filterName="GetWallet" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.Sendmany" filterName="Sendmany" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.SendMoney" filterName="SendMoney" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.SendRawTransaction" filterName="SendRawTransaction" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.SendToAddress" filterName="SendToAddress" isExposed="True" />
     <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.WalletRPCController.ValidateAddress" filterName="ValidateAddress" isExposed="True" />

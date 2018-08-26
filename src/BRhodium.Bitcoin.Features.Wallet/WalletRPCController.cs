@@ -50,7 +50,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly IConnectionManager connectionManager;
 
         //wallet address mapping on the node
-        private static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, HdAddress> hdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
         private static string walletPassphrase = null;
         private static DateTime walletPassphraseExpiration = DateTime.MinValue;
 
@@ -128,6 +129,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 string walletCombix = walletsByAddressMap.TryGet<string, string>(addressFrom);
                 if (walletCombix == null)
                 {
+                    bool isFound = false;
+
                     foreach (var currWalletName in this.walletManager.GetWalletsNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
@@ -136,12 +139,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             {
                                 if (walletAddress.Address.ToString().Equals(addressFrom))
                                 {
+                                    isFound = true;
                                     walletCombix = $"{currAccount.Name}/{currWalletName}";
                                     walletsByAddressMap.TryAdd<string, string>(addressFrom, walletCombix);
+                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    break;
                                 }
                             }
+
+                            if (isFound) break;
                         }
+
+                        if (isFound) break;
                     }
+                }
+
+                if (walletCombix == null)
+                {
+                    throw new WalletException("Address doesnt exist.");
                 }
 
                 string walletAccount = walletCombix.Split('/')[0].Replace("$", string.Empty);
@@ -249,6 +264,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
                 if (walletCombix == null)
                 {
+                    bool isFound = false;
+
                     foreach (var currWalletName in this.walletManager.GetWalletsNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
@@ -257,11 +274,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
+                                    isFound = true;
                                     walletCombix = $"{currAccount.Name}/{currWalletName}";
                                     walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    break;
                                 }
                             }
+
+                            if (isFound) break;
                         }
+
+                        if (isFound) break;
                     }
                 }
 
@@ -396,16 +420,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 res.IsWatchOnly = false;
                 res.IsScript = false;
 
-                //P2WPKH
-                //if (BitcoinWitPubKeyAddress.IsValid(address, ref this.Network))
-                //{
-                //    res.IsValid = true;
-                //}
-                // P2WSH
-                //if (BitcoinWitScriptAddress.IsValid(address, ref this.Network))
-                //{
-                //    res.IsValid = true;
-                //}
                 // P2PKH
                 if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
                 {
@@ -448,6 +462,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return this.Json(ResultHelper.BuildResultResponse(walletCombix));
             }
 
+            bool isFound = false;
+
             foreach (var currWalletName in this.walletManager.GetWalletsNames())
             {
                 foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
@@ -456,8 +472,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         if (walletAddress.Address.ToString().Equals(address))
                         {
+                            isFound = true;
                             walletCombix = $"{currAccount.Name}/{currWalletName}";
                             walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                            hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                             return this.Json(ResultHelper.BuildResultResponse(walletCombix));
                         }
                     }

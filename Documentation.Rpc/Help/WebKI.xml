@@ -17,7 +17,9 @@
   <HelpKINode Title="FullNodeController.GetInfo method" Url="html/a3efc171-1b7b-ba67-300a-3319c13483af.htm" />
   <HelpKINode Title="FullNodeController.GetRawTransactionAsync method" Url="html/8569f069-15e2-60a7-df22-9e1ca53af8d4.htm" />
   <HelpKINode Title="FullNodeController.GetTxOutAsync method" Url="html/9a389694-86f4-1dbf-0463-4c5f4d801284.htm" />
+  <HelpKINode Title="Generate method" Url="html/846b4374-b487-49b5-31e3-359bae52f011.htm" />
   <HelpKINode Title="GenerateNewWallet method" Url="html/2c606368-80f5-ad24-aff6-30da6b6d5e44.htm" />
+  <HelpKINode Title="GenerateToAddress method" Url="html/85a95a7f-4507-4444-16b9-1c32bf022cb2.htm" />
   <HelpKINode Title="GetBalance method" Url="html/45c6b538-23db-f574-3e74-7f51132ff26c.htm" />
   <HelpKINode Title="GetBlockCount method" Url="html/0a445c18-d45a-678b-81d7-486b556fc299.htm" />
   <HelpKINode Title="GetBlockHeader method" Url="html/bf596490-cef5-d110-85c4-ca4d96148f2f.htm" />
@@ -36,6 +38,8 @@
     <HelpKINode Title="MiningRPCController Class" Url="html/627b847c-b8bb-ebdd-1c56-3a2629c27748.htm" />
     <HelpKINode Title="methods" Url="html/cecab391-92b0-6ebf-672c-2b7551d4c2de.htm" />
   </HelpKINode>
+  <HelpKINode Title="MiningRPCController.Generate method" Url="html/846b4374-b487-49b5-31e3-359bae52f011.htm" />
+  <HelpKINode Title="MiningRPCController.GenerateToAddress method" Url="html/85a95a7f-4507-4444-16b9-1c32bf022cb2.htm" />
   <HelpKINode Title="MiningRPCController.GetBlockTemplate method" Url="html/ec8e4203-5f50-46a1-2a85-2e4a6f5fc124.htm" />
   <HelpKINode Title="MiningRPCController.GetDifficulty method" Url="html/46dff047-5562-1d5b-7449-77620bdddc45.htm" />
   <HelpKINode Title="MiningRPCController.GetMiningInfo method" Url="html/3b5ef38e-4fc1-08b8-d53e-06bcb7ac09d7.htm" />
@@ -45,7 +49,6 @@
   <HelpKINode Title="MiningRPCController.SubmitBlock method" Url="html/c339031c-99bb-e000-2a7f-64cce2a03a79.htm" />
   <HelpKINode Title="PrioritizeTransaction method" Url="html/633bd634-b2d3-7f0b-f0c3-a58abe11da0a.htm" />
   <HelpKINode Title="Sendmany method" Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
-  <HelpKINode Title="SendMoney method" Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
   <HelpKINode Title="SendRawTransaction method" Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
   <HelpKINode Title="SendToAddress method" Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
   <HelpKINode Title="SubmitBlock method" Url="html/c339031c-99bb-e000-2a7f-64cce2a03a79.htm" />
@@ -64,7 +67,6 @@
   <HelpKINode Title="WalletRPCController.GetTransaction method" Url="html/69553609-ce70-5dd1-c5e9-75faea880ede.htm" />
   <HelpKINode Title="WalletRPCController.GetWallet method" Url="html/c514387c-6cad-3f87-e48e-56f75997cf58.htm" />
   <HelpKINode Title="WalletRPCController.Sendmany method" Url="html/6c3603d5-195f-e076-6feb-7a0037fb7e49.htm" />
-  <HelpKINode Title="WalletRPCController.SendMoney method" Url="html/06b42162-021c-1fe7-f1ba-edcaebb7881a.htm" />
   <HelpKINode Title="WalletRPCController.SendRawTransaction method" Url="html/3323f796-515d-b94b-583c-5ec02507e590.htm" />
   <HelpKINode Title="WalletRPCController.SendToAddress method" Url="html/9d833496-d251-30a1-9c31-f4d608930ca4.htm" />
   <HelpKINode Title="WalletRPCController.ValidateAddress method" Url="html/34cfc699-1847-c2ac-45ec-628db86f43fa.htm" />
