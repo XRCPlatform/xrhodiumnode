@@ -65,7 +65,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Attempts to add or remove a node from the addnode list. Or try a connection to a node once.
         /// </summary>
-        /// <param name="node">The node ip:port</param>
+        /// <param name="node">The address ip:port</param>
         /// <param name="command">'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once</param>
         /// <returns>True/Error</returns>
         [ActionName("addnode")]
@@ -286,13 +286,146 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
-        //getaddednodeinfo 
-        //getconnectioncount
-        //getnettotals
-        //getnetworkinfo
-        //ping
-        //setban
-        //setnetworkactive 
+        /// <summary>
+        /// Attempts to add or remove an IP:port from the banned list.
+        /// </summary>
+        /// <param name="address">The IP address:port of the node</param>
+        /// <param name="command">'add' to add an IP to the list, 'remove' to remove an IP from the list</param>
+        /// <param name="bantime">Time in seconds how long (or until when if [absolute] is set) the IP is banned (0 or empty means using the default time of 24h which can also be overwritten by the -bantime startup argument)</param>
+        /// <param name="absolute">If set, the bantime must be an absolute timestamp in seconds since epoch (Jan 1 1970 GMT)</param>
+        /// <returns>True/Error</returns>
+        [ActionName("setban")]
+        [ActionDescription("Attempts to add or remove an IP from the banned list.")]
+        public IActionResult SetBan(string address, string command, int? bantime, int? absolute)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                if (string.IsNullOrEmpty(command))
+                {
+                    throw new ArgumentNullException("command");
+                }
+                if (!bantime.HasValue && !absolute.HasValue) 
+                {
+                    throw new ArgumentNullException("bantime");
+                }  
 
+                var nodeParam = address.Split(':');
+                if (nodeParam.Length < 2)
+                {
+                    throw new ArgumentNullException("address");
+                }
+
+                var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                var peer = this.peerAddressManager.Peers.FirstOrDefault(a => a.Endpoint == endPoint);
+                switch (command)
+                {
+                    case "add":
+                        if (peer == null)
+                        {
+                            this.ConnectionManager.AddNodeAddress(endPoint);
+                            peer = this.peerAddressManager.Peers.FirstOrDefault(a => a.Endpoint == endPoint);
+                        }
+
+                        if (bantime.HasValue)
+                        {
+                            peer.BanUntil = this.dateTimeProvider.GetUtcNow().AddSeconds(bantime.Value);
+                        }
+                        else
+                        {
+                            peer.BanUntil = this.dateTimeProvider.GetUtcFromUnixTimeSeconds(absolute.Value);
+                        }
+
+                        peer.BanReason = "SetBan RPC method call";
+                        peer.BanTimeStamp = this.dateTimeProvider.GetUtcNow();
+                        
+                        if (peer.BanScore.HasValue)
+                        {
+                            peer.BanScore++;
+                        }
+                        else
+                        {
+                            peer.BanScore = 1;
+                        }
+                        break;
+
+                    case "remove":
+                        if (peer != null)
+                        {
+                            peer.BanUntil = null;
+                            peer.BanReason = null;
+                            peer.BanTimeStamp = null;
+                            peer.BanScore = null;
+                        }
+                        break;
+
+                    default:
+                        return this.Json(ResultHelper.BuildResultResponse(false));
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns the number of connections to other nodes.
+        /// </summary>
+        /// <returns>Count/Error</returns>
+        [ActionName("getconnectioncount")]
+        [ActionDescription("Returns the number of connections to other nodes.")]
+        public IActionResult GetConnectionCount()
+        {
+            try
+            {
+                var peersCount = this.peerAddressManager.Peers.Count();
+
+                return this.Json(ResultHelper.BuildResultResponse(peersCount));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Disable/enable all p2p network activity.
+        /// </summary>
+        /// <param name="state">true to enable networking, false to disable</param>
+        /// <returns>True/Error</returns>
+        [ActionName("setnetworkactive")]
+        [ActionDescription("Disable/enable all p2p network activity.")]
+        public IActionResult SetNetworkActive(string state)
+        {
+            try
+            {
+                switch (state)
+                {
+                    case "true":
+                        if (!this.ConnectionManager.IsActive) this.ConnectionManager.Initialize();
+                        break;
+
+                    case "false":
+                    default:
+                        if (this.ConnectionManager.IsActive) this.ConnectionManager.Dispose();
+                        break;
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }

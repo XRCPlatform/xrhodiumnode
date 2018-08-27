@@ -40,6 +40,13 @@ namespace BRhodium.Node.Utilities
         /// </summary>
         /// <param name="adjustedTimeOffset">Offset to adjust time with.</param>
         void SetAdjustedTimeOffset(TimeSpan adjustedTimeOffset);
+
+        /// <summary>
+        /// Gets the UTC from unix time seconds.
+        /// </summary>
+        /// <param name="value">The value of seconds.</param>
+        /// <returns>UTC datetime</returns>
+        DateTime GetUtcFromUnixTimeSeconds(int value);
     }
 
     /// <inheritdoc />
@@ -101,6 +108,13 @@ namespace BRhodium.Node.Utilities
         public void SetAdjustedTimeOffset(TimeSpan adjustedTimeOffset)
         {
             this.adjustedTimeOffset = adjustedTimeOffset;
+        }
+
+        /// <inheritdoc />
+        public DateTime GetUtcFromUnixTimeSeconds(int value)
+        {
+            var absoluteOffset = DateTimeOffset.FromUnixTimeSeconds(value);
+            return absoluteOffset.UtcDateTime;
         }
     }
 }
