@@ -427,5 +427,98 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        /// <summary>
+        /// Returns information about the given added node, or all added nodes (note that onetry addnodes are not listed here)
+        /// </summary>
+        /// <param name="node">If provided (IP), return information about this specific node, otherwise all nodes are returned.</param>
+        /// <returns>List of connected peer nodes as <see cref="NetworkNodeModel"/>.</returns>
+        [ActionName("getaddednodeinfo")]
+        [ActionDescription("Returns data about each connected network node as a json array of objects.")]
+        public IActionResult GetNodeInfo(string node)
+        {
+            try
+            {
+                var connectedPeers = this.ConnectionManager.ConnectedPeers;
+                var peers = connectedPeers.ToList();
+
+                if (!string.IsNullOrEmpty(node))
+                {
+                    var result = new NetworkNodeModel();
+                    var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address == IPAddress.Parse(node));
+
+                    result.AddedNode = peerNode.PeerEndPoint.ToString();
+                    result.Connected = peerNode.State == NetworkPeerState.Connected ? true : false;
+                    result.Addresses = new List<AddressConnection>();
+                    var address = new AddressConnection();
+                    address.Connected = peerNode.Inbound ? "inbound" : "outbound";
+                    address.Address = peerNode.PeerEndPoint.ToString();
+                    result.Addresses.Add(address);
+
+                    return this.Json(ResultHelper.BuildResultResponse(result));
+                }
+                else
+                {
+                    var result = new List<NetworkNodeModel>();
+
+                    foreach (INetworkPeer peer in peers)
+                    {
+                        var nodePeer = new NetworkNodeModel();
+
+                        nodePeer.AddedNode = peer.PeerEndPoint.ToString();
+                        nodePeer.Connected = peer.State == NetworkPeerState.Connected ? true : false;
+                        nodePeer.Addresses = new List<AddressConnection>();
+                        var address = new AddressConnection();
+                        address.Connected = peer.Inbound ? "inbound" : "outbound";
+                        address.Address = peer.PeerEndPoint.ToString();
+                        nodePeer.Addresses.Add(address);
+                        result.Add(nodePeer);
+                    }
+
+                    return this.Json(ResultHelper.BuildResultResponse(result));
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns information about network traffic, including bytes in, bytes out, and current time.
+        /// </summary>
+        /// <returns>Netork traffic data</returns>
+        [ActionName("getnettotals")]
+        [ActionDescription("Returns data about each connected network node as a json array of objects.")]
+        public IActionResult GetNetTotals()
+        {
+            try
+            {
+                var result = new NetTotals();
+
+                PerformanceSnapshot totalCounter = new PerformanceSnapshot(0, 0);
+                var connectedPeers = this.ConnectionManager.ConnectedPeers;
+
+                foreach (var item in connectedPeers)
+                {
+                    var counter = item.Counter.Snapshot();
+
+                    totalCounter = new PerformanceSnapshot(counter.TotalReadBytes + totalCounter.TotalReadBytes, counter.TotalWrittenBytes + totalCounter.TotalWrittenBytes);
+                }
+
+                result.TotalBytesRecv = totalCounter.TotalReadBytes;
+                result.TotalBytesSent = totalCounter.TotalWrittenBytes;
+                result.Timesec = this.dateTimeProvider.GetTimeOffset().ToUnixTimeSeconds();
+                result.Timemillis = this.dateTimeProvider.GetTimeOffset().ToUnixTimeMilliseconds();
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }
