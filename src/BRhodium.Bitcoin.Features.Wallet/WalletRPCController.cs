@@ -462,8 +462,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return this.Json(ResultHelper.BuildResultResponse(walletCombix));
             }
 
-            bool isFound = false;
-
             foreach (var currWalletName in this.walletManager.GetWalletsNames())
             {
                 foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
@@ -472,7 +470,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         if (walletAddress.Address.ToString().Equals(address))
                         {
-                            isFound = true;
                             walletCombix = $"{currAccount.Name}/{currWalletName}";
                             walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
                             hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
