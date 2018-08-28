@@ -123,19 +123,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void AddFeatureStats(StringBuilder benchLog)
         {
-            var walletNames = this.walletManager.GetWalletsNames();
+            //var walletNames = this.walletManager.GetWalletsNames();
 
-            if (walletNames.Any())
-            {
-                benchLog.AppendLine();
-                benchLog.AppendLine("======Wallets======");
+            //if (walletNames.Any())
+            //{
+            //    benchLog.AppendLine();
+            //    benchLog.AppendLine("======Wallets======");
 
-                foreach (var walletName in walletNames)
-                {
-                    var items = this.walletManager.GetSpendableTransactionsInWallet(walletName, 1);
-                    benchLog.AppendLine("Wallet: " + (walletName + ",").PadRight(LoggingConfiguration.ColumnLength) + " Confirmed balance: " + new Money(items.Sum(s => s.Transaction.Amount)).ToString());
-                }
-            }
+            //    foreach (var walletName in walletNames)
+            //    {
+            //        var items = this.walletManager.GetSpendableTransactionsInWallet(walletName, 1);
+            //        benchLog.AppendLine("Wallet: " + (walletName + ",").PadRight(LoggingConfiguration.ColumnLength) + " Confirmed balance: " + new Money(items.Sum(s => s.Transaction.Amount)).ToString());
+            //    }
+            //}
         }
 
         /// <inheritdoc />

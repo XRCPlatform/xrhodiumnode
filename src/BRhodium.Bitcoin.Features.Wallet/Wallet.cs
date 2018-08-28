@@ -21,6 +21,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.AccountsRoot = new List<AccountRoot>();
         }
+        private bool changed = false;
 
         /// <summary>
         /// The name of this wallet.
@@ -66,6 +67,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "accountsRoot")]
         public ICollection<AccountRoot> AccountsRoot { get; set; }
+        /// <summary>
+        /// This is sets a runtime flag to show if wallet has been changed since last save operation.
+        /// </summary>
+        public void Changed()
+        {
+            this.changed = true;
+        }
+        /// <summary>
+        /// This resets a runtime chaged flag after wallet has been saved;
+        /// </summary>
+        public void Saved()
+        {
+            this.changed = false;
+        }
+        /// <summary>
+        /// Returns bool describing if wallet has been changed since last save.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsChanged() {
+            return this.changed;
+        }
 
         /// <summary>
         /// Gets the accounts the wallet has for this type of coin.
@@ -617,7 +639,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 HdAddress newAddress = new HdAddress
                 {
                     Index = i,
-                    HdPath = HdOperations.CreateHdPath((int) this.GetCoinType(), this.Index, i, isChange),
+                    HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, i, isChange),
                     ScriptPubKey = address.ScriptPubKey,
                     Pubkey = pubkey.ScriptPubKey,
                     Address = address.ToString(),
@@ -675,7 +697,38 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
     }
+    /// <summary>
+    /// Provides a link composition between wallets and addresses from cached objects
+    /// </summary>
+    public class WalletLinkedHdAddress{
+        private readonly HdAddress hdAddress;
+        private readonly Wallet wallet;
+        /// <summary>
+        /// Creates an instance of the linker object.
+        /// </summary>
+        /// <param name="hdAddress">Address ref</param>
+        /// <param name="wallet">Wallet ref</param>
+        public WalletLinkedHdAddress(HdAddress hdAddress, Wallet wallet)
+        {
+            this.hdAddress = hdAddress;
+            this.wallet = wallet;
+        }
 
+        public HdAddress HdAddress
+        {
+            get {
+                return this.hdAddress;
+            }
+        }
+
+        public Wallet Wallet
+        {
+            get
+            {
+                return this.wallet;
+            }
+        }
+    }
     /// <summary>
     /// An HD address.
     /// </summary>
