@@ -80,5 +80,12 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         {
             this.startFrom = this.startFrom.AddSeconds(65);
         }
+
+        public DateTime GetUtcFromUnixTimeSeconds(int value)
+        {
+            var absoluteOffset = DateTimeOffset.FromUnixTimeSeconds(value);
+            this.startFrom = absoluteOffset.UtcDateTime;
+            return this.startFrom;
+        }
     }
 }

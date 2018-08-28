@@ -97,22 +97,86 @@ namespace BRhodium.Bitcoin.Features.Miner
         }
 
         /// <summary>
-        /// Generates UTXOs to each unused addres in account used for stress testing
+        /// Mine blocks immediately to a specified address (before the RPC call returns)
         /// </summary>
-        /// <param name="walletName"></param>
-        /// <param name="accountName"></param>
-        /// <returns>uint256 list rpc format</returns>
-        [ActionName("generateToAccountAddresses")]
-        [ActionDescription("Tries to mine a given number of blocks and returns a list of block header hashes.")]
-        public List<uint256> Generate(string walletName, string accountName)
+        /// <param name="nblocks">How many blocks are generated immediately.</param>
+        /// <param name="address">The address to send the newly generated bitcoin to.</param>
+        /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
+        /// <returns></returns>
+        [ActionName("generate")]
+        [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
+        public IActionResult Generate(int nblocks, string address, int maxtries = 1000000)
         {
-            WalletAccountReference accountReference = accountReference = new WalletAccountReference(walletName, accountName);
-            List<uint256> res = new List<uint256>();
-            foreach (HdAddress address in this.walletManager.GetUnusedAddresses(accountReference, 10))
+            return GenerateToAddress(nblocks, address, maxtries);
+        }
+
+        /// <summary>
+        /// Mine blocks immediately to a specified address (before the RPC call returns)
+        /// </summary>
+        /// <param name="nblocks">How many blocks are generated immediately.</param>
+        /// <param name="address">The address to send the newly generated bitcoin to.</param>
+        /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
+        /// <returns></returns>
+        [ActionName("generatetoaddress")]
+        [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
+        public IActionResult GenerateToAddress(int nblocks, string address, int maxtries = 1000000)
+        {
+            try
             {
-                res.AddRange(this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)1, int.MaxValue));
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                if (nblocks <= 0)
+                {
+                    throw new ArgumentNullException("nblocks");
+                }
+
+                //we need to find wallet
+                var hdAddressCombix = WalletRPCController.hdAddressByAddressMap.TryGet<string, HdAddress>(address);
+                if (hdAddressCombix == null)
+                {
+                    bool isFound = false;
+
+                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    {
+                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        {
+                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            {
+                                if (walletAddress.Address.ToString().Equals(address))
+                                {
+                                    hdAddressCombix = walletAddress;
+                                    var walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    WalletRPCController.walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    WalletRPCController.hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    isFound = true;
+                                    break;
+                                }
+                            }
+
+                            if (isFound) break;
+                        }
+
+                        if (isFound) break;
+                    }
+                }
+
+                if (hdAddressCombix == null)
+                {
+                    throw new WalletException("Address doesnt exist.");
+                }
+
+                var result = new List<uint256>();
+                result.AddRange(this.powMining.GenerateBlocks(new ReserveScript(hdAddressCombix.Pubkey), (ulong)nblocks, (ulong)maxtries));
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
-            return res;
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         /// <summary>
