@@ -25,7 +25,7 @@ using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Node.Connection;
 using BRhodium.Node;
 
-namespace BRhodium.Bitcoin.Features.Wallet
+namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
     /// <summary>
     /// Wallet Controller RPCs method

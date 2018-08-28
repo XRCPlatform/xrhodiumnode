@@ -23,7 +23,7 @@ using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
-    public class ExplorerController : FeatureController
+    public class ExplorerRPCController : FeatureController
     {
 
         /// <summary>Instance logger.</summary>
@@ -42,7 +42,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>Manager of the longest fully validated chain of blocks.</summary>
         private readonly IConsensusLoop consensusLoop;
 
-        public ExplorerController(
+        public ExplorerRPCController(
             ILoggerFactory loggerFactory,
             IPooledTransaction pooledTransaction = null,
             IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,

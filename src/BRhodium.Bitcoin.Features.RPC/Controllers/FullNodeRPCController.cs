@@ -27,7 +27,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
     /// </summary>
     /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
     [Controller]
-    public class FullNodeController : FeatureController
+    public class FullNodeRPCController : FeatureController
     {
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
@@ -45,7 +45,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>Manager of the longest fully validated chain of blocks.</summary>
         private readonly IConsensusLoop consensusLoop;
 
-        public FullNodeController(
+        public FullNodeRPCController(
             ILoggerFactory loggerFactory,
             IPooledTransaction pooledTransaction = null,
             IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,

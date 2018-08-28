@@ -29,8 +29,9 @@ using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using NBitcoin.RPC;
 using BRhodium.Node;
+using BRhodium.Bitcoin.Features.Wallet.Controllers;
 
-namespace BRhodium.Bitcoin.Features.Miner
+namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {
 
     /// <summary>

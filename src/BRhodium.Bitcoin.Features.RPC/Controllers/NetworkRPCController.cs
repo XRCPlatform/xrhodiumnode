@@ -23,7 +23,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
     /// Network RPCs method
     /// </summary>
     /// <seealso cref="BRhodium.Node.Controllers.FeatureController" />
-    public class NetworkController : FeatureController
+    public class NetworkRPCController : FeatureController
     {
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         private readonly IPeerAddressManager peerAddressManager;
 
-        public NetworkController(
+        public NetworkRPCController(
             ILoggerFactory loggerFactory,
             IPeerAddressManager peerAddressManager,
             IDateTimeProvider dateTimeProvider,
