@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Models
 {
-    public class GetBlockModel<T>
+    public class GetBlockModel
     {
         [JsonProperty(PropertyName = "hash")]
         public string Hash { get; set; }
@@ -54,6 +54,12 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
         [JsonProperty(PropertyName = "nextblockhash")]
         public string NextBlockHash { get; set; }
 
+        [JsonProperty(PropertyName = "ntx")]
+        public int TransactionsCount { get; set; }
+    }
+
+    public class GetBlockWithTransactionModel<T> : GetBlockModel
+    {
         [JsonProperty(PropertyName = "tx")]
         public List<T> Transactions { get; set; }
     }

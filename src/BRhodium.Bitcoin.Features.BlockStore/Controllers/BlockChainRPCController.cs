@@ -77,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 switch (verbosity)
                 {
                     case 1:
-                        var blockTemplate = new GetBlockModel<GetTransactionBlockModel>();
+                        var blockTemplate = new GetBlockWithTransactionModel<GetTransactionBlockModel>();
                         blockTemplate = FillBlockBaseData<GetTransactionBlockModel>(blockTemplate, block, chainedHeader);
 
                         foreach (var item in block.Transactions)
@@ -88,7 +88,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                         return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
 
                     case 2:
-                        var detailBlockTemplate = new GetBlockModel<GetTransactionDateBlockModel>();
+                        var detailBlockTemplate = new GetBlockWithTransactionModel<GetTransactionDateBlockModel>();
                         detailBlockTemplate = FillBlockBaseData<GetTransactionDateBlockModel>(detailBlockTemplate, block, chainedHeader);
 
                         foreach (var item in block.Transactions)
@@ -119,7 +119,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <param name="block"></param>
         /// <param name="chainedHeader"></param>
         /// <returns>Filled block</returns>
-        private GetBlockModel<T> FillBlockBaseData<T>(GetBlockModel<T> blockTemplate, Block block, ChainedHeader chainedHeader)
+        private GetBlockWithTransactionModel<T> FillBlockBaseData<T>(GetBlockWithTransactionModel<T> blockTemplate, Block block, ChainedHeader chainedHeader)
         {
             blockTemplate.Hash = chainedHeader.HashBlock.ToString();
             blockTemplate.Size = blockTemplate.Weight = blockTemplate.Strippedsize = block.GetSerializedSize();
@@ -133,6 +133,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             blockTemplate.Mediantime = block.Header.BlockTime.ToUnixTimeSeconds();
             blockTemplate.Height = chainedHeader.Height;
             blockTemplate.Chainwork = chainedHeader.ChainWork.ToString();
+            blockTemplate.TransactionsCount = block.Transactions != null ? block.Transactions.Count() : 0;
             if ((chainedHeader.Next != null) && (chainedHeader.Next.Count > 0))
             {
                 blockTemplate.NextBlockHash = chainedHeader.Next.First().ToString();
@@ -206,5 +207,130 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        /// <summary>
+        /// Return information about all known tips in the block tree, including the main chain as well as orphaned branches.
+        /// </summary>
+        /// <returns>List of GetChainTipModel</returns>
+        [ActionName("getchaintips")]
+        [ActionDescription("Return information about all known tips in the block tree, including the main chain as well as orphaned branches.")]
+        public IActionResult GetChainTips()
+        {
+            try
+            {
+                var result = new List<GetChainTipModel>();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                for (int i = 0; i <= this.Chain.Height; i--)
+                {
+                    var chainedHeader = chainRepository.GetBlock(i);
+
+                    var chainTip = new GetChainTipModel();
+                    chainTip.Height = i;
+                    chainTip.Hash = chainedHeader.HashBlock.ToString();
+                    var hasheshtoSearch = new List<uint256>();
+                    hasheshtoSearch.Add(chainedHeader.HashBlock);
+
+                    chainTip.BranchLen = chainedHeader.Height - chainRepository.FindFork(hasheshtoSearch).Height;
+
+                    if (chainRepository.Contains(chainedHeader.HashBlock))
+                    {
+                        // This block is part of the currently active chain.
+                        chainTip.Status = "active";
+                    }
+                    else if (!chainedHeader.Validate(this.Network))
+                    {
+                        // This block or one of its ancestors is invalid.
+                        chainTip.Status = "invalid";
+                    }
+                    else if (chainedHeader.BlockDataAvailability == BlockDataAvailabilityState.HeaderOnly)
+                {
+                        // This block cannot be connected because full block data for it or one of its parents is missing.
+                        chainTip.Status = "headers-only";
+                    }
+                    else if (chainedHeader.BlockValidationState == ValidationState.FullyValidated)
+                    {
+                        // This block is fully validated, but no longer part of the active chain. It was probably the active block once, but was reorganized.
+                        chainTip.Status = "valid-fork";
+                    }
+                    else if (chainedHeader.BlockValidationState == ValidationState.HeaderValidated)
+                    {
+                        // The headers for this block are valid, but it has not been validated. It was probably never part of the most-work chain.
+                        chainTip.Status = "valid-headers";
+                    }
+                    else
+                    {
+                        // No clue.
+                        chainTip.Status = "unknown";
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader<hash>.
+        /// </summary>
+        /// <param name="hash">The block hash</param>
+        /// <param name="verbose">True for a json object, false for the hex encoded data</param>
+        /// <returns></returns>
+        [ActionName("getblockheader")]
+        [ActionDescription("Return information about all known tips in the block tree, including the main chain as well as orphaned branches.")]
+        public IActionResult GetBlockHeader(string hash, string verbose)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(hash))
+                {
+                    throw new ArgumentNullException("hash");
+                }
+
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                var chainedHeader = chainRepository.GetBlock(new uint256(hash));
+                var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                switch (verbose)
+                {
+                    case "true":
+                        var blockTemplate = new GetBlockModel();
+
+                        blockTemplate.Hash = chainedHeader.HashBlock.ToString();
+                        blockTemplate.Size = blockTemplate.Weight = blockTemplate.Strippedsize = block.GetSerializedSize();
+                        blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
+                        blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+                        blockTemplate.Difficulty = block.Header.Bits.Difficulty;
+                        blockTemplate.Nonce = block.Header.Nonce;
+                        blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
+                        blockTemplate.Version = block.Header.Version;
+                        blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
+                        blockTemplate.Mediantime = block.Header.BlockTime.ToUnixTimeSeconds();
+                        blockTemplate.Height = chainedHeader.Height;
+                        blockTemplate.Chainwork = chainedHeader.ChainWork.ToString();
+                        blockTemplate.TransactionsCount = block.Transactions != null ? block.Transactions.Count() : 0;
+
+                        return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
+
+                    default:
+                        var hex = block.ToHex(this.Network);
+                        return this.Json(ResultHelper.BuildResultResponse(hex));
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        //getblockchaininfo
+        //    getchaintxstats
     }
 }
