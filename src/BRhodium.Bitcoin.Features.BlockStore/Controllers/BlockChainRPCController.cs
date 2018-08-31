@@ -36,8 +36,11 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>An interface implementation used to retrieve unspent transactions.</summary>
         private readonly IGetUnspentTransaction getUnspentTransaction;
 
+        private readonly INetworkDifficulty networkDifficulty;
+
         public BlockChainRPCController(
             ILoggerFactory loggerFactory,
+            INetworkDifficulty networkDifficulty = null,
             IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,
             IGetUnspentTransaction getUnspentTransaction = null,
             IFullNode fullNode = null,
@@ -57,6 +60,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.pooledGetUnspentTransaction = pooledGetUnspentTransaction;
             this.getUnspentTransaction = getUnspentTransaction;
+            this.networkDifficulty = networkDifficulty;
         }
 
         /// <summary>
@@ -232,7 +236,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 var result = new List<GetChainTipModel>();
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                for (int i = 0; i <= this.Chain.Height; i--)
+                for (int i = 0; i <= this.Chain.Height; i++)
                 {
                     var chainedHeader = chainRepository.GetBlock(i);
 
@@ -478,9 +482,89 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns an object containing various state info regarding blockchain processing.
+        /// </summary>
+        /// <returns>Return new GetBlockChainInfoModel</returns>
         [ActionName("getblockchaininfo")]
         [ActionDescription("Returns an object containing various state info regarding blockchain processing.")]
         public IActionResult GetBlockChainInfo()
+        {
+            try
+            {
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var ibdState = this.FullNode.NodeService<IInitialBlockDownloadState>();
+
+                var result = new GetBlockChainInfoModel();
+                result.AutomaticPruning = false;
+                result.BestBlockHash = chainRepository.Tip.HashBlock.ToString();
+                result.Blocks = chainRepository.Height;
+                result.Chain = this.Network.Name.Replace("BRhodium", string.Empty);
+                result.ChainWork = this.Network.Name;
+
+                var difficulty = this.networkDifficulty?.GetNetworkDifficulty().Difficulty;
+                if (difficulty.HasValue) result.Difficulty = difficulty.Value;
+
+                result.Headers = chainRepository.Height;
+                result.InitialBlockDownload = ibdState.IsInitialBlockDownload();
+
+                var actulHeader = chainRepository.GetBlock(this.Chain.Height);
+                result.MedianTime = actulHeader.GetMedianTimePast().ToUnixTimeSeconds();
+                result.Pruned = false;
+                result.PruneHeight = null;
+                result.PruneTargetSize = null;
+
+                for (int i = 0; i <= this.Chain.Height; i++)
+                {
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    result.SizeOnDisk += block.GetSerializedSize();
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("gettxoutproof")]
+        [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
+        public IActionResult GetTxOutProf(string txids, string blockhash)
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("gettxoutsetinfo")]
+        [ActionDescription("Returns statistics about the unspent transaction output set. Note this call may take some time.")]
+        public IActionResult GetTxOutSetInfo()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("verifytxoutproof")]
+        [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain")]
+        public IActionResult VerifyTxOutProof(string proof)
         {
             try
             {
@@ -568,36 +652,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
-        [ActionName("gettxoutproof")]
-        [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
-        public IActionResult GetTxOutProf(string txids, string blockhash)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("gettxoutsetinfo")]
-        [ActionDescription("Returns statistics about the unspent transaction output set. Note this call may take some time.")]
-        public IActionResult GetTxOutSetInfo()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         [ActionName("preciousblock")]
         [ActionDescription("Treats a block as if it were received before others with the same work. A later preciousblock call can override the effect of an earlier one. The effects of preciousblock are not retained across restarts.")]
         public IActionResult PreciousBlock(string blockhash)
@@ -646,21 +700,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         [ActionName("verifychain")]
         [ActionDescription("Verifies blockchain database.")]
         public IActionResult VerifyChain(int height)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("verifytxoutproof ")]
-        [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain")]
-        public IActionResult VerifyTxOutProof(string proof)
         {
             try
             {
