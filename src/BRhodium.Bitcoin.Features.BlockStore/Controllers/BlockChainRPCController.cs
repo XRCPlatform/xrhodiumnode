@@ -8,6 +8,8 @@ using BRhodium.Node;
 using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Controllers;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
@@ -28,8 +30,16 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// </summary>
         private readonly ILogger logger;
 
+        /// <summary>An interface implementation used to retrieve unspent transactions from a pooled source.</summary>
+        private readonly IPooledGetUnspentTransaction pooledGetUnspentTransaction;
+
+        /// <summary>An interface implementation used to retrieve unspent transactions.</summary>
+        private readonly IGetUnspentTransaction getUnspentTransaction;
+
         public BlockChainRPCController(
             ILoggerFactory loggerFactory,
+            IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,
+            IGetUnspentTransaction getUnspentTransaction = null,
             IFullNode fullNode = null,
             NodeSettings nodeSettings = null,
             Network network = null,
@@ -45,7 +55,8 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                   connectionManager: connectionManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-
+            this.pooledGetUnspentTransaction = pooledGetUnspentTransaction;
+            this.getUnspentTransaction = getUnspentTransaction;
         }
 
         /// <summary>
@@ -330,13 +341,135 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
+        /// <summary>
+        /// Compute statistics about the total number and rate of transactions in the chain.
+        /// </summary>
+        /// <param name="nblocks">Size of the window in number of blocks (default: one month).</param>
+        /// <param name="blockhash">The hash of the block that ends the window.</param>
+        /// <returns>Return result as GetChainTxStats</returns>
         [ActionName("getchaintxstats")]
         [ActionDescription("Compute statistics about the total number and rate of transactions in the chain.")]
-        public IActionResult GetChainTxStatus(int nblocks, string blockhash)
+        public IActionResult GetChainTxStatus(int? nblocks, string blockhash)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new GetChainTxStats();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+                var blockCount = 30 * 24 * 60 * 60 / this.Network.Consensus.PowTargetSpacing.TotalSeconds;
+                ChainedHeader lastChainedHeader = null;
+
+                if (!string.IsNullOrEmpty(blockhash))
+                {
+                    var chain = chainRepository.GetBlock(new uint256(blockhash));
+                    if (chain == null)
+                    {
+                        throw new ArgumentNullException("Block not found");
+                    }
+                    else
+                    {
+                        lastChainedHeader = chain;
+                    }
+                }
+                else
+                {
+                    var chain = chainRepository.GetBlock(this.Chain.Height);
+                    lastChainedHeader = chain;
+                }
+
+                if (!nblocks.HasValue)
+                {
+                    if (lastChainedHeader.Height <= blockCount)
+                    {
+                        blockCount = lastChainedHeader.Height;
+                    }
+                }
+                else
+                {
+                    blockCount = nblocks.Value;
+
+                    if (blockCount < 0 || (blockCount > 0 && blockCount >= lastChainedHeader.Height))
+                    {
+                        throw new ArgumentNullException("Invalid block count: should be between 0 and the block's height - 1");
+                    }
+                }
+
+                var startHeight = lastChainedHeader.Height - (int)blockCount;
+                var txCount = 0;
+                var windowsTxCount = 0;
+                ChainedHeader firstChainedHeader = null;
+                for (int i = 0; i <= lastChainedHeader.Height; i++)
+                {
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    if (firstChainedHeader == null) firstChainedHeader = chainedHeader;
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    if (block.Transactions != null)
+                    {
+                        txCount += block.Transactions.Count;
+                        if (i >= startHeight) windowsTxCount += block.Transactions.Count;
+                    }
+                }
+
+                var nTimeDiff = (firstChainedHeader.GetMedianTimePast() - lastChainedHeader.GetMedianTimePast()).TotalSeconds;
+
+                result.Time = lastChainedHeader.Header.Time;
+                result.WindowFinalBlockHash = lastChainedHeader.HashBlock.ToString();
+                result.TxCount = txCount;
+                result.WindowBlockCount = (int)blockCount;
+
+                if (blockCount > 0)
+                {
+                    result.WindowTxCount = windowsTxCount;
+                    result.WindowInterval = nTimeDiff;
+                    if (nTimeDiff > 0)
+                    {
+                        result.TxRate = (((double)windowsTxCount) / nTimeDiff);
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns details about an unspent transaction output.
+        /// </summary>
+        /// <param name="txid">The transaction id</param>
+        /// <param name="n">vout number</param>
+        /// <param name="includeMemPool">Whether to include the mempool. Default: true. Note that an unspent output that is spent in the mempool won't appear.</param>
+        /// <returns>Result GetTxOutModel</returns>
+        [ActionName("gettxout")]
+        [ActionDescription("Returns details about an unspent transaction output.")]
+        public IActionResult GetTxOut(string txid, uint n, bool? includeMemPool)
+        {
+            try
+            {
+                uint256 trxid;
+                if (!uint256.TryParse(txid, out trxid))
+                    throw new ArgumentException(nameof(txid));
+
+                UnspentOutputs unspentOutputs = null;
+                if (includeMemPool.HasValue && includeMemPool.Value)
+                {
+                    unspentOutputs = this.pooledGetUnspentTransaction != null ? this.pooledGetUnspentTransaction.GetUnspentTransactionAsync(trxid).Result : null;
+                }
+                else
+                {
+                    unspentOutputs = this.getUnspentTransaction != null ? this.getUnspentTransaction.GetUnspentTransactionAsync(trxid).Result : null;
+                }
+
+                if (unspentOutputs == null)
+                    return null;
+
+                var result = new GetTxOutModel(unspentOutputs, n, this.Network, this.Chain.Tip);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -423,21 +556,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         [ActionName("getrawmempool")]
         [ActionDescription("Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.")]
         public IActionResult GetRawMempool(string verbose)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("gettxout")]
-        [ActionDescription("Returns details about an unspent transaction output.")]
-        public IActionResult GetTxOut(string txid, string n, string include_mempool)
         {
             try
             {
