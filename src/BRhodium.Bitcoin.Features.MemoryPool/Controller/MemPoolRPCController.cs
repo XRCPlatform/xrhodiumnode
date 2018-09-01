@@ -15,6 +15,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using static BRhodium.Bitcoin.Features.MemoryPool.TxMempool;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
 {
@@ -265,16 +266,84 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// If txid is in the mempool, returns all in-mempool ancestors.
+        /// </summary>
+        /// <param name="txid">The transaction id (must be in mempool)</param>
+        /// <param name="verbose">True for a json object, false for array of transaction ids</param>
+        /// <returns>Return array or list of GetMemPoolEntry</returns>
         [ActionName("getmempoolancestors")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool ancestors.")]
         public IActionResult GetMempoolAncestors(string txid, string verbose)
         {
             try
             {
+                if (string.IsNullOrEmpty(txid))
+                {
+                    throw new ArgumentNullException("txid");
+                }
 
-                //var it = this.MapTx.TryGet(hash);
+                var entryTx = this.MemPool.GetEntry(new uint256(txid));
 
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var setAncestors = new SetEntries();
+                string dummy = string.Empty;
+                long nNoLimit = long.MaxValue;
+                this.MemPool.CalculateMemPoolAncestors(entryTx, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, out dummy, false);
+
+                switch (verbose)
+                {
+                    case "true":
+
+                        var result = new List<GetMemPoolEntry>();
+
+                        if (setAncestors != null)
+                        {
+                            foreach (var entry in setAncestors)
+                            {
+                                var resultEntry = new GetMemPoolEntry();
+                                resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.BTR);
+                                resultEntry.ModifiedFee = entry.ModifiedFee;
+                                resultEntry.Size = entry.GetTxSize();
+                                resultEntry.Time = entry.Time;
+                                resultEntry.Height = entry.EntryHeight;
+                                resultEntry.WtxId = entry.TransactionHash.ToString();
+                                resultEntry.DescendantCount = entry.CountWithDescendants;
+                                resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.BTR);
+                                resultEntry.DescendantSize = entry.SizeWithDescendants;
+                                resultEntry.AncestorCount = entry.CountWithAncestors;
+                                resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.BTR);
+                                resultEntry.AncestorSize = entry.SizeWithAncestors;
+
+                                var parents = this.MemPool.GetMemPoolParents(entry);
+
+                                if (parents != null)
+                                {
+                                    foreach (var item in parents)
+                                    {
+                                        resultEntry.Depends.Add(item.TransactionHash.ToString());
+                                    }
+                                }
+
+                                result.Add(resultEntry);
+                            }
+                        }
+
+                        return this.Json(ResultHelper.BuildResultResponse(result));
+
+                    default:
+
+                        var listTxHash = new List<string>();
+
+                        if (setAncestors != null)
+                        {
+                            foreach (var entry in setAncestors)
+                            {
+                                listTxHash.Add(entry.TransactionHash.ToString());
+                            }
+                        }
+
+                        return this.Json(ResultHelper.BuildResultResponse(listTxHash));
+                }
             }
             catch (Exception e)
             {
@@ -283,13 +352,82 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// If txid is in the mempool, returns all in-mempool descendants.
+        /// </summary>
+        /// <param name="txid">The transaction id (must be in mempool)</param>
+        /// <param name="verbose">True for a json object, false for array of transaction ids</param>
+        /// <returns>Return array or list of GetMemPoolEntry</returns>
         [ActionName("getmempooldescendants")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool descendants.")]
         public IActionResult GetMempoolDescendants(string txid, string verbose)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(txid))
+                {
+                    throw new ArgumentNullException("txid");
+                }
+
+                var entryTx = this.MemPool.GetEntry(new uint256(txid));
+                
+                var setDescendants = new SetEntries();
+                this.MemPool.CalculateDescendants(entryTx, setDescendants);
+
+                switch (verbose)
+                {
+                    case "true":
+
+                        var result = new List<GetMemPoolEntry>();
+
+                        if (setDescendants != null)
+                        {
+                            foreach (var entry in setDescendants)
+                            {
+                                var resultEntry = new GetMemPoolEntry();
+                                resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.BTR);
+                                resultEntry.ModifiedFee = entry.ModifiedFee;
+                                resultEntry.Size = entry.GetTxSize();
+                                resultEntry.Time = entry.Time;
+                                resultEntry.Height = entry.EntryHeight;
+                                resultEntry.WtxId = entry.TransactionHash.ToString();
+                                resultEntry.DescendantCount = entry.CountWithDescendants;
+                                resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.BTR);
+                                resultEntry.DescendantSize = entry.SizeWithDescendants;
+                                resultEntry.AncestorCount = entry.CountWithAncestors;
+                                resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.BTR);
+                                resultEntry.AncestorSize = entry.SizeWithAncestors;
+
+                                var parents = this.MemPool.GetMemPoolParents(entry);
+
+                                if (parents != null)
+                                {
+                                    foreach (var item in parents)
+                                    {
+                                        resultEntry.Depends.Add(item.TransactionHash.ToString());
+                                    }
+                                }
+
+                                result.Add(resultEntry);
+                            }
+                        }
+
+                        return this.Json(ResultHelper.BuildResultResponse(result));
+
+                    default:
+
+                        var listTxHash = new List<string>();
+
+                        if (setDescendants != null)
+                        {
+                            foreach (var entry in setDescendants)
+                            {
+                                listTxHash.Add(entry.TransactionHash.ToString());
+                            }
+                        }
+
+                        return this.Json(ResultHelper.BuildResultResponse(listTxHash));
+                }
             }
             catch (Exception e)
             {

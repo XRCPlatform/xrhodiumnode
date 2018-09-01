@@ -2,6 +2,7 @@
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
+using static BRhodium.Bitcoin.Features.MemoryPool.TxMempool;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
 {
@@ -183,6 +184,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// would otherwise be half of this, it is set to 0 instead.
         /// </remarks>
         FeeRate GetMinFee(long sizelimit);
+
+        /// <summary>
+        /// Get parents of entry
+        /// </summary>
+        /// <param name="entry">Parents for entry</param>
+        /// <returns></returns>
+        SetEntries GetMemPoolParents(TxMempoolEntry entry);
 
         /// <summary>
         /// Get number of transactions that have been updated.
