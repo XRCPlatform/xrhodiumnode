@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.Features.BlockStore.Models
+namespace BRhodium.Bitcoin.Features.MemoryPool.Models
 {
     /// <summary>
     /// A model returned to an RPC gettxout request

@@ -30,12 +30,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// </summary>
         private readonly ILogger logger;
 
-        /// <summary>An interface implementation used to retrieve unspent transactions from a pooled source.</summary>
-        private readonly IPooledGetUnspentTransaction pooledGetUnspentTransaction;
-
-        /// <summary>An interface implementation used to retrieve unspent transactions.</summary>
-        private readonly IGetUnspentTransaction getUnspentTransaction;
-
         private readonly INetworkDifficulty networkDifficulty;
 
         public BlockChainRPCController(
@@ -58,8 +52,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                   connectionManager: connectionManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.pooledGetUnspentTransaction = pooledGetUnspentTransaction;
-            this.getUnspentTransaction = getUnspentTransaction;
             this.networkDifficulty = networkDifficulty;
         }
 
@@ -442,47 +434,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         }
 
         /// <summary>
-        /// Returns details about an unspent transaction output.
-        /// </summary>
-        /// <param name="txid">The transaction id</param>
-        /// <param name="n">vout number</param>
-        /// <param name="includeMemPool">Whether to include the mempool. Default: true. Note that an unspent output that is spent in the mempool won't appear.</param>
-        /// <returns>Result GetTxOutModel</returns>
-        [ActionName("gettxout")]
-        [ActionDescription("Returns details about an unspent transaction output.")]
-        public IActionResult GetTxOut(string txid, uint n, bool? includeMemPool)
-        {
-            try
-            {
-                uint256 trxid;
-                if (!uint256.TryParse(txid, out trxid))
-                    throw new ArgumentException(nameof(txid));
-
-                UnspentOutputs unspentOutputs = null;
-                if (includeMemPool.HasValue && includeMemPool.Value)
-                {
-                    unspentOutputs = this.pooledGetUnspentTransaction != null ? this.pooledGetUnspentTransaction.GetUnspentTransactionAsync(trxid).Result : null;
-                }
-                else
-                {
-                    unspentOutputs = this.getUnspentTransaction != null ? this.getUnspentTransaction.GetUnspentTransactionAsync(trxid).Result : null;
-                }
-
-                if (unspentOutputs == null)
-                    return null;
-
-                var result = new GetTxOutModel(unspentOutputs, n, this.Network, this.Chain.Tip);
-
-                return this.Json(ResultHelper.BuildResultResponse(result));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
         /// Returns an object containing various state info regarding blockchain processing.
         /// </summary>
         /// <returns>Return new GetBlockChainInfoModel</returns>
@@ -532,126 +483,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
-        [ActionName("gettxoutproof")]
-        [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
-        public IActionResult GetTxOutProf(string txids, string blockhash)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("gettxoutsetinfo")]
-        [ActionDescription("Returns statistics about the unspent transaction output set. Note this call may take some time.")]
-        public IActionResult GetTxOutSetInfo()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("verifytxoutproof")]
-        [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain")]
-        public IActionResult VerifyTxOutProof(string proof)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getmempoolancestors")]
-        [ActionDescription("If txid is in the mempool, returns all in-mempool ancestors.")]
-        public IActionResult GetMempoolAncestors(string txid, string verbose)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getmempooldescendants")]
-        [ActionDescription("If txid is in the mempool, returns all in-mempool descendants.")]
-        public IActionResult GetMempoolDescendants(string txid, string verbose)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getmempoolentry")]
-        [ActionDescription("Returns mempool data for given transaction")]
-        public IActionResult GetMempoolEntry(string txid)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getmempoolinfo")]
-        [ActionDescription("Returns details on the active state of the TX memory pool.")]
-        public IActionResult GetMempoolInfo()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getrawmempool")]
-        [ActionDescription("Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.")]
-        public IActionResult GetRawMempool(string verbose)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         [ActionName("preciousblock")]
         [ActionDescription("Treats a block as if it were received before others with the same work. A later preciousblock call can override the effect of an earlier one. The effects of preciousblock are not retained across restarts.")]
         public IActionResult PreciousBlock(string blockhash)
@@ -670,21 +501,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         [ActionName("pruneblockchain")]
         [ActionDescription("The block height to prune up to. May be set to a discrete height, or a unix timestamp to prune blocks whose block time is at least 2 hours older than the provided timestamp.")]
         public IActionResult PruneBlockChain(int height)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("savemempool")]
-        [ActionDescription("Dumps the mempool to disk.")]
-        public IActionResult SaveMemPool(int height)
         {
             try
             {

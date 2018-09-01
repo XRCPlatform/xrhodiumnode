@@ -166,6 +166,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         Transaction Get(uint256 hash);
 
         /// <summary>
+        /// Gets the MemPoolEntry from the memory pool based upon the transaction hash.
+        /// </summary>
+        /// <param name="hash">Transaction hash.</param>
+        /// <returns>The transaction.</returns>
+        TxMempoolEntry GetEntry(uint256 hash);
+
+        /// <summary>
         /// The minimum fee to get into the mempool, which may itself not be enough for larger-sized transactions.
         /// </summary>
         /// <param name="sizelimit">Size limit of the memory pool in bytes.</param>
