@@ -469,7 +469,7 @@ namespace BRhodium.Bitcoin.Features.LightWallet.Tests
 
             lightWalletSyncManager.ProcessTransaction(transaction);
 
-            this.walletManager.Verify(w => w.ProcessTransaction(transaction, null, null, true));
+            this.walletManager.Verify(w => w.ProcessTransaction(transaction, null, null, null, true));
         }
 
         /// <summary>

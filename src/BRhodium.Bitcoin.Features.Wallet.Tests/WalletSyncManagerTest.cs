@@ -250,7 +250,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             walletSyncManager.ProcessTransaction(transaction);
 
-            this.walletManager.Verify(w => w.ProcessTransaction(transaction, null, null, true));
+            this.walletManager.Verify(w => w.ProcessTransaction(transaction, null, null, null,true));
         }
 
         /// <summary>

@@ -193,7 +193,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="block">The block in which this transaction was included.</param>
         /// <param name="isPropagated">Transaction propagation state.</param>
         /// <returns>A value indicating whether this transaction affects the wallet.</returns>
-        bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true);
+        bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, MerkleProofTemplate merkleProofTemplate = null, bool isPropagated = true);
 
         /// <summary>
         /// Saves the wallet into the file system.
@@ -210,7 +210,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Saves all the loaded wallets into the file system.
         /// </summary>
-        void SaveWallets();
+        /// <param name="force">Determines if wallets need to be saved even when if they were saved recently. Typically useful on shutdown.</param>
+        void SaveWallets(bool force);
 
         /// <summary>
         /// Gets the extension of the wallet files.

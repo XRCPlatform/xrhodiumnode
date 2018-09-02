@@ -88,6 +88,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private ConcurrentDictionary<OutPoint, TransactionData> outpointLookup;
         internal ConcurrentDictionary<Script, WalletLinkedHdAddress> addressLookup;
 
+        //private Dictionary<OutPoint, TransactionData> outpointLookup;
+        //internal Dictionary<Script, WalletLinkedHdAddress> addressLookup;
+
 
         public WalletManager(
             ILoggerFactory loggerFactory,
@@ -139,17 +142,21 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
         {
             this.logger.LogTrace("()");
-
+            //var task1 = Task.Run(() =>
+            //{
             if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
             {
-                this.ProcessTransaction(transactionEntry.Transaction, null, null, transactionEntry.State == State.Propagated);
+                this.ProcessTransaction(transactionEntry.Transaction, null, null, null, transactionEntry.State == State.Propagated);
             }
             else
             {
                 this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
                 this.logger.LogTrace("(-)[EXCEPTION]");
             }
-
+            //}).ContinueWith(t => {
+            //    this.logger.LogTrace("Exception occurred: {0}: {1}",t.Exception.InnerException.GetType().Name, t.Exception.InnerException.Message);
+            //    this.logger.LogTrace("(-)[EXCEPTION]");
+            //}, TaskContinuationOptions.OnlyOnFaulted);
             this.logger.LogTrace("(-)");
         }
 
@@ -163,8 +170,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             foreach (Wallet wallet in wallets)
             {
                 this.Wallets.Add(wallet);
-            }
-                
+            }               
 
             // Load data in memory for faster lookups.
             this.LoadKeysLookupLock();
@@ -200,7 +206,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.broadcasterManager.TransactionStateChanged -= this.BroadcasterManager_TransactionStateChanged;
 
             this.asyncLoop?.Dispose();
-            this.SaveWallets();
+            this.SaveWallets(true);//force wallet save regardless of breaks
 
             this.logger.LogTrace("(-)");
         }
@@ -661,12 +667,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.logger.LogTrace("(-)[NO_WALLET]:{0}", height);
                 return height;
             }
-
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             int res;
             lock (this.lockObject)
             {
                 res = this.Wallets.Min(w => w.AccountsRoot.SingleOrDefault(a => a.CoinType == this.coinType)?.LastBlockSyncedHeight) ?? 0;
             }
+            stopwatch.Stop();
             this.logger.LogTrace("(-):{0}", res);
             return res;
         }
@@ -831,10 +839,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
+                MerkleProofTemplate merkleProofTemplate = new MerkleProofTemplate(block);
                 bool walletUpdated = false;
                 foreach (Transaction transaction in block.Transactions)
                 {
-                    bool trxFound = this.ProcessTransaction(transaction, chainedHeader.Height, block, true);
+                    bool trxFound = this.ProcessTransaction(transaction, chainedHeader.Height, block, merkleProofTemplate, true);
                     if (trxFound)
                     {
                         walletUpdated = true;
@@ -856,7 +865,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, MerkleProofTemplate merkleProofTemplate = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
             uint256 hash = transaction.GetHash();
@@ -866,13 +875,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                // Check the outputs.
+                 // Check the outputs.
                 foreach (TxOut utxo in transaction.Outputs)
                 {
                     // Check if the outputs contain one of our addresses.
                     if (this.addressLookup.ContainsKey(utxo.ScriptPubKey))
                     {
-                        this.AddTransactionToWallet(transaction, utxo, blockHeight, block, isPropagated);
+                        this.AddTransactionToWallet(merkleProofTemplate,transaction, utxo, blockHeight, block, isPropagated);
                         foundReceivingTrx = true;
                     }
                 }
@@ -928,12 +937,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Adds a transaction that credits the wallet with new coins.
         /// This method is can be called many times for the same transaction (idempotent).
         /// </summary>
+        /// <param name="merkleProofTemplate">Merkle template compiled against block so that there is less work on each transaction</param>
         /// <param name="transaction">The transaction from which details are added.</param>
         /// <param name="utxo">The unspent output to add to the wallet.</param>
         /// <param name="blockHeight">Height of the block.</param>
         /// <param name="block">The block containing the transaction to add.</param>
         /// <param name="isPropagated">Propagation state of the transaction.</param>
-        private void AddTransactionToWallet(Transaction transaction, TxOut utxo, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        private void AddTransactionToWallet(MerkleProofTemplate merkleProofTemplate, Transaction transaction, TxOut utxo, int? blockHeight = null, Block block = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(utxo, nameof(utxo));
@@ -973,7 +983,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 // Add the Merkle proof to the (non-spending) transaction.
                 if (block != null)
                 {
-                    newTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    if (merkleProofTemplate != null)
+                    {
+                        newTransaction.MerkleProof = new MerkleBlock(merkleProofTemplate, block, new[] { transactionHash }).PartialMerkleTree;
+                    }
+                    else
+                    {
+                        newTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    }
+                    
                 }
 
                 addressTransactions.Add(newTransaction);
@@ -1000,19 +1018,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 // Add the Merkle proof now that the transaction is confirmed in a block.
                 if ((block != null) && (foundTransaction.MerkleProof == null))
                 {
-                    foundTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    if (merkleProofTemplate != null)
+                    {
+                        foundTransaction.MerkleProof = new MerkleBlock(merkleProofTemplate, block, new[] { transactionHash }).PartialMerkleTree;
+                    }
+                    else
+                    {
+                        foundTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    }
                 }
                 walletLinkedHdAddress.Wallet.Changed();
                 if (isPropagated)
                     foundTransaction.IsPropagated = true;
             }
             this.TransactionFoundInternal(script);
-            //Task.Run(() => this.TransactionFoundInternal(script))
-            //    .ContinueWith((t) =>
-            //                {
-            //                    if (t.IsFaulted) throw t.Exception;
-            //                }
-            //            ).ConfigureAwait(false);
 
             this.logger.LogTrace("(-)");
         }
@@ -1197,10 +1216,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             throw new NotImplementedException();
         }
-
+        DateTime lastSaveRunTime = DateTime.MinValue;
         /// <inheritdoc />
-        public void SaveWallets()
+        public void SaveWallets(bool force = false)
         {
+            if (!force)
+            {
+                //if save all wallets ran previous 4 minutes skip save
+                TimeSpan diff = DateTime.Now - lastSaveRunTime;
+                if (diff.Minutes < 4)
+                {
+                    //this.logger.LogTrace("Skipping bulk wallet save as they have been saved in last 5 minutes.");
+                    this.logger.LogInformation("Skipping bulk wallet save as they have been saved in last 5 minutes.");
+                    return;
+                }
+            }
+           
+            lastSaveRunTime = DateTime.Now;
             Stopwatch sw = new Stopwatch();
             this.logger.LogInformation($"Starting saving wallets.");
             sw.Start();

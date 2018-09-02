@@ -73,6 +73,26 @@ namespace NBitcoin
             _PartialMerkleTree = new PartialMerkleTree(vHashes.ToArray(), vMatch.ToArray());
         }
 
+        public MerkleBlock(MerkleProofTemplate template, Block block, uint256[] txIds)
+        {
+            header = block.Header;
+            bool[] matches = (bool[])template.Matches.Clone();
+            int matcCount=0;
+            for (int i = 0; i < template.Hashes.Length; i++)
+            {
+                var hash = template.Hashes[i];
+                //only need to update and increment if we have a match
+                if (txIds.Contains(hash)) {
+                    template.Matches[i] = txIds.Contains(hash);
+                    matcCount++;
+                }
+                if (matcCount == txIds.Length) {//once all of the transaction ids have been identified no need to seek to the end
+                    break;
+                }
+            }
+            _PartialMerkleTree = new PartialMerkleTree(template.Hashes, matches);
+        }
+
         #region IBitcoinSerializable Members
 
         public void ReadWrite(BitcoinStream stream)
