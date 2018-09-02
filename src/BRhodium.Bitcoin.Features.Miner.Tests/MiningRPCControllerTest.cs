@@ -16,6 +16,7 @@ using BRhodium.Node.Tests.Common.Logging;
 using BRhodium.Node.Tests.Wallet.Common;
 using Xunit;
 using BRhodium.Node;
+using BRhodium.Bitcoin.Features.Miner.Controllers;
 
 namespace BRhodium.Bitcoin.Features.Miner.Tests
 {

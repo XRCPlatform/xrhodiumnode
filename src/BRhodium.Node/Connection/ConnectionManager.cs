@@ -78,6 +78,8 @@ namespace BRhodium.Node.Connection
         void RemoveNodeAddress(IPEndPoint ipEndpoint);
 
         List<NetworkPeerServer> Servers { get; }
+
+        bool IsActive { get; }
     }
 
     public sealed class ConnectionManager : IConnectionManager
@@ -137,6 +139,8 @@ namespace BRhodium.Node.Connection
         /// <summary>Maintains a list of connected peers and ensures their proper disposal.</summary>
         private readonly NetworkPeerDisposer networkPeerDisposer;
 
+        public bool IsActive { get; private set; }
+
         public ConnectionManager(
             IDateTimeProvider dateTimeProvider,
             ILoggerFactory loggerFactory,
@@ -189,6 +193,8 @@ namespace BRhodium.Node.Connection
             }
 
             this.StartNodeServer();
+
+            this.IsActive = true;
 
             this.logger.LogTrace("(-)");
         }
@@ -340,6 +346,8 @@ namespace BRhodium.Node.Connection
                 server.Dispose();
 
             this.networkPeerDisposer.Dispose();
+
+            this.IsActive = false;
 
             this.logger.LogTrace("(-)");
         }

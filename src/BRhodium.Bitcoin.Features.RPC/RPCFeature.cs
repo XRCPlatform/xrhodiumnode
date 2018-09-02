@@ -132,12 +132,12 @@ namespace BRhodium.Bitcoin.Features.RPC
 
             fullNodeBuilder.ConfigureServices(service =>
             {
-                service.AddSingleton<FullNodeController>();
-                service.AddSingleton<ConnectionManagerController>();
+                service.AddSingleton<FullNodeRPCController>();
                 service.AddSingleton<RpcSettings>(new RpcSettings(setup));
                 service.AddSingleton<IRPCClientFactory, RPCClientFactory>();
                 service.AddSingleton<RPCController>();
-                service.AddSingleton<ExplorerController>();
+                service.AddSingleton<ExplorerRPCController>();
+                service.AddSingleton<NetworkRPCController>();
             });
 
             return fullNodeBuilder;

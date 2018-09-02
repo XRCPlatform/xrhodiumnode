@@ -37,7 +37,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         private readonly Mock<IGetUnspentTransaction> getUnspentTransaction;
         private readonly Mock<IConsensusLoop> consensusLoop;
         private readonly Mock<INetworkDifficulty> networkDifficulty;
-        private FullNodeController controller;
+        private FullNodeRPCController controller;
         private readonly bool initialBlockSignature;
 
         public FullNodeControllerTest()
@@ -53,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             this.getUnspentTransaction = new Mock<IGetUnspentTransaction>();
             this.consensusLoop = new Mock<IConsensusLoop>();
             this.networkDifficulty = new Mock<INetworkDifficulty>();
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
         }
 
@@ -131,7 +131,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
                 .Returns(default(IBlockStore))
                 .Verifiable();
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, null, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, null, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var result = await this.controller.GetRawTransactionAsync(txId.ToString(), 0).ConfigureAwait(false);
 
@@ -258,7 +258,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             var txId = new uint256(1243124);
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, null, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, null, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var result = await this.controller.GetTxOutAsync(txId.ToString(), 0, false).ConfigureAwait(false);
 
@@ -284,7 +284,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             var txId = new uint256(1243124);
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, null, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, null, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var result = await this.controller.GetTxOutAsync(txId.ToString(), 0, true).ConfigureAwait(false);
 
@@ -324,7 +324,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
                 .ReturnsAsync(unspentOutputs)
                 .Verifiable();
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = await this.controller.GetTxOutAsync(txId.ToString(), 0, true).ConfigureAwait(false);
 
@@ -439,7 +439,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             this.network = Network.Main;
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -451,7 +451,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             IChainState chainState = null;
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, chainState, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -464,7 +464,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             this.chainState.Setup(c => c.ConsensusTip)
                 .Returns((ChainedHeader)null);
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -475,7 +475,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         public void GetInfo_NoSettings_ReturnsModel()
         {
             this.nodeSettings = null;
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -488,7 +488,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             IConnectionManager connectionManager = null;
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, connectionManager);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -499,7 +499,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         [Fact]
         public void GetInfo_NoNetworkDifficulty_ReturnsModel()
         {
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, null,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, null,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -512,7 +512,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             this.fullNode.Setup(f => f.Version)
               .Returns((Version)null);
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var model = (GetInfoModel)this.controller.GetInfo();
 
@@ -533,7 +533,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             this.chain = null;
 
-            this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
+            this.controller = new FullNodeRPCController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
             var result = this.controller.GetBlockHeader("", true);
 

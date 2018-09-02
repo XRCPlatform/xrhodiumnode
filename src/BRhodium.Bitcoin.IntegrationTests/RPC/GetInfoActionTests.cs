@@ -15,7 +15,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             string dir = CreateTestDir(this);
             IFullNode fullNode = this.BuildServicedNode(dir);
-            FullNodeController controller = fullNode.Services.ServiceProvider.GetService<FullNodeController>();
+            FullNodeRPCController controller = fullNode.Services.ServiceProvider.GetService<FullNodeRPCController>();
 
             Assert.NotNull(fullNode.NodeService<INetworkDifficulty>(true));
 

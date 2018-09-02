@@ -80,11 +80,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var descriptor = new ControllerActionDescriptor()
             {
                 ActionName = "getblockheader",
-                MethodInfo = typeof(FullNodeController).GetMethod("GetBlockHeader"),
+                MethodInfo = typeof(FullNodeRPCController).GetMethod("GetBlockHeader"),
                 Parameters = new List<ParameterDescriptor>()
             };
 
-            foreach (var parameter in typeof(FullNodeController).GetMethod("GetBlockHeader").GetParameters())
+            foreach (var parameter in typeof(FullNodeRPCController).GetMethod("GetBlockHeader").GetParameters())
             {
                 descriptor.Parameters.Add(new ControllerParameterDescriptor()
                 {
@@ -138,11 +138,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var descriptor = new ControllerActionDescriptor()
             {
                 ActionName = "getblockheader",
-                MethodInfo = typeof(FullNodeController).GetMethod("GetBlockHeader"),
+                MethodInfo = typeof(FullNodeRPCController).GetMethod("GetBlockHeader"),
                 Parameters = new List<ParameterDescriptor>()
             };
 
-            foreach (var parameter in typeof(FullNodeController).GetMethod("GetBlockHeader").GetParameters())
+            foreach (var parameter in typeof(FullNodeRPCController).GetMethod("GetBlockHeader").GetParameters())
             {
                 descriptor.Parameters.Add(new ControllerParameterDescriptor()
                 {
