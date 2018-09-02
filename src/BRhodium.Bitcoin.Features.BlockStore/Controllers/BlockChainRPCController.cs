@@ -446,9 +446,10 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
                 var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
                 var ibdState = this.FullNode.NodeService<IInitialBlockDownloadState>();
+                var storeSettings = this.FullNode.NodeService<StoreSettings>();
 
                 var result = new GetBlockChainInfoModel();
-                result.AutomaticPruning = false;
+                result.AutomaticPruning = storeSettings.Prune;
                 result.BestBlockHash = chainRepository.Tip.HashBlock.ToString();
                 result.Blocks = chainRepository.Height;
                 result.Chain = this.Network.Name.Replace("BRhodium", string.Empty);
@@ -462,7 +463,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
 
                 var actulHeader = chainRepository.GetBlock(this.Chain.Height);
                 result.MedianTime = actulHeader.GetMedianTimePast().ToUnixTimeSeconds();
-                result.Pruned = false;
+                result.Pruned = storeSettings.Prune;
                 result.PruneHeight = null;
                 result.PruneTargetSize = null;
 
@@ -483,43 +484,136 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
-        [ActionName("preciousblock")]
-        [ActionDescription("Treats a block as if it were received before others with the same work. A later preciousblock call can override the effect of an earlier one. The effects of preciousblock are not retained across restarts.")]
-        public IActionResult PreciousBlock(string blockhash)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("pruneblockchain")]
-        [ActionDescription("The block height to prune up to. May be set to a discrete height, or a unix timestamp to prune blocks whose block time is at least 2 hours older than the provided timestamp.")]
-        public IActionResult PruneBlockChain(int height)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
+        /// <summary>
+        /// Verifies blockchain database.
+        /// </summary>
+        /// <param name="checklevel">How thorough the block verification is.</param>
+        /// <param name="nblocks">The number of blocks to check.</param>
+        /// <returns>True / False</returns>
         [ActionName("verifychain")]
         [ActionDescription("Verifies blockchain database.")]
-        public IActionResult VerifyChain(int height)
+        public IActionResult VerifyChain(int? checklevel, int? nblocks)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (!checklevel.HasValue) checklevel = 1;
+                if (!nblocks.HasValue) nblocks = 0;
+
+                if (this.Chain.Tip == null) return this.Json(ResultHelper.BuildResultResponse(true));
+
+                if (nblocks <= 0 || nblocks > this.Chain.Height) nblocks = this.Chain.Height;
+                
+                Console.WriteLine(string.Format("Verifying last {0} blocks at level {1}", nblocks, checklevel));
+
+                int reportDone = 0;
+                int err = 0;
+                Console.WriteLine(string.Format("Verify [{0} %] done", reportDone));
+
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                for (int i = (this.Chain.Height - nblocks.Value); i <= nblocks; i++)
+                {
+                    int percentageDone = (int)(((double)(100 / nblocks)) * i);
+                    if (reportDone < percentageDone / 10)
+                    {
+                        Console.WriteLine(string.Format("Verify [{0} %] done", reportDone));
+                        reportDone = percentageDone / 10;
+                    }
+
+                    switch (checklevel)
+                    {
+                        case 1:
+
+                        default:
+
+                            var chainedHeader = chainRepository.GetBlock(i);
+
+                            if (chainedHeader != null)
+                            {
+                                var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                                if (block == null)
+                                {
+                                    Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}, hash={1}", i, chainedHeader.HashBlock.ToString());
+                                    err++;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}", i));
+                                err++;
+                            }
+                            
+                            break;
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(err > 0 ? false : true));
+
+                //for (pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
+                //{
+                //     0: read from disk
+                //    if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+                //        return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+                //    // check level 1: verify block validity
+                //    if (nCheckLevel >= 1 && !CheckBlock(block, state, chainparams.GetConsensus()))
+                //        return error("%s: *** found bad block at %d, hash=%s (%s)\n", __func__,
+                //                     pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
+                //    // check level 2: verify undo validity
+                //    if (nCheckLevel >= 2 && pindex)
+                //    {
+                //        CBlockUndo undo;
+                //        if (!pindex->GetUndoPos().IsNull())
+                //        {
+                //            if (!UndoReadFromDisk(undo, pindex))
+                //            {
+                //                return error("VerifyDB(): *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+                //            }
+                //        }
+                //    }
+                //    // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
+                //    if (nCheckLevel >= 3 && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage)
+                //    {
+                //        assert(coins.GetBestBlock() == pindex->GetBlockHash());
+                //        DisconnectResult res = g_chainstate.DisconnectBlock(block, pindex, coins);
+                //        if (res == DISCONNECT_FAILED)
+                //        {
+                //            return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+                //        }
+                //        if (res == DISCONNECT_UNCLEAN)
+                //        {
+                //            nGoodTransactions = 0;
+                //            pindexFailure = pindex;
+                //        }
+                //        else
+                //        {
+                //            nGoodTransactions += block.vtx.size();
+                //        }
+                //    }
+                //    if (ShutdownRequested())
+                //        return true;
+                //}
+                //if (pindexFailure)
+                //    return error("VerifyDB(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
+
+                //// store block count as we move pindex at check level >= 4
+                //int block_count = chainActive.Height() - pindex->nHeight;
+
+                //// check level 4: try reconnecting blocks
+                //if (nCheckLevel >= 4)
+                //{
+                //    while (pindex != chainActive.Tip())
+                //    {
+                //        boost::this_thread::interruption_point();
+                //        uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, 100 - (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * 50))), false);
+                //        pindex = chainActive.Next(pindex);
+                //        CBlock block;
+                //        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+                //            return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+                //        if (!g_chainstate.ConnectBlock(block, state, pindex, coins, chainparams))
+                //            return error("VerifyDB(): *** found unconnectable block at %d, hash=%s (%s)", pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
+                //    }
+                //}
             }
             catch (Exception e)
             {
