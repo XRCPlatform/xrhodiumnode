@@ -142,21 +142,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
         {
             this.logger.LogTrace("()");
-            //var task1 = Task.Run(() =>
-            //{
-            if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
+            var task1 = Task.Run(() =>
             {
-                this.ProcessTransaction(transactionEntry.Transaction, null, null, null, transactionEntry.State == State.Propagated);
-            }
-            else
+                if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
+                {
+                    this.ProcessTransaction(transactionEntry.Transaction, null, null, null, transactionEntry.State == State.Propagated);
+                }
+                else
+                {
+                    this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
+                    this.logger.LogTrace("(-)[EXCEPTION]");
+                }
+            }).ContinueWith(t =>
             {
-                this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
+                this.logger.LogTrace("Exception occurred: {0}: {1}", t.Exception.InnerException.GetType().Name, t.Exception.InnerException.Message);
                 this.logger.LogTrace("(-)[EXCEPTION]");
-            }
-            //}).ContinueWith(t => {
-            //    this.logger.LogTrace("Exception occurred: {0}: {1}",t.Exception.InnerException.GetType().Name, t.Exception.InnerException.Message);
-            //    this.logger.LogTrace("(-)[EXCEPTION]");
-            //}, TaskContinuationOptions.OnlyOnFaulted);
+            }, TaskContinuationOptions.OnlyOnFaulted);
             this.logger.LogTrace("(-)");
         }
 
