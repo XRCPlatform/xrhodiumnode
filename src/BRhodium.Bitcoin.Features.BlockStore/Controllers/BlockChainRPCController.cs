@@ -486,6 +486,9 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
 
         /// <summary>
         /// Verifies blockchain database.
+        /// 
+        /// 0 - Check reading blocks from chain
+        /// 1 - Validate header of blocks
         /// </summary>
         /// <param name="checklevel">How thorough the block verification is.</param>
         /// <param name="nblocks">The number of blocks to check.</param>
@@ -521,99 +524,41 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                         reportDone = percentageDone / 10;
                     }
 
-                    switch (checklevel)
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    if (checklevel >= 0)
                     {
-                        case 1:
-
-                        default:
-
-                            var chainedHeader = chainRepository.GetBlock(i);
-
-                            if (chainedHeader != null)
+                        if (chainedHeader != null)
+                        {
+                            if (block == null)
                             {
-                                var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-                                if (block == null)
-                                {
-                                    Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}, hash={1}", i, chainedHeader.HashBlock.ToString());
-                                    err++;
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}", i));
+                                Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}, hash={1}", i, chainedHeader.HashBlock.ToString()));
                                 err++;
                             }
-                            
-                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine(string.Format("*** ReadBlockFromDisk failed at {0}", i));
+                            err++;
+                        }
+
+                        if (checklevel >= 1)
+                        {
+                            if (!chainedHeader.Validate(this.Network))
+                            {
+                                Console.WriteLine(string.Format("*** found bad block at {0}, hash={1}", i, chainedHeader.HashBlock.ToString()));
+                            }
+                        }
+
+                        if (checklevel >= 2)
+                        {
+                            //not implemented
+                        }
                     }
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(err > 0 ? false : true));
-
-                //for (pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
-                //{
-                //     0: read from disk
-                //    if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
-                //        return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-                //    // check level 1: verify block validity
-                //    if (nCheckLevel >= 1 && !CheckBlock(block, state, chainparams.GetConsensus()))
-                //        return error("%s: *** found bad block at %d, hash=%s (%s)\n", __func__,
-                //                     pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
-                //    // check level 2: verify undo validity
-                //    if (nCheckLevel >= 2 && pindex)
-                //    {
-                //        CBlockUndo undo;
-                //        if (!pindex->GetUndoPos().IsNull())
-                //        {
-                //            if (!UndoReadFromDisk(undo, pindex))
-                //            {
-                //                return error("VerifyDB(): *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
-                //            }
-                //        }
-                //    }
-                //    // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
-                //    if (nCheckLevel >= 3 && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage)
-                //    {
-                //        assert(coins.GetBestBlock() == pindex->GetBlockHash());
-                //        DisconnectResult res = g_chainstate.DisconnectBlock(block, pindex, coins);
-                //        if (res == DISCONNECT_FAILED)
-                //        {
-                //            return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-                //        }
-                //        if (res == DISCONNECT_UNCLEAN)
-                //        {
-                //            nGoodTransactions = 0;
-                //            pindexFailure = pindex;
-                //        }
-                //        else
-                //        {
-                //            nGoodTransactions += block.vtx.size();
-                //        }
-                //    }
-                //    if (ShutdownRequested())
-                //        return true;
-                //}
-                //if (pindexFailure)
-                //    return error("VerifyDB(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
-
-                //// store block count as we move pindex at check level >= 4
-                //int block_count = chainActive.Height() - pindex->nHeight;
-
-                //// check level 4: try reconnecting blocks
-                //if (nCheckLevel >= 4)
-                //{
-                //    while (pindex != chainActive.Tip())
-                //    {
-                //        boost::this_thread::interruption_point();
-                //        uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, 100 - (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * 50))), false);
-                //        pindex = chainActive.Next(pindex);
-                //        CBlock block;
-                //        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
-                //            return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-                //        if (!g_chainstate.ConnectBlock(block, state, pindex, coins, chainparams))
-                //            return error("VerifyDB(): *** found unconnectable block at %d, hash=%s (%s)", pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
-                //    }
-                //}
             }
             catch (Exception e)
             {

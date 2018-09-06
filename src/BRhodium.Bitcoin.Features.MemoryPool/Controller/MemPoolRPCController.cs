@@ -436,13 +436,28 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// Returns details on the active state of the TX memory pool.
+        /// </summary>
+        /// <returns>Information about get mem pool</returns>
         [ActionName("getmempoolinfo")]
         [ActionDescription("Returns details on the active state of the TX memory pool.")]
         public IActionResult GetMempoolInfo()
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new GetMemPoolInfo();
+
+                result.Size = this.MemPool.Size;
+                result.Usage = this.MemPool.DynamicMemoryUsage();
+                result.Bytes = this.MempoolManager.MempoolSize().Result;
+
+                var maxmem = this.MempoolManager.mempoolSettings.MaxMempool * 1000000;
+                result.Maxmempool = maxmem;
+                result.MempoolMinFee = this.MemPool.GetMinFee(maxmem).FeePerK.ToUnit(MoneyUnit.BTR);
+                result.MinRelayTxFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -451,12 +466,18 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// Dumps the mempool to disk.
+        /// </summary>
+        /// <returns>True if all ok</returns>
         [ActionName("savemempool")]
         [ActionDescription("Dumps the mempool to disk.")]
-        public IActionResult SaveMemPool(int height)
+        public IActionResult SaveMemPool()
         {
             try
             {
+                this.MempoolManager.SavePool();
+
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
