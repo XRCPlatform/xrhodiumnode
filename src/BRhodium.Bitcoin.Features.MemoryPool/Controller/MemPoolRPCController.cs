@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
+using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 using BRhodium.Bitcoin.Features.MemoryPool.Models;
 using BRhodium.Node;
@@ -236,13 +238,48 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// Returns statistics about the unspent transaction output set. Note this call may take some time.
+        /// </summary>
+        /// <returns>GetTxOutSetInfo Model</returns>
         [ActionName("gettxoutsetinfo")]
         [ActionDescription("Returns statistics about the unspent transaction output set. Note this call may take some time.")]
         public IActionResult GetTxOutSetInfo()
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new GetTxOutSetInfo();
+
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                result.BestBlock = chainRepository.Tip.HashBlock.ToString();
+                result.Height = chainRepository.Height;
+
+                var txsMemPool = this.MempoolManager.InfoAllAsync().Result;
+                result.Transactions = txsMemPool.Count;
+
+                foreach (var itemMemPool in txsMemPool)
+                {
+                    var scriptPubSize = itemMemPool.Trx.Outputs != null ? itemMemPool.Trx.Outputs.First().ScriptPubKey.Length : 0;
+
+                    result.TxOuts += itemMemPool.Trx.Outputs.Count;
+                    result.TotalAmount += itemMemPool.Trx.TotalOut.ToUnit(MoneyUnit.BTR);
+                    result.BogoSize += 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ + 8 /* amount */ + 2 /* scriptPubKey len */ + scriptPubSize /* scriptPubKey */;
+                }
+
+                var shiftHash = chainRepository.Tip.HashBlock << (0);
+                result.Hash_serialized_2 = shiftHash.AsBitcoinSerializable().ToHex(this.Network);
+
+                for (int i = 0; i <= this.Chain.Height; i++)
+                {
+                    var chainedHeader = chainRepository.GetBlock(i);
+                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    result.DiskSize += block.GetSerializedSize();
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
