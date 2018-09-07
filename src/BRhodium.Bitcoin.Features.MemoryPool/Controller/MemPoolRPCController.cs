@@ -17,6 +17,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBitcoin.RPC;
 using static BRhodium.Bitcoin.Features.MemoryPool.TxMempool;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
@@ -223,21 +224,6 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
-        [ActionName("gettxoutproof")]
-        [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
-        public IActionResult GetTxOutProf(string txids, string blockhash)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         /// <summary>
         /// Returns statistics about the unspent transaction output set. Note this call may take some time.
         /// </summary>
@@ -269,7 +255,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                 }
 
                 var shiftHash = chainRepository.Tip.HashBlock << (0);
-                result.Hash_serialized_2 = shiftHash.AsBitcoinSerializable().ToHex(this.Network);
+                result.Hash_serialized_2 = shiftHash.AsBitcoinSerializable().ToHex(this.Network, SerializationType.Hash);
 
                 for (int i = 0; i <= this.Chain.Height; i++)
                 {
@@ -288,13 +274,96 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             }
         }
 
+        /// <summary>
+        /// Returns a hex-encoded proof that "txid" was included in a block. NOTE: By default this function only works sometimes.This is when there is an
+        /// unspent output in the utxo for this transaction.To make it always work, you need to maintain a transaction index, using the -txindex command line option or
+        /// specify the block in which the transaction is included manually(by blockhash).
+        /// </summary>
+        /// <param name="txids">A json array of txids to filter</param>
+        /// <param name="blockhash">If specified, looks for txid in the block with this hash</param>
+        /// <returns>A string that is a serialized, hex-encoded data for the proof.</returns>
+        [ActionName("gettxoutproof")]
+        [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
+        public IActionResult GetTxOutProf(string txids, string blockhash)
+        {
+            try
+            {
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                Block block = null;
+                var txIds = txids.Split(',');
+
+                if (!string.IsNullOrEmpty(blockhash))
+                {
+                    var chainedHeader = chainRepository.GetBlock(new uint256(blockhash));
+                    block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                }
+                else
+                {
+                    for (int i = this.Chain.Height; i >= 0; i--)
+                    {
+                        var chainedHeader = chainRepository.GetBlock(i);
+                        block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                        if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
+                        {
+                            foreach (var itemTransaction in block.Transactions)
+                            {
+                                if (txIds.Contains(itemTransaction.GetHash().ToString()))
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var txHashes = txIds.Select(a => new uint256(a)).ToArray();
+
+                var mBlock = new MerkleBlock(block, txHashes);
+                var mBlockData = mBlock.ToHex(this.Network);
+
+                return this.Json(ResultHelper.BuildResultResponse(mBlockData));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain
+        /// </summary>
+        /// <param name="proof">The hex-encoded proof generated by gettxoutproof</param>
+        /// <returns>The txid(s) which the proof commits to, or empty array if the proof is invalid</returns>
         [ActionName("verifytxoutproof")]
         [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain")]
         public IActionResult VerifyTxOutProof(string proof)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(proof))
+                {
+                    throw new ArgumentNullException("proof");
+                }
+
+                var bytesProof = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(proof);
+
+                var mBlock = new MerkleBlock();
+                mBlock.FromBytes(bytesProof, NBitcoin.Protocol.ProtocolVersion.BTR_PROTOCOL_VERSION, this.Network);
+
+                var hashes = mBlock.PartialMerkleTree.Hashes;
+
+                if ((hashes != null) && (hashes.Count > 0))
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(hashes.ToArray()));
+                }
+                else
+                {
+                    throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Empty Merkle Block", null, false);
+                }
             }
             catch (Exception e)
             {

@@ -1,0 +1,934 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BRhodium.Bitcoin.Features.BlockStore</name>
+    </assembly>
+    <members>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.BlockPair">
+            <summary>
+            Structure made of a block and its chained header.
+            </summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockPair.Block">
+            <summary>The block.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockPair.ChainedHeader">
+            <summary>Chained header of the <see cref="P:BRhodium.Bitcoin.Features.BlockStore.BlockPair.Block"/>.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockPair.#ctor(NBitcoin.Block,NBitcoin.ChainedHeader)">
+            <summary>
+            Creates instance of <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockPair" />.
+            </summary>
+            <param name="block">The block.</param>
+            <param name="chainedHeader">Chained header of the <paramref name="block"/>.</param>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository">
+            <summary>
+            <see cref="T:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository"/> is the interface to all the logics interacting with the blocks stored in the database.
+            </summary>
+            <seealso cref="T:System.IDisposable" />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.InitializeAsync">
+            <summary>
+            Initializes the blockchain storage and ensure the genesis block has been created in the database.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.PutAsync(NBitcoin.uint256,System.Collections.Generic.List{NBitcoin.Block})">
+            <summary>
+            Persist the next block hash and insert new blocks into the database.
+            </summary>
+            <param name="nextBlockHash">next block hash</param>
+            <param name="blocks">blocks to be inserted</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.GetAsync(NBitcoin.uint256)">
+            <summary>
+            Get the block from the database by using block hash.
+            </summary>
+            <param name="hash">The block hash.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.GetBlocksAsync(System.Collections.Generic.List{NBitcoin.uint256})">
+            <summary>
+            Get the blocks from the database by using block hashes.
+            </summary>
+            <param name="hashes">A list of unique block hashes.</param>
+            <returns>The blocks (or null if not found) in the same order as the hashes on input.</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.GetTrxAsync(NBitcoin.uint256)">
+            <summary>
+            Retreive the transaction information asynchronously using transaction id.
+            </summary>
+            <param name="trxid">The transaction id to find.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.DeleteAsync(NBitcoin.uint256,System.Collections.Generic.List{NBitcoin.uint256})">
+            <summary>
+            Wipe out blocks and their transactions then replace with a new block.
+            </summary>
+            <param name="newBlockHash">Hash of the new block.</param>
+            <param name="hashes">List of all block hashes to be deleted.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.ExistAsync(NBitcoin.uint256)">
+            <summary>
+            Determine if a block already exists
+            </summary>
+            <param name="hash">The hash.</param>
+            <returns><c>true</c> if the block hash can be found in the database, otherwise return <c>false</c>.</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.GetTrxBlockIdAsync(NBitcoin.uint256)">
+            <summary>
+            Get the corresponding block hash by using transaction hash.
+            </summary>
+            <param name="trxid">The transaction hash</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.SetBlockHashAsync(NBitcoin.uint256)">
+            <summary>
+            Set the next block hash and persist it in the database.
+            </summary>
+            <param name="nextBlockHash">The next block hash.</param>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.BlockHash">
+            <summary>
+            Get the next block hash
+            </summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.IBlockRepository.HighestPersistedBlock">
+            <summary>Represents the last block stored to disk.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.DBreeze">
+            <summary>Access to DBreeze database.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.HighestPersistedBlock">
+            <inheritdoc />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.InitializeAsync">
+            <summary>
+            Initializes the blockchain storage and ensure the genesis block has been created in the database.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.GetTrxAsync(NBitcoin.uint256)">
+            <summary>
+            Retreive the transaction information asynchronously using transaction hash
+            </summary>
+            <param name="trxid">The transaction id to find</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.GetTrxBlockIdAsync(NBitcoin.uint256)">
+            <summary>
+            Get the corresponding block hash by using transaction hash.
+            </summary>
+            <param name="trxid">transaction hash</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.PutAsync(NBitcoin.uint256,System.Collections.Generic.List{NBitcoin.Block})">
+            <summary>
+            Persist the next block hash and insert new blocks into the database
+            </summary>
+            <param name="nextBlockHash">next block has</param>
+            <param name="blocks">blocks to be inserted</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.SetBlockHashAsync(NBitcoin.uint256)">
+            <summary>
+            Set the next block hash and persist it in the database.
+            </summary>
+            <param name="nextBlockHash">The next block hash.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.GetAsync(NBitcoin.uint256)">
+            <summary>
+            Get block from the database by block hash.
+            </summary>
+            <param name="hash">The block hash.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.GetBlocksAsync(System.Collections.Generic.List{NBitcoin.uint256})">
+            <inheritdoc />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.ExistAsync(NBitcoin.uint256)">
+            <summary>
+            Determine if a block already exists
+            </summary>
+            <param name="hash">The hash.</param>
+            <returns><c>true</c> if the block hash can be found in the database, otherwise return <c>false</c>.</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.DeleteAsync(NBitcoin.uint256,System.Collections.Generic.List{NBitcoin.uint256})">
+            <summary>
+            Wipe our blocks and their transactions then replace with a new block.
+            </summary>
+            <param name="newBlockHash">Hash of the new block</param>
+            <param name="hashes">List of all block hashes to be deleted</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockRepository.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockStoreBehavior.AnnounceBlocksAsync(System.Collections.Generic.List{NBitcoin.ChainedHeader})">
+            <summary>
+            Sends information about newly discovered blocks to network peers using "headers" or "inv" message.
+            </summary>
+            <param name="blocksToAnnounce">List of chained block headers to announce.</param>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.loggerFactory">
+            <summary>Factory for creating loggers.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.CanRespondToGetBlocksPayload">
+            <inheritdoc />
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.CanRespondToGetDataPayload">
+            <inheritdoc />
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.getBlocksBatchLastItemHash">
+            <summary>Hash of the last block we've sent to the peer in response to "getblocks" message,
+            or <c>null</c> if the peer haven't used "getblocks" message or if we sent a tip to it already.</summary>
+            <remarks>
+            In case the peer is syncing using outdated "getblocks" message, we need to maintain 
+            the hash of the last block we sent to it in an inventory batch. Once the peer asks 
+            for block data of the block with this hash, we will send a continuation inventory message.
+            This will cause the peer to ask for more.
+            </remarks>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.ProcessGetBlocksAsync(BRhodium.Node.P2P.Peer.INetworkPeer,BRhodium.Node.P2P.Protocol.Payloads.GetBlocksPayload)">
+            <summary>
+            Processes "getblocks" message received from the peer.
+            </summary>
+            <param name="peer">Peer that sent the message.</param>
+            <param name="getBlocksPayload">Payload of "getblocks" message to process.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreBehavior.AnnounceBlocksAsync(System.Collections.Generic.List{NBitcoin.ChainedHeader})">
+            <inheritdoc />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.IBlockStoreCache.Exist(NBitcoin.uint256)">
+            <summary>
+            Determine if a block already exists in the cache.
+            </summary>
+            <param name="blockid">Block id.</param>
+            <returns><c>true</c> if the block hash can be found in the cache, otherwise return <c>false</c>.</returns>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreCache.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreCache.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreCache.MaxCacheBlocksCount">
+            <summary>The maximum amount of blocks the cache can contain.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreCache.Exist(NBitcoin.uint256)">
+            <inheritdoc />
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreCachePerformanceCounter.dateTimeProvider">
+            <summary>Provider of date time functionality.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.loggerFactory">
+            <summary>Factory for creating loggers.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.LoadConfiguration">
+            <inheritdoc />
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.GetHighestPersistedBlock">
+            <inheritdoc/>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.PrintHelp(NBitcoin.Network)">
+            <summary>
+            Prints command-line help.
+            </summary>
+            <param name="network">The network to extract values from.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.BuildDefaultConfigurationFile(System.Text.StringBuilder,NBitcoin.Network)">
+            <summary>
+            Get the default configuration.
+            </summary>
+            <param name="builder">The string builder to add the settings to.</param>
+            <param name="network">The network to base the defaults off.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreFeature.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.FullNodeBuilderBlockStoreExtension">
+            <summary>
+            A class providing extension methods for <see cref="T:BRhodium.Node.Builder.IFullNodeBuilder"/>.
+            </summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop">
+            <summary>
+            The BlockStoreLoop simultaneously finds and downloads blocks and stores them in the BlockRepository.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.asyncLoopFactory">
+            <summary>Factory for creating background async loop tasks.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.asyncLoop">
+            <summary>The async loop we need to wait upon before we can shut down this feature.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.Chain">
+            <summary>Thread safe access to the best chain of block headers (that the node is aware of) from genesis.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.InitialBlockDownloadState">
+            <summary>Provider of IBD state.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.loggerFactory">
+            <summary>Factory for creating loggers.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.MaxInsertBlockSize">
+            <summary>Maximum number of bytes the block puller can download before the downloaded blocks are stored to the disk.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.MaxPendingInsertBlockSize">
+            <summary>Maximum number of bytes the pending storage can hold until the downloaded blocks are stored to the disk.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.nodeLifetime">
+            <summary>Global application life cycle control - triggers when application shuts down.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.PendingStorage">
+            <summary>Blocks that in PendingStorage will be processed first before new blocks are downloaded.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.PendingStorageBatchThreshold">
+            <summary>The minimum amount of blocks that can be stored in Pending Storage before they get processed.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.stepChain">
+            <summary>The chain of steps that gets executed to find and download blocks.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.CachedConsensusTip">
+            <summary>Cached consensus tip.</summary>
+            <remarks>
+            Cached tip is needed in order to avoid race condition in the <see cref="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.DownloadAndStoreBlocksAsync(System.Threading.CancellationToken,System.Boolean)"/>.
+            <para>
+            This condition happens when the actual ConsensusTip is updated but the block wasn't provided by signaler yet.
+            </para>
+            <para>
+            TODO: remove this quick fix later and solve the race condition by replacing the async loop with trigger-based invoking of <see cref="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.DownloadAndStoreBlocksAsync(System.Threading.CancellationToken,System.Boolean)"/>.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.StoreTip">
+            <summary>The highest stored block in the repository.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.#ctor(BRhodium.Node.Utilities.IAsyncLoopFactory,BRhodium.Node.BlockPulling.StoreBlockPuller,BRhodium.Bitcoin.Features.BlockStore.IBlockRepository,BRhodium.Bitcoin.Features.BlockStore.IBlockStoreCache,NBitcoin.ConcurrentChain,BRhodium.Node.Base.IChainState,BRhodium.Bitcoin.Features.BlockStore.StoreSettings,BRhodium.Node.Utilities.INodeLifetime,Microsoft.Extensions.Logging.ILoggerFactory,BRhodium.Node.Interfaces.IInitialBlockDownloadState,BRhodium.Node.Utilities.IDateTimeProvider)">
+            <summary>Public constructor for unit testing.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.InitializeAsync">
+            <summary>
+            Initialize the BlockStore
+            <para>
+            If StoreTip is <c>null</c>, the store is out of sync. This can happen when:</para>
+            <list>
+                <item>1. The node crashed.</item>
+                <item>2. The node was not closed down properly.</item>
+            </list>
+            <para>
+            To recover we walk back the chain until a common block header is found
+            and set the BlockStore's StoreTip to that.
+            </para>
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.AddToPending(BRhodium.Bitcoin.Features.BlockStore.BlockPair)">
+            <summary>
+            Adds a block to Pending Storage.
+            <para>
+            The <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled"/> calls this method when a new block is available. Only add the block to pending storage if the store's tip is behind the given block.
+            </para>
+            </summary>
+            <param name="blockPair">The block and its chained header pair to be added to pending storage.</param>
+            <remarks>TODO: Possibly check the size of pending in memory</remarks>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.ShutDown">
+            <summary>
+            Persists unsaved blocks to disk when the node shuts down.
+            <para>
+            Before we can shut down we need to ensure that the current async loop
+            has completed.
+            </para>
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.StartLoop">
+            <summary>
+            Executes DownloadAndStoreBlocks()
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.DownloadAndStoreBlocksAsync(System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Finds and downloads blocks to store in the BlockRepository.
+            <para>
+            This method executes a chain of steps in order:
+            <list>
+                <item>1. Reorganise the repository</item>
+                <item>2. Check if the block exists in store, if it does move on to the next block</item>
+                <item>3. Process the blocks in pending storage</item>
+                <item>4. Find and download blocks</item>
+            </list>
+            </para>
+            <para>
+            Steps return a <see cref="T:BRhodium.Bitcoin.Features.BlockStore.StepResult"/> which either signals the While loop
+            to break or continue execution.
+            </para>
+            </summary>
+            <param name="cancellationToken">CancellationToken to check</param>
+            <param name="disposeMode">This will <c>true</c> if the Flush() was called</param>
+            <remarks>
+            TODO: add support to BlockStoreLoop to unset LazyLoadingOn when not in IBD
+            When in IBD we may need many reads for the block key without fetching the block
+            So the repo starts with LazyLoadingOn = true, however when not anymore in IBD
+            a read is normally done when a peer is asking for the entire block (not just the key)
+            then if LazyLoadingOn = false the read will be faster on the entire block
+            </remarks>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.SetStoreTip(NBitcoin.ChainedHeader)">
+            <summary>Set the store's tip</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.SetHighestPersistedBlock(NBitcoin.ChainedHeader)">
+            <summary>Set the highest persisted block in the chain.</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreStepChain">
+            <summary>
+            The chain of block store loop steps that is executed when the
+            BlockStoreLoop's DownloadAndStoreBlocks is called.
+            <seealso cref="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.DownloadAndStoreBlocksAsync(System.Threading.CancellationToken,System.Boolean)"/>
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreStepChain.SetNextStep(BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoopStep)">
+            <summary>Set the next step to execute in the BlockStoreLoop.</summary>
+            <param name="step">The next step to execute.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreStepChain.ExecuteAsync(NBitcoin.ChainedHeader,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Executes the chain of <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> steps.
+            <para>
+            Each step will return a <see cref="T:BRhodium.Bitcoin.Features.BlockStore.StepResult"/> which will either:
+            <list>
+                <item>1: Break out of the foreach loop.</item>
+                <item>2: Continue execution of the foreach loop.</item>
+            </list>
+            </para>
+            </summary>
+            <param name="nextChainedHeader">Next chained block to process.</param>
+            <param name="disposeMode">This is <c>true</c> if <see cref="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.ShutDown"/> was called.</param>
+            <param name="cancellationToken">Cancellation token to check.</param>
+            <returns>BlockStoreLoopStepResult</returns>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoopStep">
+            <summary>Base class for each block store step.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoopStep.loggerFactory">
+            <summary>Factory for creating loggers.</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.StepResult">
+            <summary>
+            The result that is returned from executing each loop step.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.StepResult.Continue">
+            <summary>Continue execution of the loop.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.StepResult.Next">
+            <summary>Execute the next line of code in the loop.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.StepResult.Stop">
+            <summary>Break out of the loop.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreRepositoryPerformanceCounter.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.nodeLifetime">
+            <summary>Global application life cycle control - triggers when application shuts down.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.blocksToAnnounce">
+            <summary>Queue of chained blocks that will be announced to the peers.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.BatchIntervalMs">
+            <summary>Interval between batches in milliseconds.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.dequeueLoopTask">
+            <summary>Task that runs <see cref="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.DequeueContinuouslyAsync"/>.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.DequeueContinuouslyAsync">
+            <summary>
+            Continuously dequeues items from <see cref="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.blocksToAnnounce"/> and sends
+            them  to the peers after the timer runs out or if the last item is a tip.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.SendBatchAsync(System.Collections.Generic.List{NBitcoin.ChainedHeader})">
+            <summary>
+            A method that relays blocks found in <see cref="!:batch"/> to connected peers on the network.
+            </summary>
+            <remarks>
+            <para>
+            The list <see cref="!:batch"/> contains hashes of blocks that were validated by the consensus rules.
+            </para>
+            <para>
+            These block hashes need to be relayed to connected peers. A peer that does not have a block
+            will then ask for the entire block, that means only blocks that have been stored/cached should be relayed.
+            </para>
+            <para>
+            During IBD blocks are not relayed to peers.
+            </para>
+            <para>
+            If no nodes are connected the blocks are just discarded, however this is very unlikely to happen.
+            </para>
+            <para>
+            Before relaying, verify the block is still in the best chain else discard it.
+            </para>
+            <para>
+            TODO: consider moving the relay logic to the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep"/>.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.BlockStoreSignaled.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreStats.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreStats.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController">
+            <summary>
+            BlockChain RPCs method
+            </summary>
+            <seealso cref="T:BRhodium.Node.Controllers.FeatureController" />
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.logger">
+            <summary>
+            Instance logger
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlock(System.String,System.Int32)" -->
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.FillBlockBaseData``1(BRhodium.Bitcoin.Features.BlockStore.Models.GetBlockWithTransactionModel{``0},NBitcoin.Block,NBitcoin.ChainedHeader)">
+            <summary>
+            Helper for GetBlock
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="blockTemplate"></param>
+            <param name="block"></param>
+            <param name="chainedHeader"></param>
+            <returns>Filled block</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBestBlockhash(System.Int32)">
+            <summary>
+            Gets the best blockhash.
+            </summary>
+            <param name="hash">The hash.</param>
+            <param name="verbosity">The verbosity.</param>
+            <returns></returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlockCount">
+            <summary>
+            Returns the number of blocks in the longest blockchain.
+            </summary>
+            <returns>Number</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlockHash(System.Int32)">
+            <summary>
+            Returns hash of block in best-block-chain at height provided.
+            </summary>
+            <param name="height">The height index</param>
+            <returns>Hash</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetChainTips">
+            <summary>
+            Return information about all known tips in the block tree, including the main chain as well as orphaned branches.
+            </summary>
+            <returns>List of GetChainTipModel</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlockHeader(System.String,System.String)" -->
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetChainTxStatus(System.Nullable{System.Int32},System.String)">
+            <summary>
+            Compute statistics about the total number and rate of transactions in the chain.
+            </summary>
+            <param name="nblocks">Size of the window in number of blocks (default: one month).</param>
+            <param name="blockhash">The hash of the block that ends the window.</param>
+            <returns>Return result as GetChainTxStats</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlockChainInfo">
+            <summary>
+            Returns an object containing various state info regarding blockchain processing.
+            </summary>
+            <returns>Return new GetBlockChainInfoModel</returns>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.VerifyChain(System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Verifies blockchain database.
+            
+            0 - Check reading blocks from chain
+            1 - Validate header of blocks
+            </summary>
+            <param name="checklevel">How thorough the block verification is.</param>
+            <param name="nblocks">The number of blocks to check.</param>
+            <returns>True / False</returns>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockStoreController">
+            <summary>
+            Controller providing operations on a blockstore.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockStoreController.BuildErrorResponse(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)">
+            <summary>
+            Builds an <see cref="T:Microsoft.AspNetCore.Mvc.IActionResult"/> containing errors contained in the <see cref="P:Microsoft.AspNetCore.Mvc.ControllerBase.ModelState"/>.
+            </summary>
+            <returns>A result containing the errors.</returns>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext">
+            <summary>
+            Context for the inner steps, <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks"/> and <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks"/>.
+            <para>
+            The context also initializes the inner step <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.InnerSteps"/>.
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.StallDelayMs">
+            <summary>Number of milliseconds to wait after each failed attempt to get a block from the block puller.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.MaxDownloadStackFlushTimeMs">
+            <summary><see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack"/> is flushed to the disk if more than this amount of milliseconds passed since the last flush was made.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.StallCountThreshold">
+            <summary>Number of attempts to obtain a block from the block puller before giving up and requesting the block again.</summary>
+            <remarks>If the threshold is reached, it is increased to allow more attempts next time.</remarks>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.LastDownloadStackFlushTime">
+            <summary>Timestamp of the last flush of <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack"/> to the disk.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.BlocksPushedCount">
+            <summary>The number of blocks pushed to repository. This gets reset when the next
+            set of blocks are asked from the puller</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack">
+            <summary>A queue of blocks to be downloaded.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStackThreshold">
+            <summary>The maximum number of blocks to ask for.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStackPushThreshold">
+            <summary>The maximum number of blocks to read from the puller before asking for blocks again.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.InputChainedHeader">
+            <summary>The chained block header the inner step starts on.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.InnerSteps">
+            <summary>The routine (list of inner steps) the DownloadBlockStep executes.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.Store">
+            <summary>
+            A store of blocks that will be pushed to the repository once the <see cref="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.MaxInsertBlockSize"/> has been reached.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.GetNextBlock">
+            <summary> Sets the next chained block header to process.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.StopFindingBlocks">
+            <summary> Removes BlockStoreInnerStepFindBlocks from the routine.</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStep">
+            <summary>Abstract class that all DownloadBlockSteps implement</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks">
+            <summary>
+            Find blocks to download by asking the BlockPuller.
+            <para>
+            Find blocks until <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack"/> contains
+            <see cref="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStackThreshold"/> blocks.
+            </para>
+            <para>
+            If a stop condition is found <see cref="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks.ShouldStopFindingBlocksAsync(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext)"/> and
+            there are still blocks to download, stop finding new blocks and only execute
+            the read blocks inner step <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks"/>.
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks.ExecuteAsync(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks">
+            <summary>
+            Reads blocks from the <see cref="T:BRhodium.Node.BlockPulling.BlockPuller"/> in a loop and removes block
+            from the <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack"/>.
+            <para>
+            If the block exists in the puller add the the downloaded block to the store to
+            push to the repository. If <see cref="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.ShouldBlocksBePushedToRepository(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext)"/> returns
+            true, push the blocks in the <see cref="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.Store"/> to the block repository.
+            </para>
+            <para>
+            When the download stack is empty return a <see cref="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.InnerStepResult.Stop"/> result causing the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> to
+            start again.
+            </para>
+            <para>
+            If a block is stalled or lost to the downloader, start again after a threshold <see cref="!:BlockStoreLoop.StallCount"/>
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.ExecuteAsync(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.AddDownloadedBlockToStore(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext,BRhodium.Node.BlockPulling.BlockPuller.DownloadedBlock)">
+            <summary> Adds the downloaded block to the store and resets the stall count.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.ShouldBlocksBePushedToRepository(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext)">
+            <summary> Determines whether or not its time for <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks"/>
+            to push (persist) the downloaded blocks to the repository.</summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks.PushBlocksToRepositoryAsync(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext,NBitcoin.ChainedHeader)" -->
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.CheckNextChainedBlockExistStep">
+            <summary>
+            Check if the next chained block already exists in the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockRepository"/>.
+            <para>
+            If the block exists in the repository the step will return a Continue result which executes
+            "Continue" on the while loop.
+            </para>
+            <para>
+            If the block does not exists in the repository the step
+            will return a Next result which'll cause the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> to execute
+            the next step (<see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep"/>).
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.CheckNextChainedBlockExistStep.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.CheckNextChainedBlockExistStep.ExecuteAsync(NBitcoin.ChainedHeader,System.Threading.CancellationToken,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep">
+             <summary>
+             Continuously find and download blocks until a stop condition is found.
+            <para>
+            <list>
+             There are two operations:
+                 <item>1: <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks"/> to ask the block puller to download the blocks.</item>
+                 <item>2: <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks"/> to persist the blocks in a batch to the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockRepository"/>.</item>
+             </list>
+             </para>
+             <para>
+             After a "Stop" condition is found the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepFindBlocks"/> will be removed from
+             <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.InnerSteps"/> and only the
+             <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepReadBlocks"/> task will continue to execute
+             until the <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.BlockStoreInnerStepContext.DownloadStack"/> is empty.
+             </para>
+             </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep.dateTimeProvider">
+            <summary>Provider of time functions.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep.ExecuteAsync(NBitcoin.ChainedHeader,System.Threading.CancellationToken,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.InnerStepResult">
+            <summary>
+            The result that is returned from executing each inner step.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.InnerStepResult.Next">
+            <summary>Execute the next line of code in the loop.</summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.InnerStepResult.Stop">
+            <summary>Break out of the loop.</summary>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep">
+            <summary>
+            Check if the next block is in pending storage i.e. first process pending storage blocks
+            before find and downloading more blocks.
+            <para>
+            Remove the BlockPair from PendingStorage and return for further processing.
+            If the next chained block does not exist in pending storage
+            return a Next result which cause the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> to execute
+            the next step <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep"/>.
+            </para>
+            <para>
+            If in IBD (Initial Block Download) and batch count is not yet reached,
+            return a Break result causing the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> to break out of the while loop
+            and start again.
+            </para>
+            <para>
+            Loop over the pending blocks and push to the repository in batches.
+            if a stop condition is met break from the inner loop and return a Continue() result.
+            This will cause the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop"/> to skip over <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.DownloadBlockStep"/> and start
+            the loop again.
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep.ExecuteAsync(NBitcoin.ChainedHeader,System.Threading.CancellationToken,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep.PrepareNextBlockFromPendingStorage(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext)">
+            <summary>
+            Tries to get and remove the next block from pending storage. If it exists
+            then add it to <see cref="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PendingBlockPairsToStore"/>.
+            This will also check if the next block can be processed.
+            </summary>
+            <param name="context"><see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext"/></param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep.PushBlocksToRepositoryAsync(BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext)">
+            <summary>
+            Store missing blocks and remove them from pending blocks and set the Store's tip to <see cref="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.NextChainedHeader"/>
+            </summary>
+            <param name="context"><see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext"/></param>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext">
+            <summary>
+            Context class thats used by <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageStep"/>
+            </summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PreviousChainedHeader">
+            <summary>
+            Used to check if we should break execution when the next block's previous hash doesn't
+            match this block's hash.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.NextChainedHeader">
+            <summary>
+            The block currently being processed.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PendingStorageBatchSize">
+            <summary>
+            If this value reaches <see cref="F:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop.MaxPendingInsertBlockSize"/> the step will exit./>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PendingBlockPairToStore">
+            <summary>
+            The last item that was dequeued from <see cref="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PendingBlockPairsToStore"/>.
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.PendingBlockPairsToStore">
+            <summary>
+            A collection of blocks that are pending to be pushed to store.
+            </summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ProcessPendingStorageContext.CanProcessNextBlock">
+            <summary>
+            Break execution if:
+            <list>
+                <item>1: Next block is null.</item>
+                <item>2: Next block previous hash does not match previous block.</item>
+                <item>3: Next block is at tip.</item>
+            </list>
+            </summary>
+            <returns>Returns <c>true</c> if none of the above condition were met, i.e. the next block can be processed.</returns>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ReorganiseBlockRepositoryStep">
+            <summary>
+            Reorganises the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockRepository"/>.
+            <para>
+            This will happen when the block store's tip does not match
+            the next chained block's previous header.
+            </para>
+            <para>
+            Steps:
+            <list type="bullet">
+                <item>1: Add blocks to delete from the repository by walking back the chain until the last chained block is found.</item>
+                <item>2: Delete those blocks from the BlockRepository.</item>
+                <item>3: Set the last stored block (tip) to the last found chained block.</item>
+            </list>
+            </para>
+            <para>
+            If the store/repository does not require reorganising the step will
+            return Next which will cause the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop" /> to
+            execute the next step <see cref="T:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.CheckNextChainedBlockExistStep"/>.
+            If not the step will cause the <see cref="T:BRhodium.Bitcoin.Features.BlockStore.BlockStoreLoop" /> to break execution and start again.
+            </para>
+            </summary>
+        </member>
+        <member name="F:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ReorganiseBlockRepositoryStep.logger">
+            <summary>Instance logger.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.LoopSteps.ReorganiseBlockRepositoryStep.ExecuteAsync(NBitcoin.ChainedHeader,System.Threading.CancellationToken,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.Models.GetChainTipModel.Height">
+            <summary>
+            height of the chain tip
+            </summary>
+            <value>
+            The height.
+            </value>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.Models.GetChainTipModel.Hash">
+            <summary>
+            block hash of the tip.
+            </summary>
+            <value>
+            The hash.
+            </value>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.Models.GetChainTipModel.BranchLen">
+            <summary>
+            zero for main chain.
+            </summary>
+            <value>
+            The length of the branch.
+            </value>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.Models.GetChainTipModel.Status">
+            <summary>
+            "active" for the main chain
+            </summary>
+            <value>
+            The status.
+            </value>
+        </member>
+        <member name="T:BRhodium.Bitcoin.Features.BlockStore.StoreSettings">
+            <summary>
+            Configuration related to storage of transactions.
+            </summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.TxIndex">
+            <summary><c>true</c> to maintain a full transaction index.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.ReIndex">
+            <summary><c>true</c> to rebuild chain state and block index from block data files on disk.</summary>
+        </member>
+        <member name="P:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.Prune">
+            <summary><c>true</c> to enable pruning to reduce storage requirements by enabling deleting of old blocks.</summary>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.Load(BRhodium.Node.Configuration.NodeSettings)">
+            <summary>
+            Loads the storage related settings from the application configuration.
+            </summary>
+            <param name="nodeSettings">Application configuration.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.PrintHelp(NBitcoin.Network)">
+            <summary>Prints the help information on how to configure the block store settings to the logger.</summary>
+            <param name="network">The network to use.</param>
+        </member>
+        <member name="M:BRhodium.Bitcoin.Features.BlockStore.StoreSettings.BuildDefaultConfigurationFile(System.Text.StringBuilder,NBitcoin.Network)">
+            <summary>
+            Get the default configuration.
+            </summary>
+            <param name="builder">The string builder to add the settings to.</param>
+            <param name="network">The network to base the defaults off.</param>
+        </member>
+    </members>
+</doc>
