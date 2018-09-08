@@ -103,7 +103,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="nblocks">How many blocks are generated immediately.</param>
         /// <param name="address">The address to send the newly generated bitcoin to.</param>
         /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
-        /// <returns></returns>
+        /// <returns>List of newly generated block hashes</returns>
         [ActionName("generate")]
         [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
         public IActionResult Generate(int nblocks, string address, int maxtries = 1000000)
@@ -117,7 +117,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="nblocks">How many blocks are generated immediately.</param>
         /// <param name="address">The address to send the newly generated bitcoin to.</param>
         /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
-        /// <returns></returns>
+        /// <returns>List of newly generated block hashes</returns>
         [ActionName("generatetoaddress")]
         [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
         public IActionResult GenerateToAddress(int nblocks, string address, int maxtries = 1000000)
