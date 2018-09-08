@@ -487,5 +487,36 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
             var json = this.Json(ResultHelper.BuildResultResponse(true)); 
             return json;
         }
+
+        /// <summary>
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).
+        /// </summary>
+        /// <param name="nblocks">Confirmation target in blocks (1 - 1008)</param>
+        /// <param name="estimate_mode">The fee estimate mode. Whether to return a more conservative estimate which also satisfies a longer history.A conservative estimate potentially returns a higher feerate and is more likely to be sufficient for the desired target, but is not as responsive to short term drops in the prevailing fee market.  Must be one of: "UNSET" (defaults to CONSERVATIVE), "ECONOMICAL", "CONSERVATIVE"</param>
+        /// <returns>Return model EstimateSmartFee</returns>
+        [ActionName("estimatesmartfee")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).")]
+        public IActionResult EstimateSmartFee(int nblocks, string estimate_mode)
+        {
+            try
+            {
+                var result = new EstimateSmartFeeModel();
+                int foundAtBlock = 0;
+
+                var isConservative = true;
+                if ((!string.IsNullOrEmpty(estimate_mode)) && (estimate_mode.ToUpper() == "ECONOMICAL")) isConservative = false;
+                var estimation = this.txMempool.EstimateSmartFee(nblocks, out foundAtBlock, isConservative);
+
+                result.Blocks = foundAtBlock;
+                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.BTR);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }
