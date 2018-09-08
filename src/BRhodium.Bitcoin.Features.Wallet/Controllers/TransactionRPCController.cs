@@ -1,16 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
+using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
+using BRhodium.Bitcoin.Features.Wallet.Interfaces;
+using BRhodium.Bitcoin.Features.Wallet.Models;
 using BRhodium.Node;
 using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Connection;
 using BRhodium.Node.Controllers;
+using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -23,6 +32,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
     {
         private readonly ILogger logger;
 
+        public IBroadcasterManager broadcasterManager;
+        private readonly IPooledTransaction pooledTransaction;
+
         public TransactionRPCController(
             ILoggerFactory loggerFactory,
             IFullNode fullNode,
@@ -30,10 +42,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             Network network,
             ConcurrentChain chain,
             IConnectionManager connectionManager,
+            IBroadcasterManager broadcasterManager,
+            IPooledTransaction pooledTransaction, 
             IChainState chainState = null,
             IConsensusLoop consensusLoop = null) : base(fullNode, nodeSettings, network, chain, chainState, connectionManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.broadcasterManager = broadcasterManager;
+
+            this.pooledTransaction = pooledTransaction;
         }
 
         /// <summary>
@@ -56,7 +73,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-
         /// <summary>
         /// Create a transaction spending the given inputs and creating new outputs. Outputs can be addresses or data. Returns hex - encoded raw transaction. Note that the transaction's inputs are not signed, and it is not stored in the wallet or transmitted to the network.
         /// </summary>
@@ -69,7 +85,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
+                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
+
+                Transaction transaction = new Transaction();
+                foreach (var input in txIns)
+                {
+                    transaction.AddInput(input);
+                }
+                foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
+                {
+                    var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
+                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliBTR), destination));
+                }
+                return this.Json(transaction);
             }
             catch (Exception e)
             {
@@ -152,7 +181,33 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                uint256 trxid;
+                if (!uint256.TryParse(txid, out trxid))
+                    throw new ArgumentException(nameof(txid));
+
+                Transaction trx = this.pooledTransaction != null ? this.pooledTransaction.GetTransaction(trxid).Result : null;
+
+                if (trx == null)
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    trx = blockStore != null ? blockStore.GetTrxAsync(trxid).Result : null;
+                }
+
+                if (trx == null)
+                    return null;
+
+                ChainedHeader block = this.GetTransactionBlockAsync(trxid).Result;
+                var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
+
+                if (verbose)
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(model));
+                }
+                else
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(model.ToString()));
+                }
+
             }
             catch (Exception e)
             {
@@ -171,9 +226,30 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionDescription("Submits raw transaction (serialized, hex-encoded) to local node and network. Also see createrawtransaction and signrawtransaction calls.")]
         public IActionResult SendRawTransaction(string hex, bool allowhighfees)
         {
+            Guard.NotEmpty(hex, "hexstring");
+
+            if (!this.ConnectionManager.ConnectedPeers.Any())
+            {
+                throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
+            }
+
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var transaction = Transaction.Load(hex, this.Network);
+                var controller = this.FullNode.NodeService<WalletController>();
+
+                var transactionRequest = new SendTransactionRequest(transaction.ToHex());
+
+                this.broadcasterManager.BroadcastTransactionAsync(transaction).GetAwaiter().GetResult();
+                TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
+
+                if (!string.IsNullOrEmpty(entry?.ErrorMessage))
+                {
+                    this.logger.LogError("Exception occurred: {0}", entry.ErrorMessage);
+                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, entry.ErrorMessage, "Transaction Exception");
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
             }
             catch (Exception e)
             {
@@ -205,6 +281,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        private async Task<ChainedHeader> GetTransactionBlockAsync(uint256 trxid)
+        {
+            ChainedHeader block = null;
+            var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+
+            uint256 blockid = blockStore != null ? await blockStore.GetTrxBlockIdAsync(trxid) : null;
+            if (blockid != null)
+                block = this.Chain?.GetBlock(blockid);
+
+            return block;
         }
     }
 }
