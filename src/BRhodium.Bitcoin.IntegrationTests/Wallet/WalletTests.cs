@@ -452,7 +452,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         }
 
         public static TransactionBuildContext CreateContext(WalletAccountReference accountReference, string password,
-            Script destinationScript, Money amount, FeeType feeType, int minConfirmations)
+            NBitcoin.Script destinationScript, Money amount, FeeType feeType, int minConfirmations)
         {
             return new TransactionBuildContext(accountReference,
                 new[] { new Recipient { Amount = amount, ScriptPubKey = destinationScript } }.ToList(), password)

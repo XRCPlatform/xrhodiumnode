@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using BRhodium.Node.Utilities;
 
-namespace BRhodium.Bitcoin.Features.RPC.Models
+namespace BRhodium.Bitcoin.Features.MemoryPool.Models
 {
     /// <summary>
     /// A model returned to an RPC gettxout request
@@ -24,7 +24,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
                 if (output != null)
                 {
                     this.Value = output.Value;
-                    this.ScriptPubKey = new ScriptPubKey(output.ScriptPubKey, network);
+                    this.ScriptPubKey = output.ScriptPubKey.ToString();
                 }
             }
         }
@@ -39,7 +39,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public Money Value { get; set; }
 
         [JsonProperty(Order = 3, PropertyName = "scriptPubKey")]
-        public ScriptPubKey ScriptPubKey { get; set; }
+        public string ScriptPubKey { get; set; }
 
         [JsonProperty(Order = 4, PropertyName = "coinbase")]
         public bool Coinbase { get; set; }

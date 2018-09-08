@@ -24,6 +24,8 @@ using BRhodium.Bitcoin.Features.Wallet.Helpers;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Node.Connection;
 using BRhodium.Node;
+using System.Threading.Tasks;
+using BRhodium.Node.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -48,6 +50,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         public IConsensusLoop ConsensusLoop { get; private set; }
         public IBroadcasterManager broadcasterManager;
         private readonly IConnectionManager connectionManager;
+        private readonly IPooledTransaction pooledTransaction;
 
         //wallet address mapping on the node
         public static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
@@ -81,6 +84,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.blockRepository = blockRepository;
             this.network = network;
             this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
+
+            this.pooledTransaction = pooledTransaction;
         }
 
         /// <summary>
@@ -711,7 +716,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
 
-                var transactionResponse = new TransactionModel();
+                var transactionResponse = new Consensus.Models.TransactionModel();
                 var transactionHash = currentTransaction.GetHash();
                 transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
                 transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
@@ -943,5 +948,65 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the raw transaction asynchronous.
+        /// </summary>
+        /// <param name="txid">The txid.</param>
+        /// <param name="verbose">The verbose.</param>
+        /// <returns>TransactionModel rpc format</returns>
+        /// <exception cref="ArgumentException">txid</exception>
+        [ActionName("getrawtransaction")]
+        [ActionDescription("Gets a raw, possibly pooled, transaction from the full node.")]
+        public IActionResult GetRawTransactionAsync(string txid, int verbose = 0)
+        {
+            try
+            {
+                uint256 trxid;
+                if (!uint256.TryParse(txid, out trxid))
+                    throw new ArgumentException(nameof(txid));
+
+                Transaction trx = this.pooledTransaction != null ? this.pooledTransaction.GetTransaction(trxid).Result : null;
+
+                if (trx == null)
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    trx = blockStore != null ? blockStore.GetTrxAsync(trxid).Result : null;
+                }
+
+                if (trx == null)
+                    return null;
+
+                if (verbose != 0)
+                {
+                    ChainedHeader block = this.GetTransactionBlockAsync(trxid).Result;
+                    var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
+                    return this.Json(ResultHelper.BuildResultResponse(model));
+                }
+                else
+                {
+                    var model = new RPC.Models.TransactionBriefModel(trx);
+                    return this.Json(ResultHelper.BuildResultResponse(model));
+                }
+
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+
+        }
+
+        private async Task<ChainedHeader> GetTransactionBlockAsync(uint256 trxid)
+        {
+            ChainedHeader block = null;
+            var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+
+            uint256 blockid = blockStore != null ? await blockStore.GetTrxBlockIdAsync(trxid) : null;
+            if (blockid != null)
+                block = this.Chain?.GetBlock(blockid);
+
+            return block;
+        }
     }
 }
