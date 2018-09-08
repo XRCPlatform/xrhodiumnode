@@ -299,7 +299,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// confTarget blocks. If no answer can be given at confTarget, return an
         /// estimate at the lowest target where one can be given.
         /// </summary>
-        public FeeRate EstimateSmartFee(int confTarget, ITxMempool pool, out int answerFoundAtTarget)
+        public FeeRate EstimateSmartFee(int confTarget, ITxMempool pool, out int answerFoundAtTarget, bool requireGreater = true)
         {
             answerFoundAtTarget = confTarget;
 
@@ -313,7 +313,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
 
             double median = -1;
             while (median < 0 && confTarget <= this.feeStats.GetMaxConfirms())
-                median = this.feeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, true,
+                median = this.feeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, requireGreater,
                     this.nBestSeenHeight);
 
             answerFoundAtTarget = confTarget - 1;

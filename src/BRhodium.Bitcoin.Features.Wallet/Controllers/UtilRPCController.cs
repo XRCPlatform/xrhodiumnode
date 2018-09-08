@@ -37,27 +37,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).
-        /// </summary>
-        /// <param name="nblocks">Confirmation target in blocks (1 - 1008)</param>
-        /// <param name="estimate_mode">The fee estimate mode. Whether to return a more conservative estimate which also satisfies a longer history.A conservative estimate potentially returns a higher feerate and is more likely to be sufficient for the desired target, but is not as responsive to short term drops in the prevailing fee market.  Must be one of: "UNSET" (defaults to CONSERVATIVE), "ECONOMICAL", "CONSERVATIVE"</param>
-        /// <returns>Return model EstimateSmartFee</returns>
-        [ActionName("estimatesmartfee")]
-        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).")]
-        public IActionResult EstimateSmartFee(int nblocks, string estimate_mode)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
         /// The private key to sign the message with.
         /// </summary>
         /// <param name="privKey">The private key to sign the message with.</param>
@@ -69,28 +48,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
+                if (string.IsNullOrEmpty(privKey))
+                {
+                    throw new ArgumentNullException("privKey");
+                }
+                if (string.IsNullOrEmpty(message))
+                {
+                    throw new ArgumentNullException("message");
+                }
 
+                var secret = this.Network.CreateBitcoinSecret(privKey);
+                var signature = secret.PrivateKey.SignMessage(message);
 
-        /// <summary>
-        /// Return information about the given bitcoin address.
-        /// </summary>
-        /// <param name="address">The bitcoin address to validate</param>
-        /// <returns>Return Validate Address model</returns>
-        [ActionName("validateaddress")]
-        [ActionDescription("Return information about the given bitcoin address.")]
-        public IActionResult ValidateAddress(string address)
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                return this.Json(ResultHelper.BuildResultResponse(signature));
             }
             catch (Exception e)
             {
@@ -112,7 +82,23 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                if (string.IsNullOrEmpty(signature))
+                {
+                    throw new ArgumentNullException("signature");
+                }
+                if (string.IsNullOrEmpty(message))
+                {
+                    throw new ArgumentNullException("message");
+                }
+
+                var bAddress = (BitcoinPubKeyAddress)Network.Main.CreateBitcoinAddress(address);
+                var result = bAddress.VerifyMessage(message, signature);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
