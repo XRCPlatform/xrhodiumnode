@@ -99,7 +99,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         private static readonly double InfFeeRate = MaxMoney.Satoshi;
 
         /// <summary>Classes to track historical data on transaction confirmations.</summary>
-        private readonly TxConfirmStats feeStats;
+        public TxConfirmStats FeeStats;
 
         /// <summary>Map of txids to information about that transaction.</summary>
         private readonly Dictionary<uint256, TxStatsInfo> mapMemPoolTxs;
@@ -114,7 +114,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         private readonly MempoolSettings mempoolSettings;
 
         /// <summary>Logger for logging on this object.</summary>
-        private readonly ILogger logger;
+        public ILogger Logger;
 
         /// <summary>Count of tracked transactions.</summary>
         private int trackedTxs;
@@ -135,7 +135,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             this.nBestSeenHeight = 0;
             this.trackedTxs = 0;
             this.untrackedTxs = 0;
-            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.Logger = loggerFactory.CreateLogger(this.GetType().FullName);
 
             this.minTrackedFee = nodeSettings.MinRelayTxFeeRate < new FeeRate(new Money(MinFeeRate))
                 ? new FeeRate(new Money(MinFeeRate))
@@ -146,8 +146,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 bucketBoundary *= FeeSpacing)
                 vfeelist.Add(bucketBoundary);
             vfeelist.Add(InfFeeRate);
-            this.feeStats = new TxConfirmStats(this.logger);
-            this.feeStats.Initialize(vfeelist, MaxBlockConfirms, DefaultDecay);
+            this.FeeStats = new TxConfirmStats(this.Logger);
+            this.FeeStats.Initialize(vfeelist, MaxBlockConfirms, DefaultDecay);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             this.nBestSeenHeight = nBlockHeight;
 
             // Clear the current block state and update unconfirmed circular buffer
-            this.feeStats.ClearCurrent(nBlockHeight);
+            this.FeeStats.ClearCurrent(nBlockHeight);
 
             int countedTxs = 0;
             // Repopulate the current block states
@@ -175,7 +175,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                     countedTxs++;
 
             // Update all exponential averages with the current block state
-            this.feeStats.UpdateMovingAverages();
+            this.FeeStats.UpdateMovingAverages();
 
             // TODO: this makes too  much noise right now, put it back when logging is can be switched on by categories (and also consider disabling during IBD)
             // Logging.Logs.EstimateFee.LogInformation(
@@ -204,14 +204,14 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             {
                 // This can't happen because we don't process transactions from a block with a height
                 // lower than our greatest seen height
-                this.logger.LogInformation($"Blockpolicy error Transaction had negative blocksToConfirm");
+                this.Logger.LogInformation($"Blockpolicy error Transaction had negative blocksToConfirm");
                 return false;
             }
 
             // Feerates are stored and reported as BTC-per-kb:
             FeeRate feeRate = new FeeRate(entry.Fee, (int)entry.GetTxSize());
 
-            this.feeStats.Record(blocksToConfirm, feeRate.FeePerK.Satoshi);
+            this.FeeStats.Record(blocksToConfirm, feeRate.FeePerK.Satoshi);
             return true;
         }
 
@@ -226,7 +226,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             uint256 hash = entry.TransactionHash;
             if (this.mapMemPoolTxs.ContainsKey(hash))
             {
-                this.logger.LogInformation($"Blockpolicy error mempool tx {hash} already being tracked");
+                this.Logger.LogInformation($"Blockpolicy error mempool tx {hash} already being tracked");
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
 
             this.mapMemPoolTxs.Add(hash, new TxStatsInfo());
             this.mapMemPoolTxs[hash].blockHeight = txHeight;
-            this.mapMemPoolTxs[hash].bucketIndex = this.feeStats.NewTx(txHeight, feeRate.FeePerK.Satoshi);
+            this.mapMemPoolTxs[hash].bucketIndex = this.FeeStats.NewTx(txHeight, feeRate.FeePerK.Satoshi);
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             TxStatsInfo pos = this.mapMemPoolTxs.TryGet(hash);
             if (pos != null)
             {
-                this.feeStats.RemoveTx(pos.blockHeight, this.nBestSeenHeight, pos.bucketIndex);
+                this.FeeStats.RemoveTx(pos.blockHeight, this.nBestSeenHeight, pos.bucketIndex);
                 this.mapMemPoolTxs.Remove(hash);
                 return true;
             }
@@ -282,10 +282,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         {
             // Return failure if trying to analyze a target we're not tracking
             // It's not possible to get reasonable estimates for confTarget of 1
-            if (confTarget <= 1 || confTarget > this.feeStats.GetMaxConfirms())
+            if (confTarget <= 1 || confTarget > this.FeeStats.GetMaxConfirms())
                 return new FeeRate(0);
 
-            double median = this.feeStats.EstimateMedianVal(confTarget, SufficientFeeTxs, MinSuccessPct, true,
+            double median = this.FeeStats.EstimateMedianVal(confTarget, SufficientFeeTxs, MinSuccessPct, true,
                 this.nBestSeenHeight);
 
             if (median < 0)
@@ -304,7 +304,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             answerFoundAtTarget = confTarget;
 
             // Return failure if trying to analyze a target we're not tracking
-            if (confTarget <= 0 || confTarget > this.feeStats.GetMaxConfirms())
+            if (confTarget <= 0 || confTarget > this.FeeStats.GetMaxConfirms())
                 return new FeeRate(0);
 
             // It's not possible to get reasonable estimates for confTarget of 1
@@ -312,8 +312,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 confTarget = 2;
 
             double median = -1;
-            while (median < 0 && confTarget <= this.feeStats.GetMaxConfirms())
-                median = this.feeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, true,
+            while (median < 0 && confTarget <= this.FeeStats.GetMaxConfirms())
+                median = this.FeeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, true,
                     this.nBestSeenHeight);
 
             answerFoundAtTarget = confTarget - 1;
@@ -379,6 +379,15 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 return InfPriority;
 
             return -1;
+        }
+
+        /// <summary>
+        /// Change the fee stats object with a new one. Intended for loading existing data.
+        ///
+        public void ChangeFeeStats(TxConfirmStats feeStats)
+        {
+            this.FeeStats = feeStats;
+            feeStats.ResetLogger(this.Logger);
         }
 
         /// <summary>
