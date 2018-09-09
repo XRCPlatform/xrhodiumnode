@@ -869,5 +869,558 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        /// <summary>
+        /// Mark in-wallet transaction txid as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their
+        /// inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are
+        /// not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.
+        /// </summary>
+        /// <param name="txid">The transaction id</param>
+        /// <returns>True/False</returns>
+        [ActionName("abandontransaction")]
+        [ActionDescription("Mark in-wallet transaction <txid> as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.")]
+        public IActionResult AbandonTransaction(string txid)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(txid))
+                {
+                    throw new ArgumentNullException("txid");
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Stops current wallet rescan triggered by an RPC call, e.g. by an importprivkey call.
+        /// </summary>
+        /// <returns>True/False</returns>
+        [ActionName("abortrescan")]
+        [ActionDescription("Stops current wallet rescan triggered by an RPC call, e.g. by an importprivkey call.")]
+        public IActionResult AbortReScan()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Add a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup. Each key is a Bitcoin address or hex - encoded public key. This functionality is only intended for use with non-watchonly addresses. See `importaddress` for watchonly p2sh address support.
+        /// </summary>
+        /// <param name="nrequired">The number of required signatures out of the n keys or addresses.</param>
+        /// <param name="keys">A json array of bitcoin addresses or hex-encoded public keys</param>
+        /// <param name="address_type">The address type to use. Options are "legacy", "p2sh-segwit", and "bech32". Default is set by -addresstype.</param>
+        /// <returns>True/False</returns>
+        [ActionName("addmultisigaddress")]
+        [ActionDescription("Add a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup. Each key is a Bitcoin address or hex - encoded public key. This functionality is only intended for use with non-watchonly addresses. See `importaddress` for watchonly p2sh address support.")] 
+        public IActionResult AddMultisigAddress(int nrequired, string[] keys, string address_type)
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// The destination directory or file
+        /// </summary>
+        /// <param name="destination">The destination file</param>
+        /// <returns>Wallet File</returns>
+        [ActionName("backupwallet")]
+        [ActionDescription("The destination directory or file")]
+        public IActionResult BackupWallet(string destination)
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("bumpfee")]
+        [ActionDescription("")]
+        public IActionResult BumpFee()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("dumpwallet")]
+        [ActionDescription("")]
+        public IActionResult DumpWallet()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("encryptwallet")]
+        [ActionDescription("")]
+        public IActionResult EncryptWallet()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getaccountaddress")]
+        [ActionDescription("")]
+        public IActionResult GetAccountAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getaddressesbyaccount")]
+        [ActionDescription("")]
+        public IActionResult GetAddressesByAccount()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getnewaddress")]
+        [ActionDescription("")]
+        public IActionResult GetNewAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getrawchangeaddress")]
+        [ActionDescription("")]
+        public IActionResult GetRawChangeAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getreceivedbyaccount")]
+        [ActionDescription("")]
+        public IActionResult GetReceivedByAccount()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getreceivedbyaddress")]
+        [ActionDescription("")]
+        public IActionResult GetReceivedByAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getunconfirmedbalance")]
+        [ActionDescription("")]
+        public IActionResult GetUnconfirmedBalance()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("getwalletinfo")]
+        [ActionDescription("")]
+        public IActionResult GetWalletInfo()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importaddress")]
+        [ActionDescription("")]
+        public IActionResult ImportAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importmulti")]
+        [ActionDescription("")]
+        public IActionResult ImportMulti()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importprivkey")]
+        [ActionDescription("")]
+        public IActionResult ImportPrivKey()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importprunedfunds")]
+        [ActionDescription("")]
+        public IActionResult ImportPrunedFunds()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importpubkey")]
+        [ActionDescription("")]
+        public IActionResult ImportPubKey()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("importwallet")]
+        [ActionDescription("")]
+        public IActionResult ImportWallet()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("keypoolrefill")]
+        [ActionDescription("")]
+        public IActionResult KeyPoolReFill()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listaccounts")]
+        [ActionDescription("")]
+        public IActionResult ListAccounts()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listaddressgroupings")]
+        [ActionDescription("")]
+        public IActionResult ListAddressGroupings()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listlockunspent")]
+        [ActionDescription("")]
+        public IActionResult ListLockUnspent()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listreceivedbyaccount")]
+        [ActionDescription("")]
+        public IActionResult ListReceivedByAccount()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listreceivedbyaddress")]
+        [ActionDescription("")]
+        public IActionResult ListReceivedByAddress()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listsinceblock")]
+        [ActionDescription("")]
+        public IActionResult ListSinceBlock()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listtransactions")]
+        [ActionDescription("")]
+        public IActionResult ListTransactions()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("listunspent")]
+        [ActionDescription("")]
+        public IActionResult ListUnspent()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("removeprunedfunds")]
+        [ActionDescription("")]
+        public IActionResult RemovePrunedFunds()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("rescanblockchain")]
+        [ActionDescription("")]
+        public IActionResult RescanBlockChain()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("sendfrom")]
+        [ActionDescription("")]
+        public IActionResult SendFrom()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("settxfee")]
+        [ActionDescription("")]
+        public IActionResult SetTxFee()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        [ActionName("walletpassphrasechange")]
+        [ActionDescription("")]
+        public IActionResult WalletPassphraseChange()
+        {
+            try
+            {
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }
