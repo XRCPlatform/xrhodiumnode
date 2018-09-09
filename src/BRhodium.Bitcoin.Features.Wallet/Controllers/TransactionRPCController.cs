@@ -350,18 +350,76 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded 
         /// private keys that, if given, will be the only keys used to sign the transaction.
         /// </summary>
-        /// <param name="hexstring">The transaction hex string</param>
-        /// <param name="prevtxs">An json array of previous dependent transaction outputs</param>
+        /// <param name="hex">The transaction hex string</param>
         /// <param name="privkeys">A json array of base58-encoded private keys for signing</param>
-        /// <param name="sighashtype">The signature hash type. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY"</param>
+        /// <param name="prevtxs">An json array of previous dependent transaction outputs</param> 
+        /// <param name="sighashtype">The signature hash type. Default is ALL. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY"</param>
         /// <returns>Result is sign object of transaction</returns>
         [ActionName("signrawtransaction")]
         [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded private keys that, if given, will be the only keys used to sign the transaction.")]
-        public IActionResult SignRawTransaction(string hexstring, string prevtxs, string privkeys, string sighashtype)
+        public IActionResult SignRawTransaction(string hex, string[] privkeys, string[] prevtxs, string sighashtype)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new SignRawTransactionModel();
+
+                if (string.IsNullOrEmpty(hex))
+                {
+                    throw new ArgumentNullException("hex");
+                }
+
+                var txBuilderContext = new TransactionBuildContext(null, new List<Recipient>())
+                {
+                    MinConfirmations = 0,
+                    FeeType = FeeType.Low
+                };
+
+                var txBuilder = txBuilderContext.TransactionBuilder;
+
+                var transaction = Transaction.Load(hex, this.Network);
+
+                var actualFlag = SigHash.All;
+                switch (sighashtype)
+                {
+                    case "SINGLE":
+                        actualFlag = SigHash.Single;
+                        break;
+                    case "NONE":
+                        actualFlag = SigHash.None;
+                        break;
+                    case "ALL|ANYONECANPAY":
+                        actualFlag = SigHash.All | SigHash.AnyoneCanPay;
+                        break;
+                    case "NONE|ANYONECANPAY":
+                        actualFlag = SigHash.None | SigHash.AnyoneCanPay;
+                        break;
+                    case "SINGLE|ANYONECANPAY":
+                        actualFlag = SigHash.Single | SigHash.AnyoneCanPay;
+                        break;
+                    case "ALL":
+                    default:
+                        actualFlag = SigHash.All;
+                        break;
+                }
+
+                List<Key> keys = null;
+
+                if (privkeys != null)
+                {
+                    foreach (var itemKey in privkeys)
+                    {
+                        var secret = this.Network.CreateBitcoinSecret(itemKey);
+                        keys.Add(secret.PrivateKey);
+                    }
+                }
+
+                var tx = transaction.Clone(network: this.Network);
+                var signedTx = txBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+
+                result.Hex = signedTx.ToHex();
+                result.Complete = true;
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {

@@ -285,12 +285,16 @@ namespace NBitcoin
                 set;
             }
 
-            private readonly List<Key> _AdditionalKeys = new List<Key>();
+            private List<Key> _AdditionalKeys = new List<Key>();
             public List<Key> AdditionalKeys
             {
                 get
                 {
                     return _AdditionalKeys;
+                }
+                set
+                {
+                    _AdditionalKeys = value;
                 }
             }
 
@@ -1207,11 +1211,12 @@ namespace NBitcoin
         {
             return SignTransactionInPlace(transaction, SigHash.All);
         }
-        public Transaction SignTransactionInPlace(Transaction transaction, SigHash sigHash)
+        public Transaction SignTransactionInPlace(Transaction transaction, SigHash sigHash, List<Key> keys = null)
         {
             TransactionSigningContext ctx = new TransactionSigningContext(this, transaction);
             ctx.SigHash = sigHash;
-            foreach(var input in transaction.Inputs.AsIndexedInputs())
+            if (keys != null) ctx.AdditionalKeys = keys;
+            foreach (var input in transaction.Inputs.AsIndexedInputs())
             {
                 var coin = FindSignableCoin(input);
                 if(coin != null)
