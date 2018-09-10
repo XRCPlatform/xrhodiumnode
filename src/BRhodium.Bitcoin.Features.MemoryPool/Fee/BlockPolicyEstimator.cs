@@ -312,8 +312,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 confTarget = 2;
 
             double median = -1;
-            while (median < 0 && confTarget <= this.feeStats.GetMaxConfirms())
-                median = this.feeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, requireGreater,
+            while (median < 0 && confTarget <= this.FeeStats.GetMaxConfirms())
+                median = this.FeeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, requireGreater,
                     this.nBestSeenHeight);
 
             answerFoundAtTarget = confTarget - 1;

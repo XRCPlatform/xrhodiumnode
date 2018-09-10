@@ -405,10 +405,12 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         }
 
         /// <summary>
-        /// Basic fee estimation.
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).
         /// </summary>
+        /// <param name="nblocks">The nblocks.</param>
+        /// <returns>Estimated fee-per-kilobyte</returns>
         [ActionName("estimatefee")]
-        [ActionDescription("Basic fee estimation. Fee per KB needed for transaction to begin at nBlock blocks.")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).")]
         public IActionResult EstimateFee(string nblocks)
         {
             var estimation = txMempool.EstimateFee(Int32.Parse(nblocks));
@@ -419,8 +421,9 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <summary>
         /// Utility RPC function to see the fee estimate data structures. Non-standard RPC function.
         /// </summary>
+        /// <returns>Feestarts results</returns>
         [ActionName("dumpfeestats")]
-        [ActionDescription("Dump all current fee stats.")]
+        [ActionDescription("Utility RPC function to see the fee estimate data structures. Non-standard RPC function.")]
         public IActionResult DumpFeeStats()
         {
             return this.Json(ResultHelper.BuildResultResponse(txMempool.MinerPolicyEstimator.FeeStats));
