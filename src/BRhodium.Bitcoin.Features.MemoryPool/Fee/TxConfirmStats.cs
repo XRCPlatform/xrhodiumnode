@@ -11,8 +11,11 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
     /// </summary>
     public class TxConfirmStats
     {
+        /// <summary>Used only for dbreeze storage</summary>
+        public uint Id { get; set; }
+
         /// <summary>Instance logger for logging messages.</summary>
-        private readonly ILogger logger;
+        private ILogger logger;
 
         /// <summary>
         /// Moving average of total fee rate of all transactions in each bucket.
@@ -20,39 +23,39 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// <remarks>
         /// Track the historical moving average of this total over blocks.
         /// </remarks>
-        private List<double> avg;
+        public List<double> Avg { get; set; }
 
         /// <summary>Map of bucket upper-bound to index into all vectors by bucket.</summary>
-        private Dictionary<double, int> bucketMap;
+        public Dictionary<double, int> BucketMap { get; set; }
 
         //Define the buckets we will group transactions into.
 
         /// <summary>The upper-bound of the range for the bucket (inclusive).</summary>
-        private List<double> buckets;
+        public List<double> Buckets { get; set; }
 
         // Count the total # of txs confirmed within Y blocks in each bucket.
         // Track the historical moving average of theses totals over blocks.
 
         /// <summary>Confirmation average. confAvg[Y][X].</summary>
-        private List<List<double>> confAvg;
+        public List<List<double>> ConfAvg { get; set; }
 
         /// <summary>Current block confirmations. curBlockConf[Y][X].</summary>
-        private List<List<int>> curBlockConf;
+        public List<List<int>> CurBlockConf { get; set; }
 
         /// <summary>Current block transaction count.</summary>
-        private List<int> curBlockTxCt;
+        public List<int> CurBlockTxCt { get; set; }
 
         /// <summary>Current block fee rate.</summary>
-        private List<double> curBlockVal;
+        public List<double> CurBlockVal { get; set; }
 
         // Combine the conf counts with tx counts to calculate the confirmation % for each Y,X
         // Combine the total value with the tx counts to calculate the avg feerate per bucket
 
         /// <summary>Decay value to use.</summary>
-        private double decay;
+        public double Decay { get; set; }
 
         /// <summary>Transactions still unconfirmed after MAX_CONFIRMS for each bucket</summary>
-        private List<int> oldUnconfTxs;
+        public List<int> OldUnconfTxs { get; set; }
 
         /// <summary>
         /// Historical moving average of transaction counts.
@@ -62,7 +65,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// Count the total # of txs in each bucket.
         /// Track the historical moving average of this total over blocks
         /// </remarks>
-        private List<double> txCtAvg;
+        public List<double> TxCtAvg { get; set; }
 
         /// <summary>
         /// Mempool counts of outstanding transactions.
@@ -72,7 +75,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// that are unconfirmed for each possible confirmation value Y
         /// unconfTxs[Y][X]
         /// </remarks>
-        private List<List<int>> unconfTxs;
+        public List<List<int>> UnconfTxs { get; set; }
+
+        public TxConfirmStats()
+        {
+
+        }
 
         /// <summary>
         /// Constructs an instance of the transaction confirmation stats object.
@@ -92,31 +100,31 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// <param name="decay">How much to decay the historical moving average per block.</param>
         public void Initialize(List<double> defaultBuckets, int maxConfirms, double decay)
         {
-            this.buckets = new List<double>();
-            this.bucketMap = new Dictionary<double, int>();
+            this.Buckets = new List<double>();
+            this.BucketMap = new Dictionary<double, int>();
 
-            this.decay = decay;
+            this.Decay = decay;
             for (int i = 0; i < defaultBuckets.Count; i++)
             {
-                this.buckets.Add(defaultBuckets[i]);
-                this.bucketMap[defaultBuckets[i]] = i;
+                this.Buckets.Add(defaultBuckets[i]);
+                this.BucketMap[defaultBuckets[i]] = i;
             }
-            this.confAvg = new List<List<double>>();
-            this.curBlockConf = new List<List<int>>();
-            this.unconfTxs = new List<List<int>>();
+            this.ConfAvg = new List<List<double>>();
+            this.CurBlockConf = new List<List<int>>();
+            this.UnconfTxs = new List<List<int>>();
 
             for (int i = 0; i < maxConfirms; i++)
             {
-                this.confAvg.Insert(i, Enumerable.Repeat(default(double), this.buckets.Count).ToList());
-                this.curBlockConf.Insert(i, Enumerable.Repeat(default(int), this.buckets.Count).ToList());
-                this.unconfTxs.Insert(i, Enumerable.Repeat(default(int), this.buckets.Count).ToList());
+                this.ConfAvg.Insert(i, Enumerable.Repeat(default(double), this.Buckets.Count).ToList());
+                this.CurBlockConf.Insert(i, Enumerable.Repeat(default(int), this.Buckets.Count).ToList());
+                this.UnconfTxs.Insert(i, Enumerable.Repeat(default(int), this.Buckets.Count).ToList());
             }
 
-            this.oldUnconfTxs = new List<int>(Enumerable.Repeat(default(int), this.buckets.Count));
-            this.curBlockTxCt = new List<int>(Enumerable.Repeat(default(int), this.buckets.Count));
-            this.txCtAvg = new List<double>(Enumerable.Repeat(default(double), this.buckets.Count));
-            this.curBlockVal = new List<double>(Enumerable.Repeat(default(double), this.buckets.Count));
-            this.avg = new List<double>(Enumerable.Repeat(default(double), this.buckets.Count));
+            this.OldUnconfTxs = new List<int>(Enumerable.Repeat(default(int), this.Buckets.Count));
+            this.CurBlockTxCt = new List<int>(Enumerable.Repeat(default(int), this.Buckets.Count));
+            this.TxCtAvg = new List<double>(Enumerable.Repeat(default(double), this.Buckets.Count));
+            this.CurBlockVal = new List<double>(Enumerable.Repeat(default(double), this.Buckets.Count));
+            this.Avg = new List<double>(Enumerable.Repeat(default(double), this.Buckets.Count));
         }
 
         /// <summary>
@@ -125,14 +133,14 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// <param name="nBlockHeight">Block height.</param>
         public void ClearCurrent(int nBlockHeight)
         {
-            for (var j = 0; j < this.buckets.Count; j++)
+            for (var j = 0; j < this.Buckets.Count; j++)
             {
-                this.oldUnconfTxs[j] += this.unconfTxs[nBlockHeight % this.unconfTxs.Count][j];
-                this.unconfTxs[nBlockHeight % this.unconfTxs.Count][j] = 0;
-                for (int i = 0; i < this.curBlockConf.Count; i++)
-                    this.curBlockConf[i][j] = 0;
-                this.curBlockTxCt[j] = 0;
-                this.curBlockVal[j] = 0;
+                this.OldUnconfTxs[j] += this.UnconfTxs[nBlockHeight % this.UnconfTxs.Count][j];
+                this.UnconfTxs[nBlockHeight % this.UnconfTxs.Count][j] = 0;
+                for (int i = 0; i < this.CurBlockConf.Count; i++)
+                    this.CurBlockConf[i][j] = 0;
+                this.CurBlockTxCt[j] = 0;
+                this.CurBlockVal[j] = 0;
             }
         }
 
@@ -146,11 +154,11 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             // blocksToConfirm is 1-based
             if (blocksToConfirm < 1)
                 return;
-            int bucketindex = this.bucketMap.FirstOrDefault(k => k.Key > val).Value;
-            for (int i = blocksToConfirm; i <= this.curBlockConf.Count; i++)
-                this.curBlockConf[i - 1][bucketindex]++;
-            this.curBlockTxCt[bucketindex]++;
-            this.curBlockVal[bucketindex] += val;
+            int bucketindex = this.BucketMap.FirstOrDefault(k => k.Key > val).Value;
+            for (int i = blocksToConfirm; i <= this.CurBlockConf.Count; i++)
+                this.CurBlockConf[i - 1][bucketindex]++;
+            this.CurBlockTxCt[bucketindex]++;
+            this.CurBlockVal[bucketindex] += val;
         }
 
         /// <summary>
@@ -161,9 +169,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// <returns>The feerate of the transaction.</returns>
         public int NewTx(int nBlockHeight, double val)
         {
-            int bucketindex = this.bucketMap.FirstOrDefault(k => k.Key > val).Value;
-            int blockIndex = nBlockHeight % this.unconfTxs.Count;
-            this.unconfTxs[blockIndex][bucketindex]++;
+            int bucketindex = this.BucketMap.FirstOrDefault(k => k.Key > val).Value;
+            int blockIndex = nBlockHeight % this.UnconfTxs.Count;
+            this.UnconfTxs[blockIndex][bucketindex]++;
             return bucketindex;
         }
 
@@ -185,19 +193,19 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 return; //This can't happen because we call this with our best seen height, no entries can have higher
             }
 
-            if (blocksAgo >= this.unconfTxs.Count)
+            if (blocksAgo >= this.UnconfTxs.Count)
             {
-                if (this.oldUnconfTxs[bucketIndex] > 0)
-                    this.oldUnconfTxs[bucketIndex]--;
+                if (this.OldUnconfTxs[bucketIndex] > 0)
+                    this.OldUnconfTxs[bucketIndex]--;
                 else
                     this.logger.LogInformation(
                         $"Blockpolicy error, mempool tx removed from >25 blocks,bucketIndex={bucketIndex} already");
             }
             else
             {
-                int blockIndex = entryHeight % this.unconfTxs.Count;
-                if (this.unconfTxs[blockIndex][bucketIndex] > 0)
-                    this.unconfTxs[blockIndex][bucketIndex]--;
+                int blockIndex = entryHeight % this.UnconfTxs.Count;
+                if (this.UnconfTxs[blockIndex][bucketIndex] > 0)
+                    this.UnconfTxs[blockIndex][bucketIndex]--;
                 else
                     this.logger.LogInformation(
                         $"Blockpolicy error, mempool tx removed from blockIndex={blockIndex},bucketIndex={bucketIndex} already");
@@ -210,12 +218,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// </summary>
         public void UpdateMovingAverages()
         {
-            for (var j = 0; j < this.buckets.Count; j++)
+            for (var j = 0; j < this.Buckets.Count; j++)
             {
-                for (var i = 0; i < this.confAvg.Count; i++)
-                    this.confAvg[i][j] = this.confAvg[i][j] * this.decay + this.curBlockConf[i][j];
-                this.avg[j] = this.avg[j] * this.decay + this.curBlockVal[j];
-                this.txCtAvg[j] = this.txCtAvg[j] * this.decay + this.curBlockTxCt[j];
+                for (var i = 0; i < this.ConfAvg.Count; i++)
+                    this.ConfAvg[i][j] = this.ConfAvg[i][j] * this.Decay + this.CurBlockConf[i][j];
+                this.Avg[j] = this.Avg[j] * this.Decay + this.CurBlockVal[j];
+                this.TxCtAvg[j] = this.TxCtAvg[j] * this.Decay + this.CurBlockTxCt[j];
             }
         }
 
@@ -239,7 +247,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             double totalNum = 0; // Total number of tx's that were ever confirmed
             int extraNum = 0; // Number of tx's still in mempool for confTarget or longer
 
-            int maxbucketindex = this.buckets.Count - 1;
+            int maxbucketindex = this.Buckets.Count - 1;
 
             // requireGreater means we are looking for the lowest feerate such that all higher
             // values pass, so we start at maxbucketindex (highest feerate) and look at successively
@@ -259,22 +267,22 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             int bestFarBucket = startbucket;
 
             bool foundAnswer = false;
-            int bins = this.unconfTxs.Count;
+            int bins = this.UnconfTxs.Count;
 
             // Start counting from highest(default) or lowest feerate transactions
             for (int bucket = startbucket; bucket >= 0 && bucket <= maxbucketindex; bucket += step)
             {
                 curFarBucket = bucket;
-                nConf += this.confAvg[confTarget - 1][bucket];
-                totalNum += this.txCtAvg[bucket];
+                nConf += this.ConfAvg[confTarget - 1][bucket];
+                totalNum += this.TxCtAvg[bucket];
                 for (int confct = confTarget; confct < this.GetMaxConfirms(); confct++)
-                    extraNum += this.unconfTxs[(nBlockHeight - confct) % bins][bucket];
-                extraNum += this.oldUnconfTxs[bucket];
+                    extraNum += this.UnconfTxs[(nBlockHeight - confct) % bins][bucket];
+                extraNum += this.OldUnconfTxs[bucket];
                 // If we have enough transaction data points in this range of buckets,
                 // we can test for success
                 // (Only count the confirmed data points, so that each confirmation count
                 // will be looking at the same amount of data and same bucket breaks)
-                if (totalNum >= sufficientTxVal / (1 - this.decay))
+                if (totalNum >= sufficientTxVal / (1 - this.Decay))
                 {
                     double curPct = nConf / (totalNum + extraNum);
 
@@ -306,25 +314,25 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             int minBucket = bestNearBucket < bestFarBucket ? bestNearBucket : bestFarBucket;
             int maxBucket = bestNearBucket > bestFarBucket ? bestNearBucket : bestFarBucket;
             for (int j = minBucket; j <= maxBucket; j++)
-                txSum += this.txCtAvg[j];
+                txSum += this.TxCtAvg[j];
             if (foundAnswer && txSum != 0)
             {
                 txSum = txSum / 2;
                 for (int j = minBucket; j <= maxBucket; j++)
-                    if (this.txCtAvg[j] < txSum)
+                    if (this.TxCtAvg[j] < txSum)
                     {
-                        txSum -= this.txCtAvg[j];
+                        txSum -= this.TxCtAvg[j];
                     }
                     else
                     {
                         // we're in the right bucket
-                        median = this.avg[j] / this.txCtAvg[j];
+                        median = this.Avg[j] / this.TxCtAvg[j];
                         break;
                     }
             }
 
             this.logger.LogInformation(
-                $"{confTarget}: For conf success {(requireGreater ? $">" : $"<")} {successBreakPoint} need feerate {(requireGreater ? $">" : $"<")}: {median} from buckets {this.buckets[minBucket]} -{this.buckets[maxBucket]}  Cur Bucket stats {100 * nConf / (totalNum + extraNum)}  {nConf}/({totalNum}+{extraNum} mempool)");
+                $"{confTarget}: For conf success {(requireGreater ? $">" : $"<")} {successBreakPoint} need feerate {(requireGreater ? $">" : $"<")}: {median} from buckets {this.Buckets[minBucket]} -{this.Buckets[maxBucket]}  Cur Bucket stats {100 * nConf / (totalNum + extraNum)}  {nConf}/({totalNum}+{extraNum} mempool)");
 
             return median;
         }
@@ -335,24 +343,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// <returns>The max number of confirms.</returns>
         public int GetMaxConfirms()
         {
-            return this.confAvg.Count;
+            return this.ConfAvg.Count;
         }
 
-        /// <summary>
-        /// Write state of estimation data to a file.
-        /// </summary>
-        /// <param name="stream">Stream to write to.</param>
-        public void Write(BitcoinStream stream)
+        public void ResetLogger(ILogger logger)
         {
-        }
-
-        /// <summary>
-        /// Read saved state of estimation data from a file and replace all internal data structures and
-        /// variables with this state.
-        /// </summary>
-        /// <param name="filein">Stream to read from.</param>
-        public void Read(Stream filein)
-        {
+            this.logger = logger;
         }
     }
 }

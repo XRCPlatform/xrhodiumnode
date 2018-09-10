@@ -30,6 +30,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using NBitcoin.RPC;
 using BRhodium.Node;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {
@@ -396,11 +397,33 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
-                 
+
                 var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
                 return json;
             }
-           
+
+        }
+
+        /// <summary>
+        /// Basic fee estimation.
+        /// </summary>
+        [ActionName("estimatefee")]
+        [ActionDescription("Basic fee estimation. Fee per KB needed for transaction to begin at nBlock blocks.")]
+        public IActionResult EstimateFee(string nblocks)
+        {
+            var estimation = txMempool.EstimateFee(Int32.Parse(nblocks));
+            var json = this.Json(ResultHelper.BuildResultResponse(estimation.FeePerK));
+            return json;
+        }
+
+        /// <summary>
+        /// Utility RPC function to see the fee estimate data structures. Non-standard RPC function.
+        /// </summary>
+        [ActionName("dumpfeestats")]
+        [ActionDescription("Dump all current fee stats.")]
+        public IActionResult DumpFeeStats()
+        {
+            return this.Json(ResultHelper.BuildResultResponse(txMempool.MinerPolicyEstimator.FeeStats));
         }
 
         /// <summary>
@@ -412,7 +435,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="height">The height.</param>
         /// <returns>Hashes per second estimated</returns>
         [ActionName("getnetworkhashps")]
-        [ActionDescription("")] 
+        [ActionDescription("")]
         public double GetNetworkHashPS(int nblocks = 120, int height = -1)
         {
             return GetNetworkHash(nblocks, height);
@@ -484,7 +507,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 this.txMempool.PrioritiseTransaction(hash, satoshi);
             }
 
-            var json = this.Json(ResultHelper.BuildResultResponse(true)); 
+            var json = this.Json(ResultHelper.BuildResultResponse(true));
             return json;
         }
 

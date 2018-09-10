@@ -105,6 +105,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             this.connectionManager.Parameters.TemplateBehaviors.Add(this.mempoolBehavior);
             this.signals.SubscribeForBlocks(this.mempoolSignaled);
             this.mempoolSignaled.Start();
+
+
+            this.mempoolManager.LoadFeeStats();
         }
 
         /// <summary>
@@ -131,6 +134,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             if (this.mempoolManager != null)
             {
+                this.mempoolManager.SaveFeeStats();
                 this.mempoolLogger.LogInformation("Saving Memory Pool...");
 
                 MemPoolSaveResult result = this.mempoolManager.SavePool();
