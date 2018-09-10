@@ -2,6 +2,7 @@
 using NBitcoin;
 using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 using BRhodium.Bitcoin.Features.MemoryPool.Fee;
+using static BRhodium.Bitcoin.Features.MemoryPool.TxMempool;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
 {
@@ -133,8 +134,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// </summary>
         /// <param name="nBlocks">The confirmation target blocks.</param>
         /// <param name="answerFoundAtBlocks">The block where the fee was found.</param>
+        /// <param name="requireGreater">Return the lowest feerate such that all higher values pass minSuccess OR return the highest feerate such that all lower values fail minSuccess.</param>
         /// <returns>The fee rate estimate.</returns>
-        FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks);
+        FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks, bool requireGreater = true);
 
         /// <summary>
         /// Estimates the smart priority using <see cref="MinerPolicyEstimator"/>.
@@ -166,6 +168,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         Transaction Get(uint256 hash);
 
         /// <summary>
+        /// Gets the MemPoolEntry from the memory pool based upon the transaction hash.
+        /// </summary>
+        /// <param name="hash">Transaction hash.</param>
+        /// <returns>The transaction.</returns>
+        TxMempoolEntry GetEntry(uint256 hash);
+
+        /// <summary>
         /// The minimum fee to get into the mempool, which may itself not be enough for larger-sized transactions.
         /// </summary>
         /// <param name="sizelimit">Size limit of the memory pool in bytes.</param>
@@ -176,6 +185,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// would otherwise be half of this, it is set to 0 instead.
         /// </remarks>
         FeeRate GetMinFee(long sizelimit);
+
+        /// <summary>
+        /// Get parents of entry
+        /// </summary>
+        /// <param name="entry">Parents for entry</param>
+        /// <returns></returns>
+        SetEntries GetMemPoolParents(TxMempoolEntry entry);
 
         /// <summary>
         /// Get number of transactions that have been updated.

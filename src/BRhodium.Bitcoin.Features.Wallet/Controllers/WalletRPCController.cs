@@ -24,6 +24,8 @@ using BRhodium.Bitcoin.Features.Wallet.Helpers;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Node.Connection;
 using BRhodium.Node;
+using System.Threading.Tasks;
+using BRhodium.Node.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -569,48 +571,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sends the raw transaction.
-        /// </summary>
-        /// <param name="hexString">The hexadecimal string.</param>
-        /// <returns>Return HEX rpc format</returns>
-        /// <exception cref="WalletException">Can't send transaction: sending transaction requires at least on connection.</exception>
-        [ActionName("sendrawtransaction")]
-        [ActionDescription("Sends a raw transaction.")]
-        public IActionResult SendRawTransaction(string hexString)
-        {
-            Guard.NotEmpty(hexString, "hexstring");
-
-            if (!this.connectionManager.ConnectedPeers.Any())
-            {
-                throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
-            }
-
-            try
-            {
-                var transaction = Transaction.Load(hexString, this.Network);
-                var controller = this.FullNode.NodeService<WalletController>();
-
-                var transactionRequest = new SendTransactionRequest(transaction.ToHex());
-
-                this.broadcasterManager.BroadcastTransactionAsync(transaction).GetAwaiter().GetResult();
-                TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
-
-                if (!string.IsNullOrEmpty(entry?.ErrorMessage))
-                {
-                    this.logger.LogError("Exception occurred: {0}", entry.ErrorMessage);
-                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, entry.ErrorMessage, "Transaction Exception");
-                }
-
-                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
         /// Sendmanies the specified hd acccount name.
         /// </summary>
         /// <param name="hdAcccountName">Name of the hd acccount.</param>
@@ -711,7 +671,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
 
-                var transactionResponse = new TransactionModel();
+                var transactionResponse = new Consensus.Models.TransactionModel();
                 var transactionHash = currentTransaction.GetHash();
                 transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
                 transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
@@ -909,39 +869,5 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
-
-        /// <summary>
-        /// The createrawtransaction RPC creates an unsigned serialized transaction that spends a previous output to a new output with a P2PKH or P2SH address. The transaction is not stored in the wallet or transmitted to the network.
-        /// </summary>
-        /// <param name="request">The transaction parameters.</param>
-        /// <returns>All the details of the transaction, including the hex used to execute it.</returns>
-        [ActionName("createrawtransaction")]
-        [ActionDescription("Create a transaction spending the given inputs and creating new outputs. Outputs can be addresses or data. Returns hex - encoded raw transaction.")]
-        public IActionResult CreateRawTransaction(string inputs, string outputs)
-        {
-            try
-            {
-                TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
-                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
-
-                Transaction transaction = new Transaction();
-                foreach (var input in txIns)
-                {
-                    transaction.AddInput(input);
-                }
-                foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
-                {
-                    var destination = BitcoinAddress.Create(entry.Key, this.network).ScriptPubKey;
-                    transaction.AddOutput(new TxOut(new Money(entry.Value,MoneyUnit.MilliBTR), destination));
-                }
-                return this.Json(transaction);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
     }
 }

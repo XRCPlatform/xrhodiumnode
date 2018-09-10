@@ -14,6 +14,7 @@ using BRhodium.Bitcoin.Features.MemoryPool.Fee;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 using BRhodium.Node.Interfaces;
 using BRhodium.Node.Signals;
+using BRhodium.Bitcoin.Features.MemoryPool.Controller;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.MemoryPool.Tests")]
 
@@ -187,6 +188,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
                         services.AddSingleton<IMempoolPersistence, MempoolPersistence>();
                         services.AddSingleton<MempoolController>();
                         services.AddSingleton<MempoolSettings>(new MempoolSettings(setup));
+                        services.AddSingleton<MemPoolRPCController>();
                     });
             });
 
