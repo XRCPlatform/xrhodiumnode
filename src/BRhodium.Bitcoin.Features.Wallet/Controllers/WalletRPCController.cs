@@ -26,6 +26,9 @@ using BRhodium.Node.Connection;
 using BRhodium.Node;
 using System.Threading.Tasks;
 using BRhodium.Node.Interfaces;
+using System.IO;
+using System.Text;
+using System.Reflection;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -941,14 +944,33 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// The destination directory or file
         /// </summary>
+        /// <param name="walletName">Wallet Name to backup</param>
         /// <param name="destination">The destination file</param>
-        /// <returns>Wallet File</returns>
+        /// <returns>Return true if it is done</returns>
         [ActionName("backupwallet")]
         [ActionDescription("The destination directory or file")]
-        public IActionResult BackupWallet(string destination)
+        public IActionResult BackupWallet(string walletName, string destination)
         {
             try
             {
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletNamexid");
+                }
+
+                if (string.IsNullOrEmpty(destination))
+                {
+                    throw new ArgumentNullException("destination");
+                }
+
+                var fileStorage = new FileStorage<Wallet>(destination);
+                var wallet = this.walletManager.GetWalletByName(walletName);
+
+                lock (this.walletManager.GetLock())
+                {
+                    fileStorage.SaveToFile(wallet, $"{wallet.Name}.{this.walletManager.GetWalletFileExtension()}");
+                }
+
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -973,13 +995,56 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).
+        /// </summary>
+        /// <param name="walletName">Wallet Name to backup</param>
+        /// <param name="filename">The filename with path relative to config folder</param>
+        /// <returns>The filename with full absolute path</returns>
         [ActionName("dumpwallet")]
-        [ActionDescription("")]
-        public IActionResult DumpWallet()
+        [ActionDescription("Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).")]
+        public IActionResult DumpWallet(string walletName, string filename)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletNamexid");
+                }
+
+                if (string.IsNullOrEmpty(filename))
+                {
+                    throw new ArgumentNullException("filename");
+                }
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var fullFileName = ((WalletManager)this.walletManager).FileStorage.FolderPath + filename;
+
+                Directory.CreateDirectory(fullFileName);
+
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var chainedHeader = chainRepository.GetBlock(chainRepository.Height);
+
+                var fileContent = new StringBuilder();
+                fileContent.AppendLine("# Wallet dump created by BitCoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
+                fileContent.AppendLine("# * Created on " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK"));
+                fileContent.AppendLine("# * Best block at time of backup was " + chainRepository.Height + " ," + chainedHeader.HashBlock);
+                fileContent.AppendLine("# * mined on" + Utils.UnixTimeToDateTime(chainedHeader.Header.Time).DateTime.ToString("yyyy-MM-ddTHH:mm:ssK"));
+                fileContent.AppendLine(string.Empty);
+
+                var addresses = wallet.GetAllAddressesByCoinType((CoinType)this.network.Consensus.CoinType);
+
+                foreach (var item in addresses)
+                {
+                    fileContent.AppendLine("# addr=" + item.Address + " " + item.HdPath);
+                }
+
+                fileContent.AppendLine("# End of dump");
+
+                System.IO.File.WriteAllText(fullFileName, JsonConvert.SerializeObject(wallet, Formatting.Indented));
+
+                var fileInfo = new FileInfo(filename);
+                return this.Json(ResultHelper.BuildResultResponse(fileInfo.FullName));
             }
             catch (Exception e)
             {

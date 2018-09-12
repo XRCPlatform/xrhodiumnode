@@ -161,6 +161,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         Wallet GetWallet(string walletName);
 
         /// <summary>
+        /// Gets the lock.
+        /// </summary>
+        /// <returns>Locked object</returns>
+        object GetLock();
+
+        /// <summary>
         /// Gets a list of accounts.
         /// </summary>
         /// <param name="walletName">The name of the wallet to look into.</param>
