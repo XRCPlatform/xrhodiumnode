@@ -29,6 +29,7 @@ using BRhodium.Node.Interfaces;
 using System.IO;
 using System.Text;
 using System.Reflection;
+using BRhodium.Bitcoin.Features.RPC.Models;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -58,6 +59,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         public static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
         public static ConcurrentDictionary<string, HdAddress> hdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
         private static string walletPassphrase = null;
+        private static bool inRescan = false;
         private static DateTime walletPassphraseExpiration = DateTime.MinValue;
 
         public WalletRPCController(
@@ -783,6 +785,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
+                inRescan = false;
+
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -793,22 +797,105 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Add a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup. Each key is a Bitcoin address or hex - encoded public key. This functionality is only intended for use with non-watchonly addresses. See `importaddress` for watchonly p2sh address support.
+        /// Rescan the local blockchain for wallet related transactions.
         /// </summary>
-        /// <param name="nrequired">The number of required signatures out of the n keys or addresses.</param>
-        /// <param name="keys">A json array of bitcoin addresses or hex-encoded public keys</param>
-        /// <param name="address_type">The address type to use. Options are "legacy", "p2sh-segwit", and "bech32". Default is set by -addresstype.</param>
-        /// <returns>True/False</returns>
-        [ActionName("addmultisigaddress")]
-        [ActionDescription("Add a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup. Each key is a Bitcoin address or hex - encoded public key. This functionality is only intended for use with non-watchonly addresses. See `importaddress` for watchonly p2sh address support.")] 
-        public IActionResult AddMultisigAddress(int nrequired, string[] keys, string address_type)
+        /// <param name="startHeight">(int, optional) The start height.</param>
+        /// <param name="stopHeight">(int, optional) The last block height that should be scanned</param>
+        /// <returns>Start height and stopped height</returns>
+        [ActionName("rescanblockchain")]
+        [ActionDescription("Rescan the local blockchain for wallet related transactions.")]
+        public IActionResult RescanBlockChain(int? startHeight, int? stopHeight)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+                // If there is no wallet yet, raise error
+                if (!this.walletManager.Wallets.Any())
+                {
+                    throw new RPCServerException(RPCErrorCode.RPC_WALLET_ERROR, "No wallets");
+                }
+
+                if (!startHeight.HasValue) startHeight = 0;
+                if (!stopHeight.HasValue) stopHeight = chainRepository.Height;
+
+                if (startHeight > stopHeight)
+                {
+                    throw new ArgumentNullException("startHeight", "Start height cant be higher then stop height");
+                }
+                if (stopHeight <= 0)
+                {
+                    throw new ArgumentNullException("stopHeight");
+                }
+                if (startHeight > chainRepository.Height)
+                {
+                    throw new ArgumentNullException("startHeight", "Chain is shorter");
+                }
+                if (stopHeight > chainRepository.Height)
+                {
+                    throw new ArgumentNullException("stopHeight", "Chain is shorter");
+                }
+
+                var result = new RescanBlockChainModel();
+                result.StartHeight = startHeight.Value;
+                inRescan = true;
+
+                Console.WriteLine(string.Format("Start rescan at {0}", result.StartHeight));
+
+                lock (this.walletManager.GetLock())
+                {
+                    for (int i = startHeight.Value; i <= stopHeight; i++)
+                    {
+                        if (!inRescan) break;
+
+                        Console.WriteLine(string.Format("Scanning {0}", i));
+
+                        var chainedHeader = chainRepository.GetBlock(i);
+                        var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                        var walletUpdated = false;
+
+                        foreach (Transaction transaction in block.Transactions)
+                        {
+                            bool trxFound = this.walletManager.ProcessTransaction(transaction, chainedHeader.Height, block, true);
+                            if (trxFound)
+                            {
+                                walletUpdated = true;
+                            }
+                        }
+
+                        // Update the wallets with the last processed block height.
+                        // It's important that updating the height happens after the block processing is complete,
+                        // as if the node is stopped, on re-opening it will start updating from the previous height.
+                        foreach (var wallet in this.walletManager.Wallets)
+                        {
+                            foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType))
+                            {
+                                if (accountRoot.LastBlockSyncedHeight < i)
+                                {
+                                    accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
+                                    accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
+                                }
+                            }
+                        }
+
+                        if (walletUpdated)
+                        {
+                            this.walletManager.SaveWallets();
+                        }
+
+                        result.StopHeight = i;
+                    }
+                }
+
+                Console.WriteLine(string.Format("End rescan at {0}", result.StopHeight));
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
+                inRescan = false;
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
@@ -817,8 +904,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// The destination directory or file
         /// </summary>
-        /// <param name="walletName">Wallet Name to backup</param>
-        /// <param name="destination">The destination file</param>
+        /// <param name="walletName">(string) Wallet Name to backup</param>
+        /// <param name="destination">(string) The destination file</param>
         /// <returns>Return true if it is done</returns>
         [ActionName("backupwallet")]
         [ActionDescription("The destination directory or file")]
@@ -841,7 +928,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 lock (this.walletManager.GetLock())
                 {
-                    fileStorage.SaveToFile(wallet, $"{wallet.Name}.{this.walletManager.GetWalletFileExtension()}");
+                    fileStorage.SaveToFile(wallet, $"{wallet.Name}.{this.walletManager.GetWalletFileExtension()}.bak");
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(true));
@@ -856,8 +943,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).
         /// </summary>
-        /// <param name="walletName">Wallet Name to backup</param>
-        /// <param name="filename">The filename with path relative to config folder</param>
+        /// <param name="walletName">(string) Wallet Name to backup</param>
+        /// <param name="filename">(string) The filename with path relative to config folder</param>
         /// <returns>The filename with full absolute path</returns>
         [ActionName("dumpwallet")]
         [ActionDescription("Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).")]
@@ -1076,21 +1163,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        [ActionName("importprunedfunds")]
-        [ActionDescription("")]
-        public IActionResult ImportPrunedFunds()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         [ActionName("importpubkey")]
         [ActionDescription("")]
         public IActionResult ImportPubKey()
@@ -1244,36 +1316,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionName("listunspent")]
         [ActionDescription("")]
         public IActionResult ListUnspent()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("removeprunedfunds")]
-        [ActionDescription("")]
-        public IActionResult RemovePrunedFunds()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("rescanblockchain")]
-        [ActionDescription("")]
-        public IActionResult RescanBlockChain()
         {
             try
             {

@@ -19,6 +19,7 @@ using System.Net;
 using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
 using BRhodium.Node;
+using System.Reflection;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -61,9 +62,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         /// <summary>
-        /// Gets the information.
+        /// Returns an object containing various state info regarding P2P networking.
         /// </summary>
-        /// <returns>GetInfoModel rpc format</returns>
+        /// <returns>GetInfoModel RPC format</returns>
         [ActionName("getinfo")]
         [ActionDescription("Gets general information about the full node.")]
         public IActionResult GetInfo()
@@ -83,8 +84,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
                     Errors = string.Empty,
 
-                    //TODO: Wallet related infos: walletversion, balance, keypNetwoololdest, keypoolsize, unlocked_until, paytxfee
-                    WalletVersion = null,
+                    //TODO: Wallet related infos: balance, keypNetwoololdest, keypoolsize, unlocked_until, paytxfee
+                    WalletVersion = Assembly.GetEntryAssembly().GetName().Version.ToUint(),
                     Balance = null,
                     KeypoolOldest = null,
                     KeypoolSize = null,
