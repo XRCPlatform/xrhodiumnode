@@ -637,106 +637,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Gets the transaction.
-        /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>TransactionDetail rpc format</returns>
-        [ActionName("gettransaction")]
-        [ActionDescription("Returns a wallet (only local transactions) transaction detail.")]
-        public IActionResult GetTransaction(string[] args)
-        {
-            try
-            {
-                var reqTransactionId = uint256.Parse(args[0]);
-                if (reqTransactionId == null)
-                {
-                    var response = new Node.Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Invalid or non-wallet transaction id";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
-                }
-               
-                Block block = null;
-                ChainedHeader chainedHeader = null;
-                var blockHash = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
-                if (blockHash != null)
-                {
-                    block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
-                    chainedHeader = this.ConsensusLoop.Chain.GetBlock(blockHash);
-                }
-
-                var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
-                if (currentTransaction == null)
-                {
-                    var response = new Node.Utilities.JsonContract.ErrorModel();
-                    response.Code = "-5";
-                    response.Message = "Invalid or non-wallet transaction id";
-                    return this.Json(ResultHelper.BuildResultResponse(response));
-                }
-
-                var transactionResponse = new Consensus.Models.TransactionModel();
-                var transactionHash = currentTransaction.GetHash();
-                transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
-                transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
-                if (block != null && chainedHeader != null)
-                {
-                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; // ExtractBlockHeight(block.Transactions.First().Inputs.First().ScriptSig);
-                    transactionResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
-                }
-
-                transactionResponse.BlockHash = string.Format("{0:x8}", blockHash);
-
-
-                transactionResponse.Time = currentTransaction.Time;
-                transactionResponse.TimeReceived = currentTransaction.Time;
-                //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
-
-                transactionResponse.Details = new List<TransactionDetail>();
-                foreach (var item in currentTransaction.Outputs)
-                {
-                    var detail = new TransactionDetail();
-                    var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
-
-                    if (address == null)
-                    {
-                        var response = new Node.Utilities.JsonContract.ErrorModel();
-                        response.Code = "-5";
-                        response.Message = "Invalid or non-wallet transaction id";
-                        return this.Json(ResultHelper.BuildResultResponse(response));
-                    }
-
-                    detail.Account = address.Address;
-                    detail.Address = address.Address;
-
-                    if (transactionResponse.Confirmations < 10)
-                    {
-                        detail.Category = "receive";
-                    }
-                    else
-                    {
-                        detail.Category = "generate";
-                    }
-
-
-                    detail.Amount = (double)item.Value.Satoshi / 100000000;
-                    transactionResponse.Details.Add(detail);
-                }
-
-
-                transactionResponse.Hex = currentTransaction.ToHex();
-
-
-                var json = ResultHelper.BuildResultResponse(transactionResponse);
-                return this.Json(json);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
         /// Retrieves the history of a wallet.
         /// </summary>
         /// <param name="walletName">walletName</param>
@@ -874,33 +774,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Mark in-wallet transaction txid as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their
-        /// inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are
-        /// not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.
-        /// </summary>
-        /// <param name="txid">The transaction id</param>
-        /// <returns>True/False</returns>
-        [ActionName("abandontransaction")]
-        [ActionDescription("Mark in-wallet transaction <txid> as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.")]
-        public IActionResult AbandonTransaction(string txid)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(txid))
-                {
-                    throw new ArgumentNullException("txid");
-                }
-
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
         /// Stops current wallet rescan triggered by an RPC call, e.g. by an importprivkey call.
         /// </summary>
         /// <returns>True/False</returns>
@@ -980,21 +853,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        [ActionName("bumpfee")]
-        [ActionDescription("")]
-        public IActionResult BumpFee()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         /// <summary>
         /// Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).
         /// </summary>
@@ -1045,21 +903,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var fileInfo = new FileInfo(filename);
                 return this.Json(ResultHelper.BuildResultResponse(fileInfo.FullName));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("encryptwallet")]
-        [ActionDescription("")]
-        public IActionResult EncryptWallet()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
             {
@@ -1446,36 +1289,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionName("sendfrom")]
         [ActionDescription("")]
         public IActionResult SendFrom()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("settxfee")]
-        [ActionDescription("")]
-        public IActionResult SetTxFee()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("walletpassphrasechange")]
-        [ActionDescription("")]
-        public IActionResult WalletPassphraseChange()
         {
             try
             {

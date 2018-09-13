@@ -33,6 +33,11 @@ namespace BRhodium.Bitcoin.Features.LightWallet
         public FeeRate FallbackTxFeeRate { get; set; }
 
         /// <summary>
+        /// Transaction fee set by the user
+        /// </summary>
+        private FeeRate payTxFee;
+
+        /// <summary>
         /// Constructor for the light wallet fixed fee policy.
         /// </summary>
         /// <param name="loggerFactory">The factory for building logger instances.</param>
@@ -67,6 +72,12 @@ namespace BRhodium.Bitcoin.Features.LightWallet
         public Money GetRequiredFee(int txBytes)
         {
             return this.TxFeeRate.GetFee(txBytes);
+        }
+
+        /// <inheritdoc />
+        public void SetPayTxFee(Money feePerK)
+        {
+            this.payTxFee = new FeeRate(feePerK);
         }
     }
 }

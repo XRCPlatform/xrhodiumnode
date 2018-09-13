@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
+using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
@@ -36,9 +38,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         public IBroadcasterManager broadcasterManager;
         private readonly IPooledTransaction pooledTransaction;
+        public IWalletManager walletManager { get; set; }
+        private readonly IBlockRepository blockRepository;
+        public IConsensusLoop ConsensusLoop { get; private set; }
+        public IWalletFeePolicy WalletFeePolicy { get; private set; }
 
         public TransactionRPCController(
             ILoggerFactory loggerFactory,
+            IWalletManager walletManager,
+            IBlockRepository blockRepository,
+            IWalletFeePolicy walletFeePolicy,
             IFullNode fullNode,
             NodeSettings nodeSettings,
             Network network,
@@ -51,7 +60,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.broadcasterManager = broadcasterManager;
-
+            this.walletManager = walletManager;
+            this.blockRepository = blockRepository;
+            this.ConsensusLoop = consensusLoop;
+            this.WalletFeePolicy = walletFeePolicy;
             this.pooledTransaction = pooledTransaction;
         }
 
@@ -310,18 +322,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionDescription("Submits raw transaction (serialized, hex-encoded) to local node and network. Also see createrawtransaction and signrawtransaction calls.")]
         public IActionResult SendRawTransaction(string hex)
         {
-            if (string.IsNullOrEmpty(hex))
-            {
-                throw new ArgumentNullException("hex");
-            }
-
-            if (!this.ConnectionManager.ConnectedPeers.Any())
-            {
-                throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
-            }
-
             try
             {
+                if (string.IsNullOrEmpty(hex))
+                {
+                    throw new ArgumentNullException("hex");
+                }
+
+                if (!this.ConnectionManager.ConnectedPeers.Any())
+                {
+                    throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
+                }
+
                 var transaction = Transaction.Load(hex, this.Network);
                 var controller = this.FullNode.NodeService<WalletController>();
 
@@ -438,6 +450,177 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 block = this.Chain?.GetBlock(blockid);
 
             return block;
+        }
+
+        /// <summary>
+        /// Gets the transaction.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns>TransactionDetail rpc format</returns>
+        [ActionName("gettransaction")]
+        [ActionDescription("Returns a wallet (only local transactions) transaction detail.")]
+        public IActionResult GetTransaction(string[] args)
+        {
+            try
+            {
+                var reqTransactionId = uint256.Parse(args[0]);
+                if (reqTransactionId == null)
+                {
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
+                    response.Code = "-5";
+                    response.Message = "Invalid or non-wallet transaction id";
+                    return this.Json(ResultHelper.BuildResultResponse(response));
+                }
+
+                Block block = null;
+                ChainedHeader chainedHeader = null;
+                var blockHash = this.blockRepository.GetTrxBlockIdAsync(reqTransactionId).GetAwaiter().GetResult(); //this brings block hash for given transaction
+                if (blockHash != null)
+                {
+                    block = this.blockRepository.GetAsync(blockHash).GetAwaiter().GetResult();
+                    chainedHeader = this.ConsensusLoop.Chain.GetBlock(blockHash);
+                }
+
+                var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
+                if (currentTransaction == null)
+                {
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
+                    response.Code = "-5";
+                    response.Message = "Invalid or non-wallet transaction id";
+                    return this.Json(ResultHelper.BuildResultResponse(response));
+                }
+
+                var transactionResponse = new Consensus.Models.TransactionModel();
+                var transactionHash = currentTransaction.GetHash();
+                transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
+                transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
+                if (block != null && chainedHeader != null)
+                {
+                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; // ExtractBlockHeight(block.Transactions.First().Inputs.First().ScriptSig);
+                    transactionResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
+                }
+
+                transactionResponse.BlockHash = string.Format("{0:x8}", blockHash);
+
+
+                transactionResponse.Time = currentTransaction.Time;
+                transactionResponse.TimeReceived = currentTransaction.Time;
+                //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
+
+                transactionResponse.Details = new List<TransactionDetail>();
+                foreach (var item in currentTransaction.Outputs)
+                {
+                    var detail = new TransactionDetail();
+                    var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
+
+                    if (address == null)
+                    {
+                        var response = new Node.Utilities.JsonContract.ErrorModel();
+                        response.Code = "-5";
+                        response.Message = "Invalid or non-wallet transaction id";
+                        return this.Json(ResultHelper.BuildResultResponse(response));
+                    }
+
+                    detail.Account = address.Address;
+                    detail.Address = address.Address;
+
+                    if (transactionResponse.Confirmations < 10)
+                    {
+                        detail.Category = "receive";
+                    }
+                    else
+                    {
+                        detail.Category = "generate";
+                    }
+
+
+                    detail.Amount = (double)item.Value.Satoshi / 100000000;
+                    transactionResponse.Details.Add(detail);
+                }
+
+
+                transactionResponse.Hex = currentTransaction.ToHex();
+
+
+                var json = ResultHelper.BuildResultResponse(transactionResponse);
+                return this.Json(json);
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Mark in-wallet transaction txid as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their
+        /// inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are
+        /// not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.
+        /// </summary>
+        /// <param name="txid">The transaction id</param>
+        /// <returns>True/False</returns>
+        [ActionName("abandontransaction")]
+        [ActionDescription("Mark in-wallet transaction txid as abandoned This will mark this transaction and all its in-wallet descendants as abandoned which will allow for their inputs to be respent.It can be used to replace \"stuck\" or evicted transactions. It only works on transactions which are not included in a block and are not currently in the mempool. It has no effect on transactions which are already conflicted or abandoned.")]
+        public IActionResult AbandonTransaction(string txid)
+        {
+            try
+            {
+                var result = true;
+                if (string.IsNullOrEmpty(txid))
+                {
+                    throw new ArgumentNullException("txid");
+                }
+
+                var hashTxId = new uint256(txid);
+                var tx = this.broadcasterManager.GetTransaction(hashTxId);
+
+                if ((tx != null) && (tx.State == State.ToBroadcast || tx.State == State.CantBroadcast))
+                {
+                    result = this.broadcasterManager.RemoveTransaction(tx);
+                }
+                else
+                {
+                    result = false;
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.
+        /// </summary>
+        /// <param name="amount">The transaction fee in BTR/kB</param>
+        /// <returns>True or False</returns>
+        [ActionName("settxfee")]
+        [ActionDescription("Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.")]
+        public IActionResult SetTxFee(string amount)
+        {
+            try
+            {
+                var result = true;
+                if (string.IsNullOrEmpty(amount))
+                {
+                    throw new ArgumentNullException("amount");
+                }
+
+                decimal fee;
+                result = decimal.TryParse(amount, out fee);
+
+                if (result) this.WalletFeePolicy.SetPayTxFee(new Money(fee, MoneyUnit.BTR));
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
     }
 }
