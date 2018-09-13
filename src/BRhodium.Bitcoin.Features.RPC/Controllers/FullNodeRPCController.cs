@@ -20,6 +20,7 @@ using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
 using BRhodium.Node;
 using System.Reflection;
+using System.Net.NetworkInformation;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -62,7 +63,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         /// <summary>
-        /// Returns an object containing various state info regarding P2P networking.
+        /// (DEPRECATED) Returns an object containing various state info regarding P2P networking. Use getblockchaininfo or getnetworkinfo or getwalletinfo or getmininginfo.
         /// </summary>
         /// <returns>GetInfoModel RPC format</returns>
         [ActionName("getinfo")]
@@ -82,16 +83,80 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
                     Testnet = this.Network.IsTest(),
                     RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
-                    Errors = string.Empty,
-
-                    //TODO: Wallet related infos: balance, keypNetwoololdest, keypoolsize, unlocked_until, paytxfee
-                    WalletVersion = Assembly.GetEntryAssembly().GetName().Version.ToUint(),
-                    Balance = null,
-                    KeypoolOldest = null,
-                    KeypoolSize = null,
-                    UnlockedUntil = null,
-                    PayTxFee = null
+                    Errors = string.Empty
                 };
+
+                return this.Json(ResultHelper.BuildResultResponse(model));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns an object containing various state info regarding P2P networking.
+        /// </summary>
+        /// <returns></returns>
+        [ActionName("getnetworkinfo")]
+        [ActionDescription("Gets general information about the full node.")]
+        public IActionResult GetnetworkInfo()
+        {
+            try
+            {
+                var model = new GetNetworkInfoModel
+                {
+                    Version = this.FullNode?.Version?.ToUint() ?? 0,
+                    SubVersion = this.FullNode?.Version?.ToString() ?? string.Empty,
+                    ProtocolVersion = (uint)(this.Settings?.ProtocolVersion ?? NodeSettings.SupportedProtocolVersion),
+                    LocalServices = "000000000000040d",
+                    LocalRelay = true,
+                    TimeOffset = this.ConnectionManager?.ConnectedPeers?.GetMedianTimeOffset() ?? 0,
+                    Connections = this.ConnectionManager?.ConnectedPeers?.Count(),
+                    NetworkActive = this.ConnectionManager?.IsActive,
+                    Networks = new List<GetNetworkInfoNetworkModel>(),
+                    IncrementalFee = 0,
+                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
+                    LocalAddresses = new List<GetNetworkInfoAddressModel>(),
+                    Warning = string.Empty
+                };
+
+                var localEntry = Dns.GetHostEntry(Dns.GetHostName());
+                if (localEntry != null && localEntry.AddressList.Count() > 0)
+                {
+                    foreach (IPAddress adr in localEntry.AddressList)
+                    {
+                        if (adr != null && adr.IsIPv4() == true)
+                        {
+                            var address = new GetNetworkInfoAddressModel();
+                            address.Address = adr.ToString();
+                            address.Port = this.FullNode.Network.DefaultPort;
+                            model.LocalAddresses.Add(address);
+                        }
+                    }
+                }
+
+                var networkInterface = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (var adapter in networkInterface)
+                {
+                    var network = new GetNetworkInfoNetworkModel();
+
+                    if (adapter.Supports(NetworkInterfaceComponent.IPv4))
+                    {
+                        network.Name = "ipv4";
+                        network.Reachable = adapter.IsReceiveOnly ? false : true;
+                        model.Networks.Add(network);
+                    }
+                    if (adapter.Supports(NetworkInterfaceComponent.IPv6))
+                    {
+                        network.Name = "ipv6";
+                        network.Reachable = adapter.IsReceiveOnly ? false : true;
+                        model.Networks.Add(network);
+                    }
+
+                    model.Networks.Add(network);
+                }
 
                 return this.Json(ResultHelper.BuildResultResponse(model));
             }

@@ -216,7 +216,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// </summary>
         /// <returns>GetMiningInfo RPC format</returns>
         [ActionName("getmininginfo")]
-        [ActionDescription("")]
+        [ActionDescription("Returns a json object containing mining-related information.")]
         public IActionResult GetMiningInfo()
         {
             var miningInfo = new GetMiningInfo();
