@@ -58,15 +58,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         //wallet address mapping on the node
         public static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
         public static ConcurrentDictionary<string, HdAddress> hdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
-        private static string walletPassphrase = null;
+        private static ConcurrentDictionary<string, string> walletPassphrase = new ConcurrentDictionary<string, string>();
         private static bool inRescan = false;
-        private static DateTime walletPassphraseExpiration = DateTime.MinValue;
+        private static ConcurrentDictionary<string, DateTime> walletPassphraseExpiration = new ConcurrentDictionary<string, DateTime>();
+        private IWalletFeePolicy walletFeePolicy { get; set; }
+        private IWalletKeyPool walletKeyPool { get; set; }
 
         public WalletRPCController(
             IServiceProvider serviceProvider,
             IWalletManager walletManager,
             ILoggerFactory loggerFactory,
             IFullNode fullNode,
+            IWalletFeePolicy walletFeePolicy,
+            IWalletKeyPool walletKeyPool,
             IBlockRepository blockRepository,
             NodeSettings nodeSettings,
             Network network,
@@ -82,6 +86,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.broadcasterManager = broadcasterManager;
             this.connectionManager = connectionManager;
             this.ConsensusLoop = consensusLoop;
+            this.walletFeePolicy = walletFeePolicy;
+            this.walletKeyPool = walletKeyPool;
 
             this.loggerFactory = loggerFactory;
             this.nodeSettings = nodeSettings;
@@ -101,13 +107,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
         /// walletlock </p> 
         /// </summary>
-        /// <param name="addressFrom">Source address.</param>
-        /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in BTR</param>
-        /// <returns>The transaction id</returns>
+        /// <param name="addressFrom">(string) Source address.</param>
+        /// <param name="address">(string) Target address.</param>
+        /// <param name="amount">(decimal) The amount in BTR.</param>
+        /// <returns>(string) The transaction id.</returns>
         [ActionName("sendtoaddress")]
         [ActionDescription("Sends some amount to specified address.")]
-        public IActionResult SendToAddress(string addressFrom, string address, string amount)
+        public IActionResult SendToAddress(string addressFrom, string address, decimal amount)
         {
             try
             {
@@ -119,17 +125,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("address");
                 }
-                if (string.IsNullOrEmpty(amount))
+                if (amount <= 0)
                 {
                     throw new ArgumentNullException("amount");
-                }
-                if (walletPassphraseExpiration < DateTime.Now)
-                {
-                    walletPassphrase = null;
-                }
-                if (string.IsNullOrEmpty(walletPassphrase))
-                {
-                    throw new ArgumentNullException("passphrase");
                 }
 
                 //we need to find wallet
@@ -170,9 +168,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 string walletName = walletCombix.Split('/')[1];
                 var mywallet = this.walletManager.GetWallet(walletName);
 
+                var passphraseExpiration = walletPassphraseExpiration.TryGet(mywallet.Name);
+                string passphrase = null;
+                if (passphraseExpiration == null)
+                {
+                    throw new ArgumentNullException("passphrase");
+                }
+                else
+                {
+                    if (passphraseExpiration < DateTime.Now)
+                    {
+                        walletPassphrase.TryRemove(mywallet.Name, out passphrase);
+                        throw new ArgumentNullException("passphrase");
+                    }
+                    else
+                    {
+                        walletPassphrase.TryGetValue(mywallet.Name, out passphrase);
+                    }
+                }
+
                 //send money
-                var money = new Money(decimal.Parse(amount), MoneyUnit.BTR);
-                var transaction = SendMoney(walletAccount, walletName, address, walletPassphrase, money.Satoshi);
+                var money = new Money(amount, MoneyUnit.BTR);
+                var transaction = SendMoney(walletAccount, walletName, address, passphrase, money.Satoshi);
 
                 return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
             }
@@ -204,15 +221,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
         /// walletlock </p>
         /// </summary>
-        /// <param name="passphrase">The passphrase.</param>
-        /// <param name="timeout">The timeout in seconds. Limited to 1073741824 sec.</param>
-        /// <returns>Null or success</returns>
+        /// <param name="walletName">(string) The wallet name.</param>
+        /// <param name="passphrase">(string) The passphrase.</param>
+        /// <param name="timeout">(int) The timeout in seconds. Limited to 1073741824 sec.</param>
+        /// <returns>(bool) True or fail</returns>
         [ActionName("walletpassphrase")]
         [ActionDescription("Stores the wallet decryption key in memory for 'timeout' seconds.")]
-        public IActionResult WalletPassphrase(string passphrase, int timeout)
+        public IActionResult WalletPassphrase(string walletName, string passphrase, int timeout)
         {
             try
             {
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
                 if (string.IsNullOrEmpty(passphrase))
                 {
                     throw new ArgumentNullException("passphrase");
@@ -223,8 +245,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var dateExpiration = DateTime.Now.AddSeconds(timeout);
-                walletPassphrase = passphrase;
-                walletPassphraseExpiration = dateExpiration;
+                walletPassphrase.AddOrReplace(walletName, passphrase);
+                walletPassphraseExpiration.AddOrReplace(walletName, dateExpiration);
 
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
@@ -246,8 +268,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
         /// walletlock </p>
         /// </summary>
-        /// <param name="address">The address.</param>
-        /// <returns>Private key</returns>
+        /// <param name="address">(string) The address.</param>
+        /// <returns>(string) Private key.</returns>
         [ActionName("dumpprivkey")]
         [ActionDescription("Gets private key of given wallet address")]
         public IActionResult DumpPrivKey(string address)
@@ -257,14 +279,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 if (string.IsNullOrEmpty(address))
                 {
                     throw new ArgumentNullException("address");
-                }
-                if (walletPassphraseExpiration < DateTime.Now)
-                {
-                    walletPassphrase = null;
-                }
-                if (string.IsNullOrEmpty(walletPassphrase))
-                {
-                    throw new ArgumentNullException("passphrase");
                 }
 
                 //we need to find wallet
@@ -299,12 +313,31 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 string walletName = walletCombix.Split('/')[1];
                 var mywallet = this.walletManager.GetWallet(walletName);
 
+                var passphraseExpiration = walletPassphraseExpiration.TryGet(mywallet.Name);
+                string passphrase = null;
+                if (passphraseExpiration == null)
+                {
+                    throw new ArgumentNullException("passphrase");
+                }
+                else
+                {
+                    if (passphraseExpiration < DateTime.Now)
+                    {
+                        walletPassphrase.TryRemove(mywallet.Name, out passphrase);
+                        throw new ArgumentNullException("passphrase");
+                    }
+                    else
+                    {
+                        walletPassphrase.TryGetValue(mywallet.Name, out passphrase);
+                    }
+                }
+
                 //try to decript wallet
                 foreach (var item in walletPassphrase)
                 {
                     try
                     {
-                        var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, walletPassphrase, this.Network);
+                        var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, passphrase, this.Network);
 
                         var secret = new BitcoinSecret(privateKey, this.Network);
                         var stringPrivateKey = secret.ToString();
@@ -336,15 +369,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <p>Clear the passphrase since we are done before 2 minutes is up<br/>
         /// walletlock </p>
         /// </summary>
-        /// <returns>Null or success</returns>
+        /// <param name="walletName">(string, optional) The wallet name.</param>
+        /// <returns>(bool) True or fail.</returns>
         [ActionName("walletlock")]
-        [ActionDescription("Removes the wallet encryption key from memory, locking the wallet.")]
-        public IActionResult WalletLock()
+        [ActionDescription("Lock the wallets.")]
+        public IActionResult WalletLock(string walletName)
         {
             try
             {
-                walletPassphrase = null;
-                walletPassphraseExpiration = DateTime.MinValue;
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    walletPassphrase = new ConcurrentDictionary<string, string>();
+                    walletPassphraseExpiration = new ConcurrentDictionary<string, DateTime>();
+                }
+                else
+                {
+                    string passphrase;
+                    DateTime passphraseExpiration;
+                    walletPassphrase.TryRemove(walletName, out passphrase);
+                    walletPassphraseExpiration.TryRemove(walletName, out passphraseExpiration);
+                }
 
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
@@ -360,10 +404,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// If [walletName] is specified, returns the balance in the account.
         /// If [walletName] is "*", get the balance of all accounts.
         /// </summary>
-        /// <param name="walletName">The account to get the balance for.</param>
-        /// <returns>The balance of the account or the total wallet.</returns>
+        /// <param name="walletName">(string) The wallet name.</param>
+        /// <returns>(string) The balance of the account or the total wallet in BTR.</returns>
         [ActionName("getbalance")]
-        [ActionDescription("Gets account balance")]
+        [ActionDescription("Gets account balance.")]
         public IActionResult GetBalance(string walletName)
         {
             try
@@ -396,7 +440,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     totalBalance = MoneyExtensions.Sum(balances);
                 }
 
-                var balanceToString = totalBalance.ToString();
+                var balanceToString = totalBalance.ToUnit(MoneyUnit.BTR).ToString();
                 return this.Json(ResultHelper.BuildResultResponse(balanceToString));
             }
             catch (Exception e)
@@ -407,12 +451,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Returns information about a bitcoin address
+        /// Returns information about a bitcoin address.
         /// </summary>
-        /// <param name="address">bech32 or base58 BitcoinAddress to validate.</param>
-        /// <returns>ValidatedAddress containing a boolean indicating address validity</returns>
+        /// <param name="address">(string) bech32 or base58 BitcoinAddress to validate.</param>
+        /// <returns>(ValidatedAddress) Object with address information containing a boolean indicating address validity.</returns>
         [ActionName("validateaddress")]
-        [ActionDescription("Returns information about a bech32 or base58 bitcoin address")]
+        [ActionDescription("Returns information about a bech32 or base58 bitcoin address.")]
         public IActionResult ValidateAddress(string address)
         {
             try
@@ -448,14 +492,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Gets the account.
+        /// Gets the account as an wallet combix.
         /// </summary>
-        /// <param name="address">The address.</param>
-        /// <returns>Return wallet combix as string</returns>
-        /// <exception cref="ArgumentNullException">address</exception>
-        /// <exception cref="RPCException">Wallet not initialized - null - false</exception>
+        /// <param name="address">(string) The address.</param>
+        /// <returns>(string) Return wallet combix as string.</returns>
         [ActionName("getaccount")]
-        [ActionDescription("")]
+        [ActionDescription("Gets the account info.")]
         public IActionResult GetAccount(string address)
         {
             if (string.IsNullOrEmpty(address))
@@ -493,12 +535,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Generates the new wallet.
         /// </summary>
-        /// <param name="walletName">Name of the wallet.</param>
-        /// <param name="password">The password.</param>
-        /// <returns>Return Mnemonic BIP39 format</returns>
+        /// <param name="walletName">(string) Name of the wallet.</param>
+        /// <param name="password">(string) The password.</param>
+        /// <returns>(string) Return Mnemonic BIP39 format.</returns>
         [ActionName("generatenewwallet")]
+        [ActionDescription("Generates the new wallet.")]
         public Mnemonic GenerateNewWallet(string walletName, string password)
         {
+            if (string.IsNullOrEmpty(walletName))
+            {
+                throw new ArgumentNullException("walletName");
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentNullException("password");
+            }
+
             var w = this.walletManager as WalletManager;
             return w.CreateWallet(password, walletName);
         }
@@ -506,11 +558,17 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Gets the wallet.
         /// </summary>
-        /// <param name="walletName">Name of the wallet.</param>
-        /// <returns>HdAccount RPC format</returns>
+        /// <param name="walletName">(string) Name of the wallet.</param>
+        /// <returns>(HdAccount) Object with information.</returns>
         [ActionName("getwallet")]
+        [ActionDescription("Gets the wallet.")]
         public HdAccount GetWallet(string walletName)
         {
+            if (string.IsNullOrEmpty(walletName))
+            {
+                throw new ArgumentNullException("walletName");
+            }
+
             var w = this.walletManager;
             var wallet = w.GetWalletByName(walletName);
             return wallet.GetAccountsByCoinType((CoinType)this.network.Consensus.CoinType).ToArray().First();
@@ -519,13 +577,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Sends the money.
         /// </summary>
-        /// <param name="hdAcccountName">Name of the hd acccount.</param>
-        /// <param name="walletName">Name of the wallet.</param>
-        /// <param name="targetAddress">The target address.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="satoshi">The satoshi.</param>
-        /// <returns>Transaction rpc format</returns>
+        /// <param name="hdAcccountName">(string) Name of the hd acccount.</param>
+        /// <param name="walletName">(string) Name of the wallet.</param>
+        /// <param name="targetAddress">(string) The target address.</param>
+        /// <param name="password">(string) The password.</param>
+        /// <param name="satoshi">(decimal) The satoshi.</param>
+        /// <returns>(Transaction) Object with information</returns>
         [ActionName("sendmoney")]
+        [ActionDescription("Sends the money.")]
         public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
         {
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
@@ -576,19 +635,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sendmanies the specified hd acccount name.
+        /// Send manies the specified hd acccount name.
         /// </summary>
-        /// <param name="hdAcccountName">Name of the hd acccount.</param>
-        /// <param name="toBitcoinAddresses">To bitcoin addresses.</param>
-        /// <param name="minconf">The minconf.</param>
-        /// <param name="password">The password.</param>
-        /// <returns>uint256 rpc format</returns>
-        /// <exception cref="ArgumentNullException">
-        /// hdAcccountName
-        /// or
-        /// toBitcoinAddresses
-        /// </exception>
+        /// <param name="hdAcccountName">(string) Name of the hd acccount.</param>
+        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
+        /// <param name="minconf">(int) The minconf.</param>
+        /// <param name="password">(string) The password.</param>
+        /// <returns>(uint256) Transaction hash.</returns>
         [ActionName("sendmany")]
+        [ActionDescription("Send manies the specified hd acccount name.")]
         public uint256 Sendmany(string hdAcccountName, string toBitcoinAddresses, int minconf, string password)
         {
             string acccountName = "";
@@ -606,7 +661,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
                 walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/")+1);//, hdAcccountName.Length - hdAcccountName.IndexOf("/")
             }
-           
 
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
@@ -641,11 +695,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Retrieves the history of a wallet.
         /// </summary>
-        /// <param name="walletName">walletName</param>
-        /// <param name="hdAcccountName">The hdAcccountName. (Optional) default = "account 0"</param>
-        /// <returns>WalletHistoryModel rpc format</returns>
+        /// <param name="walletName">(string) The wallet name.</param>
+        /// <param name="hdAcccountName">(string) The hdAcccountName. (Optional) default = "account 0".</param>
+        /// <returns>(WalletHistoryModel) Object with history</returns>
         [ActionName("gethistory")]
-        [ActionDescription("Returns a wallet (only local transactions) history.")]
+        [ActionDescription("RRetrieves the history of a wallet.")]
         public IActionResult GetHistory(string walletName, string hdAcccountName)
         {
             Guard.NotNull(walletName, nameof(walletName));
@@ -778,7 +832,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Stops current wallet rescan triggered by an RPC call, e.g. by an importprivkey call.
         /// </summary>
-        /// <returns>True/False</returns>
+        /// <returns>(bool) True/False</returns>
         [ActionName("abortrescan")]
         [ActionDescription("Stops current wallet rescan triggered by an RPC call, e.g. by an importprivkey call.")]
         public IActionResult AbortReScan()
@@ -800,8 +854,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// Rescan the local blockchain for wallet related transactions.
         /// </summary>
         /// <param name="startHeight">(int, optional) The start height.</param>
-        /// <param name="stopHeight">(int, optional) The last block height that should be scanned</param>
-        /// <returns>Start height and stopped height</returns>
+        /// <param name="stopHeight">(int, optional) The last block height that should be scanned.</param>
+        /// <returns>(RescanBlockChainModel) Start height and stopped height.</returns>
         [ActionName("rescanblockchain")]
         [ActionDescription("Rescan the local blockchain for wallet related transactions.")]
         public IActionResult RescanBlockChain(int? startHeight, int? stopHeight)
@@ -902,13 +956,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// The destination directory or file
+        /// The destination directory or file.
         /// </summary>
-        /// <param name="walletName">(string) Wallet Name to backup</param>
-        /// <param name="destination">(string) The destination file</param>
-        /// <returns>Return true if it is done</returns>
+        /// <param name="walletName">(string) Wallet Name to backup.</param>
+        /// <param name="destination">(string) The destination file.</param>
+        /// <returns>(bool) Return true if it is done.</returns>
         [ActionName("backupwallet")]
-        [ActionDescription("The destination directory or file")]
+        [ActionDescription("The destination directory or file.")]
         public IActionResult BackupWallet(string walletName, string destination)
         {
             try
@@ -943,9 +997,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).
         /// </summary>
-        /// <param name="walletName">(string) Wallet Name to backup</param>
-        /// <param name="filename">(string) The filename with path relative to config folder</param>
-        /// <returns>The filename with full absolute path</returns>
+        /// <param name="walletName">(string) Wallet Name to backup.</param>
+        /// <param name="filename">(string) The filename with path relative to config folder.</param>
+        /// <returns>(string) The filename with full absolute path.</returns>
         [ActionName("dumpwallet")]
         [ActionDescription("Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).")]
         public IActionResult DumpWallet(string walletName, string filename)
@@ -998,43 +1052,33 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        [ActionName("getaccountaddress")]
-        [ActionDescription("")]
-        public IActionResult GetAccountAddress()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("getaddressesbyaccount")]
-        [ActionDescription("")]
-        public IActionResult GetAddressesByAccount()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
+        /// <summary>
+        /// Returns a new Bitcoin address for receiving payments.
+        /// </summary>
+        /// <param name="walletName">(string) The Wallet name.</param>
+        /// <returns>(string) The new bitcoin address.</returns>
         [ActionName("getnewaddress")]
-        [ActionDescription("")]
-        public IActionResult GetNewAddress()
+        [ActionDescription("Returns a new Bitcoin address for receiving payments.")]
+        public IActionResult GetNewAddress(string walletName)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = string.Empty;
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var address = this.walletManager.GetUnusedAddresses(wallet, 1);
+
+                if (address.Any())
+                {
+                    var firstAddress = address.First();
+                    result = firstAddress.Address;
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -1043,13 +1087,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// BETA - Returns a new Bitcoin address, for receiving change. This is for use with raw transactions, NOT normal use.
+        /// </summary>
+        /// <returns>(string) The address.</returns>
         [ActionName("getrawchangeaddress")]
-        [ActionDescription("")]
+        [ActionDescription("BETA - Returns a new Bitcoin address, for receiving change. This is for use with raw transactions, NOT normal use.")]
         public IActionResult GetRawChangeAddress()
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var address = this.walletKeyPool.GetUnunsedKey();
+
+                return this.Json(ResultHelper.BuildResultResponse(address.ToString()));
             }
             catch (Exception e)
             {
@@ -1058,24 +1108,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        [ActionName("getreceivedbyaccount")]
-        [ActionDescription("")]
-        public IActionResult GetReceivedByAccount()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
+        /// <summary>
+        /// Returns the total amount received by the given address in transactions with at least minconf confirmations.
+        /// </summary>
+        /// <param name="address">(string) The bitcoin address for transactions.</param>
+        /// <param name="minconf">(optional, int) Only include transactions confirmed at least this many times.</param>
+        /// <returns>(decimal) The total amount in BTR received at this address.</returns>
         [ActionName("getreceivedbyaddress")]
-        [ActionDescription("")]
-        public IActionResult GetReceivedByAddress()
+        [ActionDescription("Returns the total amount received by the given address in transactions with at least minconf confirmations.")]
+        public IActionResult GetReceivedByAddress(string address, int minconf = 1)
         {
             try
             {
@@ -1088,13 +1129,31 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns the server's total unconfirmed balance.
+        /// </summary>
+        /// <returns>(decimal) BTR unconfirmed amount.</returns>
         [ActionName("getunconfirmedbalance")]
-        [ActionDescription("")]
+        [ActionDescription("Returns the server's total unconfirmed balance.")]
         public IActionResult GetUnconfirmedBalance()
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                long unspendAmountSatoshi = 0;
+
+                foreach (var itemWallet in this.walletManager.Wallets)
+                {
+                    var balances = this.walletManager.GetBalances(itemWallet.Name);
+                    var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.network.Consensus.CoinType).ToList();
+
+                    foreach (var itemAccount in accountBalances)
+                    {
+                        unspendAmountSatoshi += itemAccount.AmountUnconfirmed.Satoshi;
+                    }
+                }
+
+                var money = new Money(unspendAmountSatoshi);
+                return this.Json(ResultHelper.BuildResultResponse(money.ToUnit(MoneyUnit.BTR)));
             }
             catch (Exception e)
             {
@@ -1103,13 +1162,60 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns an object containing various wallet state info.
+        /// </summary>
+        /// <param name="walletName">(string) The wallet name.</param>
+        /// <returns>(GetWalletInfoModel) Return info object.</returns>
         [ActionName("getwalletinfo")]
-        [ActionDescription("")]
-        public IActionResult GetWalletInfo()
+        [ActionDescription("Returns an object containing various wallet state info.")]
+        public IActionResult GetWalletInfo(string walletName)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var result = new GetWalletInfoModel();
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var balances = this.walletManager.GetBalances(walletName);
+
+                var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.network.Consensus.CoinType).ToList();
+
+                result.Balance = new Money(accountBalances.Sum(a => a.AmountConfirmed.Satoshi)).ToUnit(MoneyUnit.BTR);
+                result.WalletVersion = this.FullNode?.Version?.ToString() ?? string.Empty;
+                result.WalletName = walletName;
+                result.UnconfirmedBalance = new Money(accountBalances.Sum(a => a.AmountUnconfirmed.Satoshi)).ToUnit(MoneyUnit.BTR);
+                result.PayTxFee = this.walletFeePolicy.GetPayTxFee().FeePerK.ToUnit(MoneyUnit.BTR);
+
+                var txCount = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                result.TxCount = txCount == null ? 0 : txCount.Count();
+
+                var passphraseExpiration = walletPassphraseExpiration.TryGet(wallet.Name);
+                if (passphraseExpiration == null)
+                {
+                    throw new ArgumentNullException("passphrase");
+                }
+                else
+                {
+                    if (passphraseExpiration < DateTime.Now)
+                    {
+                        result.UnlockedUntil = 0;
+                    }
+                    else
+                    {
+                        result.UnlockedUntil = Utils.DateTimeToUnixTime(passphraseExpiration);
+                    }
+                }
+
+                result.KeyPoolSize = this.walletKeyPool.GetKeyPoolSize();
+                result.KeyPoolSizeHdInternal = 0;
+                result.KeyPoolOldest = this.walletKeyPool.GetKeyPoolTimeStamp();
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -1193,12 +1299,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Fills the keypool.
+        /// </summary>
+        /// <param name="newsize">(int, optional) The new keypool size.</param>
+        /// <returns>(bool) True or false</returns>
         [ActionName("keypoolrefill")]
-        [ActionDescription("")]
-        public IActionResult KeyPoolReFill()
+        [ActionDescription("Fills the keypool.")]
+        public IActionResult KeyPoolReFill(int newsize = 100)
         {
             try
             {
+                this.walletKeyPool.ReFill(newsize);
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -1241,21 +1353,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionName("listlockunspent")]
         [ActionDescription("")]
         public IActionResult ListLockUnspent()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("listreceivedbyaccount")]
-        [ActionDescription("")]
-        public IActionResult ListReceivedByAccount()
         {
             try
             {
@@ -1316,21 +1413,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionName("listunspent")]
         [ActionDescription("")]
         public IActionResult ListUnspent()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("sendfrom")]
-        [ActionDescription("")]
-        public IActionResult SendFrom()
         {
             try
             {

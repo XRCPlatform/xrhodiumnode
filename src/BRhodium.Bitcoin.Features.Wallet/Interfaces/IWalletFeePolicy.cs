@@ -17,5 +17,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         FeeRate GetFeeRate(int confirmTarget);
 
         void SetPayTxFee(Money feePerK);
+
+        FeeRate GetPayTxFee();
     }
 }

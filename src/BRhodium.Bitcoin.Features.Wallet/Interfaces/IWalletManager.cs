@@ -122,6 +122,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false);
 
         /// <summary>
+        /// Gets a collection of unused receiving or change addresses.
+        /// </summary>
+        /// <param name="wallet">The wallet object.</param>
+        /// <param name="count">The number of addresses to create.</param>
+        /// <param name="isChange">A value indicating whether or not the addresses to get should be receiving or change addresses.</param>
+        /// <param name="accountName">Name of the account.</param>
+        /// <returns></returns>
+        IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null);
+
+        /// <summary>
         /// Gets the history of transactions contained in an account.
         /// If no account name is specified, history will be returned for all accounts in the wallet.
         /// </summary>

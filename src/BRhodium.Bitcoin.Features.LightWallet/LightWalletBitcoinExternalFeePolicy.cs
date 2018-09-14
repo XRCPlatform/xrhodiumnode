@@ -161,5 +161,11 @@ namespace BRhodium.Bitcoin.Features.LightWallet
         {
             this.payTxFee = new FeeRate(feePerK);
         }
+
+        /// <inheritdoc />
+        public FeeRate GetPayTxFee()
+        {
+            return this.payTxFee;
+        }
     }
 }

@@ -430,8 +430,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return res;
         }
-
-
+        
         /// <inheritdoc />
         public IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
         {
@@ -441,13 +440,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             Wallet wallet = this.GetWalletByName(accountReference.WalletName);
 
+            return GetUnusedAddresses(wallet, count, isChange, accountReference.AccountName);
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null)
+        {
+            Guard.Assert(count > 0);
+
             bool generated = false;
             IEnumerable<HdAddress> addresses;
+
+            if (accountName == null)
+            {
+                var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                accountName = accountReference.Accounts.First().Name;
+            }
 
             lock (this.lockObject)
             {
                 // Get the account.
-                HdAccount account = wallet.GetAccountByCoinType(accountReference.AccountName, this.coinType);
+                HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
 
                 List<HdAddress> unusedAddresses = isChange ? 
                     account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() : 
