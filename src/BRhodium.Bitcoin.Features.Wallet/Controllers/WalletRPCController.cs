@@ -30,6 +30,7 @@ using System.IO;
 using System.Text;
 using System.Reflection;
 using BRhodium.Bitcoin.Features.RPC.Models;
+using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.TransactionVerboseModel;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -1364,13 +1365,62 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Get all transactions in blocks since block [blockhash], or all transactions if omitted.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="blockhash">The block hash to list transactions since.</param>
+        /// <param name="target_confirmations">Return the nth block hash from the main chain. e.g. 1 would mean the best block hash.</param>
+        /// <returns></returns>
         [ActionName("listsinceblock")]
-        [ActionDescription("")]
-        public IActionResult ListSinceBlock()
+        [ActionDescription("Get all transactions in blocks since block [blockhash], or all transactions if omitted.")]
+        public IActionResult ListSinceBlock(string walletName, string blockhash = null, int target_confirmations = 0)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var result = new List<TransactionVerboseModel>();
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var txs = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                uint256 uintBlockHash = null;
+                if (!string.IsNullOrEmpty(blockhash)) {
+                    uintBlockHash = new uint256(blockhash);
+                }
+
+                var chainedTip = chainRepository.Tip;
+
+                foreach (var tx in txs)
+                {
+                    if (uintBlockHash != null)
+                    {
+                        if (tx.BlockHash != uintBlockHash)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            uintBlockHash = null; //remove block
+                        }
+                    }
+
+                    if (tx.IsSpendable())
+                    {
+                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(tx.BlockHash);
+                        var newTxVerboseModel = new TransactionVerboseModel(tx.Transaction, this.network, chainedHeader, chainedTip);
+
+                        if (newTxVerboseModel.Confirmations >= target_confirmations)
+                            result.Add(newTxVerboseModel);
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -1379,13 +1429,54 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="count">The number of transactions to return.</param>
+        /// <param name="from">The number of transactions to skip.</param>
+        /// <returns>(List, TransactionVerboseModel) Object with information about transaction.</returns>
         [ActionName("listtransactions")]
-        [ActionDescription("")]
-        public IActionResult ListTransactions()
+        [ActionDescription("Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.")]
+        public IActionResult ListTransactions(string walletName, int count = 10, int from = 0)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var result = new List<TransactionVerboseModel>();
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var txs = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                var i = 0;
+                var chainedTip = chainRepository.Tip;
+
+                foreach (var tx in txs)
+                {
+                    if (i >= from)
+                    {
+                        if (i > from + count)
+                        {
+                            break;
+                        }
+
+                        if (tx.IsSpendable())
+                        {
+                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(tx.BlockHash);
+                            var newTxVerboseModel = new TransactionVerboseModel(tx.Transaction, this.network, chainedHeader, chainedTip);
+                            result.Add(newTxVerboseModel);
+                        }
+                    }
+
+                    i++;
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
