@@ -40,6 +40,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Broadcasting
             return txEntry ?? null;
         }
 
+        public bool RemoveTransaction(TransactionBroadcastEntry txEntry)
+        {
+            return this.Broadcasts.TryRemove(txEntry);
+        }
+
         public void AddOrUpdate(Transaction transaction, State state, string errorMessage = "")
         {
             TransactionBroadcastEntry broadcastEntry = this.Broadcasts.FirstOrDefault(x => x.Transaction.GetHash() == transaction.GetHash());

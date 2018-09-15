@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Security;
-using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -18,7 +16,6 @@ using BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Interfaces;
 using BRhodium.Bitcoin.Features.Miner.Models;
-using BRhodium.Bitcoin.Features.RPC;
 using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.Interfaces;
@@ -30,6 +27,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using NBitcoin.RPC;
 using BRhodium.Node;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {
@@ -62,6 +60,9 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         private readonly IConsensusLoop consensusLoop;
 
         private readonly IBlockProvider blockProvider;
+
+        private static Object lockGetBlockTemplate = new Object();
+        private static Object lockSubmitBlock = new Object();
 
         /// <summary>
         /// Initializes a new instance of the object.
@@ -98,14 +99,14 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         }
 
         /// <summary>
-        /// Mine blocks immediately to a specified address (before the RPC call returns)
+        /// Mine blocks immediately to a specified address (before the RPC call returns).
         /// </summary>
         /// <param name="nblocks">How many blocks are generated immediately.</param>
         /// <param name="address">The address to send the newly generated bitcoin to.</param>
         /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
-        /// <returns>List of newly generated block hashes</returns>
+        /// <returns>(List, string) List of newly generated block hashes.</returns>
         [ActionName("generate")]
-        [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
+        [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns).")]
         public IActionResult Generate(int nblocks, string address, int maxtries = 1000000)
         {
             return GenerateToAddress(nblocks, address, maxtries);
@@ -117,7 +118,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="nblocks">How many blocks are generated immediately.</param>
         /// <param name="address">The address to send the newly generated bitcoin to.</param>
         /// <param name="maxtries">How many iterations to try (default = 1000000).</param>
-        /// <returns>List of newly generated block hashes</returns>
+        /// <returns>(List, string) List of newly generated block hashes.</returns>
         [ActionName("generatetoaddress")]
         [ActionDescription("Mine blocks immediately to a specified address (before the RPC call returns)")]
         public IActionResult GenerateToAddress(int nblocks, string address, int maxtries = 1000000)
@@ -183,7 +184,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <summary>
         /// Gets the network difficulty.
         /// </summary>
-        /// <returns>Difficult of network</returns>
+        /// <returns>(Target) Object with difficult of network.</returns>
         private Target GetNetworkDifficulty()
         {
             return this.networkDifficulty?.GetNetworkDifficulty();
@@ -193,7 +194,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// Gets the difficulty.
         /// </summary>
         /// <param name="hash">The hash.</param>
-        /// <returns>Difficult of network</returns>
+        /// <returns>(Target) Object with difficult of network.</returns>
         [ActionName("getdifficulty")]
         [ActionDescription("Result—the current difficulty.")]
         public IActionResult GetDifficulty(string hash)
@@ -214,9 +215,9 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <summary>
         /// Returns a json object containing mining-related information.
         /// </summary>
-        /// <returns>GetMiningInfo RPC format</returns>
+        /// <returns>(GetMiningInfo) Object with informatin about mining.</returns>
         [ActionName("getmininginfo")]
-        [ActionDescription("")]
+        [ActionDescription("Returns a json object containing mining-related information.")]
         public IActionResult GetMiningInfo()
         {
             var miningInfo = new GetMiningInfo();
@@ -246,15 +247,13 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
             return this.Json(ResultHelper.BuildResultResponse(miningInfo));
         }
 
-        private static Object lockGetBlockTemplate = new Object();
-        private static Object lockSubmitBlock = new Object();
         /// <summary>
         /// Gets the block template.
         /// </summary>
-        /// <param name="template_request">(json object, optional) A json object in the following spec</param>
-        /// <returns>It returns data needed to construct a block to work on. GetBlockTemplateModel RPC.</returns>
+        /// <param name="template_request">(json object, optional) A json object in the following spec.</param>
+        /// <returns>(GetBlockTemplateModel) It returns data needed to construct a block to work on. GetBlockTemplateModel RPC.</returns>
         [ActionName("getblocktemplate")]
-        [ActionDescription("")]
+        [ActionDescription("Gets the block template.")]
         public IActionResult GetBlockTemplate(string template_request)
         {
             var blockTemplate = new GetBlockTemplateModel();
@@ -350,16 +349,11 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// Attempts to submit new block to network.
         /// See https://en.bitcoin.it/wiki/BIP_0022 for full specification.
         /// </summary>
-        /// <param name="hex">The hex-encoded block data to submit</param>
+        /// <param name="hex">The hex-encoded block data to submit.</param>
         /// <param name="dummy">Dummy value, for compatibility with BIP22. This value is ignored.</param>
-        /// <returns>SubmitBlockModel RPC format</returns>
-        /// <exception cref="RPCException">
-        /// Empty block hex supplied - null - false
-        /// or
-        /// Wrong chain work - null - false
-        /// </exception>
+        /// <returns>(SubmitBlockModel) Object with result information.</returns>
         [ActionName("submitblock")]
-        [ActionDescription("")]
+        [ActionDescription("Attempts to submit new block to network.")]
         public IActionResult SubmitBlock(string hex, string dummy = null)
         {
             var response = new SubmitBlockModel();
@@ -396,11 +390,36 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
-                 
+
                 var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
                 return json;
             }
-           
+
+        }
+
+        /// <summary>
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).
+        /// </summary>
+        /// <param name="nblocks">The nblocks.</param>
+        /// <returns>Estimated fee-per-kilobyte</returns>
+        [ActionName("estimatefee")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).")]
+        public IActionResult EstimateFee(string nblocks)
+        {
+            var estimation = txMempool.EstimateFee(Int32.Parse(nblocks));
+            var json = this.Json(ResultHelper.BuildResultResponse(estimation.FeePerK));
+            return json;
+        }
+
+        /// <summary>
+        /// Utility RPC function to see the fee estimate data structures. Non-standard RPC function.
+        /// </summary>
+        /// <returns>Feestarts results</returns>
+        [ActionName("dumpfeestats")]
+        [ActionDescription("Utility RPC function to see the fee estimate data structures. Non-standard RPC function.")]
+        public IActionResult DumpFeeStats()
+        {
+            return this.Json(ResultHelper.BuildResultResponse(txMempool.MinerPolicyEstimator.FeeStats));
         }
 
         /// <summary>
@@ -410,9 +429,9 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// </summary>
         /// <param name="nblocks">The nblocks.</param>
         /// <param name="height">The height.</param>
-        /// <returns>Hashes per second estimated</returns>
+        /// <returns>(double) Return hashes per second estimated.</returns>
         [ActionName("getnetworkhashps")]
-        [ActionDescription("")] 
+        [ActionDescription("Returns the estimated network hashes per second based on the last n blocks.")] 
         public double GetNetworkHashPS(int nblocks = 120, int height = -1)
         {
             return GetNetworkHash(nblocks, height);
@@ -423,7 +442,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// </summary>
         /// <param name="lookup">The lookup.</param>
         /// <param name="height">The height.</param>
-        /// <returns>Hashes per second estimated</returns>
+        /// <returns>(double) Return hashes per second estimated.</returns>
         private double GetNetworkHash(int lookup, int height)
         {
             var pb = this.consensusLoop.Chain.Tip;
@@ -465,8 +484,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// Accepts the transaction into mined blocks at a higher (or lower) priority.
         /// </summary>
         /// <param name="txid">The txid.</param>
-        /// <param name="fee_delta">The fee value (in satoshis) to add (or subtract, if negative)</param>
-        /// <returns>Returns true</returns>
+        /// <param name="fee_delta">The fee value (in satoshis) to add (or subtract, if negative).</param>
+        /// <returns>(bool) Returns true or error.</returns>
         [ActionName("prioritisetransaction")]
         [ActionDescription("")]
         public IActionResult PrioritizeTransaction(string txid, int fee_delta)
@@ -484,8 +503,39 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 this.txMempool.PrioritiseTransaction(hash, satoshi);
             }
 
-            var json = this.Json(ResultHelper.BuildResultResponse(true)); 
+            var json = this.Json(ResultHelper.BuildResultResponse(true));
             return json;
+        }
+
+        /// <summary>
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).
+        /// </summary>
+        /// <param name="nblocks">Confirmation target in blocks (1 - 1008).</param>
+        /// <param name="estimate_mode">The fee estimate mode. Whether to return a more conservative estimate which also satisfies a longer history.A conservative estimate potentially returns a higher feerate and is more likely to be sufficient for the desired target, but is not as responsive to short term drops in the prevailing fee market.  Must be one of: "UNSET" (defaults to CONSERVATIVE), "ECONOMICAL", "CONSERVATIVE".</param>
+        /// <returns>(EstimateSmartFeeModel) Return model with information about estimate.</returns>
+        [ActionName("estimatesmartfee")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).")]
+        public IActionResult EstimateSmartFee(int nblocks, string estimate_mode)
+        {
+            try
+            {
+                var result = new EstimateSmartFeeModel();
+                int foundAtBlock = 0;
+
+                var isConservative = true;
+                if ((!string.IsNullOrEmpty(estimate_mode)) && (estimate_mode.ToUpper() == "ECONOMICAL")) isConservative = false;
+                var estimation = this.txMempool.EstimateSmartFee(nblocks, out foundAtBlock, isConservative);
+
+                result.Blocks = foundAtBlock;
+                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.BTR);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
     }
 }

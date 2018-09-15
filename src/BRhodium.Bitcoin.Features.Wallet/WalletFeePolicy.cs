@@ -29,7 +29,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Transaction fee set by the user
         /// </summary>
-        private readonly FeeRate payTxFee;
+        private FeeRate payTxFee;
 
         /// <summary>
         /// Min Relay Tx Fee
@@ -102,6 +102,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             //this.blockPolicyEstimator.EstimateSmartFee(confirmTarget, this.mempool, out estimateFoundTarget).GetFee(txBytes);
             return this.fallbackFee;
+        }
+
+        /// <inheritdoc />
+        public void SetPayTxFee(Money feePerK)
+        {
+            this.payTxFee = new FeeRate(feePerK);
+        }
+
+        /// <inheritdoc />
+        public FeeRate GetPayTxFee()
+        {
+            return this.payTxFee;
         }
     }
 }

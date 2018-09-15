@@ -74,6 +74,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public uint256 WalletTipHash { get; set; }
 
+        /// <summary>Memory locked unspendable transaction parts (tx hash, index vount)</summary>
+        public ConcurrentDictionary<string, int> LockedTxOut { get; set; }
+
         // In order to allow faster look-ups of transactions affecting the wallets' addresses,
         // we keep a couple of objects in memory:
         // 1. the list of unspent outputs for checking whether inputs from a transaction are being spent by our wallet and
@@ -397,6 +400,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return res;
         }
 
+        public object GetLock()
+        {
+            return this.lockObject;
+        }
+
         /// <inheritdoc />
         public HdAddress GetUnusedAddress(WalletAccountReference accountReference)
         {
@@ -418,8 +426,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return res;
         }
-
-
+        
         /// <inheritdoc />
         public IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
         {
@@ -429,13 +436,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             Wallet wallet = this.GetWalletByName(accountReference.WalletName);
 
+            return GetUnusedAddresses(wallet, count, isChange, accountReference.AccountName);
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null)
+        {
+            Guard.Assert(count > 0);
+
             bool generated = false;
             IEnumerable<HdAddress> addresses;
+
+            if (accountName == null)
+            {
+                var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                accountName = accountReference.Accounts.First().Name;
+            }
 
             lock (this.lockObject)
             {
                 // Get the account.
-                HdAccount account = wallet.GetAccountByCoinType(accountReference.AccountName, this.coinType);
+                HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
 
                 List<HdAddress> unusedAddresses = isChange ? 
                     account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() : 
@@ -556,6 +577,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <inheritdoc />
         public AddressBalance GetAddressBalance(string address)
+        {
+            return GetAddressBalance(address, null);
+        }
+
+        /// <inheritdoc />
+        public AddressBalance GetAddressBalance(string address, string walletName = null)
         {
             Guard.NotEmpty(address, nameof(address));
             this.logger.LogTrace("({0}:'{1}')", nameof(address), address);

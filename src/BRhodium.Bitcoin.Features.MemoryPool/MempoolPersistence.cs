@@ -7,6 +7,10 @@ using NBitcoin;
 using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.MemoryPool.Interfaces;
 using BRhodium.Node.Utilities;
+using DBreeze;
+using DBreeze.DataTypes;
+using BRhodium.Bitcoin.Features.MemoryPool.Fee;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.MemoryPool
 {
@@ -29,6 +33,16 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <param name="fileName">Filename to load from. Default filename is used if null.</param>
         /// <returns>List of persistence entries.</returns>
         IEnumerable<MempoolPersistenceEntry> Load(Network network, string fileName = null);
+
+        /// <summary>
+        /// Persists the fee estimates to a dbreeze file.
+        /// </summary>
+        bool SaveFeeStats(ITxMempool mempool);
+
+        /// <summary>
+        /// Loads the fee stats from a dbreeze database.
+        /// </summary>
+        void LoadFeeStats(ITxMempool mempool);
     }
 
     /// <summary>
@@ -166,6 +180,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <summary>Instance logger for the memory pool persistence object.</summary>
         private readonly ILogger mempoolLogger;
 
+        /// <summary>For storing fee estimates.</summary>
+        private DBreezeEngine dbreeze;
+
+        /// <summary>Directory to store fee stat db files.</summary>
+        public const string DefaultFeeStatDir = "FeeStats";
+
         /// <summary>
         /// Constructs an instance of an object for persisting memory pool transactions.
         /// </summary>
@@ -175,6 +195,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             this.dataDir = settings?.DataDir;
             this.mempoolLogger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.dbreeze = new DBreezeEngine(Path.Combine(this.dataDir, DefaultFeeStatDir));
         }
 
         /// <inheritdoc />
@@ -318,6 +339,32 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             }
 
             return toReturn;
+        }
+
+        public bool SaveFeeStats(ITxMempool mempool)
+        {
+            using (var transaction = dbreeze.GetTransaction())
+            {
+                var row = transaction.Select<int, string>("FeeStats", 1);
+                var feeStats = mempool.MinerPolicyEstimator.FeeStats;
+                var serializedFeeStats = JsonConvert.SerializeObject(feeStats);
+                transaction.Insert("FeeStats", 1, serializedFeeStats);
+                transaction.Commit();
+            }
+            return true;
+        }
+
+        public void LoadFeeStats(ITxMempool mempool)
+        {
+            using (var transaction = dbreeze.GetTransaction())
+            {
+                var row = transaction.Select<int, string>("FeeStats", 1);
+                if (row.Exists)
+                {
+                    var feeStats = JsonConvert.DeserializeObject<TxConfirmStats>(row.Value);
+                    mempool.MinerPolicyEstimator.ChangeFeeStats(feeStats);
+                }
+            }
         }
     }
 }

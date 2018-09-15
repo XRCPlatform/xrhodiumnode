@@ -692,6 +692,87 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <summary>
+        /// Creates a number of additional addresses in the current account.
+        /// </summary>
+        /// <remarks>
+        /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
+        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
+        /// </remarks>
+        /// <param name="network">The network.</param>
+        /// <param name="pubKey">The pub key.</param>
+        /// <returns>The created address.</returns>
+        public HdAddress CreateAddresses(Network network, string pubKey)
+        {
+            var addresses = this.ExternalAddresses;
+
+            // Get the index of the last address.
+            int firstNewAddressIndex = 0;
+            if (addresses.Any())
+            {
+                firstNewAddressIndex = addresses.Max(add => add.Index) + 1;
+            }
+
+            var pubkey = new PubKey(pubKey);
+            BitcoinPubKeyAddress address = pubkey.GetAddress(network);
+
+            // Add the new address details to the list of addresses.
+            HdAddress newAddress = new HdAddress
+            {
+                Index = firstNewAddressIndex,
+                HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, firstNewAddressIndex),
+                ScriptPubKey = address.ScriptPubKey,
+                Pubkey = pubkey.ScriptPubKey,
+                Address = address.ToString(),
+                Transactions = new List<TransactionData>()
+            };
+
+            addresses.Add(newAddress);
+
+            this.ExternalAddresses = addresses;
+
+            return newAddress;
+        }
+
+        /// <summary>
+        /// BETA - Imports the address.
+        /// </summary>
+        /// <param name="network">The network.</param>
+        /// <param name="base58Address">The base58 address.</param>
+        /// <returns>The created address.</returns>
+        public HdAddress ImportAddress(Network network, string base58Address)
+        {
+            var addresses = this.ExternalAddresses;
+
+            // Get the index of the last address.
+            int firstNewAddressIndex = 0;
+            if (addresses.Any())
+            {
+                firstNewAddressIndex = addresses.Max(add => add.Index) + 1;
+            }
+
+            var address = new BitcoinPubKeyAddress(base58Address, network);
+            var pubKeyTemplate = new PayToPubkeyTemplate();
+            var pubkey = pubKeyTemplate.ExtractScriptPubKeyParameters(address.ScriptPubKey);
+
+            // Add the new address details to the list of addresses.
+            HdAddress importAddress = new HdAddress
+            {
+                Index = firstNewAddressIndex,
+                HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, firstNewAddressIndex),
+                ScriptPubKey = address.ScriptPubKey,
+                Pubkey = pubkey.ScriptPubKey,
+                Address = address.ToString(),
+                Transactions = new List<TransactionData>()
+            };
+
+            addresses.Add(importAddress);
+
+            this.ExternalAddresses = addresses;
+
+            return importAddress;
+        }
+
+        /// <summary>
         /// Lists all spendable transactions in the current account.
         /// </summary>
         /// <param name="currentChainHeight">The current height of the chain. Used for calculating the number of confirmations a transaction has.</param>

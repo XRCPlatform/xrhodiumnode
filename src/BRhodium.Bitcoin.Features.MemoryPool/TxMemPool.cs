@@ -276,15 +276,21 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         }
 
         /// <inheritdoc />
+        public TxMempoolEntry GetEntry(uint256 hash)
+        {
+            return this.MapTx.TryGet(hash);
+        }
+
+        /// <inheritdoc />
         public FeeRate EstimateFee(int nBlocks)
         {
             return this.MinerPolicyEstimator.EstimateFee(nBlocks);
         }
 
         /// <inheritdoc />
-        public FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks)
+        public FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks, bool requireGreater = true)
         {
-            return this.MinerPolicyEstimator.EstimateSmartFee(nBlocks, this, out answerFoundAtBlocks);
+            return this.MinerPolicyEstimator.EstimateSmartFee(nBlocks, this, out answerFoundAtBlocks, requireGreater);
         }
 
         /// <inheritdoc />
@@ -423,7 +429,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// </summary>
         /// <param name="entry">Memory pool entry.</param>
         /// <returns>Set of parent entries.</returns>
-        private SetEntries GetMemPoolParents(TxMempoolEntry entry)
+        public SetEntries GetMemPoolParents(TxMempoolEntry entry)
         {
             Guard.NotNull(entry, nameof(entry));
 
