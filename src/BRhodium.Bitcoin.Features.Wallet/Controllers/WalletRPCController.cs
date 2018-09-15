@@ -329,7 +329,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     try
                     {
                         var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, passphrase, this.Network);
-
+ 
                         var secret = new BitcoinSecret(privateKey, this.Network);
                         var stringPrivateKey = secret.ToString();
                         return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
@@ -881,7 +881,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(RescanBlockChainModel) Start height and stopped height.</returns>
         [ActionName("rescanblockchain")]
         [ActionDescription("Rescan the local blockchain for wallet related transactions.")]
-        public IActionResult RescanBlockChain(int? startHeight, int? stopHeight)
+        public IActionResult RescanBlockChain(int? startHeight = null, int? stopHeight = null)
         {
             try
             {
@@ -1275,13 +1275,54 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Adds address that can be watched as if it were in your wallet but cannot be used to spend. Requires a new wallet backup.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="address">Base58 valid address for import.</param>
+        /// <param name="rescan">Rescan blockchain. It need a long time. Default True.</param>
+        /// <returns>(hdAddress) New hdAddress object, null or error.</returns>
         [ActionName("importaddress")]
         [ActionDescription("")]
-        public IActionResult ImportAddress()
+        public IActionResult ImportAddress(string walletName, string address, bool rescan = true)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                // P2PKH
+                if (!BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                // P2SH
+                else if (!BitcoinScriptAddress.IsValid(address, ref this.Network))
+                {
+                    throw new ArgumentNullException("address");
+                }
+
+                HdAddress hdAddress = null;
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                if (account != null)
+                {
+                    var hdAccount = account.GetAccountByName(DEFAULT_ACCOUNT_NAME);
+                    hdAddress = hdAccount.ImportAddress(this.network, address);
+                    if (hdAddress != null)
+                    {
+                        this.walletManager.SaveWallet(wallet);
+
+                        if (rescan) this.RescanBlockChain();
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(hdAddress));
             }
             catch (Exception e)
             {
@@ -1290,58 +1331,46 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        [ActionName("importmulti")]
-        [ActionDescription("")]
-        public IActionResult ImportMulti()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        [ActionName("importprivkey")]
-        [ActionDescription("")]
-        public IActionResult ImportPrivKey()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
+        /// <summary>
+        /// Adds a public key (in hex) that can be watched as if it were in your wallet but cannot be used to spend. Requires a new wallet backup.
+        /// <p>This call can take minutes to complete if rescan is true, during that time, other rpc calls may report that the imported pubkey<br/>
+        /// exists but related transactions are still missing, leading to temporarily incorrect/bogus balances and unspent outputs until rescan completes.</p>
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="pubKey">You new pubkey hex.</param>
+        /// <param name="rescan">Rescan blockchain. It need a long time. Default True.</param>
+        /// <returns>(hdAddress) New hdAddress object, null or error.</returns>
         [ActionName("importpubkey")]
-        [ActionDescription("")]
-        public IActionResult ImportPubKey()
+        [ActionDescription("Adds a public key (in hex) that can be watched as if it were in your wallet but cannot be used to spend. Requires a new wallet backup.")]
+        public IActionResult ImportPubKey(string walletName, string pubKey, bool rescan = true)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+                if (string.IsNullOrEmpty(pubKey))
+                {
+                    throw new ArgumentNullException("pubKey");
+                }
 
-        [ActionName("importwallet")]
-        [ActionDescription("")]
-        public IActionResult ImportWallet()
-        {
-            try
-            {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                HdAddress hdAddress = null;
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                if (account != null)
+                {
+                    var hdAccount = account.GetAccountByName(DEFAULT_ACCOUNT_NAME);
+                    hdAddress = hdAccount.CreateAddresses(this.network, pubKey);
+                    if (hdAddress != null)
+                    {
+                        this.walletManager.SaveWallet(wallet);
+
+                        if (rescan) this.RescanBlockChain();
+                    }
+                }
+               
+                return this.Json(ResultHelper.BuildResultResponse(hdAddress));
             }
             catch (Exception e)
             {
