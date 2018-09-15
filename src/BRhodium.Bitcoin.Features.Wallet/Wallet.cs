@@ -68,6 +68,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonProperty(PropertyName = "accountsRoot")]
         public ICollection<AccountRoot> AccountsRoot { get; set; }
         /// <summary>
+        /// Internal wallet identifier
+        /// </summary>
+        [JsonProperty(PropertyName = "id")]
+        public long Id { get; internal set; }
+
+        /// <summary>
         /// This is sets a runtime flag to show if wallet has been changed since last save operation.
         /// </summary>
         public void Changed()
@@ -109,6 +115,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
             return accountRoot?.GetAccountByName(accountName);
+        }
+
+
+        public HdAccount GetAccountByHdPathCoinType(string hdPath, CoinType coinType)
+        {
+            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            return accountRoot?.GetAccountByHdPath(hdPath);
         }
 
         /// <summary>
@@ -182,6 +195,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             return allAddresses;
         }
+
 
         /// <summary>
         /// Adds an account to the current wallet.
@@ -355,6 +369,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return account;
         }
 
+        public HdAccount GetAccountByHdPath(string hdPath)
+        {
+            if (this.Accounts == null)
+                throw new WalletException($"No account with the hd path {hdPath} could be found.");
+
+            // get the account
+            HdAccount account = this.Accounts.SingleOrDefault(a => hdPath.Contains(a.HdPath));
+            if (account == null)
+                throw new WalletException($"No account with the hd path {hdPath} could be found.");
+
+            return account;
+        }
+
         /// <summary>
         /// Adds an account to the current account root.
         /// </summary>
@@ -454,13 +481,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The list of external addresses, typically used for receiving money.
         /// </summary>
-        [JsonProperty(PropertyName = "externalAddresses")]
+        //[JsonProperty(PropertyName = "externalAddresses")]
+        [JsonIgnore]
         public ICollection<HdAddress> ExternalAddresses { get; set; }
 
         /// <summary>
         /// The list of internal addresses, typically used to receive change.
         /// </summary>
-        [JsonProperty(PropertyName = "internalAddresses")]
+        //[JsonProperty(PropertyName = "internalAddresses")]
+        [JsonIgnore]
         public ICollection<HdAddress> InternalAddresses { get; set; }
 
         /// <summary>
@@ -702,16 +731,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     public class WalletLinkedHdAddress{
         private readonly HdAddress hdAddress;
-        private readonly Wallet wallet;
+        private readonly String wallet;
         /// <summary>
         /// Creates an instance of the linker object.
         /// </summary>
         /// <param name="hdAddress">Address ref</param>
         /// <param name="wallet">Wallet ref</param>
-        public WalletLinkedHdAddress(HdAddress hdAddress, Wallet wallet)
+        public WalletLinkedHdAddress(HdAddress hdAddress, String walletName)
         {
             this.hdAddress = hdAddress;
-            this.wallet = wallet;
+            this.wallet = walletName;
         }
 
         public HdAddress HdAddress
@@ -721,7 +750,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
-        public Wallet Wallet
+        public String WalletName
         {
             get
             {
@@ -776,6 +805,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "transactions")]
         public ICollection<TransactionData> Transactions { get; set; }
+        public long Id { get; internal set; }
 
         /// <summary>
         /// Determines whether this is a change address or a receive address.

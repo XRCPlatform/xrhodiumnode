@@ -25,7 +25,7 @@ namespace BRhodium.Node.Configuration
             this.BlockPath = Path.Combine(path, "blocks");
             this.IndexPath = Path.Combine(path, "index");
             this.RpcCookieFile = Path.Combine(path, ".cookie");
-            this.WalletPath = Path.Combine(path);
+            this.WalletPath = Path.Combine(path,"wallet");
             this.LogPath = Path.Combine(path, "Logs");
             this.DnsMasterFilePath = path;
             this.RootPath = path;
@@ -56,7 +56,7 @@ namespace BRhodium.Node.Configuration
         /// <seealso cref="Features.IndexStore.IndexRepository.IndexRepository"/>
         public string IndexPath { get; internal set; }
 
-        /// <summary>File to store RPC authorization cookie.</summary>
+          /// <summary>File to store RPC authorization cookie.</summary>
         /// <seealso cref="Features.RPC.Startup.Configure"/>
         public string RpcCookieFile { get; internal set; }
 

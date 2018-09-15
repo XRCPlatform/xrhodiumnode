@@ -131,7 +131,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     bool isFound = false;
 
-                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    foreach (var currWalletName in this.walletManager.GetWalletNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
@@ -179,7 +179,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private WalletAccountReference GetAccount()
         {
             //TODO: Support multi wallet like core by mapping passed RPC credentials to a wallet/account
-            var w = this.walletManager.GetWalletsNames().FirstOrDefault();
+            var w = this.walletManager.GetWalletNames().FirstOrDefault();
             if (w == null)
                 throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "No wallet found");
             var account = this.walletManager.GetAccounts(w).FirstOrDefault();
@@ -266,7 +266,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     bool isFound = false;
 
-                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    foreach (var currWalletName in this.walletManager.GetWalletNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
@@ -462,7 +462,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return this.Json(ResultHelper.BuildResultResponse(walletCombix));
             }
 
-            foreach (var currWalletName in this.walletManager.GetWalletsNames())
+            foreach (var currWalletName in this.walletManager.GetWalletNames())
             {
                 foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                 {

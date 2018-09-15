@@ -139,7 +139,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     bool isFound = false;
 
-                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    foreach (var currWalletName in this.walletManager.GetWalletNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {

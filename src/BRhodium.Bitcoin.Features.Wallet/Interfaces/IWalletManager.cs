@@ -207,30 +207,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <returns>HD Address that can be used for various rendering operations.</returns>
         HdAddress GetAddressByPubKeyHash(Script scriptSig);
 
-        /// <summary>
-        /// Saves all the loaded wallets into the file system.
-        /// </summary>
-        /// <param name="force">Determines if wallets need to be saved even when if they were saved recently. Typically useful on shutdown.</param>
-        void SaveWallets(bool force);
-
-        /// <summary>
-        /// Gets the extension of the wallet files.
-        /// </summary>
-        /// <returns></returns>
-        string GetWalletFileExtension();
 
         /// <summary>
         /// Gets all the wallets' names.
         /// </summary>
         /// <returns>A collection of the wallets' names.</returns>
-        IEnumerable<string> GetWalletsNames();
+        IEnumerable<string> GetWalletNames();
 
         /// <summary>
         /// Updates the wallet with the height of the last block synced.
         /// </summary>
-        /// <param name="wallet">The wallet to update.</param>
+        /// <param name="walletName">The wallet to update.</param>
         /// <param name="chainedHeader">The height of the last block synced.</param>
-        void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedHeader chainedHeader);
+        void UpdateLastBlockSyncedHeight(string walletName, ChainedHeader chainedHeader);
 
         /// <summary>
         /// Updates all the loaded wallets with the height of the last block synced.
@@ -250,12 +239,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns></returns>
         ICollection<uint256> GetFirstWalletBlockLocator();
-        
-        /// <summary>
-        /// Gets the list of the wallet filenames, along with the folder in which they're contained.
-        /// </summary>
-        /// <returns>The wallet filenames, along with the folder in which they're contained.</returns>
-        (string folderPath, IEnumerable<string>) GetWalletsFiles();
 
         /// <summary>
         /// Gets whether there are any wallet files loaded or not.
