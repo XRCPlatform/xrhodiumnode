@@ -27,6 +27,7 @@ using BRhodium.Node.Utilities.JsonErrors;
 using NBitcoin.RPC;
 using BRhodium.Node;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {
@@ -389,11 +390,36 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
-                 
+
                 var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
                 return json;
             }
-           
+
+        }
+
+        /// <summary>
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).
+        /// </summary>
+        /// <param name="nblocks">The nblocks.</param>
+        /// <returns>Estimated fee-per-kilobyte</returns>
+        [ActionName("estimatefee")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).")]
+        public IActionResult EstimateFee(string nblocks)
+        {
+            var estimation = txMempool.EstimateFee(Int32.Parse(nblocks));
+            var json = this.Json(ResultHelper.BuildResultResponse(estimation.FeePerK));
+            return json;
+        }
+
+        /// <summary>
+        /// Utility RPC function to see the fee estimate data structures. Non-standard RPC function.
+        /// </summary>
+        /// <returns>Feestarts results</returns>
+        [ActionName("dumpfeestats")]
+        [ActionDescription("Utility RPC function to see the fee estimate data structures. Non-standard RPC function.")]
+        public IActionResult DumpFeeStats()
+        {
+            return this.Json(ResultHelper.BuildResultResponse(txMempool.MinerPolicyEstimator.FeeStats));
         }
 
         /// <summary>
@@ -477,7 +503,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 this.txMempool.PrioritiseTransaction(hash, satoshi);
             }
 
-            var json = this.Json(ResultHelper.BuildResultResponse(true)); 
+            var json = this.Json(ResultHelper.BuildResultResponse(true));
             return json;
         }
 

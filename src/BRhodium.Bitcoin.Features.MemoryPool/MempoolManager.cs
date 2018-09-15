@@ -156,6 +156,26 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         }
 
         /// <summary>
+        /// Loads fee stats.
+        /// </summary>
+        public void LoadFeeStats()
+        {
+            this.mempoolLogger.LogInformation("Loading fee stats ... ");
+            this.mempoolPersistence.LoadFeeStats(this.memPool);
+            this.mempoolLogger.LogInformation("... Fee stats loaded.");
+        }
+
+        /// <summary>
+        /// Save fee stats.
+        /// </summary>
+        public void SaveFeeStats()
+        {
+            this.mempoolLogger.LogInformation("Saving fee stats ... ");
+            this.mempoolPersistence.SaveFeeStats(this.memPool);
+            this.mempoolLogger.LogInformation("... Fee stats saved. ");
+        }
+
+        /// <summary>
         /// Gets transaction information for a specific transaction.
         /// </summary>
         /// <param name="hash">Hash of the transaction to query.</param>
