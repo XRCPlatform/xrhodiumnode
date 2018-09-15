@@ -31,7 +31,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         private readonly ILogger logger;
 
-        /// <summary>Functionality of date and time.</summary>
+        /// <summary>
+        /// Functionality of date and time.
+        /// </summary>
         private readonly IDateTimeProvider dateTimeProvider;
 
         /// <summary>
@@ -65,9 +67,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Attempts to add or remove a node from the addnode list. Or try a connection to a node once.
         /// </summary>
-        /// <param name="node">The address ip:port</param>
-        /// <param name="command">'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once</param>
-        /// <returns>True/Error</returns>
+        /// <param name="node">The address ip:port.</param>
+        /// <param name="command">'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once.</param>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("addnode")]
         [ActionDescription("Attempts to add or remove a node from the addnode list. Or try a connection to a node once.")]
         public IActionResult AddNode(string node, string command)
@@ -118,7 +120,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Returns data about each connected network node as a json array of objects.
         /// </summary>
-        /// <returns>List of connected peer nodes as <see cref="PeerNodeModel"/>.</returns>
+        /// <returns>(List, PeerNodeModel) List of connected peer nodes.</returns>
         [ActionName("getpeerinfo")]
         [ActionDescription("Returns data about each connected network node as a json array of objects.")]
         public IActionResult GetPeerInfo()
@@ -177,7 +179,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Clear all banned IPs.
         /// </summary>
-        /// <returns>True/Error</returns>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("clearbanned")]
         [ActionDescription("Result—the current difficulty.")]
         public IActionResult ClearBanned()
@@ -208,9 +210,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         ///
         /// To disconnect by nodeid, either set 'address' to the empty string, or call using the named 'nodeid' argument only.
         /// </summary>
-        /// <param name="address">The IP address:port of the node</param>
-        /// <param name="nodeId">The node ID (see getpeerinfo for node IDs)</param>
-        /// <returns>True/Error</returns>
+        /// <param name="address">The IP address:port of the node.</param>
+        /// <param name="nodeId">The node ID (see getpeerinfo for node IDs).</param>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("disconnectnode")]
         [ActionDescription("Immediately disconnects from the specified peer node.")]
         public IActionResult DisconnectNode(string address, int? nodeId)
@@ -261,7 +263,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// List all banned IPs/Subnets.
         /// </summary>
-        /// <returns>True/Error</returns>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("listbanned")]
         [ActionDescription("List all banned IPs/Subnets.")]
         public IActionResult ListBanned()
@@ -289,11 +291,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Attempts to add or remove an IP:port from the banned list.
         /// </summary>
-        /// <param name="address">The IP address:port of the node</param>
-        /// <param name="command">'add' to add an IP to the list, 'remove' to remove an IP from the list</param>
-        /// <param name="bantime">Time in seconds how long (or until when if [absolute] is set) the IP is banned (0 or empty means using the default time of 24h which can also be overwritten by the -bantime startup argument)</param>
-        /// <param name="absolute">If set, the bantime must be an absolute timestamp in seconds since epoch (Jan 1 1970 GMT)</param>
-        /// <returns>True/Error</returns>
+        /// <param name="address">The IP address:port of the node.</param>
+        /// <param name="command">'add' to add an IP to the list, 'remove' to remove an IP from the list.</param>
+        /// <param name="bantime">Time in seconds how long (or until when if [absolute] is set) the IP is banned (0 or empty means using the default time of 24h which can also be overwritten by the -bantime startup argument).</param>
+        /// <param name="absolute">If set, the bantime must be an absolute timestamp in seconds since epoch (Jan 1 1970 GMT).</param>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("setban")]
         [ActionDescription("Attempts to add or remove an IP from the banned list.")]
         public IActionResult SetBan(string address, string command, int? bantime, int? absolute)
@@ -378,7 +380,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Returns the number of connections to other nodes.
         /// </summary>
-        /// <returns>Count/Error</returns>
+        /// <returns>(int) Count or Error.</returns>
         [ActionName("getconnectioncount")]
         [ActionDescription("Returns the number of connections to other nodes.")]
         public IActionResult GetConnectionCount()
@@ -399,8 +401,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Disable/enable all p2p network activity.
         /// </summary>
-        /// <param name="state">true to enable networking, false to disable</param>
-        /// <returns>True/Error</returns>
+        /// <param name="state">true to enable networking, false to disable.</param>
+        /// <returns>(bool) True or Error.</returns>
         [ActionName("setnetworkactive")]
         [ActionDescription("Disable/enable all p2p network activity.")]
         public IActionResult SetNetworkActive(string state)
@@ -432,7 +434,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// Returns information about the given added node, or all added nodes (note that onetry addnodes are not listed here)
         /// </summary>
         /// <param name="node">If provided (IP), return information about this specific node, otherwise all nodes are returned.</param>
-        /// <returns>List of connected peer nodes as <see cref="NetworkNodeModel"/>.</returns>
+        /// <returns>(List, NetworkNodeModel) List of connected peer nodes.</returns>
         [ActionName("getaddednodeinfo")]
         [ActionDescription("Returns data about each connected network node as a json array of objects.")]
         public IActionResult GetNodeInfo(string node)
@@ -488,9 +490,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Returns information about network traffic, including bytes in, bytes out, and current time.
         /// </summary>
-        /// <returns>Netork traffic data</returns>
+        /// <returns>(NetTotals) Network traffic data.</returns>
         [ActionName("getnettotals")]
-        [ActionDescription("Returns data about each connected network node as a json array of objects.")]
+        [ActionDescription("Returns information about network traffic, including bytes in, bytes out, and current time.")]
         public IActionResult GetNetTotals()
         {
             try

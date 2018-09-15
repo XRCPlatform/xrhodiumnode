@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using Newtonsoft.Json.Linq;
 using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Controllers;
@@ -16,10 +14,8 @@ using BRhodium.Node.Utilities.Extensions;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using System.Net;
-using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
 using BRhodium.Node;
-using System.Reflection;
 using System.Net.NetworkInformation;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
@@ -63,11 +59,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         /// <summary>
-        /// (DEPRECATED) Returns an object containing various state info regarding P2P networking. Use getblockchaininfo or getnetworkinfo or getwalletinfo or getmininginfo.
+        /// (DEPRECATED) Returns an object containing various state info regarding P2P networking. Please to use getblockchaininfo or getnetworkinfo or getwalletinfo or getmininginfo.
         /// </summary>
-        /// <returns>GetInfoModel RPC format</returns>
+        /// <returns>(GetInfoModel) RPC format.</returns>
         [ActionName("getinfo")]
-        [ActionDescription("Gets general information about the full node.")]
+        [ActionDescription("Returns an object containing various state info regarding P2P networking. Please to use getblockchaininfo or getnetworkinfo or getwalletinfo or getmininginfo.")]
         public IActionResult GetInfo()
         {
             try
@@ -98,9 +94,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <summary>
         /// Returns an object containing various state info regarding P2P networking.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>(GetNetworkInfoModel) Return object model with informations.</returns>
         [ActionName("getnetworkinfo")]
-        [ActionDescription("Gets general information about the full node.")]
+        [ActionDescription("Returns an object containing various state info regarding P2P networking.")]
         public IActionResult GetnetworkInfo()
         {
             try

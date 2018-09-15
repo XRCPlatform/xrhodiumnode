@@ -28,9 +28,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
     [Controller]
     public class MemPoolRPCController : FeatureController
     {
-        /// <summary>
-        /// Instance logger
-        /// </summary>
+        /// <summary>Instance logger</summary>
         private readonly ILogger logger;
 
         /// <summary>An interface implementation used to retrieve unspent transactions from a pooled source.</summary>
@@ -73,8 +71,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.
         /// </summary>
-        /// <param name="verbose">True for a json object, false for array of transaction ids</param>
-        /// <returns></returns>
+        /// <param name="verbose">True for a json object, false for array of transaction ids.</param>
+        /// <returns>(List, GetMemPoolEntry or List, string) Object with informations.</returns>
         [ActionName("getrawmempool")]
         [ActionDescription("Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.")]
         public IActionResult GetRawMempool(string verbose)
@@ -134,12 +132,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         }
 
         /// <summary>
-        /// Returns mempool data for given transaction
+        /// Returns mempool data for given transaction.
         /// </summary>
-        /// <param name="txid">The transaction id (must be in mempool)</param>
-        /// <returns>Return GetMemPoolEntry model</returns>
+        /// <param name="txid">The transaction id (must be in mempool).</param>
+        /// <returns>(GetMemPoolEntry) Return object with informations.</returns>
         [ActionName("getmempoolentry")]
-        [ActionDescription("Returns mempool data for given transaction")]
+        [ActionDescription("Returns mempool data for given transaction.")]
         public IActionResult GetMempoolEntry(string txid)
         {
             try
@@ -186,10 +184,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// Returns details about an unspent transaction output.
         /// </summary>
-        /// <param name="txid">The transaction id</param>
-        /// <param name="n">vout number</param>
+        /// <param name="txid">The transaction id.</param>
+        /// <param name="n">Vout number.</param>
         /// <param name="includeMemPool">Whether to include the mempool. Default: true. Note that an unspent output that is spent in the mempool won't appear.</param>
-        /// <returns>Result GetTxOutModel</returns>
+        /// <returns>(GetTxOutModel) Result object with informations.</returns>
         [ActionName("gettxout")]
         [ActionDescription("Returns details about an unspent transaction output.")]
         public IActionResult GetTxOut(string txid, uint n, bool? includeMemPool)
@@ -227,7 +225,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// Returns statistics about the unspent transaction output set. Note this call may take some time.
         /// </summary>
-        /// <returns>GetTxOutSetInfo Model</returns>
+        /// <returns>(GetTxOutSetInfo) Object with informations.</returns>
         [ActionName("gettxoutsetinfo")]
         [ActionDescription("Returns statistics about the unspent transaction output set. Note this call may take some time.")]
         public IActionResult GetTxOutSetInfo()
@@ -279,9 +277,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// unspent output in the utxo for this transaction.To make it always work, you need to maintain a transaction index, using the -txindex command line option or
         /// specify the block in which the transaction is included manually(by blockhash).
         /// </summary>
-        /// <param name="txids">A json array of txids to filter</param>
-        /// <param name="blockhash">If specified, looks for txid in the block with this hash</param>
-        /// <returns>A string that is a serialized, hex-encoded data for the proof.</returns>
+        /// <param name="txids">A json array of txids to filter.</param>
+        /// <param name="blockhash">If specified, looks for txid in the block with this hash.</param>
+        /// <returns>(string) A string that is a serialized, hex-encoded data for the proof.</returns>
         [ActionName("gettxoutproof")]
         [ActionDescription("Returns a hex - encoded proof that \"txid\" was included in a block.")]
         public IActionResult GetTxOutProf(string txids, string blockhash)
@@ -334,12 +332,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         }
 
         /// <summary>
-        /// Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain
+        /// Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain.
         /// </summary>
-        /// <param name="proof">The hex-encoded proof generated by gettxoutproof</param>
-        /// <returns>The txid(s) which the proof commits to, or empty array if the proof is invalid</returns>
+        /// <param name="proof">The hex-encoded proof generated by gettxoutproof.</param>
+        /// <returns>(List, string) The txid(s) which the proof commits to, or empty array if the proof is invalid.</returns>
         [ActionName("verifytxoutproof")]
-        [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain")]
+        [ActionDescription("Verifies that a proof points to a transaction in a block, returning the transaction it commits to and throwing an RPC error if the block is not in our best chain.")]
         public IActionResult VerifyTxOutProof(string proof)
         {
             try
@@ -375,9 +373,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// If txid is in the mempool, returns all in-mempool ancestors.
         /// </summary>
-        /// <param name="txid">The transaction id (must be in mempool)</param>
+        /// <param name="txid">The transaction id (must be in mempool).</param>
         /// <param name="verbose">True for a json object, false for array of transaction ids</param>
-        /// <returns>Return array or list of GetMemPoolEntry</returns>
+        /// <returns>(List, GetMemPoolEntry or List, string) Return object with informations.</returns>
         [ActionName("getmempoolancestors")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool ancestors.")]
         public IActionResult GetMempoolAncestors(string txid, string verbose)
@@ -461,9 +459,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// If txid is in the mempool, returns all in-mempool descendants.
         /// </summary>
-        /// <param name="txid">The transaction id (must be in mempool)</param>
-        /// <param name="verbose">True for a json object, false for array of transaction ids</param>
-        /// <returns>Return array or list of GetMemPoolEntry</returns>
+        /// <param name="txid">The transaction id (must be in mempool).</param>
+        /// <param name="verbose">True for a json object, false for array of transaction ids.</param>
+        /// <returns>(List, GetMemPoolEntry or List, string) Return object with informations.</returns>
         [ActionName("getmempooldescendants")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool descendants.")]
         public IActionResult GetMempoolDescendants(string txid, string verbose)
@@ -545,7 +543,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// Returns details on the active state of the TX memory pool.
         /// </summary>
-        /// <returns>Information about get mem pool</returns>
+        /// <returns>(GetMemPoolInfo) Return object with informations.</returns>
         [ActionName("getmempoolinfo")]
         [ActionDescription("Returns details on the active state of the TX memory pool.")]
         public IActionResult GetMempoolInfo()
@@ -575,7 +573,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>
         /// Dumps the mempool to disk.
         /// </summary>
-        /// <returns>True if all ok</returns>
+        /// <returns>(bool) True if all ok.</returns>
         [ActionName("savemempool")]
         [ActionDescription("Dumps the mempool to disk.")]
         public IActionResult SaveMemPool()

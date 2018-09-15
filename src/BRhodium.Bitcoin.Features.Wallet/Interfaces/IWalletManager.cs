@@ -164,6 +164,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         AddressBalance GetAddressBalance(string address);
 
         /// <summary>
+        /// Gets the balance of transactions for this specific address.
+        /// </summary>
+        /// <param name="address">The address to get the balance from.</param>
+        /// <param name="walletName">Limit calculation only to this wallet name.</param>
+        /// <returns>The address balance for an address.</returns>
+        AddressBalance GetAddressBalance(string address, string walletName = null);
+
+        /// <summary>
         /// Gets some general information about a wallet.
         /// </summary>
         /// <param name="walletName">The name of the wallet.</param>

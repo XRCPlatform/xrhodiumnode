@@ -41,9 +41,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// </summary>
         /// <param name="privKey">The private key to sign the message with.</param>
         /// <param name="message">The message to create a signature of.</param>
-        /// <returns>The signature of the message encoded in base 64</returns>
+        /// <returns>(string) The signature of the message encoded in base 64.</returns>
         [ActionName("signmessagewithprivkey")]
-        [ActionDescription("Sign a message with the private key of an address")]
+        [ActionDescription("The private key to sign the message with.")]
         public IActionResult SignMessageWithPrivKey(string privKey, string message)
         {
             try
@@ -70,14 +70,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Verify a signed message
+        /// Verify a signed message.
         /// </summary>
         /// <param name="address">The bitcoin address to use for the signature.</param>
         /// <param name="signature">The signature provided by the signer in base 64 encoding (see signmessage).</param>
         /// <param name="message">The message that was signed.</param>
-        /// <returns>Return true/false</returns>
+        /// <returns>(bool) Return true or false.</returns>
         [ActionName("verifymessage")]
-        [ActionDescription("Verify a signed message")]
+        [ActionDescription("Verify a signed message.")]
         public IActionResult VerifyMessage(string address, string signature, string message)
         {
             try

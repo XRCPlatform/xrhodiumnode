@@ -582,6 +582,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public AddressBalance GetAddressBalance(string address)
         {
+            return GetAddressBalance(address, null);
+        }
+
+        /// <inheritdoc />
+        public AddressBalance GetAddressBalance(string address, string walletName = null)
+        {
             Guard.NotEmpty(address, nameof(address));
             this.logger.LogTrace("({0}:'{1}')", nameof(address), address);
 
@@ -595,6 +601,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 foreach (Wallet wallet in this.Wallets)
                 {
+                    if ((walletName != null) && (wallet.Name != walletName)) continue;
+
                     HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                     if (hdAddress == null) continue;
 

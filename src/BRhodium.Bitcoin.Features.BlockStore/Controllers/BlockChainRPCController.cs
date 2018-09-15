@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using BRhodium.Bitcoin.Features.BlockStore.Models;
 using BRhodium.Node;
 using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Controllers;
 using BRhodium.Node.Interfaces;
-using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
@@ -58,12 +56,12 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Gets the block.
         /// If verbosity is 0, returns a string that is serialized, hex-encoded data for block 'hash'.
-        /// If verbosity is 1, returns an Object with information about block<hash>.
-        /// If verbosity is 2, returns an Object with information about block<hash> and information about each transaction. 
+        /// If verbosity is 1, returns an Object with information about block 'hash'.
+        /// If verbosity is 2, returns an Object with information about block 'hash' and information about each transaction. 
         /// </summary>
-        /// <paramref name="hash">Hash of block.</param>
+        /// <param name="hash">Hash of block.</param>
         /// <param name="verbosity">The verbosity.</param>
-        /// <returns>Return data based on verbosity</returns>
+        /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
         [ActionName("getblock")]
         [ActionDescription("Gets the block.")]
         public IActionResult GetBlock(string hash, int verbosity)
@@ -118,14 +116,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             }
         }
 
-        /// <summary>
-        /// Helper for GetBlock
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="blockTemplate"></param>
-        /// <param name="block"></param>
-        /// <param name="chainedHeader"></param>
-        /// <returns>Filled block</returns>
         private GetBlockWithTransactionModel<T> FillBlockBaseData<T>(GetBlockWithTransactionModel<T> blockTemplate, Block block, ChainedHeader chainedHeader)
         {
             blockTemplate.Hash = chainedHeader.HashBlock.ToString();
@@ -152,9 +142,8 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Gets the best blockhash.
         /// </summary>
-        /// <param name="hash">The hash.</param>
         /// <param name="verbosity">The verbosity.</param>
-        /// <returns></returns>
+        /// <returns>(string) Return block hash.</returns>
         [ActionName("getbestblockhash")]
         [ActionDescription("Gets the block.")]
         public IActionResult GetBestBlockhash(int verbosity)
@@ -176,7 +165,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Returns the number of blocks in the longest blockchain.
         /// </summary>
-        /// <returns>Number</returns>
+        /// <returns>(int) Block count.</returns>
         [ActionName("getblockcount")]
         [ActionDescription("Returns the number of blocks in the longest blockchain.")]
         public IActionResult GetBlockCount()
@@ -196,8 +185,8 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Returns hash of block in best-block-chain at height provided.
         /// </summary>
-        /// <param name="height">The height index</param>
-        /// <returns>Hash</returns>
+        /// <param name="height">The height index.</param>
+        /// <returns>(string) Hash of block.</returns>
         [ActionName("getblockhash")]
         [ActionDescription("Returns hash of block in best-block-chain at height provided.")]
         public IActionResult GetBlockHash(int height)
@@ -218,7 +207,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Return information about all known tips in the block tree, including the main chain as well as orphaned branches.
         /// </summary>
-        /// <returns>List of GetChainTipModel</returns>
+        /// <returns>(List, GetChainTipModel) Object with informations.</returns>
         [ActionName("getchaintips")]
         [ActionDescription("Return information about all known tips in the block tree, including the main chain as well as orphaned branches.")]
         public IActionResult GetChainTips()
@@ -282,13 +271,13 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         }
 
         /// <summary>
-        /// If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader<hash>.
+        /// If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader 'hash'.
         /// </summary>
-        /// <param name="hash">The block hash</param>
-        /// <param name="verbose">True for a json object, false for the hex encoded data</param>
-        /// <returns></returns>
+        /// <param name="hash">The block hash.</param>
+        /// <param name="verbose">True for a json object, false for the hex encoded data.</param>
+        /// <returns>(string or GetBlockModel) Object with informations.</returns>
         [ActionName("getblockheader")]
-        [ActionDescription("Return information about all known tips in the block tree, including the main chain as well as orphaned branches.")]
+        [ActionDescription("If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader 'hash'.")]
         public IActionResult GetBlockHeader(string hash, string verbose)
         {
             try
@@ -342,7 +331,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// </summary>
         /// <param name="nblocks">Size of the window in number of blocks (default: one month).</param>
         /// <param name="blockhash">The hash of the block that ends the window.</param>
-        /// <returns>Return result as GetChainTxStats</returns>
+        /// <returns>(GetChainTxStats) Return object with result.</returns>
         [ActionName("getchaintxstats")]
         [ActionDescription("Compute statistics about the total number and rate of transactions in the chain.")]
         public IActionResult GetChainTxStatus(int? nblocks, string blockhash)
@@ -436,7 +425,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Returns an object containing various state info regarding blockchain processing.
         /// </summary>
-        /// <returns>Return new GetBlockChainInfoModel</returns>
+        /// <returns>(GetBlockChainInfoModel) Return object with informations.</returns>
         [ActionName("getblockchaininfo")]
         [ActionDescription("Returns an object containing various state info regarding blockchain processing.")]
         public IActionResult GetBlockChainInfo()
@@ -492,7 +481,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// </summary>
         /// <param name="checklevel">How thorough the block verification is.</param>
         /// <param name="nblocks">The number of blocks to check.</param>
-        /// <returns>True / False</returns>
+        /// <returns>(bool) True or False.</returns>
         [ActionName("verifychain")]
         [ActionDescription("Verifies blockchain database.")]
         public IActionResult VerifyChain(int? checklevel, int? nblocks)
