@@ -232,6 +232,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <param name="wallet">The wallet to save.</param>
         void SaveWallet(Wallet wallet);
+
+        string GetWalletFileExtension();
         /// <summary>
         /// Performs pubsighash to address translation so that friendly address can be displayed in wallet. 
         /// </summary>

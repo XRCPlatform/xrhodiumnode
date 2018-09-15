@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +31,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>Quantity of accounts created in a wallet file when a wallet is created.</summary>
         private const int WalletCreationAccountsCount = 1;
 
+        private const string WalletFileExtension = "wallet.json";
         /// <summary>
         /// A lock object that protects access to the <see cref="Wallet"/>.
         /// Any of the collections inside Wallet must be synchronized using this lock.
@@ -60,6 +61,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the repository.</summary>
         private readonly WalletRepository repository;
+        /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
+        private readonly FileStorage<Wallet> fileStorage;
 
         /// <summary>The broadcast manager.</summary>
         private readonly IBroadcasterManager broadcasterManager;
@@ -124,6 +127,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
             this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType);
+            this.fileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
 
@@ -446,7 +450,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             bool generated = false;
             IEnumerable<HdAddress> addresses;
-
             if (accountName == null)
             {
                 var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
@@ -470,7 +473,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
                     foreach (var address in newAddresses)
                     {
-                        walletLinkerList.Add(new WalletLinkedHdAddress(address, accountReference.WalletName));
+                        walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Name));
                     }                   
                     this.UpdateKeysLookupLock(walletLinkerList);
                     generated = true;
@@ -665,6 +668,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <inheritdoc />
         public bool ContainsWallets => this.repository.GetAllWalletNames().Any();
+
+        public FileStorage<Wallet> FileStorage
+        {
+            get
+            {
+                return fileStorage;
+            }
+        }
 
         /// <summary>
         /// Gets the hash of the last block received by the wallets.
@@ -1200,7 +1211,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             this.logger.LogTrace("(-)");
         }
-    
+        /// <inheritdoc />
+        public string GetWalletFileExtension()
+        {
+            return WalletFileExtension;
+        }
 
         /// <inheritdoc />
         public void UpdateLastBlockSyncedHeight(ChainedHeader chainedHeader)

@@ -492,7 +492,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if (!res.IsMine)
                 {
-                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    foreach (var currWalletName in this.walletManager.GetWalletNames())
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
@@ -945,7 +945,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                         foreach (Transaction transaction in block.Transactions)
                         {
-                            bool trxFound = this.walletManager.ProcessTransaction(transaction, chainedHeader.Height, block, true);
+                            bool trxFound = this.walletManager.ProcessTransaction(transaction, chainedHeader.Height, block,null,true);
                             if (trxFound)
                             {
                                 walletUpdated = true;
@@ -969,7 +969,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                         if (walletUpdated)
                         {
-                            this.walletManager.SaveWallets();
+                            //temporary delay the resolution
+                            throw new NotImplementedException();
+                            //this.walletManager.SaveWallets();
                         }
 
                         result.StopHeight = i;
