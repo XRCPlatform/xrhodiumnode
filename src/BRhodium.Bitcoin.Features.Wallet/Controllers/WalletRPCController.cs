@@ -460,7 +460,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var res = new ValidatedAddress();
                 res.IsValid = false;
                 res.Address = address;
-                res.IsMine = true;
                 res.IsWatchOnly = false;
                 res.IsScript = false;
 
@@ -473,6 +472,37 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
                 {
                     res.IsValid = true;
+                }
+
+                string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+                if (walletCombix != null)
+                {
+                    res.IsMine = true;
+                }
+
+                if (!res.IsMine)
+                {
+                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
+                    {
+                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        {
+                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            {
+                                if (walletAddress.Address.ToString().Equals(address))
+                                {
+                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    res.IsMine = true;
+                                    break;
+                                }
+                            }
+
+                            if (res.IsMine) break;
+                        }
+
+                        if (res.IsMine) break;
+                    }
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(res));
@@ -1335,13 +1365,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns list of temporarily unspendable outputs. See the lockunspent call to lock and unlock transactions for spending.
+        /// </summary>
+        /// <returns>(List, TxOutLock) Object with locked transactions.</returns>
         [ActionName("listlockunspent")]
-        [ActionDescription("")]
+        [ActionDescription("Returns list of temporarily unspendable outputs. See the lockunspent call to lock and unlock transactions for spending.")]
         public IActionResult ListLockUnspent()
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var txLocks = new List<TxOutLock>();
+
+                foreach (var itemMemTxLock in this.walletManager.LockedTxOut)
+                {
+                    var newLock = new TxOutLock();
+                    newLock.TxId = itemMemTxLock.Key;
+                    newLock.Vout = itemMemTxLock.Value;
+
+                    txLocks.Add(newLock);
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(txLocks));
             }
             catch (Exception e)
             {
@@ -1500,12 +1545,64 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates list of temporarily unspendable outputs. 
+        /// <p>Temporarily lock (unlock=false) or unlock(unlock=true) specified transaction outputs.<br/>
+        /// If no transaction outputs are specified when unlocking then all current locked transaction outputs are unlocked.<br/>
+        /// A locked transaction output will not be chosen by automatic coin selection, when spending bitcoins.<br/>
+        /// Locks are stored in memory only. Nodes start with zero locked outputs, and the locked output list<br/>
+        /// is always cleared (by virtue of process exit) when a node stops or fails.<br/>
+        /// Also see the listunspent call.</p>
+        /// </summary>
+        /// <param name="unlock">Whether to unlock (true) or lock (false) the specified transactions.</param>
+        /// <param name="jsonTransactions">A json array of objects. Each object the txid (string) and vout (int).</param>
+        /// <returns>(bool) Whether the command was successful or not.</returns>
         [ActionName("lockunspend")]
-        [ActionDescription("")]
-        public IActionResult LockUnspend()
+        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        public IActionResult LockUnspend(bool unlock, string jsonTransactions)
         {
             try
             {
+                var txLocks = new List<TxOutLock>();
+                int value;
+
+                if (!string.IsNullOrEmpty(jsonTransactions))
+                {
+                    txLocks = JsonConvert.DeserializeObject<List<TxOutLock>>(jsonTransactions);
+                }
+
+                foreach (var itemMemTxLock in this.walletManager.LockedTxOut)
+                {
+                    if (txLocks.Count > 0)
+                    {
+                        foreach (var itemLock in txLocks)
+                        {
+                            if (itemLock.TxId == itemMemTxLock.Key)
+                            {
+                                if (unlock == true)
+                                {
+                                    this.walletManager.LockedTxOut.TryRemove(itemMemTxLock.Key, out value);
+                                }
+                            }
+                            else
+                            {
+                                if (unlock == false)
+                                {
+                                    this.walletManager.LockedTxOut.AddOrReplace(itemLock.TxId, itemLock.Vout);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (unlock == true) //remove all
+                        {
+                            this.walletManager.LockedTxOut.Clear();
+                            break;
+                        }
+                    }
+                }
+
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)

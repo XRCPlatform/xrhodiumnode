@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -1298,10 +1299,11 @@ namespace NBitcoin
         /// <param name="tx">The transaction to check</param>
         /// <param name="errors">Detected errors</param>
         /// <returns>True if no error</returns>
-        public bool Verify(Transaction tx, out TransactionPolicyError[] errors)
+        public bool Verify(Transaction tx, out TransactionPolicyError[] errors, ConcurrentDictionary<string, int> lockedTxOut = null)
         {
-            return Verify(tx, null as Money, out errors);
+            return Verify(tx, null as Money, out errors, lockedTxOut);
         }
+
         /// <summary>
         /// Verify that a transaction is fully signed, have enough fees, and follow the Standard and Miner Transaction Policy rules
         /// </summary>
@@ -1309,7 +1311,7 @@ namespace NBitcoin
         /// <param name="expectedFees">The expected fees (more or less 10%)</param>
         /// <param name="errors">Detected errors</param>
         /// <returns>True if no error</returns>
-        public bool Verify(Transaction tx, Money expectedFees, out TransactionPolicyError[] errors)
+        public bool Verify(Transaction tx, Money expectedFees, out TransactionPolicyError[] errors, ConcurrentDictionary<string, int> lockedTxOut = null)
         {
             if(tx == null)
                 throw new ArgumentNullException("tx");
@@ -1331,6 +1333,17 @@ namespace NBitcoin
                         exceptions.Add(new NotEnoughFundsPolicyError("Fees different than expected", expectedFees - fees));
                 }
             }
+
+            if (lockedTxOut != null)
+            {
+                var txHash = tx.ToHex(this.Network, SerializationType.Hash);
+                int txOutIndex = -1;
+                if (lockedTxOut.TryGetValue(txHash, out txOutIndex))
+                {
+                    exceptions.Add(new TransactionPolicyError("Transaction has locked TxOut " + tx.GetHash()));
+                }
+            }
+
             errors = exceptions.ToArray();
             return errors.Length == 0;
         }

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.DataEncoders;
+using NBitcoin.Policy;
 using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
@@ -332,18 +333,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new WalletException("Can't send transaction: sending transaction requires at least on connection.");
                 }
 
+                var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
+
                 var transaction = Transaction.Load(hex, this.Network);
                 var controller = this.FullNode.NodeService<WalletController>();
 
-                var transactionRequest = new SendTransactionRequest(transaction.ToHex());
+                if (!transactionBuilder.Verify(transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
+                {
+                    var errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
+                    throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+                }
 
-                this.broadcasterManager.BroadcastTransactionAsync(transaction).GetAwaiter().GetResult();
+                var transactionRequest = new SendTransactionRequest(transaction.ToHex());
+                controller.SendTransaction(transactionRequest);
+
                 TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
 
                 if (!string.IsNullOrEmpty(entry?.ErrorMessage))
                 {
                     this.logger.LogError("Exception occurred: {0}", entry.ErrorMessage);
-                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, entry.ErrorMessage, "Transaction Exception");
+                    throw new WalletException($"Could not send the transaction. Details: {entry.ErrorMessage}");
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));

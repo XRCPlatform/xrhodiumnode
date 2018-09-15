@@ -80,6 +80,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public uint256 WalletTipHash { get; set; }
 
+        /// <summary>Memory locked unspendable transaction parts (tx hash, index vount)</summary>
+        public ConcurrentDictionary<string, int> LockedTxOut { get; set; }
+
         // In order to allow faster look-ups of transactions affecting the wallets' addresses,
         // we keep a couple of objects in memory:
         // 1. the list of unspent outputs for checking whether inputs from a transaction are being spent by our wallet and

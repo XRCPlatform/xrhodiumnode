@@ -26,7 +26,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         uint256 WalletTipHash { get; set; }
 
+        /// <summary>
+        /// Gets the list of wallets.
+        /// </summary>
         ConcurrentBag<Wallet> Wallets { get; }
+
+        /// <summary>
+        /// Memory locked unspendable transaction parts (tx hash, index vount)
+        /// </summary>
+        ConcurrentDictionary<string, int> LockedTxOut { get; set; }
 
         /// <summary>
         /// Lists all spendable transactions from all accounts in the wallet.
