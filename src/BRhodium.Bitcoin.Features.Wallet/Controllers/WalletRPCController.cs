@@ -1350,19 +1350,87 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Lists groups of addresses which have had their common ownership made public by common use as inputs or as the resulting change in past transactions.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <returns>(List, ListReceivedByAddressModel) Object with informations.</returns>
         [ActionName("listaddressgroupings")]
-        [ActionDescription("")]
-        public IActionResult ListAddressGroupings()
+        [ActionDescription("Lists groups of addresses which have had their common ownership made public by common use as inputs or as the resulting change in past transactions.")]
+        public IActionResult ListAddressGroupings(string walletName)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new List<ListReceivedByAddressModel>();
+
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType).ToList();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                foreach (var itemAccount in accountsRoot)
+                {
+                    foreach (var itemHdAccount in itemAccount.Accounts)
+                    {
+                        foreach (var itemAddress in itemHdAccount.ExternalAddresses)
+                        {
+                            var newItemResult = GetNewReceivedByAddressModel(chainRepository, walletName, itemAddress.Address, false);
+                            if (newItemResult != null) result.Add(newItemResult);
+                        }
+
+                        foreach (var itemAddress in itemHdAccount.InternalAddresses)
+                        {
+                            var newItemResult = GetNewReceivedByAddressModel(chainRepository, walletName, itemAddress.Address, false);
+                            if (newItemResult != null) result.Add(newItemResult);
+                        }
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Helper for filling ListReceivedByAddressModel model.
+        /// </summary>
+        /// <param name="chainRepository">Chain repository object.</param>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="address">The address.</param>
+        /// <param name="include_empty">Whether to include addresses that haven't received any payments.</param>
+        /// <returns>(ListReceivedByAddressModel) Return filled model or null.</returns>
+        private ListReceivedByAddressModel GetNewReceivedByAddressModel(ConcurrentChain chainRepository, string walletName, string address, bool include_empty = false)
+        {
+            var newItemResult = new ListReceivedByAddressModel();
+            var balance = this.walletManager.GetAddressBalance(address, walletName);
+
+            if ((balance.GetTotalAmount() == Money.Zero) && (!include_empty))
+            {
+                return null;
+            }
+
+            newItemResult.Address = address;
+            newItemResult.Amount = balance.GetTotalAmount().ToUnit(MoneyUnit.BTR);
+
+            if (balance.Transactions != null)
+            {
+                newItemResult.TxIds = balance.Transactions.Select(a => a.Transaction.GetHash()).ToList();
+
+                var lastTx = balance.Transactions.Last();
+                var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
+
+                newItemResult.Confirmations = chainRepository.Tip.Height - chainedHeader.Height + 1;
+            }
+
+            return newItemResult;
         }
 
         /// <summary>
@@ -1425,28 +1493,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         foreach (var itemAddress in itemHdAccount.ExternalAddresses)
                         {
-                            var newItemResult = new ListReceivedByAddressModel();
-                            var balance = this.walletManager.GetAddressBalance(itemAddress.Address, walletName);
-
-                            if ((balance.GetTotalAmount() == Money.Zero) && (!include_empty))
-                            {
-                                continue;
-                            }
-
-                            newItemResult.Address = itemAddress.Address;
-                            newItemResult.Amount = balance.GetTotalAmount().ToUnit(MoneyUnit.BTR);
-
-                            if (balance.Transactions != null)
-                            {
-                                newItemResult.TxIds = balance.Transactions.Select(a => a.Transaction.GetHash()).ToList();
-
-                                var lastTx = balance.Transactions.Last();
-                                var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
-
-                                newItemResult.Confirmations = chainRepository.Tip.Height - chainedHeader.Height + 1;
-                            }
-
-                            result.Add(newItemResult);
+                            var newItemResult = GetNewReceivedByAddressModel(chainRepository, walletName, itemAddress.Address, include_empty);
+                            if (newItemResult != null) result.Add(newItemResult);
                         }
                     }
                 }
