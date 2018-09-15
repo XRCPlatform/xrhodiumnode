@@ -26,7 +26,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         uint256 WalletTipHash { get; set; }
 
+        /// <summary>
+        /// Gets the list of wallets.
+        /// </summary>
         ConcurrentBag<Wallet> Wallets { get; }
+
+        /// <summary>
+        /// Memory locked unspendable transaction parts (tx hash, index vount)
+        /// </summary>
+        ConcurrentDictionary<string, int> LockedTxOut { get; set; }
 
         /// <summary>
         /// Lists all spendable transactions from all accounts in the wallet.
@@ -122,6 +130,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false);
 
         /// <summary>
+        /// Gets a collection of unused receiving or change addresses.
+        /// </summary>
+        /// <param name="wallet">The wallet object.</param>
+        /// <param name="count">The number of addresses to create.</param>
+        /// <param name="isChange">A value indicating whether or not the addresses to get should be receiving or change addresses.</param>
+        /// <param name="accountName">Name of the account.</param>
+        /// <returns></returns>
+        IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null);
+
+        /// <summary>
         /// Gets the history of transactions contained in an account.
         /// If no account name is specified, history will be returned for all accounts in the wallet.
         /// </summary>
@@ -154,11 +172,25 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         AddressBalance GetAddressBalance(string address);
 
         /// <summary>
+        /// Gets the balance of transactions for this specific address.
+        /// </summary>
+        /// <param name="address">The address to get the balance from.</param>
+        /// <param name="walletName">Limit calculation only to this wallet name.</param>
+        /// <returns>The address balance for an address.</returns>
+        AddressBalance GetAddressBalance(string address, string walletName = null);
+
+        /// <summary>
         /// Gets some general information about a wallet.
         /// </summary>
         /// <param name="walletName">The name of the wallet.</param>
         /// <returns></returns>
         Wallet GetWallet(string walletName);
+
+        /// <summary>
+        /// Gets the lock.
+        /// </summary>
+        /// <returns>Locked object</returns>
+        object GetLock();
 
         /// <summary>
         /// Gets a list of accounts.

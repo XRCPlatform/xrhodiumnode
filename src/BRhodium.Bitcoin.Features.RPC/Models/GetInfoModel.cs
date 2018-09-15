@@ -37,7 +37,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public string Errors { get; set; }
 
         [JsonProperty(Order = 2, PropertyName = "walletversion", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public uint? WalletVersion { get; set; }
+        public uint WalletVersion { get; set; }
 
         [JsonProperty(Order = 3, PropertyName = "balance", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public decimal? Balance { get; set; }

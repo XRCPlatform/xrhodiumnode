@@ -70,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
 
-            if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors))
+            if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
                 return context.Transaction;
 
             string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));

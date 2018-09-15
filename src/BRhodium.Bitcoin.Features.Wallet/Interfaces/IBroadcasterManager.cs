@@ -12,6 +12,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         event EventHandler<TransactionBroadcastEntry> TransactionStateChanged;
 
         TransactionBroadcastEntry GetTransaction(uint256 transactionHash);
+        bool RemoveTransaction(TransactionBroadcastEntry txEntry);
 
         void AddOrUpdate(Transaction transaction, State state, string ErrorMessage = "");
     }

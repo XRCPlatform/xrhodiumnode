@@ -37,6 +37,11 @@ namespace BRhodium.Bitcoin.Features.LightWallet
 
         private FeeRate lowTxFeePerKb;
 
+        /// <summary>
+        /// Transaction fee set by the user
+        /// </summary>
+        private FeeRate payTxFee;
+
         public LightWalletBitcoinExternalFeePolicy(IAsyncLoopFactory asyncLoopFactory, INodeLifetime nodeLifetime, ILoggerFactory loggerFactory, NodeSettings settings)
         {
             this.asyncLoopFactory = asyncLoopFactory;
@@ -149,6 +154,18 @@ namespace BRhodium.Bitcoin.Features.LightWallet
             if (confirmTarget < 50) feeRate = this.mediumTxFeePerKb;
             if (confirmTarget < 20) feeRate = this.highTxFeePerKb;
             return feeRate;
+        }
+
+        /// <inheritdoc />
+        public void SetPayTxFee(Money feePerK)
+        {
+            this.payTxFee = new FeeRate(feePerK);
+        }
+
+        /// <inheritdoc />
+        public FeeRate GetPayTxFee()
+        {
+            return this.payTxFee;
         }
     }
 }

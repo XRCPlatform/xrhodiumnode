@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using Newtonsoft.Json.Linq;
 using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Controllers;
 using BRhodium.Bitcoin.Features.Consensus.Interfaces;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using BRhodium.Node.Interfaces;
-using BRhodium.Node.Utilities;
-using BRhodium.Node.Utilities.Extensions;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using System.Net;
@@ -25,7 +21,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
     public class ExplorerRPCController : FeatureController
     {
-
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
 
@@ -152,6 +147,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             return result;
         }
 
+        /// <summary>
+        /// Gets the explorer latest blocks.
+        /// </summary>
+        /// <param name="limit">The limit.</param>
+        /// <returns>(List, ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexplorerlatestblocks")]
         public IActionResult GetExplorerLatestBlocks(int limit)
         {
@@ -194,6 +194,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the explorer block.
+        /// </summary>
+        /// <param name="hash">The hash.</param>
+        /// <returns>(ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexplorerblock")]
         public IActionResult GetExplorerBlock(string hash)
         {
@@ -224,6 +229,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the explorer transaction.
+        /// </summary>
+        /// <param name="hash">The hash.</param>
+        /// <returns>(ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexplorertransaction")]
         public IActionResult GetExplorerTransaction(string hash)
         {
@@ -263,6 +273,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets the explorer address.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <param name="ignoreJson">The ignore json.</param>
+        /// <param name="address">The address.</param>
+        /// <returns>(List, ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexploreraddress")]
         public IActionResult GetExplorerAddress(long offset, string ignoreJson, string address)
         {
@@ -316,7 +333,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     }
                     catch (Exception e)
                     {
-
                         //be quite
                     }
                     
@@ -331,7 +347,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Gets the height of the explorer address by.
+        /// </summary>
+        /// <param name="heightsJson">The heights json.</param>
+        /// <returns>(List, ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexploreraddressbyheight")]
         public IActionResult GetExplorerAddressByHeight(string heightsJson)
         {
@@ -362,7 +382,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     }
                     catch (Exception e)
                     {
-
                         //be quite
                     }
 

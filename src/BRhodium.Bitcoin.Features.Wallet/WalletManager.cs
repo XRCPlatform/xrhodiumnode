@@ -67,7 +67,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly ILogger logger;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
-        private readonly FileStorage<Wallet> fileStorage;
+        public readonly FileStorage<Wallet> FileStorage;
 
         /// <summary>The broadcast manager.</summary>
         private readonly IBroadcasterManager broadcasterManager;
@@ -79,6 +79,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly WalletSettings walletSettings;
 
         public uint256 WalletTipHash { get; set; }
+
+        /// <summary>Memory locked unspendable transaction parts (tx hash, index vount)</summary>
+        public ConcurrentDictionary<string, int> LockedTxOut { get; set; }
 
         // In order to allow faster look-ups of transactions affecting the wallets' addresses,
         // we keep a couple of objects in memory:
@@ -121,7 +124,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.chain = chain;
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
-            this.fileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
+            this.FileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
 
@@ -157,7 +160,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("()");
 
             // Find wallets and load them in memory.
-            IEnumerable<Wallet> wallets = this.fileStorage.LoadByFileExtension(WalletFileExtension);
+            IEnumerable<Wallet> wallets = this.FileStorage.LoadByFileExtension(WalletFileExtension);
 
             foreach (Wallet wallet in wallets)
                 this.Wallets.Add(wallet);
@@ -259,7 +262,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
 
             // Load the file from the local system.
-            Wallet wallet = this.fileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
+            Wallet wallet = this.FileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
 
             // Check the password.
             try
@@ -404,6 +407,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return res;
         }
 
+        public object GetLock()
+        {
+            return this.lockObject;
+        }
+
         /// <inheritdoc />
         public HdAddress GetUnusedAddress(WalletAccountReference accountReference)
         {
@@ -425,8 +433,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return res;
         }
-
-
+        
         /// <inheritdoc />
         public IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
         {
@@ -436,13 +443,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             Wallet wallet = this.GetWalletByName(accountReference.WalletName);
 
+            return GetUnusedAddresses(wallet, count, isChange, accountReference.AccountName);
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null)
+        {
+            Guard.Assert(count > 0);
+
             bool generated = false;
             IEnumerable<HdAddress> addresses;
+
+            if (accountName == null)
+            {
+                var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                accountName = accountReference.Accounts.First().Name;
+            }
 
             lock (this.lockObject)
             {
                 // Get the account.
-                HdAccount account = wallet.GetAccountByCoinType(accountReference.AccountName, this.coinType);
+                HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
 
                 List<HdAddress> unusedAddresses = isChange ? 
                     account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() : 
@@ -473,7 +494,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public (string folderPath, IEnumerable<string>) GetWalletsFiles()
         {
-            return (this.fileStorage.FolderPath, this.fileStorage.GetFilesNames(this.GetWalletFileExtension()));
+            return (this.FileStorage.FolderPath, this.FileStorage.GetFilesNames(this.GetWalletFileExtension()));
         }
 
         /// <inheritdoc />
@@ -564,6 +585,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public AddressBalance GetAddressBalance(string address)
         {
+            return GetAddressBalance(address, null);
+        }
+
+        /// <inheritdoc />
+        public AddressBalance GetAddressBalance(string address, string walletName = null)
+        {
             Guard.NotEmpty(address, nameof(address));
             this.logger.LogTrace("({0}:'{1}')", nameof(address), address);
 
@@ -577,6 +604,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 foreach (Wallet wallet in this.Wallets)
                 {
+                    if ((walletName != null) && (wallet.Name != walletName)) continue;
+
                     HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                     if (hdAddress == null) continue;
 
@@ -584,6 +613,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     balance.AmountConfirmed = result.amountConfirmed;
                     balance.AmountUnconfirmed = result.amountUnconfirmed;
+                    balance.Transactions = hdAddress.Transactions;
 
                     break;
                 }
@@ -1130,7 +1160,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+                this.FileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
             }
 
             this.logger.LogTrace("(-)");
@@ -1210,7 +1240,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.fileStorage.FolderPath}' and try restoring the wallet again. " +
+                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.FileStorage.FolderPath}' and try restoring the wallet again. " +
                                                     "Make sure you have your mnemonic and your password handy!");
             }
 

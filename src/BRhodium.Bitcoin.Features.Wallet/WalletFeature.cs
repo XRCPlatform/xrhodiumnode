@@ -191,6 +191,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         services.AddSingleton<IBroadcasterManager, FullNodeBroadcasterManager>();
                         services.AddSingleton<BroadcasterBehavior>();
                         services.AddSingleton<WalletSettings>(new WalletSettings(setup));
+                        services.AddSingleton<IWalletKeyPool, WalletKeyPool>();
                     });
             });
 
