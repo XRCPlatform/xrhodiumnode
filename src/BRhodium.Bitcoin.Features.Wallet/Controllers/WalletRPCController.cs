@@ -1395,13 +1395,63 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// List balances by receiving address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="minconf">The minimum number of confirmations before payments are included.</param>
+        /// <param name="include_empty">Whether to include addresses that haven't received any payments.</param>
+        /// <returns>(List, ListReceivedByAddressModel) Object with informations.</returns>
         [ActionName("listreceivedbyaddress")]
-        [ActionDescription("")]
-        public IActionResult ListReceivedByAddress()
+        [ActionDescription("List balances by receiving address.")]
+        public IActionResult ListReceivedByAddress(string walletName, int minconf = 0, bool include_empty = false)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new List<ListReceivedByAddressModel>();
+
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType).ToList();
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+                foreach (var itemAccount in accountsRoot)
+                {
+                    foreach (var itemHdAccount in itemAccount.Accounts)
+                    {
+                        foreach (var itemAddress in itemHdAccount.ExternalAddresses)
+                        {
+                            var newItemResult = new ListReceivedByAddressModel();
+                            var balance = this.walletManager.GetAddressBalance(itemAddress.Address, walletName);
+
+                            if ((balance.GetTotalAmount() == Money.Zero) && (!include_empty))
+                            {
+                                continue;
+                            }
+
+                            newItemResult.Address = itemAddress.Address;
+                            newItemResult.Amount = balance.GetTotalAmount().ToUnit(MoneyUnit.BTR);
+
+                            if (balance.Transactions != null)
+                            {
+                                newItemResult.TxIds = balance.Transactions.Select(a => a.Transaction.GetHash()).ToList();
+
+                                var lastTx = balance.Transactions.Last();
+                                var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
+
+                                newItemResult.Confirmations = chainRepository.Tip.Height - chainedHeader.Height + 1;
+                            }
+
+                            result.Add(newItemResult);
+                        }
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {
@@ -1530,13 +1580,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns array of unspent transaction outputs. With between minconf confirmations.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="minconf">The minimum confirmations to filter.</param>
+        /// <returns>(List, TransactionVerboseModel) Object with transaction information.</returns>
         [ActionName("listunspent")]
-        [ActionDescription("")]
-        public IActionResult ListUnspent()
+        [ActionDescription("Returns array of unspent transaction outputs. With between minconf confirmations.")]
+        public IActionResult ListUnspent(string walletName, int minconf = 0)
         {
             try
             {
-                return this.Json(ResultHelper.BuildResultResponse(true));
+                var result = new List<TransactionVerboseModel>();
+
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+
+                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+                var wallet = this.walletManager.GetWalletByName(walletName);
+
+                var unspendTx = wallet.GetAllSpendableTransactions((CoinType)this.network.Consensus.CoinType, chainRepository.Height, minconf);
+
+                if (unspendTx != null)
+                {
+                    foreach (var itemUnspendTx in unspendTx)
+                    {
+                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(itemUnspendTx.Transaction.BlockHash);
+                        var newTxVerboseModel = new TransactionVerboseModel(itemUnspendTx.Transaction.Transaction, this.network, chainedHeader, chainRepository.Tip);
+                        result.Add(newTxVerboseModel);
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
             }
             catch (Exception e)
             {

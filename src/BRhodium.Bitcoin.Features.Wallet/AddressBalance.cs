@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿using System.Collections.Generic;
+using NBitcoin;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -26,5 +27,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The balance of unconfirmed transactions.
         /// </summary>
         public Money AmountUnconfirmed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the transactions.
+        /// </summary>
+        public ICollection<TransactionData> Transactions { get; set; }
+
+        /// <summary>
+        /// Gets the total amount.
+        /// </summary>
+        /// <returns>Money object with amount.</returns>
+        public Money GetTotalAmount()
+        {
+            return this.AmountConfirmed + this.AmountUnconfirmed;
+        }
     }
 }

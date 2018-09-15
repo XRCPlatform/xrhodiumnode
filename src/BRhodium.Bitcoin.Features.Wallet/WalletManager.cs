@@ -613,6 +613,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     balance.AmountConfirmed = result.amountConfirmed;
                     balance.AmountUnconfirmed = result.amountUnconfirmed;
+                    balance.Transactions = hdAddress.Transactions;
 
                     break;
                 }
