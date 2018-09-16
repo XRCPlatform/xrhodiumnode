@@ -886,6 +886,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "transactions")]
         public ICollection<TransactionData> Transactions { get; set; }
+        /// <summary>
+        /// Internal identifier.
+        /// </summary>
+        [JsonProperty(PropertyName = "id")]
         public long Id { get; internal set; }
 
         /// <summary>
