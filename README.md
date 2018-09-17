@@ -9,7 +9,7 @@ Project web site: [BitCoin Rhodium](https://www.bitcoinrh.org)
 BitCoin Implementation in C#
 ----------------------------
 
-BitCoin Rhodium is an implementation of the Bitcoin in C# on the [.NET Core] platform. Node allow to run BRhodium Node. 
+BitCoin Rhodium is an implementation of the BitCoin in C# on the [.NET Core] platform. Node allow to run BRhodium Node. 
 Code is based on [NBitcoin](https://github.com/MetacoSA/NBitcoin) ans [Stratis](https://github.com/stratisproject/StratisBitcoinFullNode) project.  
 
 BitCoin Rhodium using POW algo only.
