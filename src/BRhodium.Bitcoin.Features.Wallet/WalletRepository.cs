@@ -40,7 +40,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal void SaveBlockLocator(string walletName, List<uint256> blocks)
         {// stores block list for future use
             //case insensitive keys => transform to lower case 
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
         public Task SaveWallet(string walletName, Wallet wallet)
         {
@@ -153,7 +153,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             //    accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
             //    accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
             //}
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         internal Wallet GetWallet(string name)

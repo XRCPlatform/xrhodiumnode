@@ -206,7 +206,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
-            Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
+            Wallet wallet = this.GenerateWallet(name, encryptedSeed, extendedKey.ChainCode);
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < WalletCreationAccountsCount; i++)
@@ -240,12 +240,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Save the changes to the file and add addresses to be tracked.
             this.SaveWallet(wallet);
-            this.GetWalletByName(wallet.Name);
             this.logger.LogTrace("(-)");
             return mnemonic;
         }
-
-        /// <inheritdoc />
+      /// <summary>
+      /// Generates and returns new wallet object.
+      /// </summary>
+      /// <param name="password"></param>
+      /// <param name="name"></param>
+      /// <param name="passphrase"></param>
+      /// <param name="mnemonicList"></param>
+      /// <returns></returns>
+        public Wallet CreateAndReturnWallet(string password, string name, string passphrase = null, string mnemonicList = null)
+        {
+            CreateWallet(password, name, passphrase, mnemonicList);
+            return GetWalletByName(name);
+        }
+            /// <inheritdoc />
         public Wallet LoadWallet(string password, string name)
         {
             Guard.NotEmpty(password, nameof(password));
@@ -302,7 +313,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
-            Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode, creationTime);
+            Wallet wallet = this.GenerateWallet(name, encryptedSeed, extendedKey.ChainCode, creationTime);
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < WalletRecoveryAccountsCount; i++)
@@ -1257,7 +1268,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="creationTime">The time this wallet was created.</param>
         /// <returns>The wallet object that was saved into the file system.</returns>
         /// <exception cref="WalletException">Thrown if wallet cannot be created.</exception>
-        private Wallet GenerateWalletFile(string name, string encryptedSeed, byte[] chainCode, DateTimeOffset? creationTime = null)
+        private Wallet GenerateWallet(string name, string encryptedSeed, byte[] chainCode, DateTimeOffset? creationTime = null)
         {
             Guard.NotEmpty(name, nameof(name));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
@@ -1281,7 +1292,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this.coinType } },
             };
 
-            // Create a folder if none exists and persist the file.
             this.SaveWallet(walletFile);
             
             this.logger.LogTrace("(-)");
