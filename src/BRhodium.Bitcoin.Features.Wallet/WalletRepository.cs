@@ -37,7 +37,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             };
         }
 
-
         internal void SaveBlockLocator(string walletName, List<uint256> blocks)
         {// stores block list for future use
             //case insensitive keys => transform to lower case 
@@ -71,6 +70,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 new DBreezeIndex(2,wallet.Id)
                             }
                     }, false);
+                    if (newEntity)
+                    {
+                        //used when we find all wallets, to avoid lifting all wallet blobs
+                        breezeTransaction.Insert<long, string>("WalletNames", wallet.Id, wallet.Name);
+                    }                   
 
                     // Index addresses.
                     foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
@@ -93,7 +97,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         }
                     }
 
-
                     breezeTransaction.Commit();
                 }
             });
@@ -102,7 +105,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return task;
         }
         /// <summary>
-        /// Saves address to breeze db making it queryable by address, ScriptPubKey. It relates to account through HD path.
+        /// Saves address to breeze db making it queryable by address, ScriptPubKey. It relates to account through HD path. Does not commit transaction itself. Caller controlls transaction and must commit.
         /// </summary>
         /// <param name="wallet"></param>
         /// <param name="breezeTransaction"></param>
@@ -121,16 +124,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 NewEntity = newEntity,
                 Entity = address,
                 Indexes = new List<DBreezeIndex>
-                            {
-                                new DBreezeIndex(1,wallet.Id, subIndex, address.Index) { PrimaryIndex = true },
-                                new DBreezeIndex(2,wallet.Id),
-                                new DBreezeIndex(3,address.Address),
-                                new DBreezeIndex(4,address.Id),                                
-                                new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
-                            }
+                    {
+                        new DBreezeIndex(1,wallet.Id, subIndex, address.Index) { PrimaryIndex = true },
+                        new DBreezeIndex(2,wallet.Id),
+                        new DBreezeIndex(3,address.Address),
+                        new DBreezeIndex(4,address.Id),                                
+                        new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
+                    }
             }, false);
-            breezeTransaction.Commit();
-
+            if (newEntity) {
+                //used when we find address in transaction to find right wallet and GetWalletByAddress API
+                breezeTransaction.Insert<long, long>("AddressToWalletPair", address.Id, wallet.Id);
+            }           
         }
 
         private static byte[] StringToBytes(string stringToConvert)
@@ -192,7 +197,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         internal IEnumerable<HdAddress> GetAllWalletAddressesByCoinType(string walletName, CoinType coinType)
         {
-            throw new NotImplementedException();
+            Wallet wallet = GetWallet(walletName);
+            return wallet?.GetAllAddressesByCoinType(this.coinType);
         }
 
         internal IEnumerable<string> GetAllWalletNames()
@@ -215,10 +221,39 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {//         return this.Wallets.Min(w => w.CreationTime);
             throw new NotImplementedException();
         }
-
+        /// <summary>
+        /// Finds and returns wallet object based on address
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
         internal Wallet GetWalletByAddress(string address)
         {
-            throw new NotImplementedException();
+            Wallet wallet = null;
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                breezeTransaction.ValuesLazyLoadingIsOn = false;
+
+                var row = breezeTransaction.Select<byte[], byte[]>("Address", 3.ToIndex(address));
+                if (row.Exists)
+                {
+                    var temp = row.ObjectGet<JObject>();
+                    var hdAddress = temp.Entity.ToObject<HdAddress>();
+                    if (hdAddress != null)
+                    {
+                        var pairRow = breezeTransaction.Select<byte[], long>("AddressToWalletPair", 1.ToIndex(hdAddress.Id));
+                        if (pairRow.Exists)
+                        {
+                            long walletId = pairRow.Value;
+                            var breezeObject = breezeTransaction.Select<byte[], byte[]>("Wallet", 2.ToIndex(walletId)).ObjectGet<JObject>();
+                            if (breezeObject != null)
+                            {
+                                wallet = breezeObject.Entity.ToObject<Wallet>();
+                            }                            
+                        }                        
+                    }
+                }                
+            }
+            return wallet;
         }
 
         internal void RemoveTransactionFromHdAddress(HdAddress hdAddress, uint256 id)
