@@ -102,7 +102,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             IAsyncLoopFactory asyncLoopFactory,
             INodeLifetime nodeLifetime,
             IDateTimeProvider dateTimeProvider,
-            IBroadcasterManager broadcasterManager = null) // no need to know about transactions the node will broadcast to.
+            IBroadcasterManager broadcasterManager = null,
+            WalletRepository walletRepository = null) // no need to know about transactions the node will broadcast to.
         {
             Guard.NotNull(loggerFactory, nameof(loggerFactory));
             Guard.NotNull(network, nameof(network));
@@ -126,7 +127,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.chain = chain;
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
-            this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType);
+            if (walletRepository != null)
+            {
+                this.repository = walletRepository;
+            }
+            else {
+                this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType);
+            }
+            
             this.fileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;

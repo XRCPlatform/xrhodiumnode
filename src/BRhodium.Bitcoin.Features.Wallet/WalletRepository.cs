@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
-    internal class WalletRepository
+    public class WalletRepository
     {
         private readonly string walletPath;
         private readonly CoinType coinType;
@@ -52,7 +52,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
                 {
-                    breezeTransaction.SynchronizeTables("Wallet");
+                    breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair");
 
                     bool newEntity = false;
                     if (wallet.Id < 1)
@@ -156,7 +156,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             //throw new NotImplementedException();
         }
 
-        internal Wallet GetWallet(string name)
+        public Wallet GetWallet(string name)
         {
             Wallet wallet = null;
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
@@ -176,7 +176,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             //if not initialized or different than previous find and cache 
                             if (hdAccount == null || !address.HdPath.Contains(hdAccount.HdPath)) {
                                 hdAccount = wallet.GetAccountByHdPathCoinType(address.HdPath, this.coinType);
-                            }                           
+                            }
                             if (hdAccount != null)
                             {
                                 if (address.IsChangeAddress())
@@ -232,8 +232,46 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
+                var row = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 3.ToIndex(address)).FirstOrDefault<Row<byte[], byte[]>>();
+                //var row = breezeTransaction.Select<string, byte[]>("Address", 3.ToIndex(address));
+                if (row!=null && row.Exists)
+                {
+                    var temp = row.ObjectGet<JObject>();
+                    var hdAddress = temp.Entity.ToObject<HdAddress>();
+                    if (hdAddress != null)
+                    {
+                        var pairRow = breezeTransaction.Select<long, long>("AddressToWalletPair", hdAddress.Id);
+                        if (pairRow.Exists)
+                        {
+                            long walletId = pairRow.Value;
+                            var breezeObject = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Wallet", 2.ToIndex(walletId)).FirstOrDefault<Row<byte[], byte[]>>();
+                                
+                            if (breezeObject != null)
+                            {
+                                var walletObject = breezeObject.ObjectGet<JObject>();
+                                wallet = walletObject.Entity.ToObject<Wallet>();
+                            }                            
+                        }                        
+                    }
+                }                
+            }
+            return wallet;
+        }
 
-                var row = breezeTransaction.Select<byte[], byte[]>("Address", 3.ToIndex(address));
+        /// <summary>
+        /// Finds and returns wallet object based on address
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        internal Wallet GetWalletByAddress(long addressId)
+        {
+            Wallet wallet = null;
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+
+                breezeTransaction.ValuesLazyLoadingIsOn = false;
+
+                var row = breezeTransaction.Select<byte[], byte[]>("Address", 2.ToIndex(addressId));
                 if (row.Exists)
                 {
                     var temp = row.ObjectGet<JObject>();
@@ -248,10 +286,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             if (breezeObject != null)
                             {
                                 wallet = breezeObject.Entity.ToObject<Wallet>();
-                            }                            
-                        }                        
+                            }
+                        }
                     }
-                }                
+                }
             }
             return wallet;
         }
