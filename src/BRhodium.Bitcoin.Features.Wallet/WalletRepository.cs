@@ -143,17 +143,42 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return Encoding.UTF8.GetBytes(stringToConvert);
         }
 
-        internal void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
+        public void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
         {
-            //case insensitive keys => transform to lower case 
+            Guard.NotNull(walletName, nameof(walletName));
 
-            // Update the wallets with the last processed block height.
-            //foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == this.coinType))
-            //{
-            //    accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
-            //    accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
-            //}
-            //throw new NotImplementedException();
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                WalletSyncPosition syncPosition = new WalletSyncPosition() {
+                    Height= chainedHeader.Height,
+                    BlockHash = chainedHeader.HashBlock
+                };
+                breezeTransaction.Insert<string, WalletSyncPosition>("WalletLastBlockSyncedBlock", walletName, syncPosition);
+                breezeTransaction.Commit();
+            }
+        }
+
+        public WalletSyncPosition GetLastSyncedBlock(string walletName)
+        {
+            Guard.NotNull(walletName, nameof(walletName));
+            WalletSyncPosition syncPosition = null;
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                syncPosition = GetLastSyncedBlock(walletName,  breezeTransaction);
+            }
+            return syncPosition;
+        }
+
+        private  WalletSyncPosition GetLastSyncedBlock(string walletName,  DBreeze.Transactions.Transaction breezeTransaction)
+        {
+            WalletSyncPosition syncPosition = null;
+            var row = breezeTransaction.Select<string, JObject>("WalletLastBlockSyncedBlock", walletName);
+            if (row.Exists)
+            {
+                syncPosition = row.Value.ToObject<WalletSyncPosition>();              
+            }
+
+            return syncPosition;
         }
 
         public Wallet GetWallet(string name)
@@ -167,6 +192,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     HdAccount hdAccount = null;
                     wallet = obj.Entity.ToObject<Wallet>();
+                    var position = GetLastSyncedBlock(name, breezeTransaction);
+                    if (position != null)
+                    {
+                        // Update the wallets with the last processed block height.
+                        foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == this.coinType))
+                        {
+                            accountRoot.LastBlockSyncedHeight = position.Height;
+                            accountRoot.LastBlockSyncedHash = position.BlockHash;
+                        }
+                    }                  
+
                     foreach (var row in breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 2.ToIndex(wallet.Id)))
                     {
                         var temp = row.ObjectGet<JObject>();
@@ -175,7 +211,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         {   
                             //if not initialized or different than previous find and cache 
                             if (hdAccount == null || !address.HdPath.Contains(hdAccount.HdPath)) {
-                                hdAccount = wallet.GetAccountByHdPathCoinType(address.HdPath, this.coinType);
+                                hdAccount = wallet.GetAccountByHdPathCoinType(address.HdPath, this.coinType);                                
                             }
                             if (hdAccount != null)
                             {
@@ -191,6 +227,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         }
                     }
                 }
+                
             }
             return wallet;
         }

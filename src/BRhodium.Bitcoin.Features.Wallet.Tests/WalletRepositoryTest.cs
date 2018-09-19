@@ -39,9 +39,33 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(WalletResult.Name, walletTarget.Name);
             Assert.Equal(WalletResult.Id, walletTarget.Id);
         }
+        
+        [Fact]
+        public void GetWalletByWalletName_ReturnsAllAddressesInIndexOrder()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo);
+            var accountTarget = walletTarget.GetAccountByCoinType("account 0", coinType);
+
+
+            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+            var accountResult = WalletResult.GetAccountByCoinType("account 0", coinType);
+
+            HdAddress[] resultAddressArray = accountResult.ExternalAddresses.ToArray<HdAddress>();
+            HdAddress[] targetAddressArray = accountTarget.ExternalAddresses.ToArray<HdAddress>();
+            
+            for (int i = 0; i < resultAddressArray.Length; i++)
+            {
+                var result = resultAddressArray[i];
+                var target = targetAddressArray[i];                
+                Assert.Equal(target.Index, result.Index);
+                Assert.Equal(target.Index, i);
+            }
+        }
 
         [Fact]
-        public void GetWalletByWalletName_ReturnsAllAddressesInIndexOrderWallet()
+        public void GetWalletByWalletName_ReturnsAllAddressesInWallet()
         {
             DataFolder dataFolder = CreateDataFolder(this);
             var repo = new WalletRepository(dataFolder.WalletPath, coinType);
@@ -91,9 +115,57 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet walletTarget = createWallet(dataFolder, repo);
             //get by address
             Wallet WalletResult = repo.GetWalletByAddress("WrongAddress");
-            //assert it's same wallet
             Assert.Null(WalletResult);
         }
+
+        [Fact]
+        public void GetWallet_ReturnsWalletAccounts_WithLastSynchedBlockHeightAndHash()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo);
+
+            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var nonce = RandomUtils.GetUInt32();
+            var block = new Block();
+            block.AddTransaction(new Transaction());
+            block.UpdateMerkleRoot();
+            block.Header.HashPrevBlock = chain.Genesis.HashBlock;
+            block.Header.Nonce = nonce;
+            block.Header.BlockTime = DateTimeOffset.Now;
+            chain.SetTip(block.Header);
+
+            repo.SaveLastSyncedBlock(walletTarget.Name, chain.Tip);
+            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+
+            Assert.Equal(chain.Tip.Height, WalletResult.AccountsRoot.FirstOrDefault().LastBlockSyncedHeight);
+            Assert.Equal(chain.Tip.HashBlock, WalletResult.AccountsRoot.FirstOrDefault().LastBlockSyncedHash);
+        }
+
+        [Fact]
+        public void SaveLastSyncedBlock_PersistsLastSynchedBlockHeightAndHash()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo);
+
+            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var nonce = RandomUtils.GetUInt32();
+            var block = new Block();
+            block.AddTransaction(new Transaction());
+            block.UpdateMerkleRoot();
+            block.Header.HashPrevBlock = chain.Genesis.HashBlock;
+            block.Header.Nonce = nonce;
+            block.Header.BlockTime = DateTimeOffset.Now;
+            chain.SetTip(block.Header);
+
+            repo.SaveLastSyncedBlock(walletTarget.Name, chain.Tip);
+            var result = repo.GetLastSyncedBlock(walletTarget.Name);
+
+            Assert.Equal(chain.Tip.Height, result.Height);
+            Assert.Equal(chain.Tip.HashBlock, result.BlockHash);
+        }
+
 
 
         private Wallet createWallet(DataFolder dataFolder, WalletRepository walletRepository) {
