@@ -134,7 +134,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }, false);
             if (newEntity) {
                 //used when we find address in transaction to find right wallet and GetWalletByAddress API
-                breezeTransaction.Insert<long, long>("AddressToWalletPair", address.Id, wallet.Id);
+                breezeTransaction.Insert<string, string>("AddressToWalletPair", address.Address, wallet.Name);
             }           
         }
 
@@ -232,68 +232,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var row = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 3.ToIndex(address)).FirstOrDefault<Row<byte[], byte[]>>();
-                //var row = breezeTransaction.Select<string, byte[]>("Address", 3.ToIndex(address));
-                if (row!=null && row.Exists)
+                //var row = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 3.ToIndex(address)).FirstOrDefault<Row<byte[], byte[]>>();
+                var pairRow = breezeTransaction.Select<string, string>("AddressToWalletPair", address);
+                if (pairRow.Exists)
                 {
-                    var temp = row.ObjectGet<JObject>();
-                    var hdAddress = temp.Entity.ToObject<HdAddress>();
-                    if (hdAddress != null)
-                    {
-                        var pairRow = breezeTransaction.Select<long, long>("AddressToWalletPair", hdAddress.Id);
-                        if (pairRow.Exists)
-                        {
-                            long walletId = pairRow.Value;
-                            var breezeObject = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Wallet", 2.ToIndex(walletId)).FirstOrDefault<Row<byte[], byte[]>>();
-                                
-                            if (breezeObject != null)
-                            {
-                                var walletObject = breezeObject.ObjectGet<JObject>();
-                                wallet = walletObject.Entity.ToObject<Wallet>();
-                            }                            
-                        }                        
-                    }
-                }                
-            }
-            return wallet;
-        }
-
-        /// <summary>
-        /// Finds and returns wallet object based on address
-        /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        internal Wallet GetWalletByAddress(long addressId)
-        {
-            Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
-            {
-
-                breezeTransaction.ValuesLazyLoadingIsOn = false;
-
-                var row = breezeTransaction.Select<byte[], byte[]>("Address", 2.ToIndex(addressId));
-                if (row.Exists)
-                {
-                    var temp = row.ObjectGet<JObject>();
-                    var hdAddress = temp.Entity.ToObject<HdAddress>();
-                    if (hdAddress != null)
-                    {
-                        var pairRow = breezeTransaction.Select<byte[], long>("AddressToWalletPair", 1.ToIndex(hdAddress.Id));
-                        if (pairRow.Exists)
-                        {
-                            long walletId = pairRow.Value;
-                            var breezeObject = breezeTransaction.Select<byte[], byte[]>("Wallet", 2.ToIndex(walletId)).ObjectGet<JObject>();
-                            if (breezeObject != null)
-                            {
-                                wallet = breezeObject.Entity.ToObject<Wallet>();
-                            }
-                        }
-                    }
+                    string walletName = pairRow.Value;
+                    wallet = GetWallet(walletName);
                 }
             }
             return wallet;
         }
 
+        
         internal void RemoveTransactionFromHdAddress(HdAddress hdAddress, uint256 id)
         {
             throw new NotImplementedException();
