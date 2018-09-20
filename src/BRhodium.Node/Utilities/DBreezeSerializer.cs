@@ -46,6 +46,17 @@ namespace BRhodium.Node.Utilities
             if (u32 != null)
                 return u32.ToBytes();
 
+            if (obj.GetType() == typeof(DateTimeOffset))
+            {
+                DateTimeOffset dateTimeOffset = (DateTimeOffset)obj;
+                return dateTimeOffset.ToBytes();
+            }
+            if (obj.GetType() == typeof(DateTime))
+            {
+                DateTime dateTime = (DateTime)obj;
+                return dateTime.ToBytes();
+            }
+
             object[] arr = obj as object[];
             if (arr != null)
             {

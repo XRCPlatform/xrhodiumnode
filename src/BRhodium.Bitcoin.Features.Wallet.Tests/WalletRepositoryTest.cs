@@ -15,9 +15,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
     public class WalletRepositoryTest : LogsTestBase, IClassFixture<WalletFixture>
     {
         private readonly WalletFixture walletFixture;
-        //private readonly string walletPath;
         private CoinType coinType = CoinType.BRhodium;
-        //private DataFolder dataFolder;
+
         public WalletRepositoryTest(WalletFixture walletFixture)
         {
             this.walletFixture = walletFixture;
@@ -33,7 +32,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             Wallet WalletResult = repo.GetWallet(walletTarget.Name);
 
-            //assert it's same wallet
             Assert.NotNull(WalletResult);
             Assert.Equal(WalletResult.EncryptedSeed, walletTarget.EncryptedSeed);
             Assert.Equal(WalletResult.Name, walletTarget.Name);
@@ -83,7 +81,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 }
             }
             Assert.Equal(accountResult.ExternalAddresses.Count(), mathces);
-            //assert it's same wallet
+
             Assert.NotNull(WalletResult);
             Assert.Equal(WalletResult.EncryptedSeed, walletTarget.EncryptedSeed);
             Assert.Equal(WalletResult.Name, walletTarget.Name);
@@ -98,9 +96,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet walletTarget = createWallet(dataFolder, repo);
 
             var account = walletTarget.GetAccountByCoinType("account 0", coinType);
-            //get by address
+
             Wallet WalletResult = repo.GetWalletByAddress(account.ExternalAddresses.FirstOrDefault().Address);
-            //assert it's same wallet
+
             Assert.NotNull(WalletResult);
             Assert.Equal(WalletResult.EncryptedSeed, walletTarget.EncryptedSeed);
             Assert.Equal(WalletResult.Name, walletTarget.Name);
@@ -113,7 +111,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             DataFolder dataFolder = CreateDataFolder(this);
             var repo = new WalletRepository(dataFolder.WalletPath, coinType);
             Wallet walletTarget = createWallet(dataFolder, repo);
-            //get by address
+
             Wallet WalletResult = repo.GetWalletByAddress("WrongAddress");
             Assert.Null(WalletResult);
         }
@@ -165,10 +163,80 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(chain.Tip.Height, result.Height);
             Assert.Equal(chain.Tip.HashBlock, result.BlockHash);
         }
+        [Fact]
+        public void GetFirstWalletBlockLocator_ReturnsListBlockHashes()
+        {
+            List<string> testWallets = new List<string>();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+          
+
+            var result = repo.GetFirstWalletBlockLocator();
+            foreach (var item in walletTarget.BlockLocator)
+            {
+                Assert.Equal(true, result.Contains(item));
+            }
+        }
 
 
+        [Fact]
+        public void GetAllWalletNames_ReturnsListOfAllWalletNames()
+        {
+            List<string> testWallets = new List<string>();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget1 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget2 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            testWallets.Add(walletTarget.Name);
+            testWallets.Add(walletTarget1.Name);
+            testWallets.Add(walletTarget2.Name);
 
-        private Wallet createWallet(DataFolder dataFolder, WalletRepository walletRepository) {
+            var result = repo.GetAllWalletNames();
+            foreach (var item in testWallets)
+            {
+                Assert.Equal(true, result.Contains(item));
+            }
+        }
+
+        [Fact]
+        public void GetEarliestWalletHeight_LastBlockHeight()
+        {
+            List<string> testWallets = new List<string>();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget1 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget2 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            testWallets.Add(walletTarget.Name);
+            testWallets.Add(walletTarget1.Name);
+            testWallets.Add(walletTarget2.Name);
+
+            var result = repo.GetEarliestWalletHeight();
+            int? h = walletTarget.AccountsRoot.FirstOrDefault<AccountRoot>().LastBlockSyncedHeight;
+            Assert.Equal(h,result);
+        }
+        [Fact]
+        public void GetOldestWalletCreationTime_LastBlockHeight()
+        {
+            List<string> testWallets = new List<string>();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget1 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget2 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            testWallets.Add(walletTarget.Name);
+            testWallets.Add(walletTarget1.Name);
+            testWallets.Add(walletTarget2.Name);
+
+            var result = repo.GetOldestWalletCreationTime();
+
+            Assert.Equal(walletTarget.CreationTime, result);
+        }
+        
+
+        private Wallet createWallet(DataFolder dataFolder, WalletRepository walletRepository,string walletName = "mywallet") {
             //DataFolder dataFolder = CreateDataFolder(this);
 
             var chain = new ConcurrentChain(Network.BRhodiumMain);
@@ -184,7 +252,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                  dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, walletRepository);
 
-           return walletManager.CreateAndReturnWallet("test", "mywallet");
+           return walletManager.CreateAndReturnWallet("test", walletName);
         }
     }
 }
