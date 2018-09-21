@@ -12,7 +12,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// A wallet.
     /// </summary>
-    public class Wallet
+    public class Wallet:IJsonSerializeable
     {
         /// <summary>
         /// Initializes a new instance of the wallet.
@@ -297,7 +297,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// The root for the accounts for any type of coins.
     /// </summary>
-    public class AccountRoot
+    public class AccountRoot: IJsonSerializeable
     {
         /// <summary>
         /// Initializes a new instance of the object.
@@ -435,7 +435,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD account's details.
     /// </summary>
-    public class HdAccount
+    public class HdAccount: IJsonSerializeable
     {
         public HdAccount()
         {
@@ -481,15 +481,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The list of external addresses, typically used for receiving money.
         /// </summary>
-        //[JsonProperty(PropertyName = "externalAddresses")]
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "externalAddresses")]
         public ICollection<HdAddress> ExternalAddresses { get; set; }
 
         /// <summary>
         /// The list of internal addresses, typically used to receive change.
         /// </summary>
-        //[JsonProperty(PropertyName = "internalAddresses")]
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "internalAddresses")]        
         public ICollection<HdAddress> InternalAddresses { get; set; }
 
         /// <summary>
@@ -842,7 +840,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD address.
     /// </summary>
-    public class HdAddress
+    public class HdAddress: IJsonSerializeable
     {
         public HdAddress()
         {
@@ -934,7 +932,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object containing transaction data.
     /// </summary>
-    public class TransactionData
+    public class TransactionData: IJsonSerializeable
     {
         /// <summary>
         /// Transaction id.
@@ -1056,7 +1054,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object representing a payment.
     /// </summary>
-    public class PaymentDetails
+    public class PaymentDetails: IJsonSerializeable
     {
         /// <summary>
         /// The script pub key of the destination address.
@@ -1079,7 +1077,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public Money Amount { get; set; }
     }
 
-    public class SpendingDetails
+    public class SpendingDetails: IJsonSerializeable
     {
         public SpendingDetails()
         {
@@ -1139,7 +1137,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <remarks>
     /// This is useful when an UTXO needs access to its HD properties like the HD path when reconstructing a private key.
     /// </remarks>
-    public class UnspentOutputReference
+    public class UnspentOutputReference: IJsonSerializeable
     {
         /// <summary>
         /// The account associated with this UTXO

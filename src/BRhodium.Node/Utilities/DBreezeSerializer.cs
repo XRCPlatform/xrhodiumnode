@@ -3,6 +3,8 @@ using System.Linq;
 using DBreeze.Utils;
 using NBitcoin;
 using NBitcoin.BitcoinCore;
+using Newtonsoft.Json;
+
 
 namespace BRhodium.Node.Utilities
 {
@@ -33,6 +35,9 @@ namespace BRhodium.Node.Utilities
             IBitcoinSerializable serializable = obj as IBitcoinSerializable;
             if (serializable != null)
                 return serializable.ToBytes(network: this.Network);
+            IJsonSerializeable jsonSerializable = obj as IJsonSerializeable;
+            if (jsonSerializable != null)
+                return JsonConvert.SerializeObject(jsonSerializable).To_UTF8Bytes();
 
             uint256 u256 = obj as uint256;
             if (u256 != null)
@@ -69,8 +74,8 @@ namespace BRhodium.Node.Utilities
                     itemIndex++;
                 }
                 return ConcatArrays(serializedItems);
-            }
-
+            }         
+                
             throw new NotSupportedException();
         }
 
@@ -126,7 +131,15 @@ namespace BRhodium.Node.Utilities
 
             if (type == typeof(Block))
                 return Block.Load(bytes, this.Network);
+            try
+            {
+                return JsonConvert.DeserializeObject(bytes.ToUTF8String());
+            }
+            catch (Exception e)
+            {
 
+               //
+            }
             throw new NotSupportedException();
         }
     }

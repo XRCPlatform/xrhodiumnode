@@ -781,7 +781,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void RemoveBlocks(ChainedHeader fork)
         {
-            Guard.NotNull(fork, nameof(fork));
             this.logger.LogTrace("({0}:'{1}'", nameof(fork), fork);
 
             lock (this.lockObject)

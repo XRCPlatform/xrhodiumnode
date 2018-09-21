@@ -28,14 +28,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.walletPath = walletPath;
             this.DBreeze = new DBreezeEngine(walletPath);            
             //move to binary serialization/ will require further work
-            CustomSerializator.ByteArraySerializator = (object o) =>
-            {
-                return JsonConvert.SerializeObject(o).To_UTF8Bytes();
-            };
-            CustomSerializator.ByteArrayDeSerializator = (byte[] bt, Type t) =>
-            {
-                return JsonConvert.DeserializeObject(bt.ToUTF8String());
-            };
+            //CustomSerializator.ByteArraySerializator = (object o) =>
+            //{
+            //    return JsonConvert.SerializeObject(o).To_UTF8Bytes();
+            //};
+            //CustomSerializator.ByteArrayDeSerializator = (byte[] bt, Type t) =>
+            //{
+            //    return JsonConvert.DeserializeObject(bt.ToUTF8String());
+            //};
         }
 
         public Task SaveWallet(string walletName, Wallet wallet)
@@ -57,22 +57,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         newEntity = true;
                     }
                     DateTime dateTime = wallet.CreationTime.DateTime;
-                    breezeTransaction.ObjectInsert("Wallet", new DBreezeObject<Wallet>
-                    {
-                        NewEntity = newEntity,
-                        Entity = wallet,
-                        Indexes = new List<DBreezeIndex>
-                            {
-                                new DBreezeIndex(1,wallet.Name) { PrimaryIndex = true },
-                                new DBreezeIndex(2,wallet.Id),
-                                new DBreezeIndex(3,dateTime)
-                            }
-                    }, false);
-                    if (newEntity)
-                    {
-                        //used when we find all wallets, to avoid lifting all wallet blobs
-                        breezeTransaction.Insert<long, string>("WalletNames", wallet.Id, wallet.Name);
-                    }                   
+                    
 
                     // Index addresses.
                     foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
@@ -93,7 +78,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         {
                             SaveAddress(wallet, breezeTransaction, address);
                         }
+                        //reset to not save them as blobs
+                        account.ExternalAddresses.Clear();
+                        account.InternalAddresses.Clear();
                     }
+
+                    breezeTransaction.ObjectInsert("Wallet", new DBreezeObject<Wallet>
+                    {
+                        NewEntity = newEntity,
+                        Entity = wallet,
+                        Indexes = new List<DBreezeIndex>
+                            {
+                                new DBreezeIndex(1,wallet.Name) { PrimaryIndex = true },
+                                new DBreezeIndex(2,wallet.Id),
+                                new DBreezeIndex(3,dateTime)
+                            }
+                    }, false);
+                    if (newEntity)
+                    {
+                        //used when we find all wallets, to avoid lifting all wallet blobs
+                        breezeTransaction.Insert<long, string>("WalletNames", wallet.Id, wallet.Name);
+                    }
+
                     if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0) {
                         SaveBlockLocator(wallet.Name, breezeTransaction, wallet.BlockLocator);
                     }
