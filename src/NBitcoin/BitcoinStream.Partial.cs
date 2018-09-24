@@ -365,6 +365,9 @@ namespace NBitcoin
 
         public void ReadWrite(ref string data)
         {
+            if (data == null) {// a bit a hack but can't find anything better now
+                data = "";
+            }
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
             ReadWriteAsVarString(ref bytes);
             if (!Serializing)

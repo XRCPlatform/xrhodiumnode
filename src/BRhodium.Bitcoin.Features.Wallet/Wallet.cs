@@ -23,7 +23,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
         private bool changed = false;
         private List<AccountRoot> _accountsRoot;
-        private string _name = "";
+        private string _name;
         private byte[] _chainCode;
         private string _encryptedSeed;
         private UInt32 _creationTime;
