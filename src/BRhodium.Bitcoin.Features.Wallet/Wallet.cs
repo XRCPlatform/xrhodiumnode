@@ -21,27 +21,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.AccountsRoot = new List<AccountRoot>();
         }
-        private bool changed = false;
-        private List<AccountRoot> _accountsRoot;
+        private bool changed = false;     
         private byte[] _name = Array.Empty<byte>();
         private byte[] _chainCode = Array.Empty<byte>();
         private byte[] _encryptedSeed = Array.Empty<byte>();
         private UInt32 _creationTime;
         private long _id;
+        private List<AccountRoot> _accountsRoot;
 
         public void ReadWrite(BitcoinStream stream)
         {
-            stream.ReadWrite(ref this._name);
-            stream.ReadWrite(ref this._encryptedSeed);
-            if (this._chainCode == null)
-            {
-                this._chainCode = Array.Empty<byte>();
-            }
-            stream.ReadWrite(ref this._chainCode);
-            stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
-            stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._id);
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWriteAsVarString(ref this._name);
+            stream.ReadWriteAsVarString(ref this._encryptedSeed);
+            stream.ReadWriteAsVarString(ref this._chainCode);
+            stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
+            if (stream.Serializing) {
+                stream.Inner.Flush();
+            }
         }
+
         public static Wallet Load(byte[] bytes, Network network = null)
         {
             if (bytes == null)
@@ -433,8 +433,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="stream"></param>
         public void ReadWrite(BitcoinStream stream)
         {
-            stream.ReadWrite<List<HdAccount>, HdAccount>(ref this._accounts);
             stream.ReadWrite(ref this._coinType);
+            stream.ReadWrite<List<HdAccount>, HdAccount>(ref this._accounts);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
             //block sychronization position is kept separately so no need to serialize
         }
         /// <summary>
@@ -604,10 +608,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void ReadWrite(BitcoinStream stream)
         {
             stream.ReadWrite(ref this._index);
-            stream.ReadWrite(ref this._name);
-            stream.ReadWrite(ref this._hdPath);
-            stream.ReadWrite(ref this._extendedPubKey);
-            stream.ReadWrite(ref this._creationTime);          
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWriteAsVarString(ref this._name);
+            stream.ReadWriteAsVarString(ref this._hdPath);
+            stream.ReadWriteAsVarString(ref this._extendedPubKey);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
         }
 
         /// <summary>
@@ -1110,9 +1118,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._index);
             stream.ReadWrite(ref this._scriptPubKey);
             stream.ReadWrite(ref this._pubkey);
-            stream.ReadWrite(ref this._address);
-            stream.ReadWrite(ref this._hdPath);
+            stream.ReadWriteAsVarString(ref this._address);
+            stream.ReadWriteAsVarString(ref this._hdPath);
             stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
         }
         /// <summary>
         /// The index of the address.
@@ -1308,18 +1320,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             stream.ReadWrite(ref this._id);
             stream.ReadWrite(ref this._amount);
-            stream.ReadWrite(ref this._index);
-            if (this._blockHeight.HasValue)
-            {
-                stream.ReadWrite(ref this._blockHeightProxy);
-            }
+            stream.ReadWrite(ref this._index);            
+            stream.ReadWrite(ref this._blockHeightProxy);           
             stream.ReadWrite(ref this._blockHash);
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._merkleProof);
             stream.ReadWrite(ref this._scriptPubKey);
-            stream.ReadWrite(ref this._hex);
+            stream.ReadWriteAsVarString(ref this._hex);
             stream.ReadWrite(ref this._isPropagatedProxy);
             stream.ReadWrite(ref this._spendingDetails);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
         }
 
         /// <summary>
@@ -1381,9 +1394,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? BlockHeight
-        {
+        {//idea that _blockHeightProxy is the main driving variable  behind this and data written to this._blockHeight is not default
             get
             {
+                if (this._blockHeightProxy >=0) {
+                    this._blockHeight = (int)this._blockHeightProxy;
+                }
                 return this._blockHeight;
             }
             set
@@ -1586,8 +1602,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void ReadWrite(BitcoinStream stream)
         {
             stream.ReadWrite(ref this._destinationScriptPubKey);
-            stream.ReadWrite(ref this._destinationAddress);
             stream.ReadWrite(ref this._amount);
+            stream.ReadWriteAsVarString(ref this._destinationAddress);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
         }
 
         /// <summary>
@@ -1670,14 +1690,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public void ReadWrite(BitcoinStream stream)
         {
-            stream.ReadWrite(ref this._transactionId);
-            stream.ReadWrite<List<PaymentDetails>, PaymentDetails>(ref this._payments);
+            stream.ReadWrite(ref this._transactionId);            
             stream.ReadWrite(ref this._creationTime);
-            stream.ReadWrite(ref this._hex);
-            
-            if (this._blockHeight.HasValue)
+            stream.ReadWriteAsVarString(ref this._hex);
+            stream.ReadWrite(ref this._blockHeightProxy);
+            stream.ReadWrite<List<PaymentDetails>, PaymentDetails>(ref this._payments);
+            if (stream.Serializing)
             {
-                stream.ReadWrite(ref this._blockHeightProxy);
+                stream.Inner.Flush();
             }
         }
 
@@ -1719,9 +1739,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? BlockHeight
-        {
+        {//idea that _blockHeightProxy is the main driving variable  behind this and data written to this._blockHeight is not default
             get
             {
+                if (this._blockHeightProxy >= 0)
+                {
+                    this._blockHeight = (int)this._blockHeightProxy;
+                }
                 return this._blockHeight;
             }
             set
@@ -1812,6 +1836,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._account);
             stream.ReadWrite(ref this._address);
             stream.ReadWrite(ref this._transaction);
+            if (stream.Serializing)
+            {
+                stream.Inner.Flush();
+            }
         }
         /// <summary>
         /// The account associated with this UTXO

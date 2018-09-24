@@ -170,10 +170,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private  WalletSyncPosition GetLastSyncedBlock(string walletName,  DBreeze.Transactions.Transaction breezeTransaction)
         {
             WalletSyncPosition syncPosition = null;
-            var row = breezeTransaction.Select<string, JObject>("WalletLastBlockSyncedBlock", walletName);
+            var row = breezeTransaction.Select<string, WalletSyncPosition>("WalletLastBlockSyncedBlock", walletName);
             if (row.Exists)
             {
-                syncPosition = row.Value.ToObject<WalletSyncPosition>();              
+                syncPosition = row.Value;              
             }
 
             return syncPosition;
