@@ -23,9 +23,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
         private bool changed = false;
         private List<AccountRoot> _accountsRoot;
-        private string _name;
-        private byte[] _chainCode;
-        private string _encryptedSeed;
+        private byte[] _name = Array.Empty<byte>();
+        private byte[] _chainCode = Array.Empty<byte>();
+        private byte[] _encryptedSeed = Array.Empty<byte>();
         private UInt32 _creationTime;
         private long _id;
 
@@ -59,11 +59,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._name;
+                if (this._name != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._name);
+                }
+                return null;
             }
             set
             {
-                this._name = value;
+                if (value != null)
+                {
+                    this._name = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._name = Array.Empty<byte>();
+                }
             }
         }
 
@@ -75,11 +86,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._encryptedSeed;
+                if (this._encryptedSeed != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._encryptedSeed);
+                }
+                return null;
             }
             set
             {
-                this._encryptedSeed = value;
+                if (value != null)
+                {
+                    this._encryptedSeed = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._encryptedSeed = Array.Empty<byte>();
+                }
             }
         }
 
@@ -113,7 +135,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Gets or sets the merkle path.
         /// </summary>
         [JsonProperty(PropertyName = "blockLocator", ItemConverterType = typeof(UInt256JsonConverter))]
-        public ICollection<uint256> BlockLocator { get; set; }
+        public List<uint256> BlockLocator { get; set; }
 
         /// <summary>
         /// The network this wallet is for.
@@ -568,9 +590,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
     public class HdAccount : IBitcoinSerializable
     {
         private int _index;
-        private string _name;
-        private string _hdPath;
-        private string _extendedPubKey;
+        private byte[] _name = Array.Empty<byte>();
+        private byte[] _hdPath = Array.Empty<byte>();
+        private byte[] _extendedPubKey = Array.Empty<byte>();
         private UInt32 _creationTime;
 
         public HdAccount()
@@ -585,8 +607,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._name);
             stream.ReadWrite(ref this._hdPath);
             stream.ReadWrite(ref this._extendedPubKey);
-            stream.ReadWrite(ref this._creationTime);
-            stream.ReadWrite(ref this._extendedPubKey);            
+            stream.ReadWrite(ref this._creationTime);          
         }
 
         /// <summary>
@@ -617,11 +638,21 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._name;
+                if (this._name != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._name);
+                }
+                return null;
             }
             set
             {
-                this._name = value;
+                if (value != null)
+                {
+                    this._name = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else {
+                    this._name = Array.Empty<byte>();
+                }
             }
         }
 
@@ -633,11 +664,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._hdPath;
+                if (this._hdPath != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._hdPath);
+                }
+                return null;
             }
             set
             {
-                this._hdPath = value;
+                if (value != null)
+                {
+                    this._hdPath = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._hdPath = Array.Empty<byte>();
+                }
             }
         }
 
@@ -649,11 +691,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._extendedPubKey;
+                if (this._extendedPubKey != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._extendedPubKey);
+                }
+                return null;
             }
             set
             {
-                this._extendedPubKey = value;
+                if (value != null)
+                {
+                    this._extendedPubKey = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._extendedPubKey = Array.Empty<byte>();
+                }
             }
         }
 
@@ -1042,8 +1095,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private int _index;
         private Script _scriptPubKey;
         private Script _pubkey;
-        private string _address;
-        private string _hdPath;
+        private byte[] _address = Array.Empty<byte>();
+        private byte[] _hdPath = Array.Empty<byte>();
         private long _id;
         private List<TransactionData> _transactions;
 
@@ -1119,11 +1172,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._address;
+                if (this._address != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._address);
+                }
+                return null;
             }
             set
             {
-                this._address = value;
+                if (value != null)
+                {
+                    this._address = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._address = Array.Empty<byte>();
+                }
             }
         }
 
@@ -1135,11 +1199,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._hdPath;
+                if (this._hdPath != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._hdPath);
+                }
+                return null;
             }
             set
             {
-                this._hdPath = value;
+                if (value != null)
+                {
+                    this._hdPath = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._hdPath = Array.Empty<byte>();
+                }
             }
         }
 
@@ -1224,7 +1299,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private long _creationTime;
         private PartialMerkleTree _merkleProof;
         private Script _scriptPubKey;
-        private string _hex;
+        private byte[] _hex;
         private bool? _isPropagated;
         private bool _isPropagatedProxy;
         private SpendingDetails _spendingDetails;
@@ -1398,11 +1473,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._hex;
+                if (this._hex != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._hex);
+                }
+                return null;
             }
             set
             {
-                this._hex = value;
+                if (value != null)
+                {
+                    this._hex = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._hex = Array.Empty<byte>();
+                }
             }
         }
 
@@ -1494,7 +1580,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     public class PaymentDetails : IBitcoinSerializable
     {
         private Script _destinationScriptPubKey;
-        private string _destinationAddress;
+        private byte[] _destinationAddress = Array.Empty<byte>();
         private long _amount;
 
         public void ReadWrite(BitcoinStream stream)
@@ -1529,11 +1615,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._destinationAddress;
+                if (this._destinationAddress != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._destinationAddress);
+                }
+                return null;
             }
             set
             {
-                this._destinationAddress = value;
+                if (value != null)
+                {
+                    this._destinationAddress = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._destinationAddress = Array.Empty<byte>();
+                }
             }
         }
 
@@ -1564,7 +1661,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private int? _blockHeight;
         private int _blockHeightProxy;
         private uint _creationTime;
-        private string _hex;
+        private byte[] _hex = Array.Empty<byte>();
 
         public SpendingDetails()
         {
@@ -1663,11 +1760,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._hex;
+                if (this._hex != null)
+                {
+                    return System.Text.Encoding.UTF8.GetString(this._hex);
+                }
+                return null;
             }
             set
             {
-                this._hex = value;
+                if (value != null)
+                {
+                    this._hex = System.Text.Encoding.UTF8.GetBytes(value);
+                }
+                else
+                {
+                    this._hex = Array.Empty<byte>();
+                }
             }
         }
 

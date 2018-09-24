@@ -1260,7 +1260,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // The block locator will help when the wallet
             // needs to rewind this will be used to find the fork.
-            repository.SaveBlockLocator(walletName, chainedHeader.GetLocator().Blocks);
+            repository.SaveBlockLocator(walletName, chainedHeader.GetLocator());
             repository.SaveLastSyncedBlock(walletName, chainedHeader);
            
             this.logger.LogTrace("(-)");

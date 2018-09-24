@@ -92,7 +92,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
 
                     if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0) {
-                        SaveBlockLocator(wallet.Name, breezeTransaction, wallet.BlockLocator);
+                        SaveBlockLocator(wallet.Name, breezeTransaction, new BlockLocator(){
+                            Blocks = wallet.BlockLocator
+                        });
                     }
                     
                     breezeTransaction.Commit();
@@ -183,7 +185,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var obj = breezeTransaction.Select<byte[], byte[]>("Wallet", 1.ToIndex(name)).ObjectGet<Wallet>();
+                var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(name)).ObjectGet<Wallet>();
                 if (obj != null)
                 {
                     HdAccount hdAccount = null;
@@ -223,13 +225,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         }
                     }
                 }
-                var blockLocator = breezeTransaction.Select<string, ICollection<uint256>>("WalletBlockLocator", name, false);
+                var blockLocator = breezeTransaction.Select<string, BlockLocator>("WalletBlockLocator", name, false);
                 if (blockLocator.Exists)
                 {
                     if (wallet.BlockLocator == null) {
                         wallet.BlockLocator = new List<uint256>();
                     }
-                    wallet.BlockLocator = blockLocator.Value;
+                    wallet.BlockLocator = blockLocator.Value.Blocks;
                 }
             }
             return wallet;
@@ -255,16 +257,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             return result;
         }
-        private void SaveBlockLocator(string walletName, DBreeze.Transactions.Transaction breezeTransaction, ICollection<uint256> blockLocator)
+        private void SaveBlockLocator(string walletName, DBreeze.Transactions.Transaction breezeTransaction, BlockLocator blockLocator)
         {
-            breezeTransaction.Insert<string, ICollection<uint256>>("WalletBlockLocator", walletName, blockLocator);
+            breezeTransaction.Insert<string, BlockLocator>("WalletBlockLocator", walletName, blockLocator);
         }
         /// <summary>
         /// Stores blocks for future use.
         /// </summary>
         /// <param name="walletName"></param>
         /// <param name="blocks"></param>
-        public void SaveBlockLocator(string walletName, ICollection<uint256> blocks)
+        public void SaveBlockLocator(string walletName, BlockLocator blocks)
         {
             Guard.NotNull(walletName, nameof(walletName));
 
@@ -280,14 +282,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             List<uint256> result = new List<uint256>();
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<int, ICollection<uint256>>("WalletBlockLocator"))
+                foreach (var row in breezeTransaction.SelectForward<int, BlockLocator>("WalletBlockLocator"))
                 {
                     if (row.Exists)
                     {
-                        foreach (var item in row.Value)
-                        {
-                            result.Add(new uint256(item.ToString()));
-                        }                        
+                        result = row.Value.Blocks;
                     }
                     break;
                 }
