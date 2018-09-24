@@ -133,11 +133,11 @@ namespace BRhodium.Node.Utilities
             {
                 return Block.Load(bytes, this.Network);
             }
-                
 
-            if (type.IsAssignableFrom((typeof(IBitcoinSerializable))))
-            {
-                return null;
+            var o = Activator.CreateInstance(type) as IBitcoinSerializable;
+            if (o != null) {
+                o.ReadWrite(bytes);
+                return o;
             }
 
             throw new NotSupportedException();
