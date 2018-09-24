@@ -179,7 +179,7 @@ namespace BRhodium.Bitcoin.Features.WatchOnlyWallet
         /// Gets or sets the Merkle proof for this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
+        [JsonConverter(typeof(PartialMerkleTreeBitcoinSerializableJsonConverter))]
         public PartialMerkleTree MerkleProof { get; set; }
     }
 
