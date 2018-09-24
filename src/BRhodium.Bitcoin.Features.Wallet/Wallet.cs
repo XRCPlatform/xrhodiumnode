@@ -33,6 +33,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             stream.ReadWrite(ref this._name);
             stream.ReadWrite(ref this._encryptedSeed);
+            if (this._chainCode == null)
+            {
+                this._chainCode = Array.Empty<byte>();
+            }
             stream.ReadWrite(ref this._chainCode);
             stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
             stream.ReadWrite(ref this._creationTime);
@@ -55,11 +59,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _name;
+                return this._name;
             }
             set
             {
-                _name = value;
+                this._name = value;
             }
         }
 
@@ -71,11 +75,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _encryptedSeed;
+                return this._encryptedSeed;
             }
             set
             {
-                _encryptedSeed = value;
+                this._encryptedSeed = value;
             }
         }
 
@@ -88,11 +92,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _chainCode;
+                if (this._chainCode == null)
+                {
+                    this._chainCode = Array.Empty<byte>();
+                }
+                return this._chainCode;
             }
             set
             {
-                _chainCode = value;
+                if (value == null)
+                {
+                    this._chainCode = Array.Empty<byte>();
+                    return;
+                }
+                this._chainCode = value;
             }
         }
 
@@ -118,11 +131,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return Utils.UnixTimeToDateTime(_creationTime);
+                return Utils.UnixTimeToDateTime(this._creationTime);
             }
             set
             {
-                _creationTime = Utils.DateTimeToUnixTime(value);
+                this._creationTime = Utils.DateTimeToUnixTime(value);
             }
         }
 
@@ -134,11 +147,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _accountsRoot;
+                return this._accountsRoot;
             }
             set
             {
-                _accountsRoot = value;
+                this._accountsRoot = value;
             }
         }
 
@@ -146,11 +159,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _id;
+                return this._id;
             }
             internal set
             {
-                _id = value;
+                this._id = value;
             }
         }
 
@@ -410,11 +423,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return (CoinType)_coinType;
+                return (CoinType)this._coinType;
             }
             set
             {
-                _coinType = (int) value;
+                this._coinType = (int) value;
             }
         }
 
@@ -439,11 +452,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _accounts;
+                return this._accounts;
             }
             set
             {
-                _accounts = value;
+                this._accounts = value;
             }
         }
 
@@ -588,11 +601,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _index;
+                return this._index;
             }
             set
             {
-                _index = value;
+                this._index = value;
             }
         }
 
@@ -604,11 +617,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _name;
+                return this._name;
             }
             set
             {
-                _name = value;
+                this._name = value;
             }
         }
 
@@ -620,11 +633,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _hdPath;
+                return this._hdPath;
             }
             set
             {
-                _hdPath = value;
+                this._hdPath = value;
             }
         }
 
@@ -636,11 +649,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _extendedPubKey;
+                return this._extendedPubKey;
             }
             set
             {
-                _extendedPubKey = value;
+                this._extendedPubKey = value;
             }
         }
 
@@ -657,7 +670,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             set
             {
-                _creationTime = Utils.DateTimeToUnixTime(value);
+                this._creationTime = Utils.DateTimeToUnixTime(value);
             }
         }
 
@@ -1056,11 +1069,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _index;
+                return this._index;
             }
             set
             {
-                _index = value;
+                this._index = value;
             }
         }
 
@@ -1073,11 +1086,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _scriptPubKey;
+                return this._scriptPubKey;
             }
             set
             {
-                _scriptPubKey = value;
+                this._scriptPubKey = value;
             }
         }
 
@@ -1090,11 +1103,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _pubkey;
+                return this._pubkey;
             }
             set
             {
-                _pubkey = value;
+                this._pubkey = value;
             }
         }
 
@@ -1106,11 +1119,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _address;
+                return this._address;
             }
             set
             {
-                _address = value;
+                this._address = value;
             }
         }
 
@@ -1122,11 +1135,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _hdPath;
+                return this._hdPath;
             }
             set
             {
-                _hdPath = value;
+                this._hdPath = value;
             }
         }
 
@@ -1138,11 +1151,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _transactions;
+                return this._transactions;
             }
             set
             {
-                _transactions = value;
+                this._transactions = value;
             }
         }
 
@@ -1150,11 +1163,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _id;
+                return this._id;
             }
             internal set
             {
-                _id = value;
+                this._id = value;
             }
         }
 
@@ -1221,7 +1234,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._id);
             stream.ReadWrite(ref this._amount);
             stream.ReadWrite(ref this._index);
-            if (_blockHeight.HasValue)
+            if (this._blockHeight.HasValue)
             {
                 stream.ReadWrite(ref this._blockHeightProxy);
             }
@@ -1243,11 +1256,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _id;
+                return this._id;
             }
             set
             {
-                _id = value;
+                this._id = value;
             }
         }
 
@@ -1260,11 +1273,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return new Money(_amount);
+                return new Money(this._amount);
             }
             set
             {
-                _amount = value.Satoshi;
+                this._amount = value.Satoshi;
             }
         }
 
@@ -1280,11 +1293,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _index;
+                return this._index;
             }
             set
             {
-                _index = value;
+                this._index = value;
             }
         }
 
@@ -1296,14 +1309,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _blockHeight;
+                return this._blockHeight;
             }
             set
             {
-                _blockHeight = value;
+                this._blockHeight = value;
                 if (value.HasValue)
                 {
-                    _blockHeightProxy = (int)value.Value;
+                    this._blockHeightProxy = (int)value.Value;
                 }
 
             }
@@ -1318,11 +1331,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _blockHash;
+                return this._blockHash;
             }
             set
             {
-                _blockHash = value;
+                this._blockHash = value;
             }
         }
 
@@ -1335,11 +1348,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return Utils.UnixTimeToDateTime(_creationTime);
+                return Utils.UnixTimeToDateTime(this._creationTime);
             }
             set
             {
-                _creationTime = Utils.DateTimeToUnixTime(value);
+                this._creationTime = Utils.DateTimeToUnixTime(value);
             }
         }
 
@@ -1352,11 +1365,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _merkleProof;
+                return this._merkleProof;
             }
             set
             {
-                _merkleProof = value;
+                this._merkleProof = value;
             }
         }
 
@@ -1369,11 +1382,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _scriptPubKey;
+                return this._scriptPubKey;
             }
             set
             {
-                _scriptPubKey = value;
+                this._scriptPubKey = value;
             }
         }
 
@@ -1385,11 +1398,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _hex;
+                return this._hex;
             }
             set
             {
-                _hex = value;
+                this._hex = value;
             }
         }
 
@@ -1402,18 +1415,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _isPropagated;
+                return this._isPropagated;
             }
             set
             {
-                _isPropagated = value;
+                this._isPropagated = value;
                 if (value.HasValue)
                 {
-                    _isPropagatedProxy = (bool)value.Value;
+                    this._isPropagatedProxy = (bool)value.Value;
                 }
                 else
                 {
-                    _isPropagatedProxy = true; // based solely on property comment above if null then assume true
+                    this._isPropagatedProxy = true; // based solely on property comment above if null then assume true
                 }
             }
         }
@@ -1432,11 +1445,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _spendingDetails;
+                return this._spendingDetails;
             }
             set
             {
-                _spendingDetails = value;
+                this._spendingDetails = value;
             }
         }
 
@@ -1500,11 +1513,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _destinationScriptPubKey;
+                return this._destinationScriptPubKey;
             }
             set
             {
-                _destinationScriptPubKey = value;
+                this._destinationScriptPubKey = value;
             }
         }
 
@@ -1516,11 +1529,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _destinationAddress;
+                return this._destinationAddress;
             }
             set
             {
-                _destinationAddress = value;
+                this._destinationAddress = value;
             }
         }
 
@@ -1533,11 +1546,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return new Money(_amount);
+                return new Money(this._amount);
             }
             set
             {
-                _amount = value.Satoshi;
+                this._amount = value.Satoshi;
             }
         }
 
@@ -1565,7 +1578,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._hex);
             
-            if (_blockHeight.HasValue)
+            if (this._blockHeight.HasValue)
             {
                 stream.ReadWrite(ref this._blockHeightProxy);
             }
@@ -1580,11 +1593,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _transactionId;
+                return this._transactionId;
             }
             set
             {
-                _transactionId = value;
+                this._transactionId = value;
             }
         }
 
@@ -1596,11 +1609,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _payments;
+                return this._payments;
             }
             set
             {
-                _payments = value;
+                this._payments = value;
             }
         }
 
@@ -1612,14 +1625,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _blockHeight;
+                return this._blockHeight;
             }
             set
             {
-                _blockHeight = value;
+                this._blockHeight = value;
                 if (value.HasValue)
                 {
-                    _blockHeightProxy = (int)value.Value;
+                    this._blockHeightProxy = (int)value.Value;
                 }
 
             }
@@ -1634,11 +1647,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return Utils.UnixTimeToDateTime(_creationTime);
+                return Utils.UnixTimeToDateTime(this._creationTime);
             }
             set
             {
-                _creationTime = Utils.DateTimeToUnixTime(value);
+                this._creationTime = Utils.DateTimeToUnixTime(value);
             }
         }
 
@@ -1650,11 +1663,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _hex;
+                return this._hex;
             }
             set
             {
-                _hex = value;
+                this._hex = value;
             }
         }
 
@@ -1699,11 +1712,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _account;
+                return this._account;
             }
             set
             {
-                _account = value;
+                this._account = value;
             }
         }
 
@@ -1714,11 +1727,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _address;
+                return this._address;
             }
             set
             {
-                _address = value;
+                this._address = value;
             }
         }
 
@@ -1729,11 +1742,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return _transaction;
+                return this._transaction;
             }
             set
             {
-                _transaction = value;
+                this._transaction = value;
             }
         }
 
