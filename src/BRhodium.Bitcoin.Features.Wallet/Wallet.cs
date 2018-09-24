@@ -12,7 +12,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// A wallet.
     /// </summary>
-    public class Wallet:IJsonSerializeable
+    public class Wallet : IBitcoinSerializable
     {
         /// <summary>
         /// Initializes a new instance of the wallet.
@@ -22,25 +22,79 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.AccountsRoot = new List<AccountRoot>();
         }
         private bool changed = false;
+        private List<AccountRoot> _accountsRoot;
+        private string _name;
+        private byte[] _chainCode;
+        private string _encryptedSeed;
+        private UInt32 _creationTime;
+        private long _id;
 
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._name);
+            stream.ReadWrite(ref this._encryptedSeed);
+            stream.ReadWrite(ref this._chainCode);
+            stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWrite(ref this._id);
+        }
+        public static Wallet Load(byte[] bytes, Network network = null)
+        {
+            if (bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+
+            var wallet = new Wallet();
+            wallet.FromBytes(bytes, network: network);
+            return wallet;
+        }
         /// <summary>
         /// The name of this wallet.
         /// </summary>
         [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value;
+            }
+        }
 
         /// <summary>
         /// The seed for this wallet, password encrypted.
         /// </summary>
         [JsonProperty(PropertyName = "encryptedSeed")]
-        public string EncryptedSeed { get; set; }
+        public string EncryptedSeed
+        {
+            get
+            {
+                return _encryptedSeed;
+            }
+            set
+            {
+                _encryptedSeed = value;
+            }
+        }
 
         /// <summary>
         /// The chain code.
         /// </summary>
         [JsonProperty(PropertyName = "chainCode")]
         [JsonConverter(typeof(ByteArrayConverter))]
-        public byte[] ChainCode { get; set; }
+        public byte[] ChainCode
+        {
+            get
+            {
+                return _chainCode;
+            }
+            set
+            {
+                _chainCode = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the merkle path.
@@ -60,18 +114,45 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+        public DateTimeOffset CreationTime
+        {
+            get
+            {
+                return Utils.UnixTimeToDateTime(_creationTime);
+            }
+            set
+            {
+                _creationTime = Utils.DateTimeToUnixTime(value);
+            }
+        }
 
         /// <summary>
         /// The root of the accounts tree.
         /// </summary>
         [JsonProperty(PropertyName = "accountsRoot")]
-        public ICollection<AccountRoot> AccountsRoot { get; set; }
-        /// <summary>
-        /// Internal wallet identifier
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public long Id { get; internal set; }
+        public List<AccountRoot> AccountsRoot
+        {
+            get
+            {
+                return _accountsRoot;
+            }
+            set
+            {
+                _accountsRoot = value;
+            }
+        }
+
+        public long Id
+        {
+            get
+            {
+                return _id;
+            }
+            internal set
+            {
+                _id = value;
+            }
+        }
 
         /// <summary>
         /// This is sets a runtime flag to show if wallet has been changed since last save operation.
@@ -91,7 +172,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Returns bool describing if wallet has been changed since last save.
         /// </summary>
         /// <returns></returns>
-        public bool IsChanged() {
+        public bool IsChanged()
+        {
             return this.changed;
         }
 
@@ -292,13 +374,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return accounts
                 .SelectMany(x => x.GetSpendableTransactions(currentChainHeight, confirmations));
         }
+
     }
 
     /// <summary>
     /// The root for the accounts for any type of coins.
     /// </summary>
-    public class AccountRoot: IJsonSerializeable
+    public class AccountRoot : IBitcoinSerializable
     {
+        private int _coinType;
+        private List<HdAccount> _accounts;
+
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
@@ -306,12 +392,31 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.Accounts = new List<HdAccount>();
         }
-
+        /// <summary>
+        /// Implmenting IBitcoinSerializable member to make this object serializebale.
+        /// </summary>
+        /// <param name="stream"></param>
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite<List<HdAccount>, HdAccount>(ref this._accounts);
+            stream.ReadWrite(ref this._coinType);
+            //block sychronization position is kept separately so no need to serialize
+        }
         /// <summary>
         /// The type of coin, Bitcoin or BRhodium.
         /// </summary>
         [JsonProperty(PropertyName = "coinType")]
-        public CoinType CoinType { get; set; }
+        public CoinType CoinType
+        {
+            get
+            {
+                return (CoinType)_coinType;
+            }
+            set
+            {
+                _coinType = (int) value;
+            }
+        }
 
         /// <summary>
         /// The height of the last block that was synced.
@@ -330,7 +435,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The accounts used in the wallet.
         /// </summary>
         [JsonProperty(PropertyName = "accounts")]
-        public ICollection<HdAccount> Accounts { get; set; }
+        public List<HdAccount> Accounts
+        {
+            get
+            {
+                return _accounts;
+            }
+            set
+            {
+                _accounts = value;
+            }
+        }
 
         /// <summary>
         /// Gets the first account that contains no transaction.
@@ -430,17 +545,35 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             return newAccount;
         }
+
+
     }
 
     /// <summary>
     /// An HD account's details.
     /// </summary>
-    public class HdAccount: IJsonSerializeable
+    public class HdAccount : IBitcoinSerializable
     {
+        private int _index;
+        private string _name;
+        private string _hdPath;
+        private string _extendedPubKey;
+        private UInt32 _creationTime;
+
         public HdAccount()
         {
             this.ExternalAddresses = new List<HdAddress>();
             this.InternalAddresses = new List<HdAddress>();
+        }
+
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._index);
+            stream.ReadWrite(ref this._name);
+            stream.ReadWrite(ref this._hdPath);
+            stream.ReadWrite(ref this._extendedPubKey);
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWrite(ref this._extendedPubKey);            
         }
 
         /// <summary>
@@ -451,32 +584,82 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// at index (i - 1) contains transactions.
         /// </remarks>
         [JsonProperty(PropertyName = "index")]
-        public int Index { get; set; }
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+            set
+            {
+                _index = value;
+            }
+        }
 
         /// <summary>
         /// The name of this account.
         /// </summary>
         [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value;
+            }
+        }
 
         /// <summary>
         /// A path to the account as defined in BIP44.
         /// </summary>
         [JsonProperty(PropertyName = "hdPath")]
-        public string HdPath { get; set; }
+        public string HdPath
+        {
+            get
+            {
+                return _hdPath;
+            }
+            set
+            {
+                _hdPath = value;
+            }
+        }
 
         /// <summary>
         /// An extended pub key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPubKey")]
-        public string ExtendedPubKey { get; set; }
+        public string ExtendedPubKey
+        {
+            get
+            {
+                return _extendedPubKey;
+            }
+            set
+            {
+                _extendedPubKey = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+        public DateTimeOffset CreationTime
+        {
+            get
+            {
+                return Utils.UnixTimeToDateTime(this._creationTime);
+            }
+            set
+            {
+                _creationTime = Utils.DateTimeToUnixTime(value);
+            }
+        }
 
         /// <summary>
         /// The list of external addresses, typically used for receiving money.
@@ -487,7 +670,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The list of internal addresses, typically used to receive change.
         /// </summary>
-        [JsonProperty(PropertyName = "internalAddresses")]        
+        [JsonProperty(PropertyName = "internalAddresses")]
         public ICollection<HdAddress> InternalAddresses { get; set; }
 
         /// <summary>
@@ -804,6 +987,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
             }
         }
+
     }
     /// <summary>
     /// Provides a link composition between wallets and addresses from cached objects
@@ -840,55 +1024,139 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD address.
     /// </summary>
-    public class HdAddress: IJsonSerializeable
+    public class HdAddress : IBitcoinSerializable
     {
+        private int _index;
+        private Script _scriptPubKey;
+        private Script _pubkey;
+        private string _address;
+        private string _hdPath;
+        private long _id;
+        private List<TransactionData> _transactions;
+
         public HdAddress()
         {
             this.Transactions = new List<TransactionData>();
         }
-
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._id);
+            stream.ReadWrite(ref this._index);
+            stream.ReadWrite(ref this._scriptPubKey);
+            stream.ReadWrite(ref this._pubkey);
+            stream.ReadWrite(ref this._address);
+            stream.ReadWrite(ref this._hdPath);
+            stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
+        }
         /// <summary>
         /// The index of the address.
         /// </summary>
         [JsonProperty(PropertyName = "index")]
-        public int Index { get; set; }
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+            set
+            {
+                _index = value;
+            }
+        }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script ScriptPubKey { get; set; }
+        public Script ScriptPubKey
+        {
+            get
+            {
+                return _scriptPubKey;
+            }
+            set
+            {
+                _scriptPubKey = value;
+            }
+        }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
         [JsonProperty(PropertyName = "pubkey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script Pubkey { get; set; }
+        public Script Pubkey
+        {
+            get
+            {
+                return _pubkey;
+            }
+            set
+            {
+                _pubkey = value;
+            }
+        }
 
         /// <summary>
         /// The Base58 representation of this address.
         /// </summary>
         [JsonProperty(PropertyName = "address")]
-        public string Address { get; set; }
+        public string Address
+        {
+            get
+            {
+                return _address;
+            }
+            set
+            {
+                _address = value;
+            }
+        }
 
         /// <summary>
         /// A path to the address as defined in BIP44.
         /// </summary>
         [JsonProperty(PropertyName = "hdPath")]
-        public string HdPath { get; set; }
+        public string HdPath
+        {
+            get
+            {
+                return _hdPath;
+            }
+            set
+            {
+                _hdPath = value;
+            }
+        }
 
         /// <summary>
         /// A list of transactions involving this address.
         /// </summary>
         [JsonProperty(PropertyName = "transactions")]
-        public ICollection<TransactionData> Transactions { get; set; }
-        /// <summary>
-        /// Internal identifier.
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public long Id { get; internal set; }
+        public List<TransactionData> Transactions
+        {
+            get
+            {
+                return _transactions;
+            }
+            set
+            {
+                _transactions = value;
+            }
+        }
+
+        public long Id
+        {
+            get
+            {
+                return _id;
+            }
+            internal set
+            {
+                _id = value;
+            }
+        }
 
         /// <summary>
         /// Determines whether this is a change address or a receive address.
@@ -932,21 +1200,74 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object containing transaction data.
     /// </summary>
-    public class TransactionData: IJsonSerializeable
+    public class TransactionData : IBitcoinSerializable
     {
+        private uint256 _id;
+        private long _amount;
+        private int _index;
+        private int? _blockHeight;
+        private int _blockHeightProxy;
+        private uint256 _blockHash;
+        private long _creationTime;
+        private PartialMerkleTree _merkleProof;
+        private Script _scriptPubKey;
+        private string _hex;
+        private bool? _isPropagated;
+        private bool _isPropagatedProxy;
+        private SpendingDetails _spendingDetails;
+
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._id);
+            stream.ReadWrite(ref this._amount);
+            stream.ReadWrite(ref this._index);
+            if (_blockHeight.HasValue)
+            {
+                stream.ReadWrite(ref this._blockHeightProxy);
+            }
+            stream.ReadWrite(ref this._blockHash);
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWrite(ref this._merkleProof);
+            stream.ReadWrite(ref this._scriptPubKey);
+            stream.ReadWrite(ref this._hex);
+            stream.ReadWrite(ref this._isPropagatedProxy);
+            stream.ReadWrite(ref this._spendingDetails);
+        }
+
         /// <summary>
         /// Transaction id.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 Id { get; set; }
+        public uint256 Id
+        {
+            get
+            {
+                return _id;
+            }
+            set
+            {
+                _id = value;
+            }
+        }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
         [JsonProperty(PropertyName = "amount")]
         [JsonConverter(typeof(MoneyJsonConverter))]
-        public Money Amount { get; set; }
+        public Money Amount
+        {
+            get
+            {
+                return new Money(_amount);
+            }
+            set
+            {
+                _amount = value.Satoshi;
+            }
+        }
+
 
         /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
@@ -955,54 +1276,147 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// This is effectively the index of the output, the position of the output in the parent transaction.
         /// </remarks>
         [JsonProperty(PropertyName = "index", NullValueHandling = NullValueHandling.Ignore)]
-        public int Index { get; set; }
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+            set
+            {
+                _index = value;
+            }
+        }
 
         /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public int? BlockHeight { get; set; }
+        public int? BlockHeight
+        {
+            get
+            {
+                return _blockHeight;
+            }
+            set
+            {
+                _blockHeight = value;
+                if (value.HasValue)
+                {
+                    _blockHeightProxy = (int)value.Value;
+                }
+
+            }
+        }
 
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 BlockHash { get; set; }
+        public uint256 BlockHash
+        {
+            get
+            {
+                return _blockHash;
+            }
+            set
+            {
+                _blockHash = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+        public DateTimeOffset CreationTime
+        {
+            get
+            {
+                return Utils.UnixTimeToDateTime(_creationTime);
+            }
+            set
+            {
+                _creationTime = Utils.DateTimeToUnixTime(value);
+            }
+        }
 
         /// <summary>
         /// Gets or sets the Merkle proof for this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
-        public PartialMerkleTree MerkleProof { get; set; }
+        public PartialMerkleTree MerkleProof
+        {
+            get
+            {
+                return _merkleProof;
+            }
+            set
+            {
+                _merkleProof = value;
+            }
+        }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script ScriptPubKey { get; set; }
+        public Script ScriptPubKey
+        {
+            get
+            {
+                return _scriptPubKey;
+            }
+            set
+            {
+                _scriptPubKey = value;
+            }
+        }
 
         /// <summary>
         /// Hexadecimal representation of this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
-        public string Hex { get; set; }
+        public string Hex
+        {
+            get
+            {
+                return _hex;
+            }
+            set
+            {
+                _hex = value;
+            }
+        }
 
         /// <summary>
         /// Propagation state of this transaction.
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
         [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsPropagated { get; set; }
+        public bool? IsPropagated
+        {
+            get
+            {
+                return _isPropagated;
+            }
+            set
+            {
+                _isPropagated = value;
+                if (value.HasValue)
+                {
+                    _isPropagatedProxy = (bool)value.Value;
+                }
+                else
+                {
+                    _isPropagatedProxy = true; // based solely on property comment above if null then assume true
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the full transaction object.
@@ -1014,7 +1428,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The details of the transaction in which the output referenced in this transaction is spent.
         /// </summary>
         [JsonProperty(PropertyName = "spendingDetails", NullValueHandling = NullValueHandling.Ignore)]
-        public SpendingDetails SpendingDetails { get; set; }
+        public SpendingDetails SpendingDetails
+        {
+            get
+            {
+                return _spendingDetails;
+            }
+            set
+            {
+                _spendingDetails = value;
+            }
+        }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -1054,34 +1478,97 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object representing a payment.
     /// </summary>
-    public class PaymentDetails: IJsonSerializeable
+    public class PaymentDetails : IBitcoinSerializable
     {
+        private Script _destinationScriptPubKey;
+        private string _destinationAddress;
+        private long _amount;
+
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._destinationScriptPubKey);
+            stream.ReadWrite(ref this._destinationAddress);
+            stream.ReadWrite(ref this._amount);
+        }
+
         /// <summary>
         /// The script pub key of the destination address.
         /// </summary>
         [JsonProperty(PropertyName = "destinationScriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script DestinationScriptPubKey { get; set; }
+        public Script DestinationScriptPubKey
+        {
+            get
+            {
+                return _destinationScriptPubKey;
+            }
+            set
+            {
+                _destinationScriptPubKey = value;
+            }
+        }
 
         /// <summary>
         /// The Base58 representation of the destination  address.
         /// </summary>
         [JsonProperty(PropertyName = "destinationAddress")]
-        public string DestinationAddress { get; set; }
+        public string DestinationAddress
+        {
+            get
+            {
+                return _destinationAddress;
+            }
+            set
+            {
+                _destinationAddress = value;
+            }
+        }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
         [JsonProperty(PropertyName = "amount")]
         [JsonConverter(typeof(MoneyJsonConverter))]
-        public Money Amount { get; set; }
+        public Money Amount
+        {
+            get
+            {
+                return new Money(_amount);
+            }
+            set
+            {
+                _amount = value.Satoshi;
+            }
+        }
+
+
     }
 
-    public class SpendingDetails: IJsonSerializeable
+    public class SpendingDetails : IBitcoinSerializable
     {
+        private uint256 _transactionId;
+        private List<PaymentDetails> _payments;
+        private int? _blockHeight;
+        private int _blockHeightProxy;
+        private uint _creationTime;
+        private string _hex;
+
         public SpendingDetails()
         {
             this.Payments = new List<PaymentDetails>();
+        }
+
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._transactionId);
+            stream.ReadWrite<List<PaymentDetails>, PaymentDetails>(ref this._payments);
+            stream.ReadWrite(ref this._creationTime);
+            stream.ReadWrite(ref this._hex);
+            
+            if (_blockHeight.HasValue)
+            {
+                stream.ReadWrite(ref this._blockHeightProxy);
+            }
         }
 
         /// <summary>
@@ -1089,32 +1576,87 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "transactionId", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 TransactionId { get; set; }
+        public uint256 TransactionId
+        {
+            get
+            {
+                return _transactionId;
+            }
+            set
+            {
+                _transactionId = value;
+            }
+        }
 
         /// <summary>
         /// A list of payments made out in this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "payments", NullValueHandling = NullValueHandling.Ignore)]
-        public ICollection<PaymentDetails> Payments { get; set; }
+        public List<PaymentDetails> Payments
+        {
+            get
+            {
+                return _payments;
+            }
+            set
+            {
+                _payments = value;
+            }
+        }
 
         /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public int? BlockHeight { get; set; }
+        public int? BlockHeight
+        {
+            get
+            {
+                return _blockHeight;
+            }
+            set
+            {
+                _blockHeight = value;
+                if (value.HasValue)
+                {
+                    _blockHeightProxy = (int)value.Value;
+                }
+
+            }
+        }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+        public DateTimeOffset CreationTime
+        {
+            get
+            {
+                return Utils.UnixTimeToDateTime(_creationTime);
+            }
+            set
+            {
+                _creationTime = Utils.DateTimeToUnixTime(value);
+            }
+        }
 
         /// <summary>
         /// Hexadecimal representation of this spending transaction.
         /// </summary>
         [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
-        public string Hex { get; set; }
+        public string Hex
+        {
+            get
+            {
+                return _hex;
+            }
+            set
+            {
+                _hex = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the full transaction object.
@@ -1129,6 +1671,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             return this.BlockHeight != null;
         }
+
     }
 
     /// <summary>
@@ -1137,22 +1680,64 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <remarks>
     /// This is useful when an UTXO needs access to its HD properties like the HD path when reconstructing a private key.
     /// </remarks>
-    public class UnspentOutputReference: IJsonSerializeable
+    public class UnspentOutputReference : IBitcoinSerializable
     {
+        private HdAccount _account;
+        private HdAddress _address;
+        private TransactionData _transaction;
+
+        public void ReadWrite(BitcoinStream stream)
+        {
+            stream.ReadWrite(ref this._account);
+            stream.ReadWrite(ref this._address);
+            stream.ReadWrite(ref this._transaction);
+        }
         /// <summary>
         /// The account associated with this UTXO
         /// </summary>
-        public HdAccount Account { get; set; }
+        public HdAccount Account
+        {
+            get
+            {
+                return _account;
+            }
+            set
+            {
+                _account = value;
+            }
+        }
 
         /// <summary>
         /// The address associated with this UTXO
         /// </summary>
-        public HdAddress Address { get; set; }
+        public HdAddress Address
+        {
+            get
+            {
+                return _address;
+            }
+            set
+            {
+                _address = value;
+            }
+        }
 
         /// <summary>
         /// The transaction representing the UTXO.
         /// </summary>
-        public TransactionData Transaction { get; set; }
+        public TransactionData Transaction
+        {
+            get
+            {
+                return _transaction;
+            }
+            set
+            {
+                _transaction = value;
+            }
+        }
+
+
 
         /// <summary>
         /// Convert the <see cref="TransactionData"/> to an <see cref="OutPoint"/>

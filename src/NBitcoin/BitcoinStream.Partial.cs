@@ -363,5 +363,14 @@ namespace NBitcoin
             return data;
         }
 
+        public void ReadWrite(ref string data)
+        {
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            ReadWriteAsVarString(ref bytes);
+            if (!Serializing)
+            {
+                data = System.Text.Encoding.UTF8.GetString(bytes);
             }
+        }
+    }
 }

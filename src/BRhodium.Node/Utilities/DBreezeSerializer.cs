@@ -35,9 +35,6 @@ namespace BRhodium.Node.Utilities
             IBitcoinSerializable serializable = obj as IBitcoinSerializable;
             if (serializable != null)
                 return serializable.ToBytes(network: this.Network);
-            IJsonSerializeable jsonSerializable = obj as IJsonSerializeable;
-            if (jsonSerializable != null)
-                return JsonConvert.SerializeObject(jsonSerializable).To_UTF8Bytes();
 
             uint256 u256 = obj as uint256;
             if (u256 != null)
@@ -127,19 +124,22 @@ namespace BRhodium.Node.Utilities
             }
 
             if (type == typeof(uint256))
+            {
                 return new uint256(bytes);
+            }
+
 
             if (type == typeof(Block))
+            {
                 return Block.Load(bytes, this.Network);
-            try
-            {
-                return JsonConvert.DeserializeObject(bytes.ToUTF8String());
             }
-            catch (Exception e)
-            {
+                
 
-               //
+            if (type.IsAssignableFrom((typeof(IBitcoinSerializable))))
+            {
+                return null;
             }
+
             throw new NotSupportedException();
         }
     }

@@ -27,15 +27,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.DBreeze = new DBreezeEngine(walletPath);            
-            //move to binary serialization/ will require further work
-            //CustomSerializator.ByteArraySerializator = (object o) =>
-            //{
-            //    return JsonConvert.SerializeObject(o).To_UTF8Bytes();
-            //};
-            //CustomSerializator.ByteArrayDeSerializator = (byte[] bt, Type t) =>
-            //{
-            //    return JsonConvert.DeserializeObject(bt.ToUTF8String());
-            //};
         }
 
         public Task SaveWallet(string walletName, Wallet wallet)
@@ -192,11 +183,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var obj = breezeTransaction.Select<byte[], byte[]>("Wallet", 1.ToIndex(name)).ObjectGet<JObject>();
+                var obj = breezeTransaction.Select<byte[], byte[]>("Wallet", 1.ToIndex(name)).ObjectGet<Wallet>();
                 if (obj != null)
                 {
                     HdAccount hdAccount = null;
-                    wallet = obj.Entity.ToObject<Wallet>();
+                    wallet = obj.Entity;
                     var position = GetLastSyncedBlock(name, breezeTransaction);
                     if (position != null)
                     {
@@ -210,8 +201,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     foreach (var row in breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 2.ToIndex(wallet.Id)))
                     {
-                        var temp = row.ObjectGet<JObject>();
-                        var address = temp.Entity.ToObject<HdAddress>();
+                        var temp = row.ObjectGet<HdAddress>();
+                        var address = temp.Entity;
                         if (address != null)
                         {   
                             //if not initialized or different than previous find and cache 
@@ -232,16 +223,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         }
                     }
                 }
-                var blockLocator = breezeTransaction.Select<string, JArray>("WalletBlockLocator", name, false);
+                var blockLocator = breezeTransaction.Select<string, ICollection<uint256>>("WalletBlockLocator", name, false);
                 if (blockLocator.Exists)
                 {
                     if (wallet.BlockLocator == null) {
                         wallet.BlockLocator = new List<uint256>();
                     }
-                    foreach (var item in blockLocator.Value)
-                    {
-                        wallet.BlockLocator.Add(new uint256(item.ToString()));
-                    }
+                    wallet.BlockLocator = blockLocator.Value;
                 }
             }
             return wallet;
@@ -269,14 +257,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
         private void SaveBlockLocator(string walletName, DBreeze.Transactions.Transaction breezeTransaction, ICollection<uint256> blockLocator)
         {
-            List<string> strings = new List<string>();
-            foreach (var item in blockLocator)
-            {
-                strings.Add(item.ToString());
-            }
-            string[] array = strings.ToArray<string>();
-            breezeTransaction.Insert<string, string[]>("WalletBlockLocator", walletName, array);
-            
+            breezeTransaction.Insert<string, ICollection<uint256>>("WalletBlockLocator", walletName, blockLocator);
         }
         /// <summary>
         /// Stores blocks for future use.
@@ -299,7 +280,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             List<uint256> result = new List<uint256>();
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<int, JArray>("WalletBlockLocator"))
+                foreach (var row in breezeTransaction.SelectForward<int, ICollection<uint256>>("WalletBlockLocator"))
                 {
                     if (row.Exists)
                     {
@@ -327,8 +308,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     if (row.Exists)
                     {
-                        var r = row.ObjectGet<JObject>();
-                        var wallet = r.Entity.ToObject<Wallet>();
+                        var r = row.ObjectGet<Wallet>();
+                        var wallet = r.Entity;
                         if (wallet != null) {
                            var pos = GetLastSyncedBlock(wallet.Name, breezeTransaction);
                            result = pos.Height;
@@ -351,8 +332,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     if (row.Exists)
                     {
-                        var r = row.ObjectGet<JObject>();
-                        var wallet = r.Entity.ToObject<Wallet>();
+                        var r = row.ObjectGet<Wallet>();
+                        var wallet = r.Entity;
                         if (wallet != null)
                         {
                             result = wallet.CreationTime.ToUniversalTime();
