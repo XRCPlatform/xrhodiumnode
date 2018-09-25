@@ -176,7 +176,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this._accountsRoot = value;
             }
         }
-
+        [JsonIgnore]
         public long Id
         {
             get
@@ -1245,7 +1245,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this._transactions = value;
             }
         }
-
+        [JsonIgnore]
         public long Id
         {
             get

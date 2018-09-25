@@ -375,5 +375,29 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             throw new NotImplementedException();
         }
+
+        internal string GetLastUpdatedWalletName()
+        {
+            string result = null;
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                foreach (var row in breezeTransaction.SelectBackwardFromTo<byte[], byte[]>("Wallet",
+                   3.ToIndex(DateTime.MaxValue, long.MaxValue), true,
+                   3.ToIndex(DateTime.MinValue, long.MinValue), true))
+                {
+                    if (row.Exists)
+                    {
+                        var r = row.ObjectGet<Wallet>();
+                        var wallet = r.Entity;
+                        if (wallet != null)
+                        {
+                            result = wallet.Name;
+                        }
+                    }
+                    break;
+                }
+            }
+            return result;
+        }
     }
 }

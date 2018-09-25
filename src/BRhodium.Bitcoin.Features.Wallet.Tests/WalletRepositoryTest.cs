@@ -234,8 +234,24 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             Assert.Equal(walletTarget.CreationTime, result);
         }
-        
+        [Fact]
+        public void GetLastUpdatedWalletName_ReturnsWalletName()
+        {
+            List<string> testWallets = new List<string>();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var repo = new WalletRepository(dataFolder.WalletPath, coinType);
+            Wallet walletTarget = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget1 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            Wallet walletTarget2 = createWallet(dataFolder, repo, Guid.NewGuid().ToString());
+            testWallets.Add(walletTarget.Name);
+            testWallets.Add(walletTarget1.Name);
+            testWallets.Add(walletTarget2.Name);
 
+            var result = repo.GetLastUpdatedWalletName();
+
+            Assert.Equal(walletTarget2.Name, result);
+        }
+        
         private Wallet createWallet(DataFolder dataFolder, WalletRepository walletRepository,string walletName = "mywallet") {
             //DataFolder dataFolder = CreateDataFolder(this);
 

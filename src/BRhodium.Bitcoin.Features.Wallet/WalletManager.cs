@@ -678,7 +678,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
             lock (this.lockObject)
             {
                 res = 0;
-               // res = this.Wallets.Min(w => w.AccountsRoot.SingleOrDefault(a => a.CoinType == this.coinType)?.LastBlockSyncedHeight) ?? 0;
+                string walletName = this.repository.GetLastUpdatedWalletName();
+                if (!string.IsNullOrEmpty(walletName))
+                {
+                    var rlast = this.repository.GetLastSyncedBlock(walletName);
+                    if (rlast != null) {
+                        res = rlast.Height;
+                    }                    
+                }
             }
             
             this.logger.LogTrace("(-):{0}", res);
@@ -712,24 +719,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             uint256 lastBlockSyncedHash = new uint256();
-            //lock (this.lockObject)
-            //{
-            //    lastBlockSyncedHash = this.Wallets
-            //        .Select(w => w.AccountsRoot.SingleOrDefault(a => a.CoinType == this.coinType))
-            //        .Where(w => w != null)
-            //        .OrderBy(o => o.LastBlockSyncedHeight)
-            //        .FirstOrDefault()?.LastBlockSyncedHash;
-
-            //    // If details about the last block synced are not present in the wallet,
-            //    // find out which is the oldest wallet and set the last block synced to be the one at this date.
-            //    if (lastBlockSyncedHash == null)
-            //    {
-            //        this.logger.LogWarning("There were no details about the last block synced in the wallets.");
-            //        DateTimeOffset earliestWalletDate = this.Wallets.Min(c => c.CreationTime);
-            //        this.UpdateWhenChainDownloaded(this.Wallets, earliestWalletDate.DateTime);
-            //        lastBlockSyncedHash = this.chain.Tip.HashBlock;
-            //    }
-            //}
+            lock (this.lockObject)
+            {
+                string walletName = this.repository.GetLastUpdatedWalletName();
+                if (!string.IsNullOrEmpty(walletName))
+                {
+                    lastBlockSyncedHash = this.repository.GetLastSyncedBlock(walletName)?.BlockHash;
+                }               
+               
+                // If details about the last block synced are not present in the wallet,
+                // find out which is the oldest wallet and set the last block synced to be the one at this date.
+                if (lastBlockSyncedHash == null)
+                {
+                    this.logger.LogWarning("There were no details about the last block synced in the wallets.");
+                    DateTimeOffset earliestWalletDate = this.repository.GetOldestWalletCreationTime();
+                    this.UpdateWhenChainDownloaded(this.Wallets, earliestWalletDate.DateTime);
+                    lastBlockSyncedHash = this.chain.Tip.HashBlock;
+                }
+            }
 
             //this.logger.LogTrace("(-):'{0}'", lastBlockSyncedHash);
             return lastBlockSyncedHash;

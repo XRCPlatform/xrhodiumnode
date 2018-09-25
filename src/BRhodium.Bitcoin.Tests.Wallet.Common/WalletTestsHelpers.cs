@@ -367,7 +367,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 block.Header.HashPrevBlock = prevBlockHash;
                 block.Header.Nonce = nonce;
                 chain.SetTip(block.Header);
-                prevBlockHash = block.GetHash();
+                prevBlockHash = block.Header.GetHash();
                 blocks.Add(block);
             }
 
