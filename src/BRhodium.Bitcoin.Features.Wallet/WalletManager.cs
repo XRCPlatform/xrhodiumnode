@@ -975,7 +975,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Money amount = utxo.Value;
             TransactionData foundTransaction = addressTransactions.FirstOrDefault(t => (t.Id == transactionHash) && (t.Index == index));
             if (foundTransaction == null)
-            {
+             {
                 this.logger.LogTrace("UTXO '{0}-{1}' not found, creating.", transactionHash, index);
                 var newTransaction = new TransactionData
                 {
@@ -1201,7 +1201,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             if (found)
             { // Calculate how many accounts to add to keep a buffer of 20 unused addresses.
-                int lastUsedAddressIndex = hdAccount.GetLastUsedAddress(isChange).Index;
+                var lastAddy = hdAccount.GetLastUsedAddress(isChange);
+                int lastUsedAddressIndex = 0;
+                if (lastAddy != null)
+                {
+                    lastUsedAddressIndex = lastAddy.Index;
+                }                
                 int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
                 int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
                 int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
