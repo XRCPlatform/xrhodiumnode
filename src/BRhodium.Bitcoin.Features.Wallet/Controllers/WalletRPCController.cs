@@ -584,7 +584,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">Name of the wallet.</param>
         /// <param name="passwordBase64">The password in BASE64 format.</param>
         /// <returns>(string) Return Mnemonic BIP39 format.</returns>
-        [ActionName("generatenewwallet")]
+        [ActionName("generatenewwalletbase64")]
         [ActionDescription("Generates the new wallet.")]
         public Mnemonic GenerateNewWalletBase64(string walletName, string passwordBase64)
         {
@@ -720,7 +720,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="minconf">(int) The minconf.</param>
         /// <param name="passwordBase64">(string) The password in Base64.</param>
         /// <returns>(uint256) Transaction hash.</returns>
-        [ActionName("sendmany")]
+        [ActionName("sendmanybase64")]
         [ActionDescription("Send manies the specified hd acccount name.")]
         public uint256 SendmanyBase64(string hdAcccountName, string toBitcoinAddresses, int minconf, string passwordBase64)
         {
