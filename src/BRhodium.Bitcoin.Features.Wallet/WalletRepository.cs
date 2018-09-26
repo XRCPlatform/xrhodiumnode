@@ -120,6 +120,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 address.Id = breezeTransaction.ObjectGetNewIdentity<long>("Address");
                 newEntity = true;
             }
+            address.WalletId = wallet.Id;
             int subIndex = address.IsChangeAddress() ? 1:0;
             breezeTransaction.ObjectInsert("Address", new DBreezeObject<HdAddress>
             {
@@ -139,8 +140,34 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 breezeTransaction.Insert<string, string>("AddressToWalletPair", address.Address, wallet.Name);
             }           
         }
-
-
+        public void SaveAddress(long walletId, HdAddress address)
+        {
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                bool newEntity = false;
+                if (address.Id < 1)
+                {
+                    address.Id = breezeTransaction.ObjectGetNewIdentity<long>("Address");
+                    newEntity = true;
+                }
+                address.WalletId = walletId;
+                int subIndex = address.IsChangeAddress() ? 1 : 0;
+                breezeTransaction.ObjectInsert("Address", new DBreezeObject<HdAddress>
+                {
+                    NewEntity = newEntity,
+                    Entity = address,
+                    Indexes = new List<DBreezeIndex>
+                    {
+                        new DBreezeIndex(1,walletId, subIndex, address.Index) { PrimaryIndex = true },
+                        new DBreezeIndex(2,walletId),
+                        new DBreezeIndex(3,address.Address),
+                        new DBreezeIndex(4,address.Id),
+                        new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
+                    }
+                }, false);
+                breezeTransaction.Commit();
+            }
+        }
         public void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
         {
             Guard.NotNull(walletName, nameof(walletName));
@@ -248,10 +275,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
             List<string> result = new List<string>();
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<int, string>("WalletNames"))
+                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
                 {
                     if (row.Exists) {
                         result.Add(row.Value);
+                    }
+                }
+            }
+            return result;
+        }
+        public IEnumerable<WalletPointer> GetAllWalletPointers()
+        {
+            List<WalletPointer> result = new List<WalletPointer>();
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                {
+                    if (row.Exists)
+                    {
+                        result.Add(new WalletPointer(row.Key,row.Value));
                     }
                 }
             }
@@ -368,12 +410,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         
         internal void RemoveTransactionFromHdAddress(HdAddress hdAddress, uint256 id)
         {
-            throw new NotImplementedException();
+            hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.Id == id));
+            this.SaveAddress(hdAddress.WalletId, hdAddress);
         }
 
         internal void RemoveTransactionSpendingDetailsFromHdAddress(HdAddress hdAddress, uint256 id)
         {
-            throw new NotImplementedException();
+            hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.SpendingDetails.TransactionId == id));
+            this.SaveAddress(hdAddress.WalletId, hdAddress);
         }
 
         internal string GetLastUpdatedWalletName()

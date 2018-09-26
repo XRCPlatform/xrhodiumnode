@@ -1068,16 +1068,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     public class WalletLinkedHdAddress{
         private readonly HdAddress hdAddress;
-        private readonly String wallet;
+        private readonly long walletId;
         /// <summary>
         /// Creates an instance of the linker object.
         /// </summary>
         /// <param name="hdAddress">Address ref</param>
         /// <param name="wallet">Wallet ref</param>
-        public WalletLinkedHdAddress(HdAddress hdAddress, String walletName)
+        public WalletLinkedHdAddress(HdAddress hdAddress, long walletId)
         {
             this.hdAddress = hdAddress;
-            this.wallet = walletName;
+            this.walletId = walletId;
         }
 
         public HdAddress HdAddress
@@ -1087,11 +1087,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
-        public String WalletName
+        public long WalletId
         {
             get
             {
-                return this.wallet;
+                return this.walletId;
             }
         }
     }
@@ -1106,6 +1106,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private byte[] _address = Array.Empty<byte>();
         private byte[] _hdPath = Array.Empty<byte>();
         private long _id;
+        private long _walletid;
         private List<TransactionData> _transactions;
 
         public HdAddress()
@@ -1115,6 +1116,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void ReadWrite(BitcoinStream stream)
         {
             stream.ReadWrite(ref this._id);
+            stream.ReadWrite(ref this._walletid);
             stream.ReadWrite(ref this._index);
             stream.ReadWrite(ref this._scriptPubKey);
             stream.ReadWrite(ref this._pubkey);
@@ -1246,6 +1248,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
         [JsonIgnore]
+        public long WalletId
+        {
+            get
+            {
+                return this._walletid;
+            }
+            internal set
+            {
+                this._walletid = value;
+            }
+        }
+        [JsonIgnore]
         public long Id
         {
             get
@@ -1329,6 +1343,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWriteAsVarString(ref this._hex);
             stream.ReadWrite(ref this._isPropagatedProxy);
             stream.ReadWrite(ref this._spendingDetails);
+
             if (stream.Serializing)
             {
                 stream.Inner.Flush();

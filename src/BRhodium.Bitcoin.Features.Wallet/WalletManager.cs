@@ -225,11 +225,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
                 foreach (var rAddress in newReceivingAddresses)
                 {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(rAddress, name));
+                    walletLinkerList.Add(new WalletLinkedHdAddress(rAddress, wallet.Id));
                 }
                 foreach (var cAddress in newChangeAddresses)
                 {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(cAddress, name));
+                    walletLinkerList.Add(new WalletLinkedHdAddress(cAddress, wallet.Id));
                 }
                 this.UpdateKeysLookupLock(walletLinkerList);
             }
@@ -332,11 +332,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
                 foreach (var rAddress in newReceivingAddresses)
                 {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(rAddress, name));
+                    walletLinkerList.Add(new WalletLinkedHdAddress(rAddress, wallet.Id));
                 }
                 foreach (var cAddress in newChangeAddresses)
                 {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(cAddress, name));
+                    walletLinkerList.Add(new WalletLinkedHdAddress(cAddress, wallet.Id));
                 }
                 this.UpdateKeysLookupLock(walletLinkerList);
             }
@@ -492,7 +492,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
                     foreach (var address in newAddresses)
                     {
-                        walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Name));
+                        walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
                     }                   
                     this.UpdateKeysLookupLock(walletLinkerList);
                     generated = true;
@@ -799,14 +799,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (TransactionData transactionData in makeUnspendable)
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
-                        this.repository.RemoveTransactionFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        //this.repository.RemoveTransactionFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
                     foreach (TransactionData transactionData in makeSpendable)
                     {
                         transactionData.SpendingDetails = null;
-                        this.repository.RemoveTransactionSpendingDetailsFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
+                        //this.repository.RemoveTransactionSpendingDetailsFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                 }
 
@@ -1041,6 +1043,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 if (isPropagated)
                     foundTransaction.IsPropagated = true;
             }
+            this.repository.SaveAddress(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress);
             this.TransactionFoundInternal(script);
 
             this.logger.LogTrace("(-)");
@@ -1065,14 +1068,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}',{4}:{5},{6}:'{7}')", nameof(transaction), transaction.GetHash(),
                 nameof(spendingTransactionId), spendingTransactionId, nameof(spendingTransactionIndex), spendingTransactionIndex, nameof(blockHeight), blockHeight);
 
-
-            // Get the transaction being spent.
-            //TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
-            //    .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
-
-            //this approach is neat but unsuitible as it does not leave controll over wallet references
-            //TransactionData spentTransaction = this.addressLookup.Values.Distinct().SelectMany(v => v.HdAddress.Transactions)
-            //    .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
             TransactionData spentTransaction = null;
             WalletLinkedHdAddress currentWalletLinkedHdAddress = null;
             foreach (var walletLinkedHdAddress in this.addressLookup.Values)
@@ -1087,7 +1082,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }              
             }
 
-            if (spentTransaction == null)
+            if (spentTransaction == null | currentWalletLinkedHdAddress == null)
             {
                 // Strange, why would it be null?
                 this.logger.LogTrace("(-)[TX_NULL]");
@@ -1161,7 +1156,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 
             }
-
+            this.repository.SaveAddress(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress);
+            
             this.logger.LogTrace("(-)");
         }
 
@@ -1215,7 +1211,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
                 foreach (var address in newAddresses)
                 {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Name));
+                    walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
                 }
                 this.UpdateKeysLookupLock(walletLinkerList);
               
@@ -1325,9 +1321,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             lock (this.lockObject)
             {
-                foreach (string walletName in this.repository.GetAllWalletNames())
+                foreach (WalletPointer pointer in this.repository.GetAllWalletPointers())
                 {
-                    IEnumerable<HdAddress> addresses = repository.GetAllWalletAddressesByCoinType(walletName, this.coinType);
+                    IEnumerable<HdAddress> addresses = repository.GetAllWalletAddressesByCoinType(pointer.WalletName, this.coinType);
                     foreach (HdAddress address in addresses)
                     {
                         Script script = address.ScriptPubKey;
@@ -1335,7 +1331,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         //{
                         //    script = address.Pubkey;
                         //}
-                        WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, walletName);
+                        WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, pointer.WalletId);
                         this.addressLookup.TryAdd<Script, WalletLinkedHdAddress>(script, walletLinkedHdAddress);
 
 
