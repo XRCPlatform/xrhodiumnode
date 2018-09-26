@@ -21,25 +21,54 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.AccountsRoot = new List<AccountRoot>();
         }
-        private bool changed = false;     
+        private bool changed = false;
         private byte[] _name = Array.Empty<byte>();
         private byte[] _chainCode = Array.Empty<byte>();
         private byte[] _encryptedSeed = Array.Empty<byte>();
         private UInt32 _creationTime;
         private long _id;
         private List<AccountRoot> _accountsRoot;
-
+        private Network _network;
+   
+        
         public void ReadWrite(BitcoinStream stream)
         {
+            byte[] networkNameShadow = Array.Empty<byte>();
+            if (_network != null) {
+                networkNameShadow = StringToByteArray(_network.ToString());
+            }
+            
             stream.ReadWrite(ref this._id);
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWriteAsVarString(ref this._name);
             stream.ReadWriteAsVarString(ref this._encryptedSeed);
             stream.ReadWriteAsVarString(ref this._chainCode);
+            stream.ReadWriteAsVarString(ref networkNameShadow);
+
             stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
-            if (stream.Serializing) {
+            if (stream.Serializing)
+            {
                 stream.Inner.Flush();
             }
+            else
+            {
+                var network = GetNetwork(networkNameShadow);
+                if (network != null) {
+                    this.Network = network;
+                }               
+            }
+        }
+
+        private byte[] StringToByteArray(string value) {
+            return System.Text.Encoding.UTF8.GetBytes(value);
+        }
+        private string ByteArrayToString(byte[] value)
+        {
+            return System.Text.Encoding.UTF8.GetString(value);
+        }
+
+        private Network GetNetwork(byte[] networkName) {
+            return NetworkHelpers.GetNetwork(ByteArrayToString(networkName));
         }
 
         public static Wallet Load(byte[] bytes, Network network = null)
@@ -142,7 +171,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "network")]
         [JsonConverter(typeof(NetworkConverter))]
-        public Network Network { get; set; }
+        public Network Network
+        {
+            get
+            {
+                return _network;
+            }
+            set
+            {
+                _network = value;
+            }
+        }
 
         /// <summary>
         /// The time this wallet was created.
@@ -1122,10 +1161,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._pubkey);
             stream.ReadWriteAsVarString(ref this._address);
             stream.ReadWriteAsVarString(ref this._hdPath);
-            stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
+            bool hasTransactions = false;
+
             if (stream.Serializing)
             {
+                if (this._transactions.Count > 0)
+                {
+                    hasTransactions = true;                   
+                }
+                stream.ReadWrite(ref hasTransactions);
+                if (hasTransactions)
+                {
+                    stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
+                }
+
                 stream.Inner.Flush();
+            }
+            else {
+                stream.ReadWrite(ref hasTransactions);
+                if (hasTransactions)
+                {
+                    stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
+                }                
             }
         }
         /// <summary>
@@ -1320,7 +1377,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private long _amount;
         private int _index;
         private int? _blockHeight;
-        private int _blockHeightProxy;
         private uint256 _blockHash;
         private long _creationTime;
         private PartialMerkleTree _merkleProof;
@@ -1334,19 +1390,73 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             stream.ReadWrite(ref this._id);
             stream.ReadWrite(ref this._amount);
-            stream.ReadWrite(ref this._index);            
-            stream.ReadWrite(ref this._blockHeightProxy);           
+            stream.ReadWrite(ref this._index);
             stream.ReadWrite(ref this._blockHash);
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._merkleProof);
-            stream.ReadWrite(ref this._scriptPubKey);
-            stream.ReadWriteAsVarString(ref this._hex);
+            stream.ReadWrite(ref this._scriptPubKey);            
             stream.ReadWrite(ref this._isPropagatedProxy);
-            stream.ReadWrite(ref this._spendingDetails);
-
+            
+            bool hasSpending = false;
+            bool hasHex = false;
+            bool hasHeight = false;
             if (stream.Serializing)
             {
+                if (this._spendingDetails != null && !this._spendingDetails.TransactionId.Equals(new uint256()))
+                {
+                    hasSpending = true;
+                    stream.ReadWrite(ref hasSpending);
+                    stream.ReadWrite<SpendingDetails>(ref this._spendingDetails);
+                }
+                else
+                {
+                    hasSpending = false;
+                    stream.ReadWrite(ref hasSpending);
+                }
+                if (this._hex != null && this._hex.Length>0)
+                {
+                    hasHex = true;
+                    stream.ReadWrite(ref hasHex);
+                    stream.ReadWriteAsVarString(ref this._hex);
+                }
+                else
+                {
+                    hasHex = false;
+                    stream.ReadWrite(ref hasHex);
+                }
+
+                if (this._blockHeight.HasValue) {
+                    hasHeight = true;
+                }
+
+                if (hasHeight)
+                {
+                    stream.ReadWrite(ref hasHeight);
+                    stream.ReadWrite((int)this._blockHeight.Value);
+                }
+
                 stream.Inner.Flush();
+            }
+            else
+            {
+                stream.ReadWrite(ref hasSpending);
+                if (hasSpending) {
+                    stream.ReadWrite<SpendingDetails>(ref this._spendingDetails);
+                }
+
+                stream.ReadWrite(ref hasHex);
+                if (hasHex)
+                {
+                    stream.ReadWriteAsVarString(ref this._hex);
+                }
+
+                stream.ReadWrite(ref hasHeight);
+                if (hasHeight)
+                {
+                    int tempValue = 0;
+                    stream.ReadWrite(ref tempValue);
+                    this._blockHeight = tempValue;
+                }
             }
         }
 
@@ -1409,22 +1519,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? BlockHeight
-        {//idea that _blockHeightProxy is the main driving variable  behind this and data written to this._blockHeight is not default
+        {
             get
             {
-                if (this._blockHeightProxy >=0) {
-                    this._blockHeight = (int)this._blockHeightProxy;
-                }
                 return this._blockHeight;
             }
             set
             {
-                this._blockHeight = value;
-                if (value.HasValue)
-                {
-                    this._blockHeightProxy = (int)value.Value;
-                }
-
+                this._blockHeight = value;  
             }
         }
 
@@ -1504,7 +1606,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                if (this._hex != null)
+                if (this._hex != null && this._hex.Length>0)
                 {
                     return System.Text.Encoding.UTF8.GetString(this._hex);
                 }
@@ -1693,8 +1795,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         private uint256 _transactionId;
         private List<PaymentDetails> _payments;
-        private int? _blockHeight;
-        private int _blockHeightProxy;
+        private int? _blockHeight;        
         private uint _creationTime;
         private byte[] _hex = Array.Empty<byte>();
 
@@ -1706,13 +1807,54 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void ReadWrite(BitcoinStream stream)
         {
             stream.ReadWrite(ref this._transactionId);            
-            stream.ReadWrite(ref this._creationTime);
-            stream.ReadWriteAsVarString(ref this._hex);
-            stream.ReadWrite(ref this._blockHeightProxy);
+            stream.ReadWrite(ref this._creationTime);     
             stream.ReadWrite<List<PaymentDetails>, PaymentDetails>(ref this._payments);
+
+            bool hasHex = false;
+            bool hasHeight = false;
             if (stream.Serializing)
             {
+               
+                if (this._hex != null && this._hex.Length > 0)
+                {
+                    hasHex = true;
+                    stream.ReadWrite(ref hasHex);
+                    stream.ReadWriteAsVarString(ref this._hex);
+                }
+                else
+                {
+                    hasHex = false;
+                    stream.ReadWrite(ref hasHex);
+                }
+
+                if (this._blockHeight.HasValue)
+                {
+                    hasHeight = true;
+                }
+
+                if (hasHeight)
+                {
+                    stream.ReadWrite(ref hasHeight);
+                    stream.ReadWrite((int)this._blockHeight.Value);
+                }
+
                 stream.Inner.Flush();
+            }
+            else
+            {
+                stream.ReadWrite(ref hasHex);
+                if (hasHex)
+                {
+                    stream.ReadWriteAsVarString(ref this._hex);
+                }
+
+                stream.ReadWrite(ref hasHeight);
+                if (hasHeight)
+                {
+                    int tempValue = 0;
+                    stream.ReadWrite(ref tempValue);
+                    this._blockHeight = tempValue;
+                }
             }
         }
 
@@ -1757,20 +1899,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {//idea that _blockHeightProxy is the main driving variable  behind this and data written to this._blockHeight is not default
             get
             {
-                if (this._blockHeightProxy >= 0)
-                {
-                    this._blockHeight = (int)this._blockHeightProxy;
-                }
                 return this._blockHeight;
             }
             set
             {
                 this._blockHeight = value;
-                if (value.HasValue)
-                {
-                    this._blockHeightProxy = (int)value.Value;
-                }
-
             }
         }
 

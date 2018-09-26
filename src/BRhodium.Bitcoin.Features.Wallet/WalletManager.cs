@@ -800,14 +800,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
                         this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
-                        //this.repository.RemoveTransactionFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
                     foreach (TransactionData transactionData in makeSpendable)
                     {
                         transactionData.SpendingDetails = null;
-                        //this.repository.RemoveTransactionSpendingDetailsFromHdAddress(walletLinkedHdAddress.HdAddress, transactionData.Id);
                         this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                 }
@@ -930,16 +928,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foundSendingTrx = true;
                 }
             }
-
-            //// Figure out what to do when this transaction is found to affect the wallet.
-            //if (foundSendingTrx || foundReceivingTrx)
-            //{
-            //    // Save the wallet when the transaction was not included in a block. 
-            //    if (blockHeight == null)
-            //    {
-            //        //this.SaveWallets();
-            //    }
-            //}
 
             this.logger.LogTrace("(-)");
             return foundSendingTrx || foundReceivingTrx;
