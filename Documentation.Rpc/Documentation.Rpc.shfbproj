@@ -19,15 +19,16 @@
     <Language>en-US</Language>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Wallet.dll" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Wallet.xml" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.dll" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.xml" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.dll" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.xml" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.dll" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.xml" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.dll" />
-<DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.xml" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Wallet.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.xml" />
+    </DocumentationSources>
     <WarnOnMissingSourceContext>False</WarnOnMissingSourceContext>
     <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
@@ -37,7 +38,7 @@
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
     <IndentHtml>False</IndentHtml>
     <BuildAssemblerVerbosity>OnlyWarningsAndErrors</BuildAssemblerVerbosity>
-    <VisibleItems>Attributes, Privates, PrivateFields, Protected</VisibleItems>
+    <VisibleItems>Attributes</VisibleItems>
     <MissingTags>Summary, Parameter, Returns, AutoDocumentCtors, AutoDocumentDispose</MissingTags>
     <PlugInConfigurations>
       <PlugInConfig id="Assembly Binding Redirection" enabled="True">
@@ -55,98 +56,73 @@
     </PlugInConfigurations>
     <ApiFilter>
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers" isExposed="False">
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController" filterName="BlockChainRPCController" isExposed="True">
-    <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.#ctor" filterName=".ctor" isExposed="False" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.FillBlockBaseData" filterName="FillBlockBaseData" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.logger" filterName="logger" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.networkDifficulty" filterName="networkDifficulty" isExposed="False" />
-  </Filter>
-</Filter>
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.LoopSteps" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.Models" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller" isExposed="True">
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController" filterName="MemPoolRPCController" isExposed="True">
-    <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.#ctor" filterName=".ctor" isExposed="False" />
-    <Filter entryType="Property" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.MemPool" filterName="MemPool" isExposed="False" />
-    <Filter entryType="Property" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.MempoolManager" filterName="MempoolManager" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.getUnspentTransaction" filterName="getUnspentTransaction" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.logger" filterName="logger" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.pooledGetUnspentTransaction" filterName="pooledGetUnspentTransaction" isExposed="False" />
-  </Filter>
-</Filter>
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Fee" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Interfaces" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Models" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Controllers" isExposed="False">
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController" filterName="MiningRPCController" isExposed="False">
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.Generate" filterName="Generate" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GenerateToAddress" filterName="GenerateToAddress" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetBlockTemplate" filterName="GetBlockTemplate" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetDifficulty" filterName="GetDifficulty" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetMiningInfo" filterName="GetMiningInfo" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetNetworkDifficulty" filterName="GetNetworkDifficulty" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetNetworkHash" filterName="GetNetworkHash" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GetNetworkHashPS" filterName="GetNetworkHashPS" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.PrioritizeTransaction" filterName="PrioritizeTransaction" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.SubmitBlock" filterName="SubmitBlock" isExposed="True" />
-  </Filter>
-</Filter>
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Interfaces" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Models" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Controllers" isExposed="False">
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.FullNodeRPCController" filterName="FullNodeRPCController" isExposed="False">
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.FullNodeRPCController.GetInfo" filterName="GetInfo" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.FullNodeRPCController.GetNetworkDifficulty" filterName="GetNetworkDifficulty" isExposed="True" />
-  </Filter>
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController" filterName="NetworkRPCController" isExposed="True">
-    <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController.#ctor" filterName=".ctor" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController.dateTimeProvider" filterName="dateTimeProvider" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController.logger" filterName="logger" isExposed="False" />
-    <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController.peerAddressManager" filterName="peerAddressManager" isExposed="False" />
-  </Filter>
-</Filter>
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Converters" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.ModelBinders" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Models" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Broadcasting" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers" isExposed="False">
-  <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController" filterName="WalletRPCController" isExposed="False">
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.CreateRawTransaction" filterName="CreateRawTransaction" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.DumpPrivKey" filterName="DumpPrivKey" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GenerateNewWallet" filterName="GenerateNewWallet" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetAccount" filterName="GetAccount" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetBalance" filterName="GetBalance" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetHistory" filterName="GetHistory" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetRawTransactionAsync" filterName="GetRawTransactionAsync" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetTransaction" filterName="GetTransaction" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetTransactionBlockAsync" filterName="GetTransactionBlockAsync" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetWallet" filterName="GetWallet" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.Sendmany" filterName="Sendmany" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendMoney" filterName="SendMoney" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendRawTransaction" filterName="SendRawTransaction" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendToAddress" filterName="SendToAddress" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ValidateAddress" filterName="ValidateAddress" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.WalletLock" filterName="WalletLock" isExposed="True" />
-    <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.WalletPassphrase" filterName="WalletPassphrase" isExposed="True" />
-  </Filter>
-</Filter>
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Helpers" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Interfaces" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Models" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Notifications" isExposed="False" />
-<Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Validations" isExposed="False" /></ApiFilter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers" isExposed="False">
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController" filterName="BlockChainRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+      </Filter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.LoopSteps" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.BlockStore.Models" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller" isExposed="True">
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController" filterName="MemPoolRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.#ctor" filterName=".ctor" isExposed="False" />
+          <Filter entryType="Property" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.MemPool" filterName="MemPool" isExposed="False" />
+          <Filter entryType="Property" fullName="BRhodium.Bitcoin.Features.MemoryPool.Controller.MemPoolRPCController.MempoolManager" filterName="MempoolManager" isExposed="False" />
+        </Filter>
+      </Filter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Fee" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Interfaces" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.MemoryPool.Models" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Controllers" isExposed="False">
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController" filterName="MiningRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+      </Filter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Interfaces" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Models" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Controllers" isExposed="False">
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.FullNodeRPCController" filterName="FullNodeRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.FullNodeRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController" filterName="NetworkRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.RPC.Controllers.NetworkRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+      </Filter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Converters" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.ModelBinders" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.RPC.Models" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Broadcasting" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers" isExposed="True">
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController" filterName="TransactionRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.UtilRPCController" filterName="UtilRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.UtilRPCController.#ctor" filterName=".ctor" isExposed="False" />
+        </Filter>
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletController" filterName="WalletController" isExposed="False" />
+        <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController" filterName="WalletRPCController" isExposed="True">
+          <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.#ctor" filterName=".ctor" isExposed="False" />
+          <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.hdAddressByAddressMap" filterName="hdAddressByAddressMap" isExposed="False" />
+          <Filter entryType="Field" fullName="BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.walletsByAddressMap" filterName="walletsByAddressMap" isExposed="False" />
+        </Filter>
+      </Filter>
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Helpers" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Interfaces" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Models" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Notifications" isExposed="False" />
+      <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Validations" isExposed="False" />
+    </ApiFilter>
     <HelpTitle>BitCoin Rhodium RPC Documentation</HelpTitle>
     <HelpFileVersion>1.0.0.0</HelpFileVersion>
     <RootNamespaceContainer>True</RootNamespaceContainer>
     <NamespaceGrouping>False</NamespaceGrouping>
     <Preliminary>False</Preliminary>
     <SdkLinkTarget>Blank</SdkLinkTarget>
-    <HeaderText>This is documentation of RPCs in BitCoin Rhodium project. This methods is possible to call when you have own node or you have access to external node. Implementation include all important RPCs for network usage. RPCs method will grow in next months.</HeaderText>
+    <HeaderText>This is documentation of RPCs in BitCoin Rhodium project. This methods is possible to call when you have own node or you have access to external node. Implementation include all important RPCs for network usage.</HeaderText>
     <CopyrightHref>https://www.bitcoinrh.org/</CopyrightHref>
     <CopyrightText>%40 2018 BitCoin Rhodium</CopyrightText>
     <RootNamespaceTitle>RPC Namespaces</RootNamespaceTitle>
@@ -165,20 +141,21 @@
     </TransformComponentArguments>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="(global)" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Miner" isDocumented="False">Mining Controller RPCs method</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.RPC.Controllers" isDocumented="True">RPC Network and Node methods</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Wallet" isDocumented="False">Wallet Controller RPCs method</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.Controllers" isDocumented="True">BlockChain Controller RPCs method</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.LoopSteps" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.Models" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Fee" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Interfaces" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Models" isDocumented="False" />
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Controller" isDocumented="True">MemPool RPC Methods</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Wallet.Controllers" isDocumented="True">Wallet Controller RPCs method</NamespaceSummaryItem>
-<NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Miner.Controllers" isDocumented="True">Mining Controller RPCs method</NamespaceSummaryItem></NamespaceSummaries>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Miner" isDocumented="False">Mining Controller RPCs method</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.RPC.Controllers" isDocumented="True">RPC Network and Node methods</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Wallet" isDocumented="False">Wallet Controller RPCs method</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.Controllers" isDocumented="True">BlockChain Controller RPCs method</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.LoopSteps" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.BlockStore.Models" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Fee" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Interfaces" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Models" isDocumented="False" />
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.MemoryPool.Controller" isDocumented="True">MemPool RPC Methods</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Wallet.Controllers" isDocumented="True">Wallet Controller RPCs method</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Miner.Controllers" isDocumented="True">Mining Controller RPCs method</NamespaceSummaryItem>
+    </NamespaceSummaries>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in order for Visual Studio to perform
 			 the build.  The others are optional common platform types that may appear. -->
