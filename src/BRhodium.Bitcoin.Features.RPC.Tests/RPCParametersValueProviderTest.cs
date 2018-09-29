@@ -179,5 +179,22 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
 
             Assert.Null(result.FirstValue);
         }
+
+        [Fact]
+        public void GetValueReturnsNullIfNoParametersProvided()
+        {
+            this.actionContext.RouteData = new RouteData();
+
+            string obj = "{ }";
+            this.actionContext.RouteData.Values.Add("req", JObject.Parse(obj));
+            this.actionContext.ActionDescriptor = new ActionDescriptor();
+            this.actionContext.ActionDescriptor.Parameters = new List<ParameterDescriptor>();
+            this.actionContext.ActionDescriptor.Parameters.Add(new ParameterDescriptor { Name = "rpc_" });
+
+            var result = this.provider.GetValue("rpc_");
+
+            Assert.Null(result.FirstValue);
+        }
+
     }
 }
