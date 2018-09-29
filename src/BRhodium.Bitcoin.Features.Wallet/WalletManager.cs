@@ -11,6 +11,7 @@ using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.Utilities;
+using System.Text;
 using System.Diagnostics;
 using System.IO;
 
@@ -222,6 +223,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // For now the passphrase is set to be the password by default.
             if (passphrase == null)
                 passphrase = password;
+
+            passphrase = Convert.ToBase64String(Encoding.UTF8.GetBytes(passphrase));
 
             // Generate the root seed used to generate keys from a mnemonic picked at random
             // and a passphrase optionally provided by the user.

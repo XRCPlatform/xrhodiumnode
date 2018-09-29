@@ -886,11 +886,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             if (currentTransaction != null) sentItem.Fee = feeRate.GetFee(currentTransaction);
 
                             // The fee is calculated as follows: funds in utxo - amount spent - amount sent as change.
-                            //OLD: sentItem.Fee = inputsAmount - sentItem.Amount - (changeAddress == null ? 0 : changeAddress.Transaction.Amount);
+                            if (sentItem.Fee == null) //try calculation
+                            {
+                                sentItem.Fee = inputsAmount - sentItem.Amount - (changeAddress == null ? 0 : changeAddress.Transaction.Amount);
+                            }
 
                             // Mined coins add more coins to the total out.
                             // That makes the fee negative. If that's the case ignore the fee.
-                            if (sentItem.Fee < 0)
+                            if ((sentItem.Fee == null) || (sentItem.Fee < 0))
                                 sentItem.Fee = 0;
 
                             if (!transactionItems.Contains(sentItem, new SentTransactionItemModelComparer()))

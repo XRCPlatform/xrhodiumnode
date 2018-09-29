@@ -242,6 +242,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             bool requireGreater,
             int nBlockHeight)
         {
+            // nBlockHeight is used to calculate median values for given block depths. If it is 0, then we need to assume
+            // that we cannot calculate until the next block comes in. This happens with freshly booted nodes; clients
+            // can start firing estimation requests but the system is not ready until the next block.
+            if (nBlockHeight == 0)
+                return -1;
+
             // Counters for a bucket (or range of buckets)
             double nConf = 0; // Number of tx's confirmed within the confTarget
             double totalNum = 0; // Total number of tx's that were ever confirmed

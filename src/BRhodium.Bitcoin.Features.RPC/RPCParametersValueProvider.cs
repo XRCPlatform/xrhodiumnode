@@ -74,7 +74,10 @@ namespace BRhodium.Bitcoin.Features.RPC
 
             var index = this.context.ActionContext.ActionDescriptor.Parameters.IndexOf(parameter);
             var parameters = (JArray)req["params"];
-            if ((index < 0) || (index >= parameters.Count))
+            if (parameters == null)
+                return null;
+
+            if (parameters != null && ((index < 0) || (index >= parameters.Count)))
                 return null;
 
             var jtoken = parameters[index];
