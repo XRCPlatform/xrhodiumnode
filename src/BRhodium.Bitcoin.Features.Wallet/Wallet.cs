@@ -1399,7 +1399,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             
             bool hasSpending = false;
             bool hasHex = false;
-            bool hasHeight = false;
+
             if (stream.Serializing)
             {
                 if (this._spendingDetails != null && !this._spendingDetails.TransactionId.Equals(new uint256()))
@@ -1425,14 +1425,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     stream.ReadWrite(ref hasHex);
                 }
 
-                if (this._blockHeight.HasValue) {
-                    hasHeight = true;
-                }
-
-                if (hasHeight)
+                if (this._blockHeight.HasValue)
                 {
-                    stream.ReadWrite(ref hasHeight);
                     stream.ReadWrite((int)this._blockHeight.Value);
+                }
+                else {
+                    stream.ReadWrite(0);
                 }
 
                 stream.Inner.Flush();
@@ -1450,11 +1448,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     stream.ReadWriteAsVarString(ref this._hex);
                 }
 
-                stream.ReadWrite(ref hasHeight);
-                if (hasHeight)
+                int tempValue = 0;
+                stream.ReadWrite(ref tempValue);
+                if (tempValue > 0)
                 {
-                    int tempValue = 0;
-                    stream.ReadWrite(ref tempValue);
                     this._blockHeight = tempValue;
                 }
             }
@@ -1829,14 +1826,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 if (this._blockHeight.HasValue)
                 {
-                    hasHeight = true;
-                }
-
-                if (hasHeight)
-                {
-                    stream.ReadWrite(ref hasHeight);
                     stream.ReadWrite((int)this._blockHeight.Value);
                 }
+                else
+                {
+                    stream.ReadWrite(0);
+                }
+
 
                 stream.Inner.Flush();
             }
@@ -1848,11 +1844,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     stream.ReadWriteAsVarString(ref this._hex);
                 }
 
-                stream.ReadWrite(ref hasHeight);
-                if (hasHeight)
+                int tempValue = 0;
+                stream.ReadWrite(ref tempValue);
+                if (tempValue > 0)
                 {
-                    int tempValue = 0;
-                    stream.ReadWrite(ref tempValue);
                     this._blockHeight = tempValue;
                 }
             }
@@ -1896,7 +1891,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? BlockHeight
-        {//idea that _blockHeightProxy is the main driving variable  behind this and data written to this._blockHeight is not default
+        {
             get
             {
                 return this._blockHeight;

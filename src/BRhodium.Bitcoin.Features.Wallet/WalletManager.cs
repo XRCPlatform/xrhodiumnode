@@ -1167,8 +1167,69 @@ namespace BRhodium.Bitcoin.Features.Wallet
             
             this.logger.LogTrace("(-)");
         }
-
+        /// <summary>
+        /// this is suboptimal but rolled back version for testing
+        /// </summary>
+        /// <param name="script"></param>
         private void TransactionFoundInternal(Script script)
+        {
+            this.logger.LogTrace("()");
+            bool found = false;
+            bool isChange = false;
+            HdAccount hdAccount = null;
+            Wallet wallet = null;
+            foreach (string walletName in this.repository.GetAllWalletNames())
+            {
+                wallet = this.repository.GetWallet(walletName);
+                foreach (HdAccount account in wallet.GetAccountsByCoinType(this.coinType))
+                {
+                    hdAccount = account;
+                    if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
+                    {
+                        isChange = false;
+                        found = true;
+                        break;
+                    }
+                    else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
+                    {
+                        isChange = true;
+                        found = true;
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                if (found)
+                {
+                    break;
+                }
+            }
+            if (found)
+            { // Calculate how many accounts to add to keep a buffer of 20 unused addresses.
+                var lastAddy = hdAccount.GetLastUsedAddress(isChange);
+                int lastUsedAddressIndex = 0;
+                if (lastAddy != null)
+                {
+                    lastUsedAddressIndex = lastAddy.Index;
+                }
+                int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
+                int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
+                int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
+                var newAddresses = hdAccount.CreateAddresses(this.network, accountsToAdd, isChange);
+
+                List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
+                foreach (var address in newAddresses)
+                {
+                    walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                }
+                this.UpdateKeysLookupLock(walletLinkerList);
+
+            }
+            this.logger.LogTrace("()");
+        }
+        private void TransactionFoundInternal_New(Script script)
         {
             this.logger.LogTrace("()");
             bool found = false;

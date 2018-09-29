@@ -655,8 +655,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return BuildErrorResponse(this.ModelState);
             }
 
-            if (!this.connectionManager.ConnectedPeers.Any())
-                throw new WalletException("Can't send transaction: sending transaction requires at least one connection!");
+            //if (!this.connectionManager.ConnectedPeers.Any())
+            //    throw new WalletException("Can't send transaction: sending transaction requires at least one connection!");
 
             try
             {
