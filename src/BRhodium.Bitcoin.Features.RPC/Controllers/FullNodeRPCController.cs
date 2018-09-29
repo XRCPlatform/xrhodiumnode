@@ -97,7 +97,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(GetNetworkInfoModel) Return object model with informations.</returns>
         [ActionName("getnetworkinfo")]
         [ActionDescription("Returns an object containing various state info regarding P2P networking.")]
-        public IActionResult GetnetworkInfo()
+        public IActionResult GetNetworkInfo()
         {
             try
             {
@@ -141,13 +141,39 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     if (adapter.Supports(NetworkInterfaceComponent.IPv4))
                     {
                         network.Name = "ipv4";
-                        network.Reachable = adapter.IsReceiveOnly ? false : true;
+
+                        try
+                        {
+                            network.Reachable = adapter.IsReceiveOnly ? false : true;
+                        }
+                        catch (PlatformNotSupportedException)
+                        {
+                            network.Reachable = true;
+                        }
+                        catch (Exception e)
+                        {
+                            throw e;
+                        }
+
                         model.Networks.Add(network);
                     }
                     if (adapter.Supports(NetworkInterfaceComponent.IPv6))
                     {
                         network.Name = "ipv6";
-                        network.Reachable = adapter.IsReceiveOnly ? false : true;
+
+                        try
+                        {
+                            network.Reachable = adapter.IsReceiveOnly ? false : true;
+                        }
+                        catch (PlatformNotSupportedException)
+                        {
+                            network.Reachable = true;
+                        }
+                        catch (Exception e)
+                        {
+                            throw e;
+                        }
+
                         model.Networks.Add(network);
                     }
 
