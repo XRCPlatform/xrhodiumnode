@@ -21,19 +21,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly CoinType coinType;
         /// <summary>Access to DBreeze database.</summary>
         protected readonly DBreezeEngine DBreeze;
+        private readonly Network network;
+        private DBreezeSerializer dBreezeSerializer;
 
-        public WalletRepository(string walletPath, CoinType coinType)
+        public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
             this.coinType = coinType;
             this.walletPath = walletPath;
-            this.DBreeze = new DBreezeEngine(walletPath);            
+            this.network = network;
+            this.DBreeze = new DBreezeEngine(walletPath);
+            this.dBreezeSerializer = new DBreezeSerializer();
+            this.dBreezeSerializer.Initialize(network);
         }
 
         public Task SaveWallet(string walletName, Wallet wallet)
         {
-            //case insensitive keys => transform to lower case 
             Guard.NotNull(walletName, nameof(walletName));
             Guard.NotNull(wallet, nameof(wallet));
+
+            walletNames.Clear();//reset cache perhaps a bit brutal but fair
 
             Task task = Task.Run(() =>
             {
@@ -135,9 +141,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
                     }
             }, false);
+            //think about how to remove these in case of fork as saveAddress now does not 
+            //foreach (var transaction in address.Transactions)
+            //{
+            //    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
+            //}
             if (newEntity) {
                 //used when we find address in transaction to find right wallet and GetWalletByAddress API
                 breezeTransaction.Insert<string, string>("AddressToWalletPair", address.Address, wallet.Name);
+                breezeTransaction.Insert<byte[], string>("ScriptToWalletPair", address.ScriptPubKey.Hash.ToBytes(), wallet.Name);
             }           
         }
         public void SaveAddress(long walletId, HdAddress address)
@@ -165,6 +177,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
                     }
                 }, false);
+
+                //foreach (var transaction in address.Transactions)
+                //{
+                //    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
+                //}
+
                 breezeTransaction.Commit();
             }
         }
@@ -270,20 +288,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return wallet?.GetAllAddressesByCoinType(this.coinType);
         }
 
+        List<string> walletNames = new List<string>();
         public IEnumerable<string> GetAllWalletNames()
         {
             List<string> result = new List<string>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            if (walletNames.Count < 1)
             {
-                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
                 {
-                    if (row.Exists) {
-                        result.Add(row.Value);
+                    foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                    {
+                        if (row.Exists)
+                        {
+                            result.Add(row.Value);
+                        }
                     }
                 }
             }
+            
+            walletNames = result;
             return result;
         }
+
         public IEnumerable<WalletPointer> GetAllWalletPointers()
         {
             List<WalletPointer> result = new List<WalletPointer>();
@@ -352,18 +378,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         var r = row.ObjectGet<Wallet>();
                         var wallet = r.Entity;
                         if (wallet != null) {
-                           var pos = GetLastSyncedBlock(wallet.Name, breezeTransaction);
-                           result = pos.Height;
+                            var pos = GetLastSyncedBlock(wallet.Name, breezeTransaction);
+                            if (pos!= null)
+                            {
+                                result = pos.Height;
+                            }
                         }
                     }
                     break;
                 }
-                //return this.Wallets.Min(w => w.AccountsRoot.Single(a => a.CoinType == this.coinType).LastBlockSyncedHeight);
             }
             return result;
         }
         internal DateTimeOffset GetOldestWalletCreationTime()
-        {//         return this.Wallets.Min(w => w.CreationTime);
+        {
             DateTimeOffset result = DateTimeOffset.MinValue;
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
@@ -396,7 +424,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
-                //var row = breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 3.ToIndex(address)).FirstOrDefault<Row<byte[], byte[]>>();
                 var pairRow = breezeTransaction.Select<string, string>("AddressToWalletPair", address);
                 if (pairRow.Exists)
                 {
@@ -442,6 +469,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
             }
             return result;
+        }
+
+        internal Wallet GetWalletByScriptHash(ScriptId hash)
+        {
+            Wallet wallet = null;
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            {
+                breezeTransaction.ValuesLazyLoadingIsOn = false;
+                var pairRow = breezeTransaction.Select<byte[], string>("ScriptToWalletPair", hash.ToBytes());
+                if (pairRow.Exists)
+                {
+                    string walletName = pairRow.Value;
+                    wallet = GetWallet(walletName);
+                }
+            }
+            return wallet;
+        }
+
+        public bool HasWallets()
+        {
+            return !String.IsNullOrEmpty(GetLastUpdatedWalletName());
         }
     }
 }

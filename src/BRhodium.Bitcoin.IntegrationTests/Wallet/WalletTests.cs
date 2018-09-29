@@ -46,7 +46,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 // the mining should add coins to the wallet
                 var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-                Assert.Equal(Money.COIN * 105 * 50, total);
+                Assert.Equal(Money.COIN * (12.5 + 1050000), total);//1050000 is 1st block reward
 
                 // sync both nodes
                 BRhodiumSender.CreateRPCClient().AddNode(BRhodiumReceiver.Endpoint, true);

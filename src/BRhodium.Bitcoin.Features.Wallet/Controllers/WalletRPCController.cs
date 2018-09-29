@@ -136,28 +136,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 if (walletCombix == null)
                 {
                     bool isFound = false;
-
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+                    if (currWallet != null)
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.network.Consensus.CoinType);
+                        if (currAccount != null)
                         {
                             foreach (var walletAddress in currAccount.ExternalAddresses)
                             {
-                                if (walletAddress.Address.ToString().Equals(addressFrom))
+                                if (walletAddress.Address.ToString().Equals(address))
                                 {
                                     isFound = true;
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    walletCombix = $"{currAccount.Name}/{currWallet.Name}";
                                     walletsByAddressMap.TryAdd<string, string>(addressFrom, walletCombix);
                                     hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     break;
                                 }
                             }
-
-                            if (isFound) break;
                         }
-
-                        if (isFound) break;
                     }
+                    
                 }
 
                 if (walletCombix == null)
@@ -201,15 +199,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
-        private WalletAccountReference GetAccount()
-        {
-            //TODO: Support multi wallet like core by mapping passed RPC credentials to a wallet/account
-            var w = this.walletManager.GetWalletNames().FirstOrDefault();
-            if (w == null)
-                throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "No wallet found");
-            var account = this.walletManager.GetAccounts(w).FirstOrDefault();
-            return new WalletAccountReference(w, account.Name);
-        }
 
         /// <summary>
         /// Wallets the password with unicode support.
@@ -311,26 +300,24 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     bool isFound = false;
 
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+                    if (currWallet != null)
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.network.Consensus.CoinType);
+                        if (currAccount != null)
                         {
                             foreach (var walletAddress in currAccount.ExternalAddresses)
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
                                     isFound = true;
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    walletCombix = $"{currAccount.Name}/{currWallet.Name}";
                                     walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
                                     hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     break;
                                 }
                             }
-
-                            if (isFound) break;
                         }
-
-                        if (isFound) break;
                     }
                 }
 
@@ -443,9 +430,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var accounts = new List<HdAccount>();
                 if (walletName == "*")
                 {
-                    foreach (var wallet in this.walletManager.Wallets)
+                    foreach (var walletNameLocal in this.walletManager.GetWalletNames())
                     {
-                        accounts.Concat(this.walletManager.GetAccounts(wallet.Name).ToList());
+                        accounts.Concat(this.walletManager.GetAccounts(walletNameLocal).ToList());
                     }
                 }
                 else
@@ -515,26 +502,24 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if (!res.IsMine)
                 {
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+                    if (currWallet != null)
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.network.Consensus.CoinType);
+                        if (currAccount != null)
                         {
                             foreach (var walletAddress in currAccount.ExternalAddresses)
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
+                                    walletCombix = $"{currAccount.Name}/{currWallet.Name}";
                                     walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
                                     hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     res.IsMine = true;
                                     break;
                                 }
                             }
-
-                            if (res.IsMine) break;
                         }
-
-                        if (res.IsMine) break;
                     }
                 }
 
@@ -551,31 +536,30 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// Gets the account as an wallet combix.
         /// </summary>
         /// <param name="address">The address.</param>
-        /// <returns>(string) Return wallet combix as string.</returns>
+        /// <returns>(string) Gets  account name and wallet name sepearated by '/' separator called wallet combix as string.</returns>
         [ActionName("getaccount")]
-        [ActionDescription("Gets the account as an wallet combix.")]
+        [ActionDescription("Gets account name and wallet name sepearated by '/' separator.")]
         public IActionResult GetAccount(string address)
         {
             if (string.IsNullOrEmpty(address))
             {
                 throw new ArgumentNullException("address");
             }
-
+            //it might be not great to cache these at multiple tiers
             string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
             if (walletCombix != null)
             {
                 return this.Json(ResultHelper.BuildResultResponse(walletCombix));
             }
-
-            foreach (var currWalletName in this.walletManager.GetWalletNames())
-            {
-                foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
-                {
+            Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+            if (currWallet != null) {
+                var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.network.Consensus.CoinType);
+                if (currAccount != null) {
                     foreach (var walletAddress in currAccount.ExternalAddresses)
                     {
                         if (walletAddress.Address.ToString().Equals(address))
                         {
-                            walletCombix = $"{currAccount.Name}/{currWalletName}";
+                            walletCombix = $"{currAccount.Name}/{currWallet.Name}";
                             walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
                             hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                             return this.Json(ResultHelper.BuildResultResponse(walletCombix));
@@ -583,6 +567,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                 }
             }
+            
 
             //if this point is reached the address is not in any wallets
             throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
@@ -970,7 +955,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
 
                 // If there is no wallet yet, raise error
-                if (!this.walletManager.Wallets.Any())
+                if (!this.walletManager.HasWallets)
                 {
                     throw new RPCServerException(RPCErrorCode.RPC_WALLET_ERROR, "No wallets");
                 }
@@ -1011,40 +996,21 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                         var chainedHeader = chainRepository.GetBlock(i);
                         var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-
-                        var walletUpdated = false;
-
-                        foreach (Transaction transaction in block.Transactions)
+                        if (chainedHeader != null)
                         {
-                            bool trxFound = this.walletManager.ProcessTransaction(transaction, chainedHeader.Height, block,null,true);
-                            if (trxFound)
+                            foreach (Transaction transaction in block.Transactions)
                             {
-                                walletUpdated = true;
+                                bool trxFound = this.walletManager.ProcessTransaction(transaction, chainedHeader.Height, block, null, true);
+                            }
+
+                            // Update the wallets with the last processed block height.
+                            // It's important that updating the height happens after the block processing is complete,
+                            // as if the node is stopped, on re-opening it will start updating from the previous height.
+                            foreach (var walletName in this.walletManager.GetWalletNames())
+                            {
+                                this.walletManager.UpdateLastBlockSyncedHeight(walletName, chainedHeader);
                             }
                         }
-
-                        // Update the wallets with the last processed block height.
-                        // It's important that updating the height happens after the block processing is complete,
-                        // as if the node is stopped, on re-opening it will start updating from the previous height.
-                        foreach (var wallet in this.walletManager.Wallets)
-                        {
-                            foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType))
-                            {
-                                if (accountRoot.LastBlockSyncedHeight < i)
-                                {
-                                    accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
-                                    accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
-                                }
-                            }
-                        }
-
-                        if (walletUpdated)
-                        {
-                            //temporary delay the resolution
-                            throw new NotImplementedException();
-                            //this.walletManager.SaveWallets();
-                        }
-
                         result.StopHeight = i;
                     }
                 }
@@ -1254,9 +1220,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 long unspendAmountSatoshi = 0;
 
-                foreach (var itemWallet in this.walletManager.Wallets)
+                foreach (var walletName in this.walletManager.GetWalletNames())
                 {
-                    var balances = this.walletManager.GetBalances(itemWallet.Name);
+                    var balances = this.walletManager.GetBalances(walletName);
                     var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.network.Consensus.CoinType).ToList();
 
                     foreach (var itemAccount in accountBalances)

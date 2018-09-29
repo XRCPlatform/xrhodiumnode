@@ -12,6 +12,7 @@ using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.Utilities;
 using System.Diagnostics;
+using System.IO;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.Wallet.Tests")]
 
@@ -87,9 +88,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private ConcurrentDictionary<OutPoint, TransactionData> outpointLookup;
         internal ConcurrentDictionary<Script, WalletLinkedHdAddress> addressLookup;
 
-        //private Dictionary<OutPoint, TransactionData> outpointLookup;
-        //internal Dictionary<Script, WalletLinkedHdAddress> addressLookup;
-
 
         public WalletManager(
             ILoggerFactory loggerFactory,
@@ -119,8 +117,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.lockObject = new object();
 
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.Wallets = new ConcurrentBag<Wallet>();
-
 
             this.network = network;
             this.coinType = (CoinType)network.Consensus.CoinType;
@@ -132,10 +128,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.repository = walletRepository;
             }
             else {
-                this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType);
+                this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType, this.network);
             }
-            
-            this.fileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
+            DirectoryInfo walletDbPath = new DirectoryInfo(dataFolder.WalletPath);
+            this.fileStorage = new FileStorage<Wallet>(walletDbPath.Parent.FullName);
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
 
@@ -146,8 +142,30 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             this.addressLookup = new ConcurrentDictionary<Script, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
+
+            LoadWalletsFromFiles();
         }
 
+        public WalletManager()
+        {
+        }
+
+        public void LoadWalletsFromFiles() {
+            // Find wallets and load them in memory.
+            IEnumerable<Wallet> wallets = this.fileStorage.LoadByFileExtension(WalletFileExtension);
+            int count = 0;
+            Stopwatch sw = new Stopwatch();
+            int length= wallets.Count();
+            foreach (Wallet wallet in wallets)
+            {
+                sw.Start();
+                count++;                
+                this.repository.SaveWallet(wallet.Name, wallet).Wait();
+                sw.Stop();                
+                this.logger.LogInformation($"Migrated wallet to db: {wallet.Name} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100,2) }% complete");
+                sw.Reset();
+            }
+        }
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
         {
             this.logger.LogTrace("()");
@@ -243,7 +261,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             else
             {
-                this.UpdateWhenChainDownloaded(new[] { wallet }, DateTime.Now);
+                this.UpdateWhenChainDownloaded(new[] { wallet.Name }, DateTime.Now);
             }
 
             // Save the changes to the file and add addresses to be tracked.
@@ -351,7 +369,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             else
             {
-                this.UpdateWhenChainDownloaded(new[] { wallet }, creationTime);
+                this.UpdateWhenChainDownloaded(new[] { wallet.Name }, creationTime);
             }
 
             // Save the changes to the file and add addresses to be tracked.
@@ -667,7 +685,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.logger.LogTrace("()");
 
-            if (!this.repository.GetAllWalletNames().Any())
+            if (!this.repository.HasWallets())
             {
                 int height = this.chain.Tip.Height;
                 this.logger.LogTrace("(-)[NO_WALLET]:{0}", height);
@@ -693,7 +711,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public bool ContainsWallets => this.repository.GetAllWalletNames().Any();
+        public bool ContainsWallets => this.repository.HasWallets();
 
         public FileStorage<Wallet> FileStorage
         {
@@ -703,6 +721,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
+        public bool HasWallets => throw new NotImplementedException();
+
         /// <summary>
         /// Gets the hash of the last block received by the wallets.
         /// </summary>
@@ -710,8 +730,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public uint256 LastReceivedBlockHash()
         {
             this.logger.LogTrace("()");
-
-            if (!this.repository.GetAllWalletNames().Any())
+            string walletName = this.repository.GetLastUpdatedWalletName();
+            if (String.IsNullOrEmpty(walletName))
             {
                 uint256 hash = this.chain.Tip.HashBlock;
                 this.logger.LogTrace("(-)[NO_WALLET]:'{0}'", hash);
@@ -721,7 +741,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             uint256 lastBlockSyncedHash = new uint256();
             lock (this.lockObject)
             {
-                string walletName = this.repository.GetLastUpdatedWalletName();
                 if (!string.IsNullOrEmpty(walletName))
                 {
                     lastBlockSyncedHash = this.repository.GetLastSyncedBlock(walletName)?.BlockHash;
@@ -733,7 +752,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     this.logger.LogWarning("There were no details about the last block synced in the wallets.");
                     DateTimeOffset earliestWalletDate = this.repository.GetOldestWalletCreationTime();
-                    this.UpdateWhenChainDownloaded(this.Wallets, earliestWalletDate.DateTime);
+                    this.UpdateWhenChainDownloaded(this.GetWalletNames(), earliestWalletDate.DateTime);
                     lastBlockSyncedHash = this.chain.Tip.HashBlock;
                 }
             }
@@ -824,7 +843,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(block), block.GetHash(), nameof(chainedHeader), chainedHeader);
 
             // If there is no wallet yet, update the wallet tip hash and do nothing else.
-            if (!this.GetWalletNames().Any())
+            if (!this.repository.GetEarliestWalletHeight().HasValue)
             {
                 this.WalletTipHash = chainedHeader.HashBlock;
                 this.logger.LogTrace("(-)[NO_WALLET]");
@@ -1156,9 +1175,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             bool isChange = false;
             HdAccount hdAccount = null;
             Wallet wallet = null;
-            foreach (string walletName in this.repository.GetAllWalletNames())
+
+
+            wallet = this.repository.GetWalletByScriptHash(script.Hash);
+            if (wallet != null)
             {
-                wallet = this.repository.GetWallet(walletName);
                 foreach (HdAccount account in wallet.GetAccountsByCoinType(this.coinType))
                 {
                     hdAccount = account;
@@ -1179,31 +1200,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         continue;
                     }
                 }
-                if (found) {
-                    break;
-                }
-            }
-            if (found)
-            { // Calculate how many accounts to add to keep a buffer of 20 unused addresses.
-                var lastAddy = hdAccount.GetLastUsedAddress(isChange);
-                int lastUsedAddressIndex = 0;
-                if (lastAddy != null)
-                {
-                    lastUsedAddressIndex = lastAddy.Index;
-                }                
-                int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
-                int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
-                int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
-                var newAddresses = hdAccount.CreateAddresses(this.network, accountsToAdd, isChange);
+                if (found)
+                { // Calculate how many accounts to add to keep a buffer of 20 unused addresses.
+                    var lastAddy = hdAccount.GetLastUsedAddress(isChange);
+                    int lastUsedAddressIndex = 0;
+                    if (lastAddy != null)
+                    {
+                        lastUsedAddressIndex = lastAddy.Index;
+                    }
+                    int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
+                    int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
+                    int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
+                    var newAddresses = hdAccount.CreateAddresses(this.network, accountsToAdd, isChange);
 
-                List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
-                foreach (var address in newAddresses)
-                {
-                    walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                    List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
+                    foreach (var address in newAddresses)
+                    {
+                        walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                    }
+                    this.UpdateKeysLookupLock(walletLinkerList);
                 }
-                this.UpdateKeysLookupLock(walletLinkerList);
-              
-            }
+            }            
+            
             this.logger.LogTrace("()");
         }
 
@@ -1492,7 +1510,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         /// <param name="wallets">The wallets to update when the chain has downloaded.</param>
         /// <param name="date">The creation date of the block with which to update the wallet.</param>
-        private void UpdateWhenChainDownloaded(IEnumerable<Wallet> wallets, DateTime date)
+        private void UpdateWhenChainDownloaded(IEnumerable<string> wallets, DateTime date)
         {
             this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", this.nodeLifetime.ApplicationStopping,
                 () => this.chain.IsDownloaded(),
@@ -1500,11 +1518,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     int heightAtDate = this.chain.GetHeightAtTime(date);
 
-                    foreach (var wallet in wallets)
+                    foreach (var walletName in wallets)
                     {
-                        this.logger.LogTrace("The chain of headers has finished downloading, updating wallet '{0}' with height {1}", wallet.Name, heightAtDate);
-                        this.UpdateLastBlockSyncedHeight(wallet.Name, this.chain.GetBlock(heightAtDate));
-                        this.SaveWallet(wallet);
+                        this.logger.LogTrace("The chain of headers has finished downloading, updating wallet '{0}' with height {1}", walletName, heightAtDate);
+                        this.UpdateLastBlockSyncedHeight(walletName, this.chain.GetBlock(heightAtDate));
+                        //this.SaveWallet(wallet);
                     }
                 },
                 (ex) =>
@@ -1513,9 +1531,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     // sync from the current height.
                     this.logger.LogError($"Exception occurred while waiting for chain to download: {ex.Message}");
 
-                    foreach (var wallet in wallets)
+                    foreach (var walletName in wallets)
                     {
-                        this.UpdateLastBlockSyncedHeight(wallet.Name, this.chain.Tip);
+                        this.UpdateLastBlockSyncedHeight(walletName, this.chain.Tip);
                     }
                 },
                 TimeSpans.FiveSeconds);
@@ -1531,6 +1549,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 return null;
             }
+        }
+
+        public Wallet GetWalletByAddress(string address)
+        {
+            return this.repository.GetWalletByAddress(address);
         }
     }
 }

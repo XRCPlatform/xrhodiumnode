@@ -279,6 +279,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns>Whether any wallet files are loaded.</returns>
         bool ContainsWallets { get; }
+        bool HasWallets { get; }
 
         /// <summary>
         /// Gets the extended public key of an account.
@@ -313,5 +314,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="walletName">The name of the wallet to remove transactions from.</param>
         /// <returns>A list of objects made up of a transactions ID along with the time at which they were created.</returns>
         HashSet<(uint256, DateTimeOffset)> RemoveAllTransactions(string walletName);
+        Wallet GetWalletByAddress(string address);
     }
 }
