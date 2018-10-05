@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BRhodium.HashLib" Version="2.1.2" />
+    <PackageReference Include="BRhodium.HashLib" Version="2.1.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
