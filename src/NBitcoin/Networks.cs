@@ -95,7 +95,7 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP65] = 0;
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-            network.Consensus.PowLimit = new Target(uint256.Parse("00017404A45B6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6DB6"));
+            network.Consensus.PowLimit = new Target(uint256.Parse("0001869E79600000000000000000000000000000000000000000000000000000"));
             decimal x = (decimal)network.Consensus.PowLimit.Difficulty;
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
@@ -107,7 +107,7 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
 
-            var hexMain = "02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff22040474011f01041a52656c6561736520746865204b72616b656e212121205a657573ffffffff0100000000000000000000000000";
+            var hexMain = "02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff22049e86011f01041a52656c6561736520746865204b72616b656e212121205a657573ffffffff0100000000000000000000000000";
             PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, hexMain);
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
