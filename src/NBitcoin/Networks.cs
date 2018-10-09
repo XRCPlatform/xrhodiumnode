@@ -96,7 +96,8 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(uint256.Parse("0001869E79600000000000000000000000000000000000000000000000000000"));
-            decimal x = (decimal)network.Consensus.PowLimit.Difficulty;
+            network.Consensus.PowLimit = new Target(new uint256("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
             network.Consensus.PowAllowMinDifficultyBlocks = false;
@@ -107,8 +108,9 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
 
-            var hexMain = "02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff22049e86011f01041a52656c6561736520746865204b72616b656e212121205a657573ffffffff0100000000000000000000000000";
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, hexMain);
+            var pubKeyMain = "049e86011f01041a52656c6561736520746865204b72616b656e212121205a657573";
+            pubKeyMain = "04ffff0f1e01041a52656c6561736520746865204b72616b656e212121205a657573";
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, pubKeyMain);
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
 
@@ -301,16 +303,14 @@ namespace NBitcoin
             return CreateBRhodiumGenesisBlock(consensusFactory, message, nTime, nNonce, nBits, nVersion, network, hexNew);
         }
 
-        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, string message, uint nTime, uint nNonce, uint nBits, int nVersion, Network network, string hexNew = null)
+        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, string message, uint nTime, uint nNonce, uint nBits, int nVersion, Network network, string pubKeyHexNew = null)
         {
             //nTime = 1512043200 => Thursday, November 30, 2017 12:00:00 PM (born BTR)
             //nTime = 1527811200 => Friday, Jun 1, 2017 12:00:00 PM (born TestBTR)
             //nBits = 0x1d00ffff (it is exactly 0x1b = 27 bytes long) => 0x00ffff0000000000000000000000000000000000000000000000000000 => 1
             //nNonce = XTimes to trying to find a genesis block
-            var hex = Encoders.Hex.DecodeData("02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2204ffff7f2001041a52656c6561736520746865204b72616b656e212121205a657573ffffffff0100000000000000000000000000");
-            if (hexNew != null) hex = Encoders.Hex.DecodeData(hexNew);
-
-            var scriptPubKey = new Script(Op.GetPushOp(hex), OpcodeType.OP_CHECKSIG);
+            var pubKeyHex = "2103d1b6cd5f956ccedf5877c89843a438bfb800468133fb2e73946e1452461a9b1aac";
+            if (pubKeyHexNew != null) pubKeyHex = pubKeyHexNew;
 
             PowTransaction txNew = consensusFactory.CreateTransaction() as PowTransaction;
             txNew.Version = 2;
@@ -326,10 +326,8 @@ namespace NBitcoin
             txNew.AddOutput(new TxOut()
             {
                 Value = Money.Zero,
-                ScriptPubKey = scriptPubKey
+                ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(pubKeyHex))
             });
-            
-            //var hexNewx = Encoders.Hex.EncodeData(txNew.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, network));
 
             PowBlock genesis = consensusFactory.CreateBlock() as PowBlock;
             genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);

@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using BRhodium.Node.Base.Deployments;
+using System;
+using System.Linq;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
 {
@@ -20,9 +22,15 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
             int nHeight = context.BestBlock?.Height + 1 ?? 0;
             Block block = context.BlockValidationContext.Block;
 
-            Script expect = new Script(Op.GetPushOp(nHeight));
-            Script actual = block.Transactions[0].Inputs[0].ScriptSig;
-            if (!this.StartWith(actual.ToBytes(true), expect.ToBytes(true)))
+            var expect = new Script(Op.GetPushOp(nHeight));
+            string expectedHeightString = expect.ToString();
+            string actualHeightString = null;
+
+            var ops = block.Transactions[0].Inputs[0].ScriptSig.ToOps();
+            var opsHeight = ops.FirstOrDefault();
+            if (opsHeight != null) actualHeightString = opsHeight.ToString();
+
+            if (expectedHeightString != actualHeightString)
             {
                 this.Logger.LogTrace("(-)[BAD_COINBASE_HEIGHT]");
                 ConsensusErrors.BadCoinbaseHeight.Throw();

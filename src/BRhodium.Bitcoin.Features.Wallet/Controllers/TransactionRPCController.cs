@@ -421,7 +421,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         break;
                 }
 
-                List<Key> keys = null;
+                List<Key> keys = new List<Key>();
 
                 if (privkeys != null)
                 {
