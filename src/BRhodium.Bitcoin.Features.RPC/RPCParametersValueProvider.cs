@@ -73,7 +73,15 @@ namespace BRhodium.Bitcoin.Features.RPC
                 return null;
 
             var index = this.context.ActionContext.ActionDescriptor.Parameters.IndexOf(parameter);
-            var parameters = (JArray)req["params"];
+            var parameters = req["params"] as JArray;
+            JValue jValue = null;
+            if (parameters == null)
+            {
+                jValue = req["params"] as JValue;
+            }
+            if (jValue != null) {
+                parameters = jValue.ToObject<JArray>();
+            }
             if (parameters == null)
                 return null;
 
