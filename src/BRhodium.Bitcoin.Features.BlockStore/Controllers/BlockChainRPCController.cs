@@ -387,7 +387,16 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 {
                     var chainedHeader = chainRepository.GetBlock(i);
                     if (firstChainedHeader == null) firstChainedHeader = chainedHeader;
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                    Block block;
+                    if (chainedHeader.HashBlock == Network.GenesisHash)
+                    {
+                        block = this.Network.GetGenesis();
+                    }
+                    else
+                    {
+                        block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    }
 
                     if (block.Transactions != null)
                     {
