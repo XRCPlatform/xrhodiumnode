@@ -50,6 +50,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private readonly NodeSettings nodeSettings;
         private readonly Network network;
         private readonly IConnectionManager connectionManager;
+        private readonly IWalletSyncManager walletSyncManager;
         private BlockStoreCache blockStoreCache { get; set; }
         private IWalletManager walletManager { get; set; }
         private IConsensusLoop ConsensusLoop { get; set; }
@@ -77,6 +78,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             Network network,
             IBroadcasterManager broadcasterManager,
             IConnectionManager connectionManager,
+            IWalletSyncManager walletSyncManager,
             IConsensusLoop consensusLoop = null)
         {
             this.walletManager = walletManager;
@@ -86,6 +88,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.FullNode = fullNode;
             this.broadcasterManager = broadcasterManager;
             this.connectionManager = connectionManager;
+            this.walletSyncManager = walletSyncManager;
             this.ConsensusLoop = consensusLoop;
             this.walletFeePolicy = walletFeePolicy;
             this.walletKeyPool = walletKeyPool;
@@ -1839,6 +1842,25 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+        /// <summary>
+        /// Restores wallet locally from seed.
+        /// </summary>
+        /// <param name="password">Transaction password.</param>
+        /// <param name="walletName">Wallet name</param>
+        /// <param name="Mnemonic">Mnemonic seed (English)</param>
+        /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
+        /// <returns></returns>
+        [ActionName("restorefromseed")]
+        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1483228800)
+        {
+            var date = DateTimeOffset.FromUnixTimeSeconds(creationDate).DateTime;
+            Wallet wallet = this.walletManager.RecoverWallet(password, walletName, mnemonic, date);
+
+            // start syncing the wallet from the creation date
+            this.walletSyncManager.SyncFromDate(date);
+            return this.Json(ResultHelper.BuildResultResponse(wallet));
         }
     }
 }

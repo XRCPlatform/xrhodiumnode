@@ -460,8 +460,11 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 {
                     var chainedHeader = chainRepository.GetBlock(i);
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-
-                    result.SizeOnDisk += block.GetSerializedSize();
+                    if (block!= null)
+                    {
+                        result.SizeOnDisk += block.GetSerializedSize();
+                    }
+                    
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
