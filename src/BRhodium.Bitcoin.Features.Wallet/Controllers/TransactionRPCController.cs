@@ -334,8 +334,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
-
                 var transaction = Transaction.Load(hex, this.Network);
+
+                transactionBuilder.CoinFinder = c =>
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    var tx = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
+                    if (tx == null) {
+                        return null;
+                    }
+
+                    return new Coin(tx, c.N);
+                };
+
                 var controller = this.FullNode.NodeService<WalletController>();
 
                 if (!transactionBuilder.Verify(transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
