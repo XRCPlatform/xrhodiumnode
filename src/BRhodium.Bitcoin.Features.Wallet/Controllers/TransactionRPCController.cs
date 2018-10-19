@@ -549,7 +549,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                     if (transactionResponse.Confirmations < 10)
                     {
-                        detail.Category = "receive";
+                        detail.Category = "immature";
                     }
                     else
                     {
