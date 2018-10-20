@@ -489,15 +489,24 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 res.IsWatchOnly = false;
                 res.IsScript = false;
 
-                // P2PKH
-                if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                try
                 {
-                    res.IsValid = true;
-                }
-                // P2SH
-                else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
+                    // P2PKH
+                    if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                    {
+                        res.IsValid = true;
+                        res.ScriptPubKey = new BitcoinPubKeyAddress(address, this.Network).ScriptPubKey.ToHex();
+                    }
+                    // P2SH
+                    else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
+                    {
+                        res.IsValid = true;
+                        res.IsScript = true;
+                        res.ScriptPubKey = new BitcoinScriptAddress(address, this.Network).ScriptPubKey.ToHex();
+                    }
+                } catch (FormatException exc)
                 {
-                    res.IsValid = true;
+                    res.IsValid = false;
                 }
 
                 string walletCombix = walletsByAddressMap.TryGet<string, string>(address);

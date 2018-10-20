@@ -260,7 +260,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(string or TransactionVerboseModel) The serialized, hex-encoded data for 'txid'.</returns>
         [ActionName("getrawtransaction")]
         [ActionDescription("Return the raw transaction data. If verbose is 'true', returns an Object with information about 'txid'. If verbose is 'false' or omitted, returns a string that is serialized, hex - encoded data for 'txid'.")]
-        public IActionResult GetRawTransaction(string txid, bool verbose, string blockhash)
+        public IActionResult GetRawTransaction(string txid, int verbose, string blockhash)
         {
             try
             {
@@ -296,7 +296,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
 
-                if (verbose)
+                if (verbose == 1)
                 {
                     return this.Json(ResultHelper.BuildResultResponse(model));
                 }
