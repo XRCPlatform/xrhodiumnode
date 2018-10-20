@@ -291,7 +291,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
 
                 var chainedHeader = chainRepository.GetBlock(new uint256(hash));
-                var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
 
                 switch (verbose)
                 {
@@ -388,15 +388,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                     var chainedHeader = chainRepository.GetBlock(i);
                     if (firstChainedHeader == null) firstChainedHeader = chainedHeader;
 
-                    Block block;
-                    if (chainedHeader.HashBlock == Network.GenesisHash)
-                    {
-                        block = this.Network.GetGenesis();
-                    }
-                    else
-                    {
-                        block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-                    }
+                    var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
 
                     if (block.Transactions != null)
                     {
@@ -468,12 +460,11 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 for (int i = 0; i <= this.Chain.Height; i++)
                 {
                     var chainedHeader = chainRepository.GetBlock(i);
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
                     if (block!= null)
                     {
                         result.SizeOnDisk += block.GetSerializedSize();
-                    }
-                    
+                    }                    
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -526,7 +517,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                     }
 
                     var chainedHeader = chainRepository.GetBlock(i);
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
 
                     if (checklevel >= 0)
                     {
@@ -566,6 +557,23 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        private Block GetBlockOrGenesisFromHeader(ChainedHeader chainedHeader)
+        {
+            Block block;
+            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+
+            if (chainedHeader.HashBlock == Network.GenesisHash)
+            {
+                block = this.Network.GetGenesis();
+            }
+            else
+            {
+                block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+            }
+
+            return block;
         }
     }
 }
