@@ -459,8 +459,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     totalBalance = MoneyExtensions.Sum(balances);
                 }
 
-                var balanceToString = totalBalance.ToUnit(MoneyUnit.BTR).ToString();
-                return this.Json(ResultHelper.BuildResultResponse(balanceToString));
+                var balance = totalBalance.ToUnit(MoneyUnit.BTR);
+
+                return this.Json(ResultHelper.BuildResultResponse(balance));
             }
             catch (Exception e)
             {
