@@ -93,32 +93,44 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     newTransaction.AddressFrom = new List<ExplorerAddressModel>();
 
                     newTransaction.Hash = itemTransaction.GetHash().ToString();
-                    newTransaction.Satoshi = itemTransaction.TotalOut.Satoshi;
                     newTransaction.Time = chainedHeader.Header.BlockTime;
                     newTransaction.Size = itemTransaction.GetSerializedSize();
                     newTransaction.BlockHash = block.GetHash().ToString();
 
                     if (itemTransaction.Inputs != null)
                     {
-                        foreach (var itemInput in itemTransaction.Inputs)
+                        if (!itemTransaction.IsCoinBase)
                         {
-                            var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
-                            //if (address == null) address = itemInput.ScriptSig.GetScriptAddress(this.Network);
-
-                            if (address != null)
+                            foreach (var itemInput in itemTransaction.Inputs)
                             {
-                                var newAddress = new ExplorerAddressModel();
-                                newAddress.Address = address.ToString();
+                                var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
+                                //if (address == null) address = itemInput.ScriptSig.GetScriptAddress(this.Network);
 
-                                newTransaction.AddressFrom.Add(newAddress);
+                                if (address != null)
+                                {
+                                    var newAddress = new ExplorerAddressModel();
+                                    newAddress.Address = address.ToString();
+
+                                    newTransaction.AddressFrom.Add(newAddress);
+                                }
                             }
                         }
                     }
 
                     if (itemTransaction.Outputs != null)
                     {
+                        var i = 0;
                         foreach (var itemOutput in itemTransaction.Outputs)
                         {
+                            if ((!itemTransaction.IsCoinBase) && (itemTransaction.Inputs != null) && (itemTransaction.Inputs[0].PrevOut != null))
+                            {
+                                if (itemTransaction.Inputs[0].PrevOut.N == i)
+                                {
+                                    i++;
+                                    continue;
+                                }
+                            }
+
                             var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
                             if (address == null) address = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
 
@@ -128,7 +140,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                             newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
 
                             newTransaction.AddressTo.Add(newAddress);
+                            i++;
                         }
+
+                        if (newTransaction.AddressTo != null) newTransaction.Satoshi = newTransaction.AddressTo.Sum(b => b.Satoshi);
                     }
 
                     //calculate fee
