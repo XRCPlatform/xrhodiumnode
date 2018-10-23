@@ -31,6 +31,7 @@ using System.Text;
 using System.Reflection;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.TransactionVerboseModel;
+using System.Security;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -658,11 +659,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(Transaction) Object with information.</returns>
         [ActionName("sendmoneybase64")]
         [ActionDescription("Sends the money.")]
-        public Transaction SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
+        public IActionResult SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
         {
-            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            try
+            {
+                var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+                var tx = SendMoney(hdAcccountName, walletName, targetAddress, password, satoshi);
 
-            return SendMoney(hdAcccountName, walletName, targetAddress, password, satoshi);
+                return this.Json(ResultHelper.BuildResultResponse(tx));
+            }
+            catch (SecurityException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-1));
+            }
+            catch (FormatException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-2));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return this.Json(ResultHelper.BuildResultResponse(0));
+            }
         }
 
         /// <summary>
