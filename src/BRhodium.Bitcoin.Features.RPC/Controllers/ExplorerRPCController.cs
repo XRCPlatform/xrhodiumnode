@@ -122,15 +122,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var i = 0;
                         foreach (var itemOutput in itemTransaction.Outputs)
                         {
-                            if ((!itemTransaction.IsCoinBase) && (itemTransaction.Inputs != null) && (itemTransaction.Inputs[0].PrevOut != null))
-                            {
-                                if (itemTransaction.Inputs[0].PrevOut.N == i)
-                                {
-                                    i++;
-                                    continue;
-                                }
-                            }
-
                             var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
                             if (address == null) address = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
 
