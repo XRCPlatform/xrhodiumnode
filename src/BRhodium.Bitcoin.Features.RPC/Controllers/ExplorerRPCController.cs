@@ -367,7 +367,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 var result = new List<ExplorerBlockModel>();
-                ChainedHeader chainedNextHeader = null;
 
                 var heightsArray = JsonConvert.DeserializeObject<List<int>>(heightsJson);
 
@@ -377,6 +376,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     if (chainedHeader == null) continue;
 
                     var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    var chainedNextHeader = chainRepository.GetBlock(chainedHeader.Height + 1);
 
                     try
                     {
