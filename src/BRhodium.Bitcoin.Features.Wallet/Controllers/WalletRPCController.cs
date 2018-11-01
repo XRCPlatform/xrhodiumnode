@@ -1871,12 +1871,29 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        /// <summary>
+        /// Restores wallet locally from seed.
+        /// </summary>
+        /// <param name="passwordBase64">Transaction password in Base64 format.</param>
+        /// <param name="walletName">Wallet name</param>
+        /// <param name="mnemonic">Mnemonic seed (English)</param>
+        /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
+        /// <returns></returns>
+        [ActionName("restorefromseedbase64")]
+        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        public IActionResult RestoreBase64(string passwordBase64, string walletName, string mnemonic, long creationDate = 1483228800)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return Restore(password, walletName, mnemonic, creationDate);
+        }
+
         /// <summary>
         /// Restores wallet locally from seed.
         /// </summary>
         /// <param name="password">Transaction password.</param>
         /// <param name="walletName">Wallet name</param>
-        /// <param name="Mnemonic">Mnemonic seed (English)</param>
+        /// <param name="mnemonic">Mnemonic seed (English)</param>
         /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
         /// <returns></returns>
         [ActionName("restorefromseed")]
