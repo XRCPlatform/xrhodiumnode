@@ -97,7 +97,7 @@ namespace NBitcoin
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(new uint256("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
             network.Consensus.PowLimit2 = new Target(new uint256("0000000000092489000000000000000000000000000000000000000000000000"));
-            network.Consensus.PowLimit2Height = 1173;
+            network.Consensus.PowLimit2Height = 1648;
 
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
