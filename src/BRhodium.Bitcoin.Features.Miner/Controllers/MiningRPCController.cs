@@ -476,7 +476,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
             var workDiff = pb.ChainWork - pb0.ChainWork;
             var timeDiff = maxTime - minTime;
-            return (Math.Pow(2, 32) * workDiff.GetLow64()) / timeDiff;
+            return (Math.Pow(2, 8) * workDiff.GetLow64()) / timeDiff;
         }
 
         /// <summary>

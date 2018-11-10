@@ -326,7 +326,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
                         this.transactions.Clear();
                     }
                     block.UpdateMerkleRoot();
-                    while (!block.CheckProofOfWork(rpc.Network.Consensus))
+                    while (!block.CheckProofOfWork(rpc.Network.Consensus, chain.Height))
                         block.Header.Nonce = ++nonce;
                     blocks.Add(block);
                     chain.SetTip(block.Header);
@@ -520,7 +520,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
                     block.Transactions.AddRange(passedTransactions);
                 }
                 block.UpdateMerkleRoot();
-                while (!block.CheckProofOfWork(fullNode.Network.Consensus))
+                while (!block.CheckProofOfWork(fullNode.Network.Consensus, fullNode.Chain.Height))
                     block.Header.Nonce = ++nonce;
                 blocks.Add(block);
                 if (broadcast)

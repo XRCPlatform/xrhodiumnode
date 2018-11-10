@@ -620,7 +620,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
             block.Header.Bits = block.Header.GetWorkRequired(this.Network, prevBlock);
             block.UpdateMerkleRoot();
-            while (!block.CheckProofOfWork(this.Network.Consensus))
+            while (!block.CheckProofOfWork(this.Network.Consensus, this.Chain.Height))
                 block.Header.Nonce = ++nonce;
 
             return block;

@@ -118,7 +118,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
 
             var maxTries = int.MaxValue;
 
-            while (maxTries > 0 && !block.CheckProofOfWork(network.Consensus))
+            while (maxTries > 0 && !block.CheckProofOfWork(network.Consensus, chain.Height))
             {
                 ++block.Header.Nonce;
                 --maxTries;

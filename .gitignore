@@ -43,7 +43,6 @@ dlldata.c
 # DNX
 project.lock.json
 artifacts/
-
 *_i.c
 *_p.c
 *_i.h
@@ -247,3 +246,4 @@ ModelManifest.xml
 .fake/
 /Documentation.Rpc/Help/*
 *.pubxml
+/src/Native/*
