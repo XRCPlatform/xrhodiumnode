@@ -136,29 +136,10 @@ namespace NBitcoin
             network.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             network.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
 
-            //network.DNSSeeds.AddRange(new[]
-            //{
-            //    new DNSSeedData("testnet1.BRhodiumplatform.com", "testnet1.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet2.BRhodiumplatform.com", "testnet2.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet3.BRhodiumplatform.com", "testnet3.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet4.BRhodiumplatform.com", "testnet4.BRhodiumplatform.com")
-            //});
-
-            //string[] seeds = { "1.34.168.128:8333", "1.202.128.218:8333" };
-            //Random rand = new Random();
-            //TimeSpan oneWeek = TimeSpan.FromDays(7);
-            //foreach (string seed in seeds)
-            //{
-            //    // It'll only connect to one or two seed nodes because once it connects,
-            //    // it'll get a pile of addresses with newer timestamps.
-            //    // Seed nodes are given a random 'last seen time' of between one and two weeks ago.
-            //    NetworkAddress addr = new NetworkAddress
-            //    {
-            //        Time = DateTime.UtcNow - (TimeSpan.FromSeconds(rand.NextDouble() * oneWeek.TotalSeconds)) - oneWeek,
-            //        Endpoint = Utils.ParseIpEndpoint(seed, network.DefaultPort)
-            //    };
-            //    network.SeedNodes.Add(addr);
-            //}
+            network.DNSSeeds.AddRange(new[]
+            {
+                new DNSSeedData("seed1.bitcoinrh.org", "seed1.bitcoinrh.org")
+            });
 
             Network.Register(network);
 
