@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NBitcoin;
 using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Models
@@ -35,6 +36,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
         public string NextBlockHash { get; set; }
 
         public string PreviousBlockHash { get; set; }
+        public uint256 ProofHash { get; set; }
 
         public BlockModel()
         {

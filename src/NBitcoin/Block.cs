@@ -131,7 +131,7 @@ namespace NBitcoin
             return hash;
         }
 
-        public virtual uint256 GetPoWHash()
+        public virtual uint256 GetPoWHash(int height, int powLimit2Height)
         {
             return this.GetHash();
         }
@@ -150,13 +150,13 @@ namespace NBitcoin
                 this.hashes[0] = this.GetHash();
         }
 
-        public bool CheckProofOfWork(Consensus consensus)
+        public bool CheckProofOfWork(Consensus consensus, int height)
         {
             BigInteger bits = this.Bits.ToBigInteger();
             if ((bits.CompareTo(BigInteger.Zero) <= 0) || (bits.CompareTo(Pow256) >= 0))
                 return false;
 
-            return this.GetPoWHash() <= this.Bits.ToUInt256();
+            return this.GetPoWHash(height, consensus.PowLimit2Height) <= this.Bits.ToUInt256();
         }
 
         public override string ToString()
@@ -326,9 +326,9 @@ namespace NBitcoin
             this.Header.HashMerkleRoot = GetMerkleRoot().Hash;
         }
 
-        public bool CheckProofOfWork(Consensus consensus)
+        public bool CheckProofOfWork(Consensus consensus, int height)
         {
-            return this.Header.CheckProofOfWork(consensus);
+            return this.Header.CheckProofOfWork(consensus, height);
         }
 
         public bool CheckMerkleRoot()

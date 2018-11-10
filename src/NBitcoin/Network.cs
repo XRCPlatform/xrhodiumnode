@@ -159,6 +159,10 @@ namespace NBitcoin
 
         public Target PowLimit { get; set; }
 
+        public Target PowLimit2 { get; set; }
+
+        public int PowLimit2Height { get; set; }
+
         public TimeSpan PowTargetTimespan { get; set; }
 
         public TimeSpan PowTargetSpacing { get; set; }

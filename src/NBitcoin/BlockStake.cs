@@ -69,9 +69,16 @@ namespace NBitcoin
         /// Generate a has based on the X13 algorithms.
         /// </summary>
         /// <returns></returns>
-        public override uint256 GetPoWHash()
+        public override uint256 GetPoWHash(int height, int powLimit2Height)
         {
-            return HashX13.Instance.Hash(this.ToBytes());
+            if (height > powLimit2Height)
+            {
+                return new HashX13LibMultihash().Hash(this.ToBytes());
+            }
+            else
+            {
+                return HashX13.Instance.Hash(this.ToBytes());
+            }
         }
     }
 

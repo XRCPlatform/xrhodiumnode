@@ -162,6 +162,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 blockModel.Difficulty = currentBlock.Header.Bits.Difficulty;
                 blockModel.Time = (int)currentBlock.Header.Time;
                 blockModel.Height = currentBlock.Height;
+                blockModel.ProofHash = currentBlock.Header.GetPoWHash(currentBlock.Height, Network.Main.Consensus.PowLimit2Height);
                 if (this.ConsensusLoop.Chain.Tip.Height > currentBlock.Height)
                 {
                     blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());

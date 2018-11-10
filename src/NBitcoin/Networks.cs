@@ -96,7 +96,8 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(new uint256("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
-            decimal ss = (decimal)network.Consensus.PowLimit.Difficulty;
+            network.Consensus.PowLimit2 = new Target(new uint256("0000000000092489000000000000000000000000000000000000000000000000"));
+            network.Consensus.PowLimit2Height = 1173;
 
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
@@ -107,6 +108,11 @@ namespace NBitcoin
             network.Consensus.CoinType = (int)CoinType.BRhodium;
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
+
+            network.Checkpoints.Add(17,new CheckpointInfo(new uint256("2430c4151e10cdc5ccbdea56b909c7c37ab2a852d3e7fb908e0a32493e2ac706")));
+            network.Checkpoints.Add(117, new CheckpointInfo(new uint256("bf3082be3b2da88187ebeb902548b41dbff3bcac6687352e0c47d902acd28e62")));
+            network.Checkpoints.Add(400, new CheckpointInfo(new uint256("20cb04127f12c1ae7a04ee6dc4c7e36f4c85ee2038c92126b3fd537110d96595")));
+            network.Checkpoints.Add(800, new CheckpointInfo(new uint256("df37ca401ecccfc6dedf68ab76a7161496ad93d47c2a474075efb3220e3f3526")));
 
             var pubKeyMain = "04ffff0f1e01041a52656c6561736520746865204b72616b656e212121205a657573";
             PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, pubKeyMain);
@@ -192,7 +198,7 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.00000000046565418188 
-            network.Consensus.PowLimit = new Target(new uint256("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            network.Consensus.PowLimit2 = network.Consensus.PowLimit;
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
             network.Consensus.PowAllowMinDifficultyBlocks = false;
@@ -261,6 +267,7 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.00000000046565418188 
+            network.Consensus.PowLimit2 = network.Consensus.PowLimit;
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
             network.Consensus.PowAllowMinDifficultyBlocks = true;

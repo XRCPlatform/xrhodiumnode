@@ -83,7 +83,7 @@ namespace BRhodium.Node.IntegrationTests
                     block.AddTransaction(tx);
                 }
                 block.UpdateMerkleRoot();
-                while (!block.CheckProofOfWork(this.network.Consensus))
+                while (!block.CheckProofOfWork(this.network.Consensus, this.Chain.Height))
                     block.Header.Nonce = ++nonce;
                 block.Header.PrecomputeHash();
                 blocks.Add(block);
