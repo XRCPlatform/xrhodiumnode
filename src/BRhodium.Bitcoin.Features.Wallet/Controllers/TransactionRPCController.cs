@@ -260,7 +260,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(string or TransactionVerboseModel) The serialized, hex-encoded data for 'txid'.</returns>
         [ActionName("getrawtransaction")]
         [ActionDescription("Return the raw transaction data. If verbose is 'true', returns an Object with information about 'txid'. If verbose is 'false' or omitted, returns a string that is serialized, hex - encoded data for 'txid'.")]
-        public IActionResult GetRawTransaction(string txid, bool verbose, string blockhash)
+        public IActionResult GetRawTransaction(string txid, int verbose, string blockhash)
         {
             try
             {
@@ -296,7 +296,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
 
-                if (verbose)
+                if (verbose == 1)
                 {
                     return this.Json(ResultHelper.BuildResultResponse(model));
                 }
@@ -334,8 +334,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
-
                 var transaction = Transaction.Load(hex, this.Network);
+
+                transactionBuilder.CoinFinder = c =>
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    var tx = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
+                    if (tx == null) {
+                        return null;
+                    }
+
+                    return new Coin(tx, c.N);
+                };
+
                 var controller = this.FullNode.NodeService<WalletController>();
 
                 if (!transactionBuilder.Verify(transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
@@ -421,7 +432,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         break;
                 }
 
-                List<Key> keys = null;
+                List<Key> keys = new List<Key>();
 
                 if (privkeys != null)
                 {
@@ -538,7 +549,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                     if (transactionResponse.Confirmations < 10)
                     {
-                        detail.Category = "receive";
+                        detail.Category = "immature";
                     }
                     else
                     {

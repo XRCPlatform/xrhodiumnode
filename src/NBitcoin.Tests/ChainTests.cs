@@ -201,6 +201,59 @@ namespace NBitcoin.Tests
             Assert.Equal(expectedFork, fork);
         }
 
+        [Fact]
+        [Trait("UnitTest", "UnitTest")]
+        public void CanHandleADifficultyForkAndMaintainDifficultyInNextAdjustmentPeriod()
+        {
+            ConcurrentChain chain = new ConcurrentChain(Network.Main);
+            for (var i = 0; i < 2015; i++)
+            {
+                var chainedHeader = AppendBlock(chain);
+                // If the chain produces > 2 week times, it should set correct target as the powlimit.
+                chainedHeader.Header.BlockTime =
+                    new DateTimeOffset(new DateTime(2018, 10, 22, 0, 0, 0, DateTimeKind.Utc).AddMinutes(11*i));
+
+                if (i > 2000)
+                {
+                    chainedHeader.Header.Bits = Network.Main.Consensus.PowLimit2;
+                }
+                else
+                {
+                    chainedHeader.Header.Bits = Network.Main.Consensus.PowLimit;
+                }
+            }
+            var switchBlock = AppendBlock(chain);
+            switchBlock.Header.Bits = Network.Main.Consensus.PowLimit2;
+
+            BlockHeader adjustmentHeader = chain.GetBlock(2016).Header;
+            var correctTarget = chain.GetWorkRequired(Network.Main, 2016);
+            Assert.Equal(correctTarget, adjustmentHeader.Bits);
+        }
+
+        [Fact]
+        [Trait("UnitTest", "UnitTest")]
+        public void CanRaiseDifficultyIfPeriodShorterThanConsensusPeriod()
+        {
+            ConcurrentChain chain = new ConcurrentChain(Network.Main);
+            for (var i = 0; i < 2015; i++)
+            {
+                var chainedHeader = AppendBlock(chain);
+                // If the chain produces < 2 week times, it should set target as something higher.
+                chainedHeader.Header.BlockTime =
+                    new DateTimeOffset(new DateTime(2017, 11, 30, 0, 0, 0, DateTimeKind.Utc));
+                    chainedHeader.Header.Bits = Network.Main.Consensus.PowLimit2;
+            }
+            var switchBlock = AppendBlock(chain);
+            switchBlock.Header.Bits = Network.Main.Consensus.PowLimit2;
+
+            BlockHeader adjustmentHeader = chain.GetBlock(2016).Header;
+            var expectedTarget = new Target(
+                new uint256("00000000000ffff0000000000000000000000000000000000000000000000000"));
+            var actualTarget = chain.GetWorkRequired(Network.Main, 2016);
+            Assert.Equal(expectedTarget, actualTarget);
+        }
+
+
 #if !NOFILEIO
         [Fact]
         [Trait("UnitTest", "UnitTest")]

@@ -361,7 +361,22 @@ namespace NBitcoin
             if (this.Height == 0)
                 return consensus.PowLimit;
 
-            Target proofOfWorkLimit = consensus.PowLimit;
+            //hard fork
+            if (this.Height == consensus.PowLimit2Height + 1)
+                return consensus.PowLimit2;
+
+            Target proofOfWorkLimit;
+
+            // Hard fork to higher difficulty
+            if (this.Height > consensus.PowLimit2Height)
+            {
+                proofOfWorkLimit = consensus.PowLimit2;
+            }
+            else
+            {
+                proofOfWorkLimit = consensus.PowLimit;
+            }
+
             ChainedHeader lastBlock = this.Previous;
             var height = this.Height;
 
@@ -489,7 +504,7 @@ namespace NBitcoin
         /// <returns>Whether proof of work is valid.</returns>
         public bool CheckProofOfWorkAndTarget(Consensus consensus)
         {
-            return (this.Height == 0) || (this.Header.CheckProofOfWork(consensus) && (this.Header.Bits == this.GetWorkRequired(consensus)));
+            return (this.Height == 0) || (this.Header.CheckProofOfWork(consensus, this.Height) && (this.Header.Bits == this.GetWorkRequired(consensus)));
         }
 
         /// <summary>

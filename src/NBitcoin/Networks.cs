@@ -95,9 +95,9 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP65] = 0;
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-            //network.Consensus.PowLimit = new Target(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.244137132
-            network.Consensus.PowLimit = new Target(uint256.Parse("00000031ffce0000000000000000000000000000000000000000000000000000")); //0.02
-            //network.Consensus.PowLimit = new Target(uint256.Parse("00000000FFFF0000000000000000000000000000000000000000000000000000")); //1
+            network.Consensus.PowLimit = new Target(new uint256("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+            network.Consensus.PowLimit2 = new Target(new uint256("0000000000092489000000000000000000000000000000000000000000000000"));
+            network.Consensus.PowLimit2Height = 1648;
 
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
@@ -109,7 +109,13 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus};
 
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 1025, network.Consensus.PowLimit.ToCompact(), 45, network);
+            network.Checkpoints.Add(17,new CheckpointInfo(new uint256("2430c4151e10cdc5ccbdea56b909c7c37ab2a852d3e7fb908e0a32493e2ac706")));
+            network.Checkpoints.Add(117, new CheckpointInfo(new uint256("bf3082be3b2da88187ebeb902548b41dbff3bcac6687352e0c47d902acd28e62")));
+            network.Checkpoints.Add(400, new CheckpointInfo(new uint256("20cb04127f12c1ae7a04ee6dc4c7e36f4c85ee2038c92126b3fd537110d96595")));
+            network.Checkpoints.Add(800, new CheckpointInfo(new uint256("df37ca401ecccfc6dedf68ab76a7161496ad93d47c2a474075efb3220e3f3526")));
+
+            var pubKeyMain = "04ffff0f1e01041a52656c6561736520746865204b72616b656e212121205a657573";
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1512043200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, pubKeyMain);
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
 
@@ -130,29 +136,10 @@ namespace NBitcoin
             network.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             network.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
 
-            //network.DNSSeeds.AddRange(new[]
-            //{
-            //    new DNSSeedData("testnet1.BRhodiumplatform.com", "testnet1.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet2.BRhodiumplatform.com", "testnet2.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet3.BRhodiumplatform.com", "testnet3.BRhodiumplatform.com"),
-            //    new DNSSeedData("testnet4.BRhodiumplatform.com", "testnet4.BRhodiumplatform.com")
-            //});
-
-            //string[] seeds = { "1.34.168.128:8333", "1.202.128.218:8333" };
-            //Random rand = new Random();
-            //TimeSpan oneWeek = TimeSpan.FromDays(7);
-            //foreach (string seed in seeds)
-            //{
-            //    // It'll only connect to one or two seed nodes because once it connects,
-            //    // it'll get a pile of addresses with newer timestamps.
-            //    // Seed nodes are given a random 'last seen time' of between one and two weeks ago.
-            //    NetworkAddress addr = new NetworkAddress
-            //    {
-            //        Time = DateTime.UtcNow - (TimeSpan.FromSeconds(rand.NextDouble() * oneWeek.TotalSeconds)) - oneWeek,
-            //        Endpoint = Utils.ParseIpEndpoint(seed, network.DefaultPort)
-            //    };
-            //    network.SeedNodes.Add(addr);
-            //}
+            network.DNSSeeds.AddRange(new[]
+            {
+                new DNSSeedData("seed1.bitcoinrh.org", "seed1.bitcoinrh.org")
+            });
 
             Network.Register(network);
 
@@ -191,10 +178,11 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP65] = 0;
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-            network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.00000000046565418188 
+            network.Consensus.PowLimit = new Target(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); 
+            network.Consensus.PowLimit2 = network.Consensus.PowLimit;
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
-            network.Consensus.PowAllowMinDifficultyBlocks = true;
+            network.Consensus.PowAllowMinDifficultyBlocks = false;
             network.Consensus.PowNoRetargeting = false;
             network.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             network.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
@@ -202,7 +190,8 @@ namespace NBitcoin
             network.Consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
             network.Consensus.ConsensusFactory = new PowConsensusFactory() { Consensus = network.Consensus };
 
-            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 45, network);
+            var prodTEST = "04ffff0f1e01041a52656c6561736520746865204b72616b656e212121205a657573";
+            PowBlock genesis = CreateBRhodiumGenesisBlock((PowConsensusFactory)network.Consensus.ConsensusFactory, 1527811200, 0, network.Consensus.PowLimit.ToCompact(), 45, network, prodTEST);
             genesis.Header.Bits = network.Consensus.PowLimit;
             network.genesis = genesis;
             network.Consensus.HashGenesisBlock = genesis.GetHash(network);
@@ -259,6 +248,7 @@ namespace NBitcoin
             network.Consensus.BuriedDeployments[BuriedDeployments.BIP66] = 0;
             network.Consensus.BIP34Hash = new uint256("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
             network.Consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")); //0.00000000046565418188 
+            network.Consensus.PowLimit2 = network.Consensus.PowLimit;
             network.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
             network.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
             network.Consensus.PowAllowMinDifficultyBlocks = true;
@@ -296,20 +286,20 @@ namespace NBitcoin
             return network;
         }
 
-        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, uint nTime, uint nNonce, uint nBits, int nVersion, Network network)
+        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, uint nTime, uint nNonce, uint nBits, int nVersion, Network network, string hexNew = null)
         {
             string message = "Release the Kraken!!! Zeus";
-            return CreateBRhodiumGenesisBlock(consensusFactory, message, nTime, nNonce, nBits, nVersion, network);
+            return CreateBRhodiumGenesisBlock(consensusFactory, message, nTime, nNonce, nBits, nVersion, network, hexNew);
         }
 
-        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, string message, uint nTime, uint nNonce, uint nBits, int nVersion, Network network)
+        private static PowBlock CreateBRhodiumGenesisBlock(PowConsensusFactory consensusFactory, string message, uint nTime, uint nNonce, uint nBits, int nVersion, Network network, string pubKeyHexNew = null)
         {
             //nTime = 1512043200 => Thursday, November 30, 2017 12:00:00 PM (born BTR)
             //nTime = 1527811200 => Friday, Jun 1, 2017 12:00:00 PM (born TestBTR)
             //nBits = 0x1d00ffff (it is exactly 0x1b = 27 bytes long) => 0x00ffff0000000000000000000000000000000000000000000000000000 => 1
             //nNonce = XTimes to trying to find a genesis block
-            var hex = Encoders.Hex.DecodeData("02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2204ffff7f2001041a52656c6561736520746865204b72616b656e212121205a657573ffffffff0100000000000000000000000000");
-            var scriptPubKey = new Script(Op.GetPushOp(hex), OpcodeType.OP_CHECKSIG);
+            var pubKeyHex = "2103d1b6cd5f956ccedf5877c89843a438bfb800468133fb2e73946e1452461a9b1aac";
+            if (pubKeyHexNew != null) pubKeyHex = pubKeyHexNew;
 
             PowTransaction txNew = consensusFactory.CreateTransaction() as PowTransaction;
             txNew.Version = 2;
@@ -325,11 +315,8 @@ namespace NBitcoin
             txNew.AddOutput(new TxOut()
             {
                 Value = Money.Zero,
-                ScriptPubKey = scriptPubKey
+                ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(pubKeyHex))
             });
-            
-            //generate hex data;
-            //var hex = Encoders.Hex.EncodeData(txNew.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, net));
 
             PowBlock genesis = consensusFactory.CreateBlock() as PowBlock;
             genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);

@@ -31,6 +31,7 @@ using System.Text;
 using System.Reflection;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.TransactionVerboseModel;
+using System.Security;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -50,6 +51,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private readonly NodeSettings nodeSettings;
         private readonly Network network;
         private readonly IConnectionManager connectionManager;
+        private readonly IWalletSyncManager walletSyncManager;
         private BlockStoreCache blockStoreCache { get; set; }
         private IWalletManager walletManager { get; set; }
         private IConsensusLoop ConsensusLoop { get; set; }
@@ -77,6 +79,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             Network network,
             IBroadcasterManager broadcasterManager,
             IConnectionManager connectionManager,
+            IWalletSyncManager walletSyncManager,
             IConsensusLoop consensusLoop = null)
         {
             this.walletManager = walletManager;
@@ -86,6 +89,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.FullNode = fullNode;
             this.broadcasterManager = broadcasterManager;
             this.connectionManager = connectionManager;
+            this.walletSyncManager = walletSyncManager;
             this.ConsensusLoop = consensusLoop;
             this.walletFeePolicy = walletFeePolicy;
             this.walletKeyPool = walletKeyPool;
@@ -453,8 +457,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     totalBalance = MoneyExtensions.Sum(balances);
                 }
 
-                var balanceToString = totalBalance.ToUnit(MoneyUnit.BTR).ToString();
-                return this.Json(ResultHelper.BuildResultResponse(balanceToString));
+                var balance = totalBalance.ToUnit(MoneyUnit.BTR);
+
+                return this.Json(ResultHelper.BuildResultResponse(balance));
             }
             catch (Exception e)
             {
@@ -483,15 +488,24 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 res.IsWatchOnly = false;
                 res.IsScript = false;
 
-                // P2PKH
-                if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                try
                 {
-                    res.IsValid = true;
-                }
-                // P2SH
-                else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
+                    // P2PKH
+                    if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                    {
+                        res.IsValid = true;
+                        res.ScriptPubKey = new BitcoinPubKeyAddress(address, this.Network).ScriptPubKey.ToHex();
+                    }
+                    // P2SH
+                    else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
+                    {
+                        res.IsValid = true;
+                        res.IsScript = true;
+                        res.ScriptPubKey = new BitcoinScriptAddress(address, this.Network).ScriptPubKey.ToHex();
+                    }
+                } catch (FormatException exc)
                 {
-                    res.IsValid = true;
+                    res.IsValid = false;
                 }
 
                 string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
@@ -640,11 +654,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(Transaction) Object with information.</returns>
         [ActionName("sendmoneybase64")]
         [ActionDescription("Sends the money.")]
-        public Transaction SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
+        public IActionResult SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
         {
-            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            try
+            {
+                var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+                var tx = SendMoney(hdAcccountName, walletName, targetAddress, password, satoshi);
 
-            return SendMoney(hdAcccountName, walletName, targetAddress, password, satoshi);
+                return this.Json(ResultHelper.BuildResultResponse(tx));
+            }
+            catch (SecurityException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-1));
+            }
+            catch (FormatException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-2));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return this.Json(ResultHelper.BuildResultResponse(0));
+            }
         }
 
         /// <summary>
@@ -1817,6 +1848,42 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Restores wallet locally from seed.
+        /// </summary>
+        /// <param name="passwordBase64">Transaction password in Base64 format.</param>
+        /// <param name="walletName">Wallet name</param>
+        /// <param name="mnemonic">Mnemonic seed (English)</param>
+        /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
+        /// <returns></returns>
+        [ActionName("restorefromseedbase64")]
+        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        public IActionResult RestoreBase64(string passwordBase64, string walletName, string mnemonic, long creationDate = 1483228800)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return Restore(password, walletName, mnemonic, creationDate);
+        }
+
+        /// <summary>
+        /// Restores wallet locally from seed.
+        /// </summary>
+        /// <param name="password">Transaction password.</param>
+        /// <param name="walletName">Wallet name</param>
+        /// <param name="mnemonic">Mnemonic seed (English)</param>
+        /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
+        /// <returns></returns>
+        [ActionName("restorefromseed")]
+        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1483228800)
+        {
+            var date = DateTimeOffset.FromUnixTimeSeconds(creationDate).DateTime;
+            Wallet wallet = this.walletManager.RecoverWallet(password, walletName, mnemonic, date);
+
+            // start syncing the wallet from the creation date
+            this.walletSyncManager.SyncFromDate(date);
+            return this.Json(ResultHelper.BuildResultResponse(wallet));
         }
     }
 }

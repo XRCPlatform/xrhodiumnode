@@ -28,6 +28,7 @@ using NBitcoin.RPC;
 using BRhodium.Node;
 using BRhodium.Bitcoin.Features.Wallet.Controllers;
 using Newtonsoft.Json;
+using NBitcoin.BouncyCastle.Math;
 
 namespace BRhodium.Bitcoin.Features.Miner.Controllers
 {
@@ -474,10 +475,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 return 0;
 
             var workDiff = pb.ChainWork - pb0.ChainWork;
-            var doubleWorkDiff = workDiff.ToDouble();
             var timeDiff = maxTime - minTime;
-
-            return doubleWorkDiff / timeDiff;
+            return (Math.Pow(2, 4) * workDiff.GetLow64()) / timeDiff;
         }
 
         /// <summary>

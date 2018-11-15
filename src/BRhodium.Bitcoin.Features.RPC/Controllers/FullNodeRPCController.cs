@@ -17,6 +17,7 @@ using System.Net;
 using System.Collections.Generic;
 using BRhodium.Node;
 using System.Net.NetworkInformation;
+using System.Diagnostics;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -56,6 +57,19 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.networkDifficulty = networkDifficulty;
             this.consensusLoop = consensusLoop;
+        }
+
+        /// <summary>
+        /// Returns the total uptime of the server.
+        /// </summary>
+        /// <returns>ttt (numeric) Number of seconds that the server has been running.
+        [ActionName("uptime")]
+        [ActionDescription("Returns the total uptime of the server.")]
+        public IActionResult Uptime()
+        {
+            var startTime = Process.GetCurrentProcess().StartTime.ToUniversalTime();
+            var uptime = (DateTime.UtcNow - startTime).TotalSeconds;
+            return this.Json(ResultHelper.BuildResultResponse((int)uptime));
         }
 
         /// <summary>
