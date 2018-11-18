@@ -46,13 +46,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
                 {
                     breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair");
-
                     bool newEntity = false;
-                    if (wallet.Id < 1)
+                    if (GetLastSyncedBlock(walletName, breezeTransaction) == null)
                     {
-                        wallet.Id = breezeTransaction.ObjectGetNewIdentity<long>("Wallet");
-                        newEntity = true;
+                        if (wallet.Id < 1)
+                        {
+                            wallet.Id = breezeTransaction.ObjectGetNewIdentity<long>("Wallet");
+                            newEntity = true;
+                        }
                     }
+                   
                     DateTime dateTime = wallet.CreationTime.DateTime;
                     
 

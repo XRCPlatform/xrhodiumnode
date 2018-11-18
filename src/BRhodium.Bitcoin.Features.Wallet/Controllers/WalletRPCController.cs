@@ -989,7 +989,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
 
                 // If there is no wallet yet, raise error
-                if (!this.walletManager.HasWallets)
+                if (!this.walletManager.ContainsWallets)
                 {
                     throw new RPCServerException(RPCErrorCode.RPC_WALLET_ERROR, "No wallets");
                 }

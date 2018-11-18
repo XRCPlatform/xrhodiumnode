@@ -144,7 +144,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.addressLookup = new ConcurrentDictionary<Script, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
 
-            LoadWalletsFromFiles();
+            //LoadWalletsFromFiles();
         }
 
         public WalletManager()
@@ -725,9 +725,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 return fileStorage;
             }
-        }
-
-        public bool HasWallets => throw new NotImplementedException();
+        }    
 
         /// <summary>
         /// Gets the hash of the last block received by the wallets.

@@ -279,7 +279,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns>Whether any wallet files are loaded.</returns>
         bool ContainsWallets { get; }
-        bool HasWallets { get; }
+      
 
         /// <summary>
         /// Gets the extended public key of an account.
