@@ -7,6 +7,7 @@ using System.Security;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 using BRhodium.Node.Configuration;
 using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
@@ -847,7 +848,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(block), block.GetHash(), nameof(chainedHeader), chainedHeader);
 
             // If there is no wallet yet, update the wallet tip hash and do nothing else.
-            if (!this.repository.GetEarliestWalletHeight().HasValue)
+            if (!this.repository.GetAllWalletPointers().Any())
             {
                 this.WalletTipHash = chainedHeader.HashBlock;
                 this.logger.LogTrace("(-)[NO_WALLET]");
@@ -977,6 +978,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Get the collection of transactions to add to.
             Script script = utxo.ScriptPubKey;
+
             this.addressLookup.TryGetValue(script, out WalletLinkedHdAddress walletLinkedHdAddress);
             Guard.NotNull(walletLinkedHdAddress, nameof(WalletLinkedHdAddress));
             //this.keysLookup.TryGetValue(script, out HdAddress address);
@@ -1398,10 +1400,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (HdAddress address in addresses)
                     {
                         Script script = address.ScriptPubKey;
-                        //if (address.Pubkey != null)
-                        //{
-                        //    script = address.Pubkey;
-                        //}
+                        if (address.Pubkey != null)
+                        {
+                            script = address.Pubkey;
+                        }
                         WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, pointer.WalletId);
                         this.addressLookup.TryAdd<Script, WalletLinkedHdAddress>(script, walletLinkedHdAddress);
 
@@ -1430,14 +1432,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 foreach (WalletLinkedHdAddress walletAddress in addresses)
                 {
                     Script script = walletAddress.HdAddress.ScriptPubKey;
-                    //if (walletAddress.HdAddress.Pubkey != null) {
-                    //    script = walletAddress.HdAddress.Pubkey;
-                    //}
+                    string key = StringToHex(script);
+                    if (walletAddress.HdAddress.Pubkey != null)
+                    {
+                        script = walletAddress.HdAddress.Pubkey;
+                    }
                     this.addressLookup[script] = walletAddress;
                 }
             }
         }
-
+        private string StringToHex(Script script)
+        {
+            return Encoders.Hex.EncodeData(script.ToBytes(false));
+        }
         /// <summary>
         /// Add to the list of unspent outputs kept in memory for faster lookups.
         /// </summary>

@@ -145,10 +145,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
             }, false);
             //think about how to remove these in case of fork as saveAddress now does not 
-            //foreach (var transaction in address.Transactions)
-            //{
-            //    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
-            //}
+            foreach (var transaction in address.Transactions)
+            {
+                breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
+            }
             if (newEntity) {
                 //used when we find address in transaction to find right wallet and GetWalletByAddress API
                 breezeTransaction.Insert<string, string>("AddressToWalletPair", address.Address, wallet.Name);
@@ -181,10 +181,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                 }, false);
 
-                //foreach (var transaction in address.Transactions)
-                //{
-                //    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
-                //}
+                foreach (var transaction in address.Transactions)
+                {
+                    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
+                }
 
                 breezeTransaction.Commit();
             }
