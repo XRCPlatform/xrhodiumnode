@@ -37,4 +37,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.0" />
   </ItemGroup>
 
+<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
+  <Exec Command="copy /Y &quot;$(ProjectDir)..\Native\libmultihash-x64\libmultihash.dll&quot; &quot;$(OutDir)libmultihash.dll&quot;" />
+</Target>
 </Project>

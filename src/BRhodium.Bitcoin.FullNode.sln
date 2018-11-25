@@ -73,8 +73,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Tests.Wall
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BRhodium.Bitcoin.Tests.Common", "BRhodium.Bitcoin.Tests.Common\BRhodium.Bitcoin.Tests.Common.csproj", "{2B3B9594-5074-48CE-BFC5-DA02B56C16CA}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{6872F96F-90B5-455D-8A6D-E2F1F1B2A9A1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

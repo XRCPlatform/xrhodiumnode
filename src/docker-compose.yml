@@ -1,8 +1,0 @@
-version: '3.4'
-
-services:
-  brhodium:
-    image: ${DOCKER_REGISTRY}brhodium
-    build:
-      context: .
-      dockerfile: BRhodium/Dockerfile
