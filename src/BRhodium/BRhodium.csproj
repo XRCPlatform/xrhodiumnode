@@ -40,4 +40,9 @@
 <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
   <Exec Command="copy /Y &quot;$(ProjectDir)..\Native\libmultihash-x64\libmultihash.dll&quot; &quot;$(OutDir)libmultihash.dll&quot;" />
 </Target>
+
+  <!-- Build library binaries from source on Linux -->
+  <Target Name="BuildNativeLibsLinux" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Unix'">
+    <Exec Command="cp $(ProjectDir)../Native/libmultihash/libmultihash.so $(OutDir)" />
+  </Target>
 </Project>
