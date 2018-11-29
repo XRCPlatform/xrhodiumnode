@@ -1401,10 +1401,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (HdAddress address in addresses)
                     {
                         Script script = address.ScriptPubKey;
-                        //if (address.Pubkey != null)
-                        //{
-                        //    script = address.Pubkey;
-                        //}
+                        if (address.Pubkey != null)
+                        {
+                            script = address.Pubkey;
+                        }
                         WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, pointer.WalletId);
                         this.addressLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(script.Hash, walletLinkedHdAddress);
 
@@ -1433,10 +1433,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 foreach (WalletLinkedHdAddress walletAddress in addresses)
                 {
                     Script script = walletAddress.HdAddress.ScriptPubKey;
-                    //if (walletAddress.HdAddress.Pubkey != null)
-                    //{
-                    //    script = walletAddress.HdAddress.Pubkey;
-                    //}
+                    if (walletAddress.HdAddress.Pubkey != null)
+                    {
+                        script = walletAddress.HdAddress.Pubkey;
+                    }
                     this.addressLookup[script.Hash] = walletAddress;
                 }
             }
