@@ -34,15 +34,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.dBreezeSerializer.Initialize(network);
         }
 
-        public Task SaveWallet(string walletName, Wallet wallet)
+        public void SaveWallet(string walletName, Wallet wallet)
         {
             Guard.NotNull(walletName, nameof(walletName));
             Guard.NotNull(wallet, nameof(wallet));
 
-            walletNames.Clear();//reset cache perhaps a bit brutal but fair
+            //walletNames.Clear();//reset cache perhaps a bit brutal but fair
 
-            Task task = Task.Run(() =>
-            {
+            //Task task = Task.Run(() =>
+           // {
                 using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
                 {
                     breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair");
@@ -108,10 +108,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     
                     breezeTransaction.Commit();
                 }
-            });
-
-
-            return task;
+            //});
+            //return task;
         }
 
        
@@ -291,25 +289,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return wallet?.GetAllAddressesByCoinType(this.coinType);
         }
 
-        List<string> walletNames = new List<string>();
-        public IEnumerable<string> GetAllWalletNames()
+        //List<string> walletNames = new List<string>();
+        public IEnumerable<string> GetAllWalletNames()//TODO: implement caching
         {
             List<string> result = new List<string>();
-            if (walletNames.Count < 1)
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
             {
-                using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
                 {
-                    foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                    if (row.Exists)
                     {
-                        if (row.Exists)
-                        {
-                            result.Add(row.Value);
-                        }
+                        result.Add(row.Value);
                     }
                 }
             }
-            
-            walletNames = result;
             return result;
         }
 

@@ -2815,14 +2815,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(6, walletManager.addressLookup.Count);
 
             var externalAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses;
-            Assert.Equal(externalAddresses.ElementAt(0).Address, walletManager.addressLookup[externalAddresses.ElementAt(0).ScriptPubKey].HdAddress.Address);
-            Assert.Equal(externalAddresses.ElementAt(1).Address, walletManager.addressLookup[externalAddresses.ElementAt(1).ScriptPubKey].HdAddress.Address);
-            Assert.Equal(externalAddresses.ElementAt(2).Address, walletManager.addressLookup[externalAddresses.ElementAt(2).ScriptPubKey].HdAddress.Address);
+            Assert.Equal(externalAddresses.ElementAt(0).Address, walletManager.addressLookup[externalAddresses.ElementAt(0).ScriptPubKey.Hash].HdAddress.Address);
+            Assert.Equal(externalAddresses.ElementAt(1).Address, walletManager.addressLookup[externalAddresses.ElementAt(1).ScriptPubKey.Hash].HdAddress.Address);
+            Assert.Equal(externalAddresses.ElementAt(2).Address, walletManager.addressLookup[externalAddresses.ElementAt(2).ScriptPubKey.Hash].HdAddress.Address);
 
             var internalAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses;
-            Assert.Equal(internalAddresses.ElementAt(0).Address, walletManager.addressLookup[internalAddresses.ElementAt(0).ScriptPubKey].HdAddress.Address);
-            Assert.Equal(internalAddresses.ElementAt(1).Address, walletManager.addressLookup[internalAddresses.ElementAt(1).ScriptPubKey].HdAddress.Address);
-            Assert.Equal(internalAddresses.ElementAt(2).Address, walletManager.addressLookup[internalAddresses.ElementAt(2).ScriptPubKey].HdAddress.Address);
+            Assert.Equal(internalAddresses.ElementAt(0).Address, walletManager.addressLookup[internalAddresses.ElementAt(0).ScriptPubKey.Hash].HdAddress.Address);
+            Assert.Equal(internalAddresses.ElementAt(1).Address, walletManager.addressLookup[internalAddresses.ElementAt(1).ScriptPubKey.Hash].HdAddress.Address);
+            Assert.Equal(internalAddresses.ElementAt(2).Address, walletManager.addressLookup[internalAddresses.ElementAt(2).ScriptPubKey.Hash].HdAddress.Address);
         }
 
         [Fact]

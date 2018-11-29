@@ -41,7 +41,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private IWalletFeePolicy WalletFeePolicy { get; set; }
         private IWalletManager walletManager { get; set; }
         private IBroadcasterManager broadcasterManager { get; set; }
-
+        
         public TransactionRPCController(
             ILoggerFactory loggerFactory,
             IWalletManager walletManager,
@@ -519,7 +519,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
                 if (block != null && chainedHeader != null)
                 {
-                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; // ExtractBlockHeight(block.Transactions.First().Inputs.First().ScriptSig);
+                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; 
                     transactionResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
                 }
 
@@ -534,9 +534,30 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 foreach (var item in currentTransaction.Outputs)
                 {
                     var detail = new TransactionDetail();
-                    var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
+                   
+                    // Figure out how to retrieve the destination address.
+                    string destinationAddress = string.Empty;
+                    ScriptTemplate scriptTemplate = item.ScriptPubKey.FindTemplate(base.Network);
+                    switch (scriptTemplate.Type)
+                    {
+                        // Pay to PubKey can be found in outputs of staking transactions.
+                        case TxOutType.TX_PUBKEY:
+                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(item.ScriptPubKey);
+                            destinationAddress = pubKey.GetAddress(base.Network).ToString();
+                            break;
+                        // Pay to PubKey hash is the regular, most common type of output.
+                        case TxOutType.TX_PUBKEYHASH:
+                            destinationAddress = item.ScriptPubKey.GetDestinationAddress(base.Network).ToString();
+                            break;
+                        case TxOutType.TX_NONSTANDARD:
+                        case TxOutType.TX_SCRIPTHASH:
+                        case TxOutType.TX_MULTISIG:
+                        case TxOutType.TX_NULL_DATA:
+                        case TxOutType.TX_SEGWIT:
+                            break;
+                    }
 
-                    if (address == null)
+                    if (string.IsNullOrEmpty(destinationAddress))
                     {
                         var response = new Node.Utilities.JsonContract.ErrorModel();
                         response.Code = "-5";
@@ -544,8 +565,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         return this.Json(ResultHelper.BuildResultResponse(response));
                     }
 
-                    detail.Account = address.Address;
-                    detail.Address = address.Address;
+                    detail.Account = destinationAddress;
+                    detail.Address = destinationAddress;
 
                     if (transactionResponse.Confirmations < 10)
                     {

@@ -234,12 +234,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         void SaveWallet(Wallet wallet);
 
         string GetWalletFileExtension();
-        /// <summary>
-        /// Performs pubsighash to address translation so that friendly address can be displayed in wallet. 
-        /// </summary>
-        /// <param name="scriptSig"></param>
-        /// <returns>HD Address that can be used for various rendering operations.</returns>
-        HdAddress GetAddressByPubKeyHash(Script scriptSig);
+ 
 
 
         /// <summary>
