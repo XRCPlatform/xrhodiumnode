@@ -474,6 +474,35 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
             return block;
         }
+        private string GetOutputDestinationAddress(TxOut utxo)
+        {
+            string destinationAddress = string.Empty;
+            if (utxo.ScriptPubKey != null)
+            {
+                ScriptTemplate scriptTemplate = utxo.ScriptPubKey.FindTemplate(this.Network);
+                if (scriptTemplate != null) {
+                    switch (scriptTemplate.Type)
+                    {
+                        // Pay to PubKey can be found in outputs of staking transactions.
+                        case TxOutType.TX_PUBKEY:
+                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(utxo.ScriptPubKey);
+                            destinationAddress = pubKey.GetAddress(this.Network).ToString();
+                            break;
+                        // Pay to PubKey hash is the regular, most common type of output.
+                        case TxOutType.TX_PUBKEYHASH:
+                            destinationAddress = utxo.ScriptPubKey.GetDestinationAddress(this.Network).ToString();
+                            break;
+                        case TxOutType.TX_NONSTANDARD:
+                        case TxOutType.TX_SCRIPTHASH:
+                        case TxOutType.TX_MULTISIG:
+                        case TxOutType.TX_NULL_DATA:
+                        case TxOutType.TX_SEGWIT:
+                            break;
+                    }
+                }               
+            }
+            return destinationAddress;
+        }
 
         /// <summary>
         /// Get detailed information about in-wallet transaction.
@@ -534,28 +563,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 foreach (var item in currentTransaction.Outputs)
                 {
                     var detail = new TransactionDetail();
-                   
+
                     // Figure out how to retrieve the destination address.
-                    string destinationAddress = string.Empty;
-                    ScriptTemplate scriptTemplate = item.ScriptPubKey.FindTemplate(base.Network);
-                    switch (scriptTemplate.Type)
-                    {
-                        // Pay to PubKey can be found in outputs of staking transactions.
-                        case TxOutType.TX_PUBKEY:
-                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(item.ScriptPubKey);
-                            destinationAddress = pubKey.GetAddress(base.Network).ToString();
-                            break;
-                        // Pay to PubKey hash is the regular, most common type of output.
-                        case TxOutType.TX_PUBKEYHASH:
-                            destinationAddress = item.ScriptPubKey.GetDestinationAddress(base.Network).ToString();
-                            break;
-                        case TxOutType.TX_NONSTANDARD:
-                        case TxOutType.TX_SCRIPTHASH:
-                        case TxOutType.TX_MULTISIG:
-                        case TxOutType.TX_NULL_DATA:
-                        case TxOutType.TX_SEGWIT:
-                            break;
-                    }
+                    string destinationAddress = GetOutputDestinationAddress(item);
 
                     if (string.IsNullOrEmpty(destinationAddress))
                     {

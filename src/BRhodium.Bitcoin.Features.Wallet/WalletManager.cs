@@ -88,7 +88,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         // 1. the list of unspent outputs for checking whether inputs from a transaction are being spent by our wallet and
         // 2. the list of addresses contained in our wallet for checking whether a transaction is being paid to the wallet.
         private ConcurrentDictionary<OutPoint, TransactionData> outpointLookup;
-        internal ConcurrentDictionary<ScriptId, WalletLinkedHdAddress> addressLookup;
+        internal ConcurrentDictionary<ScriptId, WalletLinkedHdAddress> addressByScriptLookup;
+        internal ConcurrentDictionary<string, WalletLinkedHdAddress> addressLookup;
 
 
         public WalletManager(
@@ -142,7 +143,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 this.broadcasterManager.TransactionStateChanged += this.BroadcasterManager_TransactionStateChanged;
             }
-            this.addressLookup = new ConcurrentDictionary<ScriptId, WalletLinkedHdAddress>();
+            this.addressByScriptLookup = new ConcurrentDictionary<ScriptId, WalletLinkedHdAddress>();
+            this.addressLookup = new ConcurrentDictionary<string, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
 
             //LoadWalletsFromFiles();
@@ -817,7 +819,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                foreach (var walletLinkedHdAddress in this.addressLookup.Values)
+                foreach (var walletLinkedHdAddress in this.addressByScriptLookup.Values)
                 {
                     // Remove all the UTXO that have been reorged.
                     IEnumerable<TransactionData> makeUnspendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => w.BlockHeight > fork.Height).ToList();
@@ -915,11 +917,21 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 foreach (TxOut utxo in transaction.Outputs)
                 {
                     // Check if the outputs contain one of our addresses.
-                    if (this.addressLookup.ContainsKey(utxo.ScriptPubKey.Hash))
+                    if (this.addressByScriptLookup.ContainsKey(utxo.ScriptPubKey.Hash))
                     {
-                        this.AddTransactionToWallet(merkleProofTemplate,transaction, utxo, blockHeight, block, isPropagated);
+                        var address = this.addressByScriptLookup[utxo.ScriptPubKey.Hash];
+                        this.AddTransactionToWallet(merkleProofTemplate, transaction, utxo, address, blockHeight, block,  isPropagated);
                         foundReceivingTrx = true;
                     }
+                    else {
+                        string destination = GetOutputDestinationAddress(utxo);
+                        if (this.addressLookup.ContainsKey(destination)) {
+                            var address = this.addressLookup[destination];
+                            this.AddTransactionToWallet(merkleProofTemplate, transaction, utxo, address, blockHeight, block, isPropagated);
+                            foundReceivingTrx = true;
+                        }
+                    }
+                    
                 }
 
                 // Check the inputs - include those that have a reference to a transaction containing one of our scripts and the same index.
@@ -935,14 +947,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         // If script is empty ignore it.
                         if (o.IsEmpty)
+                        {
                             return false;
+                        }
 
+                        WalletLinkedHdAddress walletAddress;
                         // Check if the destination script is one of the wallet's.
-                        bool found = this.addressLookup.TryGetValue(o.ScriptPubKey.Hash, out WalletLinkedHdAddress walletAddress);
+                        bool found = this.addressByScriptLookup.TryGetValue(o.ScriptPubKey.Hash, out walletAddress);
+
+                        if (!found)
+                        {
+                            string destination = GetOutputDestinationAddress(o);
+                            found = this.addressLookup.TryGetValue(destination, out walletAddress);
+                        }
 
                         // Include the keys not included in our wallets (external payees).
                         if (!found)
+                        {
                             return true;
+                        }                            
 
                         // Include the keys that are in the wallet but that are for receiving
                         // addresses (which would mean the user paid itself). 
@@ -958,6 +981,37 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return foundSendingTrx || foundReceivingTrx;
         }
 
+        private string GetOutputDestinationAddress(TxOut utxo)
+        {
+            string destinationAddress = string.Empty;
+            if (utxo.ScriptPubKey != null)
+            {
+                ScriptTemplate scriptTemplate = utxo.ScriptPubKey.FindTemplate(this.network);
+                if (scriptTemplate != null)
+                {
+                    switch (scriptTemplate.Type)
+                    {
+                        // Pay to PubKey can be found in outputs of staking transactions.
+                        case TxOutType.TX_PUBKEY:
+                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(utxo.ScriptPubKey);
+                            destinationAddress = pubKey.GetAddress(this.network).ToString();
+                            break;
+                        // Pay to PubKey hash is the regular, most common type of output.
+                        case TxOutType.TX_PUBKEYHASH:
+                            destinationAddress = utxo.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            break;
+                        case TxOutType.TX_NONSTANDARD:
+                        case TxOutType.TX_SCRIPTHASH:
+                        case TxOutType.TX_MULTISIG:
+                        case TxOutType.TX_NULL_DATA:
+                        case TxOutType.TX_SEGWIT:
+                            break;
+                    }
+                }
+            }            
+            return destinationAddress;
+        }
+
         /// <summary>
         /// Adds a transaction that credits the wallet with new coins.
         /// This method is can be called many times for the same transaction (idempotent).
@@ -968,7 +1022,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="blockHeight">Height of the block.</param>
         /// <param name="block">The block containing the transaction to add.</param>
         /// <param name="isPropagated">Propagation state of the transaction.</param>
-        private void AddTransactionToWallet(MerkleProofTemplate merkleProofTemplate, Transaction transaction, TxOut utxo, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        private void AddTransactionToWallet(MerkleProofTemplate merkleProofTemplate, Transaction transaction, TxOut utxo, WalletLinkedHdAddress walletLinkedHdAddress, int? blockHeight = null, Block block = null,  bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(utxo, nameof(utxo));
@@ -978,9 +1032,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(transaction), transactionHash, nameof(blockHeight), blockHeight);
 
             // Get the collection of transactions to add to.
-            Script script = utxo.ScriptPubKey;
+            //Script script = utxo.ScriptPubKey;
 
-            this.addressLookup.TryGetValue(script.Hash, out WalletLinkedHdAddress walletLinkedHdAddress);
+            //this.addressByScriptLookup.TryGetValue(script.Hash, out WalletLinkedHdAddress walletLinkedHdAddress);
             Guard.NotNull(walletLinkedHdAddress, nameof(WalletLinkedHdAddress));
             //this.keysLookup.TryGetValue(script, out HdAddress address);
             ICollection<TransactionData> addressTransactions = walletLinkedHdAddress.HdAddress.Transactions;
@@ -1001,7 +1055,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     Id = transactionHash,
                     CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.Time ?? transaction.Time),
                     Index = index,
-                    ScriptPubKey = script,
+                    ScriptPubKey = utxo.ScriptPubKey,
                     Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null,
                     IsPropagated = isPropagated
                 };
@@ -1058,7 +1112,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foundTransaction.IsPropagated = true;
             }
             this.repository.SaveAddress(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress);
-            this.TransactionFoundInternal(script);
+            this.TransactionFoundInternal(utxo.ScriptPubKey);
 
             this.logger.LogTrace("(-)");
         }
@@ -1084,7 +1138,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             TransactionData spentTransaction = null;
             WalletLinkedHdAddress currentWalletLinkedHdAddress = null;
-            foreach (var walletLinkedHdAddress in this.addressLookup.Values)
+            foreach (var walletLinkedHdAddress in this.addressByScriptLookup.Values)
             {
                 spentTransaction = walletLinkedHdAddress.HdAddress.Transactions.SingleOrDefault(
                         t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex)
@@ -1401,18 +1455,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (HdAddress address in addresses)
                     {
                         Script script = address.ScriptPubKey;
+                        WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, pointer.WalletId);
+                        this.addressByScriptLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(address.ScriptPubKey.Hash, walletLinkedHdAddress);
                         if (address.Pubkey != null)
                         {
-                            script = address.Pubkey;
-                        }
-                        WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, pointer.WalletId);
-                        this.addressLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(script.Hash, walletLinkedHdAddress);
-
-
+                            this.addressByScriptLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(address.Pubkey.Hash, walletLinkedHdAddress);
+                        }                        
                         foreach (var transaction in address.Transactions)
                         {
                             this.outpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
                         }
+                        this.addressLookup.TryAdd<string, WalletLinkedHdAddress>(address.Address, walletLinkedHdAddress);
                     }
                 }
             }
@@ -1432,12 +1485,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 foreach (WalletLinkedHdAddress walletAddress in addresses)
                 {
-                    Script script = walletAddress.HdAddress.ScriptPubKey;
                     if (walletAddress.HdAddress.Pubkey != null)
                     {
-                        script = walletAddress.HdAddress.Pubkey;
+                        this.addressByScriptLookup[walletAddress.HdAddress.Pubkey.Hash] = walletAddress;
                     }
-                    this.addressLookup[script.Hash] = walletAddress;
+                    this.addressByScriptLookup[walletAddress.HdAddress.ScriptPubKey.Hash] = walletAddress;
+                    this.addressLookup[walletAddress.HdAddress.Address] = walletAddress;
                 }
             }
         }
