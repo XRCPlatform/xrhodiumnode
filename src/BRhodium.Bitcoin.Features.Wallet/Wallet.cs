@@ -6,6 +6,8 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
+using System.ComponentModel;
+using DateTimeOffsetConverter = BRhodium.Node.Utilities.JsonConverters.DateTimeOffsetConverter;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -1382,8 +1384,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private PartialMerkleTree _merkleProof;
         private Script _scriptPubKey;
         private byte[] _hex;
-        private bool? _isPropagated;
-        private bool _isPropagatedProxy;
+        private bool _isPropagated;
+        
         private SpendingDetails _spendingDetails;
 
         public void ReadWrite(BitcoinStream stream)
@@ -1395,7 +1397,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._merkleProof);
             stream.ReadWrite(ref this._scriptPubKey);            
-            stream.ReadWrite(ref this._isPropagatedProxy);
+            stream.ReadWrite(ref this._isPropagated);
             
             bool hasSpending = false;
             bool hasHex = false;
@@ -1565,7 +1567,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Gets or sets the Merkle proof for this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(PartialMerkleTreeBitcoinSerializableJsonConverter))]
+        [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
         public PartialMerkleTree MerkleProof
         {
             get
@@ -1598,12 +1600,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Hexadecimal representation of this transaction.
         /// </summary>
-        [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue("")]
+        [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling =DefaultValueHandling.Ignore)]
         public string Hex
         {
             get
             {
-                if (this._hex != null && this._hex.Length>0)
+                if (this._hex != null && this._hex.Length>0 && this._hex != Array.Empty<byte>())
                 {
                     return System.Text.Encoding.UTF8.GetString(this._hex);
                 }
@@ -1626,8 +1629,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Propagation state of this transaction.
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
-        [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsPropagated
+        [DefaultValue(false)]
+        [JsonProperty(PropertyName = "isPropagated", DefaultValueHandling = DefaultValueHandling.Ignore )]
+        public bool IsPropagated
         {
             get
             {
@@ -1636,14 +1640,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             set
             {
                 this._isPropagated = value;
-                if (value.HasValue)
-                {
-                    this._isPropagatedProxy = (bool)value.Value;
-                }
-                else
-                {
-                    this._isPropagatedProxy = true; // based solely on property comment above if null then assume true
-                }
             }
         }
 
