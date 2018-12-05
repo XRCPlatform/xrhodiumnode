@@ -49,8 +49,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BRhodium.HashLib" Version="2.1.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="BRhodium.HashLib" Version="2.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
@@ -62,35 +62,13 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
- <!-- Copy pre-built library binaries on Windows  -->
-  <Target Name="BuildNativeLibsWin" AfterTargets="AfterBuild" Condition="'$(IsWindows)' == 'true'">
-    <ItemGroup>
-      <Libs Include="$(ProjectDir)..\..\libs\runtimes\win-x64\*.dll" />
-    </ItemGroup>
 
-    <Copy SourceFiles="@(Libs)" DestinationFolder="$(OutDir)" />
-  </Target>
-
+<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
+  <Exec Command="copy /Y &quot;$(ProjectDir)..\Native\libmultihash-x64\libmultihash.dll&quot; &quot;$(OutDir)libmultihash.dll&quot;" />
+</Target>
+  
   <!-- Build library binaries from source on Linux -->
   <Target Name="BuildNativeLibsLinux" AfterTargets="AfterBuild" Condition="'$(IsLinux)' == 'true'">
-    <Exec Command="(cd $(ProjectDir)../Native/libmultihash &amp;&amp; make clean &amp;&amp; make) &amp;&amp; mv $(ProjectDir)../Native/libmultihash/libmultihash.so $(OutDir)" />
-    <Exec Command="(cd $(ProjectDir)../Native/libcryptonote &amp;&amp; make clean &amp;&amp; make) &amp;&amp; mv $(ProjectDir)../Native/libcryptonote/libcryptonote.so $(OutDir)" />
-    <Exec Command="(cd $(ProjectDir)../Native/libcryptonight &amp;&amp; make clean &amp;&amp; make) &amp;&amp; mv $(ProjectDir)../Native/libcryptonight/libcryptonight.so $(OutDir)" />
-  </Target>
-
-  <!-- Include library binaries in publish on Windows -->
-  <Target Name="NativeLibsPublishIncludeWin" BeforeTargets="PrepareForPublish" Condition="'$(IsWindows)' == 'true'">
-    <ItemGroup>
-      <Libs Include="$(ProjectDir)..\..\libs\runtimes\win-x64\*.dll" />
-      <ContentWithTargetPath Include="@(Libs->'%(FullPath)')" RelativePath="%(Libs.Identity)" TargetPath="%(Libs.Filename)%(Libs.Extension)" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
-  </Target>
-
-  <!-- Include library binaries in publish on Linux -->
-  <Target Name="NativeLibsPublishIncludeLinux" BeforeTargets="PrepareForPublish" Condition="'$(IsLinux)' == 'true'">
-    <ItemGroup>
-      <Libs Include="$(OutDir)libmultihash.so;$(OutDir)libcryptonote.so;$(OutDir)libcryptonight.so" />
-      <ContentWithTargetPath Include="@(Libs->'%(FullPath)')" RelativePath="%(Libs.Identity)" TargetPath="%(Libs.Filename)%(Libs.Extension)" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
+    <Exec Command="(cd $(ProjectDir)../Native/libmultihash &amp;&amp; make clean &amp;&amp; make) &amp;&amp; cp $(ProjectDir)../Native/libmultihash/libmultihash.so $(OutDir)" />
   </Target>
 </Project>
