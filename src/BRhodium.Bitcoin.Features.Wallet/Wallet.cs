@@ -1384,8 +1384,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private PartialMerkleTree _merkleProof;
         private Script _scriptPubKey;
         private byte[] _hex;
-        private bool _isPropagated;
-        
+        private short _isPropagatedProxy = 0;
+
         private SpendingDetails _spendingDetails;
 
         public void ReadWrite(BitcoinStream stream)
@@ -1397,7 +1397,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             stream.ReadWrite(ref this._creationTime);
             stream.ReadWrite(ref this._merkleProof);
             stream.ReadWrite(ref this._scriptPubKey);            
-            stream.ReadWrite(ref this._isPropagated);
+            stream.ReadWrite(ref this._isPropagatedProxy);
             
             bool hasSpending = false;
             bool hasHex = false;
@@ -1415,17 +1415,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     hasSpending = false;
                     stream.ReadWrite(ref hasSpending);
                 }
-                if (this._hex != null && this._hex.Length>0)
-                {
-                    hasHex = true;
-                    stream.ReadWrite(ref hasHex);
-                    stream.ReadWriteAsVarString(ref this._hex);
-                }
-                else
-                {
-                    hasHex = false;
-                    stream.ReadWrite(ref hasHex);
-                }
+                //if (this._hex != null && this._hex.Length>0)
+                //{
+                //    hasHex = true;
+                //    stream.ReadWrite(ref hasHex);
+                //    stream.ReadWriteAsVarString(ref this._hex);
+                //}
+                //else
+                //{
+                //    hasHex = false;
+                //    stream.ReadWrite(ref hasHex);
+                //}
 
                 if (this._blockHeight.HasValue)
                 {
@@ -1444,11 +1444,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     stream.ReadWrite<SpendingDetails>(ref this._spendingDetails);
                 }
 
-                stream.ReadWrite(ref hasHex);
-                if (hasHex)
-                {
-                    stream.ReadWriteAsVarString(ref this._hex);
-                }
+                //stream.ReadWrite(ref hasHex);
+                //if (hasHex)
+                //{
+                //    stream.ReadWriteAsVarString(ref this._hex);
+                //}
 
                 int tempValue = 0;
                 stream.ReadWrite(ref tempValue);
@@ -1635,11 +1635,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return this._isPropagated;
+                return this._isPropagatedProxy.Equals((short) 1);
             }
             set
             {
-                this._isPropagated = value;
+                if (value)
+                {
+                    this._isPropagatedProxy = 1;
+                }
+                else
+                {
+                    this._isPropagatedProxy = 0; 
+                }
             }
         }
 
