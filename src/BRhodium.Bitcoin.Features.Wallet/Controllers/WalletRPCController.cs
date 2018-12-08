@@ -194,7 +194,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var money = new Money(amount, MoneyUnit.BTR);
                 var transaction = SendMoney(walletAccount, walletName, address, password, money.Satoshi);
 
-                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
+                return this.Json(ResultHelper.BuildResultResponse(transaction.ToString()));
             }
             catch (Exception e)
             {
@@ -689,7 +689,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(Transaction) Object with information.</returns>
         [ActionName("sendmoney")]
         [ActionDescription("Sends the money.")]
-        public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
+        public uint256 SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
         {
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
@@ -712,17 +712,17 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     WalletName = walletName
                 };
 
-                var context = new TransactionBuildContext(
-                    walletReference,
-                    new[]
-                    {
-                         new Recipient {
-                             Amount = new Money(satoshi, MoneyUnit.Satoshi),
-                             ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
-                         }
-                    }.ToList(), password)
+
+                List<Recipient> recipients = new List<Recipient>();
+                recipients.Add(new Recipient
                 {
-                    MinConfirmations = 0,
+                    Amount = new Money(satoshi, MoneyUnit.Satoshi),
+                    ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
+                });
+
+                var context = new TransactionBuildContext(walletReference, recipients, password)
+                {
+                    MinConfirmations = 1,
                     FeeType = FeeType.Medium,
                     Sign = true
                 };
@@ -732,7 +732,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var fundTransaction = transaction.BuildTransaction(context);
                 controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
 
-                return fundTransaction;
+                return fundTransaction.GetHash();
             }
 
             return null;
