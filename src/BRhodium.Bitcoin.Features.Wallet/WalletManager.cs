@@ -68,7 +68,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly ILogger logger;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
-        public readonly FileStorage<Wallet> FileStorage;
+        //public readonly FileStorage<Wallet> FileStorage;
+        public readonly DBreezeStorage<Wallet> DBreezeStorage;
 
         /// <summary>The broadcast manager.</summary>
         private readonly IBroadcasterManager broadcasterManager;
@@ -125,7 +126,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.chain = chain;
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
-            this.FileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
+            //this.FileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
+            this.DBreezeStorage = new DBreezeStorage<Wallet>(dataFolder.WalletPath, "Wallets");
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
 
@@ -161,7 +163,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("()");
 
             // Find wallets and load them in memory.
-            IEnumerable<Wallet> wallets = this.FileStorage.LoadByFileExtension(WalletFileExtension);
+            IEnumerable<Wallet> wallets = this.DBreezeStorage.LoadAll(this.network);
 
             foreach (Wallet wallet in wallets)
                 this.Wallets.Add(wallet);
@@ -265,7 +267,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
 
             // Load the file from the local system.
-            Wallet wallet = this.FileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
+            Wallet wallet = this.DBreezeStorage.LoadByKey(name, this.network);
 
             // Check the password.
             try
@@ -500,7 +502,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public (string folderPath, IEnumerable<string>) GetWalletsFiles()
         {
-            return (this.FileStorage.FolderPath, this.FileStorage.GetFilesNames(this.GetWalletFileExtension()));
+            return (this.DBreezeStorage.FolderPath, this.DBreezeStorage.GetDatabaseKeys());
         }
 
         /// <inheritdoc />
@@ -1166,7 +1168,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                this.FileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+                this.DBreezeStorage.SaveToStorage(wallet, wallet.Name, this.network);
             }
 
             this.logger.LogTrace("(-)");
@@ -1246,7 +1248,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.FileStorage.FolderPath}' and try restoring the wallet again. " +
+                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.DBreezeStorage.FolderPath}' and try restoring the wallet again. " +
                                                     "Make sure you have your mnemonic and your password handy!");
             }
 
