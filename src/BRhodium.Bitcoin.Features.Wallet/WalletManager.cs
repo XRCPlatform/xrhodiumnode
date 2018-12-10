@@ -299,8 +299,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             if (passphrase == null)
                 passphrase = password;
 
-            passphrase = Convert.ToBase64String(Encoding.UTF8.GetBytes(passphrase));
-
             var date = DateTimeOffset.FromUnixTimeSeconds(1539810380).DateTime;
             if (creationTime > date) passphrase = Convert.ToBase64String(Encoding.UTF8.GetBytes(passphrase));
 
