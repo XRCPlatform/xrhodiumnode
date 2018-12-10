@@ -951,11 +951,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         protected TransactionData(SerializationInfo info, StreamingContext context)
         {
-            this.Id = new uint256(info.GetString("id"));
+            this.Id = (uint256)info.GetValue("id", typeof(uint256));
             this.Amount = new Money(info.GetInt64("amount"));
             this.Index = info.GetInt32("index");
             this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
-            this.BlockHash = new uint256(info.GetString("blockHash"));
+            this.BlockHash = (uint256)info.GetValue("blockHash", typeof(uint256));
             this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
             this.MerkleProof = (PartialMerkleTree)info.GetValue("merkleProof", typeof(PartialMerkleTree));
             var scriptPubKey = info.GetString("scriptPubKey");
@@ -968,11 +968,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("id", this.Id.ToString());
+            info.AddValue("id", this.Id);
             info.AddValue("amount", this.Amount.Satoshi);
             info.AddValue("index", this.Index);
             info.AddValue("blockHeight", this.BlockHeight);
-            info.AddValue("blockHash", this.BlockHash.ToString());
+            info.AddValue("blockHash", this.BlockHash);
             info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("merkleProof", this.MerkleProof);
             info.AddValue("scriptPubKey", Encoders.Hex.EncodeData((this.ScriptPubKey).ToBytes(false)));
@@ -1151,7 +1151,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         protected SpendingDetails(SerializationInfo info, StreamingContext context)
         {
-            this.TransactionId = new uint256(info.GetString("transactionId"));
+            this.TransactionId = (uint256)info.GetValue("transactionId", typeof(uint256));
             this.Payments = (ICollection<PaymentDetails>)info.GetValue("payments", typeof(ICollection<PaymentDetails>));
             this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
             this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
@@ -1161,7 +1161,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("transactionId", this.TransactionId.ToString());
+            info.AddValue("transactionId", this.TransactionId);
             info.AddValue("payments", this.Payments);
             info.AddValue("blockHeight", this.BlockHeight);
             info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
