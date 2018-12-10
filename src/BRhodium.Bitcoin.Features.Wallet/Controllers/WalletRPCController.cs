@@ -1875,7 +1875,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
         /// <returns></returns>
         [ActionName("restorefromseed")]
-        [ActionDescription("Updates list of temporarily unspendable outputs. ")]
+        [ActionDescription("Restores from seed.")]
         public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1483228800)
         {
             var date = DateTimeOffset.FromUnixTimeSeconds(creationDate).DateTime;
@@ -1884,6 +1884,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             // start syncing the wallet from the creation date
             this.walletSyncManager.SyncFromDate(date);
             return this.Json(ResultHelper.BuildResultResponse(wallet));
+        }
+        /// <summary>
+        /// Remove all transactions 
+        /// </summary>
+        /// <param name="walletName"></param>
+        /// <returns></returns>
+        [ActionName("removealltransactionsfromwallet")]
+        [ActionDescription("Remove all transactions.")]
+        public IActionResult RemoveAllTransactionsFromWallet(string walletName)
+        {
+           var transactions = this.walletManager.RemoveAllTransactions(walletName);
+
+            // start syncing the wallet from the creation date
+            var date = DateTimeOffset.FromUnixTimeSeconds(1483228800).DateTime;
+            this.walletSyncManager.SyncFromDate(date);
+            return this.Json(ResultHelper.BuildResultResponse(transactions));
+        }
+       /// <summary>
+       /// Removes transactions from all wallets
+       /// </summary>
+       /// <returns></returns>
+        [ActionName("removealltransactions")]
+        [ActionDescription("Remove all transactions.")]
+        public IActionResult RemoveAllTransactions()
+        {
+            HashSet<(uint256, DateTimeOffset)> transactions = new HashSet<(uint256, DateTimeOffset)>();
+            foreach (var item in this.walletManager.GetWalletNames())
+            {
+                var transactionsSingle = this.walletManager.RemoveAllTransactions(item);
+                transactions.UnionWith(transactionsSingle);
+            }
+            // start syncing the wallet from the creation date
+            var date = DateTimeOffset.FromUnixTimeSeconds(1483228800).DateTime;
+            this.walletSyncManager.SyncFromDate(date);
+            return this.Json(ResultHelper.BuildResultResponse(transactions));
         }
     }
 }

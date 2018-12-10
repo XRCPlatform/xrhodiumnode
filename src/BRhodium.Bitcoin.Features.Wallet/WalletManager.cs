@@ -986,7 +986,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             string destinationAddress = string.Empty;
             if (utxo.ScriptPubKey != null)
             {
-                ScriptTemplate scriptTemplate = utxo.ScriptPubKey.FindTemplate(this.network);
+                 ScriptTemplate scriptTemplate = utxo.ScriptPubKey.FindTemplate(this.network);
                 if (scriptTemplate != null)
                 {
                     switch (scriptTemplate.Type)
