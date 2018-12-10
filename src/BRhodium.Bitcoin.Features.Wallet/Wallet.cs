@@ -8,6 +8,7 @@ using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using NBitcoin.DataEncoders;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -22,7 +23,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.Name = info.GetString("name");
             this.EncryptedSeed = info.GetString("encryptedSeed");
             this.ChainCode = (byte[])info.GetValue("chainCode", typeof(byte[]));
-            this.CreationTime = (DateTimeOffset)info.GetValue("creationTime", typeof(DateTimeOffset));
+            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
             this.BlockLocator = (ICollection<uint256>)info.GetValue("blockLocator", typeof(ICollection<uint256>));
             var nameNetwork = info.GetString("network");
             this.Network = Network.GetNetwork(nameNetwork.ToLowerInvariant());
@@ -35,7 +36,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             info.AddValue("name", this.Name);
             info.AddValue("encryptedSeed", this.EncryptedSeed);
             info.AddValue("chainCode", this.ChainCode);
-            info.AddValue("creationTime", this.CreationTime);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("blockLocator", this.BlockLocator);
             info.AddValue("network", this.Network.Name);
             info.AddValue("accountsRoot", this.AccountsRoot);
@@ -441,7 +442,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.Name = info.GetString("name");
             this.HdPath = info.GetString("hdPath");
             this.ExtendedPubKey = info.GetString("extPubKey");
-            this.CreationTime = (DateTimeOffset)info.GetValue("creationTime", typeof(DateTimeOffset));
+            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
             this.ExternalAddresses = (ICollection<HdAddress>)info.GetValue("externalAddresses", typeof(ICollection<HdAddress>));
             this.InternalAddresses = (ICollection<HdAddress>)info.GetValue("internalAddresses", typeof(ICollection<HdAddress>));
         }
@@ -453,7 +454,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             info.AddValue("name", this.Name);
             info.AddValue("hdPath", this.HdPath);
             info.AddValue("extPubKey", this.ExtendedPubKey);
-            info.AddValue("creationTime", this.CreationTime);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("externalAddresses", this.ExternalAddresses);
             info.AddValue("internalAddresses", this.InternalAddresses);
         }
@@ -837,9 +838,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.Index = info.GetInt32("index");
             var scriptPubKey = info.GetString("scriptPubKey");
-            this.ScriptPubKey = new Script(scriptPubKey);
+            this.ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(scriptPubKey));
             var pubkey = info.GetString("pubkey");
-            this.Pubkey = new Script(pubkey);
+            this.Pubkey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(pubkey));
             this.Address = info.GetString("address");
             this.HdPath = info.GetString("hdPath");
             this.Transactions = (ICollection<TransactionData>)info.GetValue("transactions", typeof(ICollection<TransactionData>));
@@ -849,8 +850,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("index", this.Index);
-            info.AddValue("scriptPubKey", this.ScriptPubKey.ToString());
-            info.AddValue("pubkey", this.Pubkey.ToString());
+            info.AddValue("scriptPubKey", Encoders.Hex.EncodeData((this.ScriptPubKey).ToBytes(false)));
+            info.AddValue("pubkey", Encoders.Hex.EncodeData((this.Pubkey).ToBytes(false)));
             info.AddValue("address", this.Address);
             info.AddValue("hdPath", this.HdPath);
             info.AddValue("transactions", this.Transactions);
@@ -955,10 +956,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.Index = info.GetInt32("index");
             this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
             this.BlockHash = new uint256(info.GetString("blockHash"));
-            this.CreationTime = (DateTimeOffset)info.GetValue("creationTime", typeof(DateTimeOffset));
+            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
             this.MerkleProof = (PartialMerkleTree)info.GetValue("merkleProof", typeof(PartialMerkleTree));
             var scriptPubKey = info.GetString("scriptPubKey");
-            this.ScriptPubKey = new Script(scriptPubKey);
+            this.ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(scriptPubKey));
             this.Hex = info.GetString("hex");
             this.IsPropagated = (bool?)info.GetValue("isPropagated", typeof(bool?));
             this.SpendingDetails = (SpendingDetails)info.GetValue("spendingDetails", typeof(SpendingDetails));
@@ -972,9 +973,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             info.AddValue("index", this.Index);
             info.AddValue("blockHeight", this.BlockHeight);
             info.AddValue("blockHash", this.BlockHash.ToString());
-            info.AddValue("creationTime", this.CreationTime);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("merkleProof", this.MerkleProof);
-            info.AddValue("scriptPubKey", this.ScriptPubKey.ToString());
+            info.AddValue("scriptPubKey", Encoders.Hex.EncodeData((this.ScriptPubKey).ToBytes(false)));
             info.AddValue("hex", this.Hex);
             info.AddValue("isPropagated", this.IsPropagated);
             info.AddValue("spendingDetails", this.SpendingDetails);
@@ -1110,7 +1111,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         protected PaymentDetails(SerializationInfo info, StreamingContext context)
         {
-            this.DestinationScriptPubKey = new Script(info.GetString("destinationScriptPubKey"));
+            var destinationScriptPubKey = info.GetString("destinationScriptPubKey");
+            this.DestinationScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(destinationScriptPubKey)); 
             this.DestinationAddress = info.GetString("destinationAddress");
             this.Amount = new Money(info.GetInt64("amount"));
         }
@@ -1118,7 +1120,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("destinationScriptPubKey", this.DestinationScriptPubKey.ToString());
+            info.AddValue("destinationScriptPubKey", Encoders.Hex.EncodeData((this.DestinationScriptPubKey).ToBytes(false)));
             info.AddValue("destinationAddress", this.DestinationAddress);
             info.AddValue("amount", this.Amount.Satoshi);
         }
@@ -1152,7 +1154,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.TransactionId = new uint256(info.GetString("transactionId"));
             this.Payments = (ICollection<PaymentDetails>)info.GetValue("payments", typeof(ICollection<PaymentDetails>));
             this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
-            this.CreationTime = (DateTimeOffset)info.GetValue("creationTime", typeof(DateTimeOffset));
+            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
             this.Hex = info.GetString("hex");
         }
 
@@ -1162,7 +1164,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             info.AddValue("transactionId", this.TransactionId.ToString());
             info.AddValue("payments", this.Payments);
             info.AddValue("blockHeight", this.BlockHeight);
-            info.AddValue("creationTime", this.CreationTime);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("hex", this.Hex);
         }
 

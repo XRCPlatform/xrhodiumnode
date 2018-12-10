@@ -1056,7 +1056,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                             foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType))
                             {
-                                if (accountRoot.LastBlockSyncedHeight < i)
+                                if ((accountRoot.LastBlockSyncedHeight == null) || (accountRoot.LastBlockSyncedHeight < i))
                                 {
                                     accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
                                     accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
