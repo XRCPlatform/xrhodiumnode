@@ -2,29 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace NBitcoin
 {
-    [Serializable]
-    public class PartialMerkleTree : IBitcoinSerializable, ISerializable
+    public class PartialMerkleTree : IBitcoinSerializable
     {
-        protected PartialMerkleTree(SerializationInfo info, StreamingContext context)
-        {
-            this._TransactionCount = info.GetUInt32("transactionCount");
-            this._Flags = (BitArray)info.GetValue("flags", typeof(BitArray));
-            this._Hashes = (List<uint256>)info.GetValue("hashes", typeof(List<uint256>));
-        }
-
-        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("transactionCount", this._TransactionCount);
-            info.AddValue("flags", this._Flags);
-            info.AddValue("hashes", this._Hashes);
-        }
-
         public PartialMerkleTree()
         {
 

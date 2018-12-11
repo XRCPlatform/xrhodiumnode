@@ -68,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly ILogger logger;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
-        //public readonly FileStorage<Wallet> FileStorage;
+        public readonly FileStorage<Wallet> FileStorage;
         public readonly DBreezeStorage<Wallet> DBreezeStorage;
 
         /// <summary>The broadcast manager.</summary>
@@ -126,7 +126,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.chain = chain;
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
-            //this.FileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
+            this.FileStorage = new FileStorage<Wallet>(dataFolder.WalletPath);
             this.DBreezeStorage = new DBreezeStorage<Wallet>(dataFolder.WalletPath, "Wallets");
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
@@ -164,6 +164,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Find wallets and load them in memory.
             IEnumerable<Wallet> wallets = this.DBreezeStorage.LoadAll(this.network);
+
+            if ((wallets == null) || (wallets.Count() == 0))
+            {
+                wallets = this.FileStorage.LoadByFileExtension("wallet.json");
+            }
 
             foreach (Wallet wallet in wallets)
                 this.Wallets.Add(wallet);
