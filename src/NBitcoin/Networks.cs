@@ -138,7 +138,7 @@ namespace NBitcoin
 
             network.DNSSeeds.AddRange(new[]
             {
-                new DNSSeedData("seed1.bitcoinrh.org", "seed1.bitcoinrh.org")
+                new DNSSeedData("dns.btrmine.com", "dns.btrmine.com")
             });
 
             Network.Register(network);
