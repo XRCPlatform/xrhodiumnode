@@ -1052,9 +1052,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         // as if the node is stopped, on re-opening it will start updating from the previous height.
                         foreach (var wallet in this.walletManager.Wallets)
                         {
+                            wallet.BlockLocator = chainedHeader.GetLocator().Blocks;
+
                             foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType))
                             {
-                                if (accountRoot.LastBlockSyncedHeight < i)
+                                if ((accountRoot.LastBlockSyncedHeight == null) || (accountRoot.LastBlockSyncedHeight < i))
                                 {
                                     accountRoot.LastBlockSyncedHeight = chainedHeader.Height;
                                     accountRoot.LastBlockSyncedHash = chainedHeader.HashBlock;
@@ -1145,7 +1147,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var fullFileName = ((WalletManager)this.walletManager).FileStorage.FolderPath + filename;
+                var fullFileName = ((WalletManager)this.walletManager).DBreezeStorage.FolderPath + filename;
 
                 Directory.CreateDirectory(fullFileName);
 

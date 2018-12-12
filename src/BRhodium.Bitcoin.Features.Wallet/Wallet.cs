@@ -6,14 +6,43 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+using NBitcoin.DataEncoders;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
     /// <summary>
     /// A wallet.
     /// </summary>
-    public class Wallet
+    [Serializable]
+    public class Wallet : ISerializable
     {
+        protected Wallet(SerializationInfo info, StreamingContext context)
+        {
+            this.Name = info.GetString("name");
+            this.EncryptedSeed = info.GetString("encryptedSeed");
+            this.ChainCode = (byte[])info.GetValue("chainCode", typeof(byte[]));
+            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
+            var blockLocator = (string[])info.GetValue("blockLocator", typeof(string[]));
+            this.BlockLocator = blockLocator != null ? blockLocator.ToList().ConvertAll(a => new uint256(a)).ToList() : null;
+            var nameNetwork = info.GetString("network");
+            this.Network = Network.GetNetwork(nameNetwork.ToLowerInvariant());
+            this.AccountsRoot = (ICollection<AccountRoot>)info.GetValue("accountsRoot", typeof(ICollection<AccountRoot>));
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("name", this.Name);
+            info.AddValue("encryptedSeed", this.EncryptedSeed);
+            info.AddValue("chainCode", this.ChainCode);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
+            info.AddValue("blockLocator", this.BlockLocator != null ? this.BlockLocator.ToList().ConvertAll(a => a.ToString()).ToArray() : null);
+            info.AddValue("network", this.Network.Name);
+            info.AddValue("accountsRoot", this.AccountsRoot);
+        }
+
         /// <summary>
         /// Initializes a new instance of the wallet.
         /// </summary>
@@ -261,8 +290,41 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// The root for the accounts for any type of coins.
     /// </summary>
-    public class AccountRoot
+    [Serializable]
+    public class AccountRoot : ISerializable
     {
+        protected AccountRoot(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "coinType":
+                        this.CoinType = (CoinType)info.GetValue("coinType", typeof(CoinType));
+                        break;
+                    case "lastBlockSyncedHeight":
+                        this.LastBlockSyncedHeight = (int?)info.GetValue("lastBlockSyncedHeight", typeof(int?));
+                        break;
+                    case "lastBlockSyncedHash":
+                        var lastBlockSyncedHash = info.GetString("lastBlockSyncedHash");
+                        this.LastBlockSyncedHash = lastBlockSyncedHash != null ? new uint256(lastBlockSyncedHash) : null;
+                        break;
+                    case "accounts":
+                        this.Accounts = (ICollection<HdAccount>)info.GetValue("accounts", typeof(ICollection<HdAccount>));
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("coinType", this.CoinType);
+            if (this.LastBlockSyncedHeight != null) info.AddValue("lastBlockSyncedHeight", this.LastBlockSyncedHeight);
+            if (this.LastBlockSyncedHash != null) info.AddValue("lastBlockSyncedHash", this.LastBlockSyncedHash != null ? this.LastBlockSyncedHash.ToString() : null);
+            info.AddValue("accounts", this.Accounts);
+        }
+
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
@@ -386,8 +448,52 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD account's details.
     /// </summary>
-    public class HdAccount
+    [Serializable]
+    public class HdAccount : ISerializable
     {
+        protected HdAccount(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "index":
+                        this.Index = info.GetInt32("index");
+                        break;
+                    case "name":
+                        this.Name = info.GetString("name");
+                        break;
+                    case "hdPath":
+                        this.HdPath = info.GetString("hdPath");
+                        break;
+                    case "extPubKey":
+                        this.ExtendedPubKey = info.GetString("extPubKey");
+                        break;
+                    case "creationTime":
+                        this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
+                        break;
+                    case "externalAddresses":
+                        this.ExternalAddresses = (ICollection<HdAddress>)info.GetValue("externalAddresses", typeof(ICollection<HdAddress>));
+                        break;
+                    case "internalAddresses":
+                        this.InternalAddresses = (ICollection<HdAddress>)info.GetValue("internalAddresses", typeof(ICollection<HdAddress>));
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("index", this.Index);
+            info.AddValue("name", this.Name);
+            info.AddValue("hdPath", this.HdPath);
+            info.AddValue("extPubKey", this.ExtendedPubKey);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
+            info.AddValue("externalAddresses", this.ExternalAddresses);
+            info.AddValue("internalAddresses", this.InternalAddresses);
+        }
+
         public HdAccount()
         {
             this.ExternalAddresses = new List<HdAddress>();
@@ -617,7 +723,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 HdAddress newAddress = new HdAddress
                 {
                     Index = i,
-                    HdPath = HdOperations.CreateHdPath((int) this.GetCoinType(), this.Index, i, isChange),
+                    HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, i, isChange),
                     ScriptPubKey = address.ScriptPubKey,
                     Pubkey = pubkey.ScriptPubKey,
                     Address = address.ToString(),
@@ -760,8 +866,50 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD address.
     /// </summary>
-    public class HdAddress
+    [Serializable]
+    public class HdAddress : ISerializable
     {
+        protected HdAddress(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "index":
+                        this.Index = info.GetInt32("index");
+                        break;
+                    case "scriptPubKey":
+                        var scriptPubKey = info.GetString("scriptPubKey");
+                        this.ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(scriptPubKey));
+                        break;
+                    case "pubkey":
+                        var pubkey = info.GetString("pubkey");
+                        this.Pubkey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(pubkey));
+                        break;
+                    case "address":
+                        this.Address = info.GetString("address");
+                        break;
+                    case "hdPath":
+                        this.HdPath = info.GetString("hdPath");
+                        break;
+                    case "transactions":
+                        this.Transactions = (ICollection<TransactionData>)info.GetValue("transactions", typeof(ICollection<TransactionData>));
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("index", this.Index);
+            info.AddValue("scriptPubKey", Encoders.Hex.EncodeData((this.ScriptPubKey).ToBytes(false)));
+            info.AddValue("pubkey", Encoders.Hex.EncodeData((this.Pubkey).ToBytes(false)));
+            info.AddValue("address", this.Address);
+            info.AddValue("hdPath", this.HdPath);
+            info.AddValue("transactions", this.Transactions);
+        }
+
         public HdAddress()
         {
             this.Transactions = new List<TransactionData>();
@@ -847,8 +995,98 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object containing transaction data.
     /// </summary>
-    public class TransactionData
+    [Serializable]
+    public class TransactionData : ISerializable
     {
+        public TransactionData()
+        {
+        }
+
+        protected TransactionData(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "id":
+                        var id = info.GetString("id");
+                        this.Id = id != null ? new uint256(id) : null;
+                        break;
+                    case "amount":
+                        this.Amount = new Money(info.GetInt64("amount"));
+                        break;
+                    case "index":
+                        this.Index = info.GetInt32("index");
+                        break;
+                    case "blockHeight":
+                        this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
+                        break;
+                    case "blockHash":
+                        var blockHash = info.GetString("blockHash");
+                        this.BlockHash = blockHash != null ? new uint256(blockHash) : null;
+                        break;
+                    case "creationTime":
+                        this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
+                        break;
+                    case "merkleProof":
+                        var merkleProof = info.GetString("merkleProof");
+                        if (string.IsNullOrEmpty(merkleProof))
+                        {
+                            this.MerkleProof = null;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var obj = (IBitcoinSerializable)Activator.CreateInstance(typeof(PartialMerkleTree));
+                                var bytes = Encoders.Hex.DecodeData(merkleProof);
+                                obj.ReadWrite(bytes);
+                                this.MerkleProof = (PartialMerkleTree)obj;
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                        }
+                        break;
+                    case "scriptPubKey":
+                        var scriptPubKey = info.GetString("scriptPubKey");
+                        this.ScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(scriptPubKey));
+                        break;
+                    case "hex":
+                        this.Hex = info.GetString("hex");
+                        break;
+                    case "isPropagated":
+                        this.IsPropagated = (bool?)info.GetValue("isPropagated", typeof(bool?));
+                        break;
+                    case "spendingDetails":
+                        this.SpendingDetails = (SpendingDetails)info.GetValue("spendingDetails", typeof(SpendingDetails));
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            if (this.Id != null) info.AddValue("id", this.Id.ToString());
+            info.AddValue("amount", this.Amount.Satoshi);
+            info.AddValue("index", this.Index);
+            if (this.BlockHeight != null) info.AddValue("blockHeight", this.BlockHeight);
+            if (this.BlockHash != null) info.AddValue("blockHash", this.BlockHash.ToString());
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
+
+            if (this.MerkleProof != null)
+            {
+                var bytes = ((IBitcoinSerializable)this.MerkleProof).ToBytes();
+                info.AddValue("merkleProof", Encoders.Hex.EncodeData(bytes));
+            }
+
+            info.AddValue("scriptPubKey", Encoders.Hex.EncodeData((this.ScriptPubKey).ToBytes(false)));
+            if (this.Hex != null) info.AddValue("hex", this.Hex);
+            info.AddValue("isPropagated", this.IsPropagated);
+            if (this.SpendingDetails != null) info.AddValue("spendingDetails", this.SpendingDetails);
+        }
+
         /// <summary>
         /// Transaction id.
         /// </summary>
@@ -969,8 +1207,42 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object representing a payment.
     /// </summary>
-    public class PaymentDetails
+    [Serializable]
+    public class PaymentDetails : ISerializable
     {
+        public PaymentDetails ()
+        {
+
+        }
+
+        protected PaymentDetails(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "destinationScriptPubKey":
+                        var destinationScriptPubKey = info.GetString("destinationScriptPubKey");
+                        this.DestinationScriptPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(destinationScriptPubKey));
+                        break;
+                    case "destinationAddress":
+                        this.DestinationAddress = info.GetString("destinationAddress");
+                        break;
+                    case "amount":
+                        this.Amount = new Money(info.GetInt64("amount"));
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("destinationScriptPubKey", Encoders.Hex.EncodeData((this.DestinationScriptPubKey).ToBytes(false)));
+            info.AddValue("destinationAddress", this.DestinationAddress);
+            info.AddValue("amount", this.Amount.Satoshi);
+        }
+
         /// <summary>
         /// The script pub key of the destination address.
         /// </summary>
@@ -992,8 +1264,45 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public Money Amount { get; set; }
     }
 
-    public class SpendingDetails
+    [Serializable]
+    public class SpendingDetails : ISerializable
     {
+        protected SpendingDetails(SerializationInfo info, StreamingContext context)
+        {
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "transactionId":
+                        var transactionId = info.GetString("transactionId");
+                        this.TransactionId = transactionId != null ? new uint256(transactionId) : null;
+                        break;
+                    case "payments":
+                        this.Payments = (ICollection<PaymentDetails>)info.GetValue("payments", typeof(ICollection<PaymentDetails>));
+                        break;
+                    case "blockHeight":
+                        this.BlockHeight = (int?)info.GetValue("blockHeight", typeof(int?));
+                        break;
+                    case "creationTime":
+                        this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
+                        break;
+                    case "hex":
+                        this.Hex = info.GetString("hex");
+                        break;
+                }
+            }
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            if (this.TransactionId != null) info.AddValue("transactionId", this.TransactionId.ToString());
+            if (this.Payments != null) info.AddValue("payments", this.Payments);
+            if (this.BlockHeight != null) info.AddValue("blockHeight", this.BlockHeight);
+            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
+            if (this.Hex != null) info.AddValue("hex", this.Hex);
+        }
+
         public SpendingDetails()
         {
             this.Payments = new List<PaymentDetails>();
