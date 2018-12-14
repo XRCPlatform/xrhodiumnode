@@ -524,11 +524,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 transactionResponse.BlockHash = string.Format("{0:x8}", blockHash);
-
-
                 transactionResponse.Time = currentTransaction.Time;
                 transactionResponse.TimeReceived = currentTransaction.Time;
-                //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
+
+                transactionResponse.BlockIndex = 0;
+
+                foreach (var tx in block.Transactions)
+                {
+                    transactionResponse.BlockIndex++;
+                    if (tx.GetHash() == transactionHash)
+                    {
+                        break;
+                    }
+                }
 
                 transactionResponse.Details = new List<TransactionDetail>();
                 foreach (var item in currentTransaction.Outputs)
@@ -538,13 +546,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                     if (address == null)
                     {
-                        var response = new Node.Utilities.JsonContract.ErrorModel();
-                        response.Code = "-5";
-                        response.Message = "Invalid or non-wallet transaction id";
-                        return this.Json(ResultHelper.BuildResultResponse(response));
+                        continue;
                     }
 
-                    detail.Account = address.Address;
+                    detail.Account = "account 0";
                     detail.Address = address.Address;
 
                     if (transactionResponse.Confirmations < 10)
