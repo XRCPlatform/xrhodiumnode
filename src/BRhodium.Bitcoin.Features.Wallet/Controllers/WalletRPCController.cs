@@ -103,98 +103,56 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Sends some amount to specified address.
-        /// 
-        /// <p>Example: <br/>
-        /// Set the password for 2 minutes to perform a transaction<br/>
-        /// walletpassword "my pass phrase" 120</p>
-        /// <p>Perform a send(requires password set)<br/>
-        /// sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 1.0</p>
-        /// <p>Clear the password since we are done before 2 minutes is up<br/>
-        /// walletlock </p> 
         /// </summary>
-        /// <param name="addressFrom">Source address.</param>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="passwordBase64">Password base64 for your wallet.</param>
+        /// <param name="address">Target address.</param>
+        /// <param name="amount">The amount in BTR.</param>
+        /// <returns>(string) The transaction id.</returns>
+        [ActionName("sendtoaddressbase64")]
+        [ActionDescription("Sends some amount to specified address.")]
+        public IActionResult SendToAddressBase64(string walletName, string passwordBase64, string address, decimal amount)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendToAddress(walletName, password, address, amount);
+        }
+
+        /// <summary>
+        /// Sends some amount to specified address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="password">Password for your wallet.</param>
         /// <param name="address">Target address.</param>
         /// <param name="amount">The amount in BTR.</param>
         /// <returns>(string) The transaction id.</returns>
         [ActionName("sendtoaddress")]
         [ActionDescription("Sends some amount to specified address.")]
-        public IActionResult SendToAddress(string addressFrom, string address, decimal amount)
+        public IActionResult SendToAddress(string walletName, string password, string address, decimal amount)
         {
             try
             {
-                if (string.IsNullOrEmpty(addressFrom))
+                if (string.IsNullOrEmpty(walletName))
                 {
-                    throw new ArgumentNullException("addressFrom");
+                    throw new ArgumentNullException("walletName");
                 }
                 if (string.IsNullOrEmpty(address))
                 {
                     throw new ArgumentNullException("address");
+                }
+                if (string.IsNullOrEmpty(password))
+                {
+                    throw new ArgumentNullException("password");
                 }
                 if (amount <= 0)
                 {
                     throw new ArgumentNullException("amount");
                 }
 
-                //we need to find wallet
-                string walletCombix = walletsByAddressMap.TryGet<string, string>(addressFrom);
-                if (walletCombix == null)
-                {
-                    bool isFound = false;
-
-                    foreach (var currWalletName in this.walletManager.GetWalletsNames())
-                    {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
-                        {
-                            foreach (var walletAddress in currAccount.ExternalAddresses)
-                            {
-                                if (walletAddress.Address.ToString().Equals(addressFrom))
-                                {
-                                    isFound = true;
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    walletsByAddressMap.TryAdd<string, string>(addressFrom, walletCombix);
-                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
-                                    break;
-                                }
-                            }
-
-                            if (isFound) break;
-                        }
-
-                        if (isFound) break;
-                    }
-                }
-
-                if (walletCombix == null)
-                {
-                    throw new WalletException("Address doesnt exist.");
-                }
-
-                string walletAccount = walletCombix.Split('/')[0].Replace("$", string.Empty);
-                string walletName = walletCombix.Split('/')[1];
                 var mywallet = this.walletManager.GetWallet(walletName);
 
-                var passwordExpiration = walletPasswordExpiration.TryGet(mywallet.Name);
-                string password = null;
-                if (passwordExpiration == null)
-                {
-                    throw new ArgumentNullException("password");
-                }
-                else
-                {
-                    if (passwordExpiration < DateTime.Now)
-                    {
-                        walletPassword.TryRemove(mywallet.Name, out password);
-                        throw new ArgumentNullException("password");
-                    }
-                    else
-                    {
-                        walletPassword.TryGetValue(mywallet.Name, out password);
-                    }
-                }
-
-                //send money
                 var money = new Money(amount, MoneyUnit.BTR);
-                var transaction = SendMoney(walletAccount, walletName, address, password, money.Satoshi);
+                var hdaccount = mywallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
+                var transaction = SendMoney(hdaccount.Name, walletName, address, password, money.Satoshi);
 
                 return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
             }
@@ -610,7 +568,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// Generates the new wallet.
         /// </summary>
         /// <param name="walletName">Name of the wallet.</param>
-        /// <param name="password">The password in BASE64 format.</param>
+        /// <param name="password">The password.</param>
         /// <returns>(string) Return Mnemonic BIP39 format.</returns>
         [ActionName("generatenewwallet")]
         [ActionDescription("Generates the new wallet.")]
