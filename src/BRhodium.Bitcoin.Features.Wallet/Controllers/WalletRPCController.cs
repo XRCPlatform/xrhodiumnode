@@ -1884,7 +1884,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns></returns>
         [ActionName("restorefromseedbase64")]
         [ActionDescription("Updates list of temporarily unspendable outputs. ")]
-        public IActionResult RestoreBase64(string passwordBase64, string walletName, string mnemonic, long creationDate = 1483228800)
+        public IActionResult RestoreBase64(string passwordBase64, string walletName, string mnemonic, long creationDate = 1539810400)
         {
             var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
             return Restore(password, walletName, mnemonic, creationDate);
@@ -1900,7 +1900,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns></returns>
         [ActionName("restorefromseed")]
         [ActionDescription("Updates list of temporarily unspendable outputs. ")]
-        public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1483228800)
+        public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1539810400)
         {
             var date = DateTimeOffset.FromUnixTimeSeconds(creationDate).DateTime;
             Wallet wallet = this.walletManager.RecoverWallet(password, walletName, mnemonic, date);

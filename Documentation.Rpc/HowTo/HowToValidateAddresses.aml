@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="2bcf79e6-50f8-4277-8cc4-fac25862b4bc" revisionNumber="1">
+  <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>Sometimes in important to use addresses from client or generate some addresses. If you want to process it... is good to know that address is right. There are two possible ways how to validate it:</para>
+    </introduction>
+    <procedure>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para><legacyBold>Client REGEX verification</legacyBold></para>
+            <para>You need only to validate your address with this REGEX:</para>
+            
+<code language="cs">
+TESTNET: ^[T][a-km-zA-HJ-NP-Z0-9]{25,34}$
+MAINNET: ^[R][a-km-zA-HJ-NP-Z0-9]{25,34}$
+</code>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para><legacyBold>Node API RPC-JSON verification process</legacyBold></para>
+            <para>Safer is to use node RPC for verification. Because it using crypt method to check that all is ok.</para>
+            <para>There is RPC method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ValidateAddress(System.String)</codeEntityReference>.<lineBreak/>Example of call:</para>
+	
+<code language="cs">
+curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic xxx==' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"validateaddress", "params":["TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa"],  "id":1525052699893}]'
+</code>
+            
+          </content>
+        </step>
+      </steps>
+    </procedure>
+  </developerHowToDocument>
+</topic>

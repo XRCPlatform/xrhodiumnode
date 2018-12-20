@@ -45,7 +45,7 @@ div#tocNav {
 	font-family: 'Segoe UI' ,Verdana,Arial;
 	overflow-x: hidden;
 	line-height: normal;
-	margin: -20px 0 0 -4px;
+	margin: -10px 0 20px 4px;
 }
 div#tocNav > div {
 	overflow-x: hidden;
