@@ -14,6 +14,7 @@
     <section address="Section2">
       <title>Configuration of node</title>
       <content>
+        <para><legacyBold>If you don't need to secure access to API RPC-JSON just set server=1 only.</legacyBold></para>
         <para>In data folder is file .brhodium.conf (created after first run of node) which contain whole configuration.</para>
         <para>You need only <legacyBold>to set these params</legacyBold> to activate and configurate basic authentication for Bitcoin Rhodium API RPC-JSON.</para>
 <code language="cs">

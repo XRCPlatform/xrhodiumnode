@@ -112,10 +112,8 @@ namespace BRhodium.Bitcoin.Features.RPC
 
             // We can now safely assume that server was set to true in the config or that the
             // "AddRpc" callback provided a user and password implying that the Rpc feature will be used.
-            if (this.RpcPassword != null && this.RpcUser != null)
+            if (this.Server)
             {
-                // this.Server = true;
-
                 // If the "Bind" list has not been specified via callback..
                 if (this.Bind.Count == 0)
                     this.Bind = this.DefaultBindings;

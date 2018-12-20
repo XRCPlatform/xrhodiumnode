@@ -33,7 +33,14 @@ namespace BRhodium.Bitcoin.Features.RPC
 
         public bool IsWithoutAuthorization()
         {
-            return this.Authorized.Count == 0;
+            if (this.Authorized.Count > 0)
+            {
+                foreach (var itemAuthorized in this.Authorized)
+                {
+                    if (!itemAuthorized.Contains("cookie")) return false;
+                }
+            }
+            return true;
         }
 
         public bool IsAuthorized(string user)

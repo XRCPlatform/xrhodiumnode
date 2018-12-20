@@ -2,7 +2,7 @@
 <topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" revisionNumber="1">
   <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>This "Howto" describe flow of usage wallet in Bitcoin Rhodium node. Is based on these several parts:</para>
+      <para>This "How to" describe flow of usage wallet in Bitcoin Rhodium node. Is based on these several parts:</para>
 
 <list class="bullet">
   <listItem><link xlink:href="#GenerateWallet"><legacyBold>GenerateNewWallet</legacyBold></link> - Generate new wallet</listItem>
@@ -40,6 +40,50 @@ Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRh
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"generatenewwalletbase64", "params":["walletname","bXlwYXNzd29yZDE1K0JBU0U2NA=="]}]'
 </code>
 
+<para>Example of result:</para>
+<code language="cs">
+{
+  "result": {
+    "isValidChecksum": true,
+    "wordList": {
+      "name": "english",
+      "space": " ",
+      "wordCount": 2048
+    },
+    "indices": [
+      821,
+      1498,
+      345,
+      867,
+      31,
+      946,
+      886,
+      301,
+      1555,
+      428,
+      683,
+      369
+    ],
+    "words": [
+      "grit",
+      "robust",
+      "clinic",
+      "hockey",
+      "advance",
+      "iron",
+      "human",
+      "certain",
+      "second",
+      "culture",
+      "fever",
+      "comfort"
+    ]
+  },
+  "id": 1,
+  "error": null
+}
+</code>
+
       </content>
     </section>  
     
@@ -55,6 +99,16 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getnewaddress", "params":["walletname"] }]'
 </code>				
+
+<para>Example of result:</para>
+<code language="cs">
+{
+  "result": "TSThvRAiSwwp4gMLKqw5j9XubeRdG9Lm8W",
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>     
     
@@ -69,6 +123,23 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"validateaddress", "params":["TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa"]}]'
 </code>			
+
+<para>Example of result:</para>
+<code language="cs">
+{
+  "result": {
+    "isvalid": true,
+    "address": "TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa",
+    "scriptPubKey": "76a914a16c034cffcf8ef2b45c7e81d96f61e1b2a953de88ac",
+    "ismine": false,
+    "iswatchonly": false,
+    "isscript": false
+  },
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>    
     
@@ -84,6 +155,91 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getwallet", "params":["walletname"] }]'
 </code>			
+<para>Example of result:</para>
+<code language="cs">
+{
+  "result": {
+    "index": 0,
+    "name": "account 0",
+    "hdPath": "m/44'/1'/0'",
+    "extPubKey": "xpub6C3K5nNMoRqXwF3fLVNfd3m2e75TUWuJMCRYynPf1tXUhwRDGN7CF7ytHtjqBtjroxdD2g4pcJsbsWt29Mxv9vYchWMWAgLTdhjC6Ze6q3q",
+    "creationTime": "1545299325",
+    "externalAddresses": [
+      {
+        "index": 0,
+        "scriptPubKey": "76a914c1f0675fe7e5499b28c953f53561712eab48737588ac",
+        "pubkey": "21032e553e64c574fbef43aaecc82b38e4474c44b4a8534eca4c1cdf581d094ac9bbac",
+        "address": "TTefQdb3Bx2Raafo7KBUmgw3QDqh7NkPGN",
+        "hdPath": "m/44'/1'/0'/0/0",
+        "transactions": [
+          {
+            "id": "8297fabbef9891febdf79fae7e553e5d8c0a6ca0ecac7a15b917751438058078",
+            "amount": 5000000000,
+            "index": 0,
+            "blockHeight": 130,
+            "blockHash": "672ee14dd652aa4e7bc2d51dd6067735c1ef56e67058bb37e2f6a134737f4b6d",
+            "creationTime": "1544460716",
+            "merkleProof": "0300000003fec9414f0351573ec9645190db819163bfe6ff53591efcd24d032a915389ab4d78800538147517b9157aaceca06c0a8c5d3e557eae9ff7bdfe9198efbbfa97826df786f6459e119d747cbcbd2814b1aa0246c54e58ed595c64b03f2ab6635c0a010b",
+            "scriptPubKey": "76a914c1f0675fe7e5499b28c953f53561712eab48737588ac",
+            "isPropagated": true
+          },
+          {
+            "id": "7749fa85e0d6795c91766a8307376bc93357bdfb1915f56486b029fc6ae84e59",
+            "amount": 100000000000,
+            "index": 1,
+            "blockHeight": 148,
+            "blockHash": "493f8bdb401c13d5bef3037d9a66c62f194a55ea8baf3e8f68eccdf2609e56c0",
+            "creationTime": "1544461969",
+            "merkleProof": "0300000003cd551dc871a8dc58885332481dfa0d7c2f09c109a8b62feb282e088f739e9b29594ee86afc29b08664f51519fbbd5733c96b3707836a76915c79d6e085fa4977dc7ea4660b67eed0f9626ba617d595e408142dc4cfaa2dfbc39b0ced4640e20f010b",
+            "scriptPubKey": "76a914c1f0675fe7e5499b28c953f53561712eab48737588ac",
+            "isPropagated": true
+          },
+          {
+            "id": "a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca",
+            "amount": 1199900000,
+            "index": 0,
+            "blockHeight": 153,
+            "blockHash": "94352c9c38148b9cff9f8f55b79aa5048ac88c591d0490934d1fb2de86d45de8",
+            "creationTime": "1544462800",
+            "scriptPubKey": "76a914c1f0675fe7e5499b28c953f53561712eab48737588ac",
+            "isPropagated": true,
+            "spendingDetails": {
+              "transactionId": "ef87058a16d2a0fd171b4263f87159daf21af1f510e6cfc23bdb8f6bb678b8e3",
+              "payments": [
+                {
+                  "destinationScriptPubKey": "76a914860b6f1a04728f164de985472e821d05ab154ac088ac",
+                  "destinationAddress": "TNByFDF21Yf9V3uUd2A5JTjdc5ZNrciBHG",
+                  "amount": 1000000000
+                }
+              ],
+              "blockHeight": 167,
+              "creationTime": "1544547040"
+            }
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "scriptPubKey": "76a9148a904d3dbc15aaa8345d7f53331d2005ac0a080b88ac",
+        "pubkey": "2102b04027b241a07b93d0b425cca8671a2f9f73bb078c261d43708b578706c5506cac",
+        "address": "TNbs7nqWtT5kvzXgfEJZMx8hvPnb9Td8Pu",
+        "hdPath": "m/44'/1'/0'/0/1",
+        "transactions": []
+      },
+		...
+    ],
+    "internalAddresses": [
+      {
+      
+      //FOR INTERNAL USAGE
+	}
+    ]
+  },
+  "id": 1,
+  "error": null
+}
+</code>
+
       </content>
     </section>      
     
@@ -98,7 +254,18 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 	
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getblockcount", "params": [] }]'
-</code>						
+</code>			
+
+<para>Example of result:</para>
+
+<code language="cs">
+{
+  "result": 1042,
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>     
 
@@ -129,8 +296,54 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.RestoreBase64(System.String,System.String,System.String,System.Int64)</codeEntityReference> </para>
 	
 <code language="cs">
-://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' H 'cache-control: no-cache' -d '[{"method":"restorefromseedbase64", "params":["bXlwYXNzd29yZDE1K0JBU0U2NA==","walletname","firm water beef fury cranch sight drink problem lizard picnic strong clever", 1539810400]}]'
+curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' H 'cache-control: no-cache' -d '[{"method":"restorefromseedbase64", "params":["bXlwYXNzd29yZDE1K0JBU0U2NA==","walletname","firm water beef fury cranch sight drink problem lizard picnic strong clever", 1539810400]}]'
 </code>			
+
+<para>Example of result:</para>
+
+<code language="cs">
+{
+  "result": {
+    "name": "testname",
+    "encryptedSeed": "6PYNUTC1oYAwpEqcxrYxjbXCuZfnb1CzAu7K3QSbvdUUTrnABSHN7khy7Q",
+    "chainCode": "84bc490bc6639b29b4484748c23e2c842d5f799c547bc1fe6a8e8c4f72e43962",
+    "creationTime": "1539721963",
+    "blockLocator": null,
+    "network": "BRhodiumTest",
+    "accountsRoot": [
+      {
+        "coinType": 1,
+        "accounts": [
+          {
+            "index": 0,
+            "name": "account 0",
+            "hdPath": "m/44'/1'/0'",
+            "extPubKey": "xpub6D38vhFvHtDHpdomuDX8qiWLrKYhCkAA7D7inw11GjzPmiG3kHjVnXTqobVghs5ZE7DrK4UGHhpnqsbx99MW5jTN2daKu6Ed1z3eiVND6xm",
+            "creationTime": "1545299571",
+            "externalAddresses": [
+              {
+                "index": 0,
+                "scriptPubKey": "76a914bd9723774dccd6fe91150f5e52321964b500935688ac",
+                "pubkey": "2102daf98493272ee0439591574a2628bda4b6e160c26811d486e8f8939360d56b28ac",
+                "address": "TTFfmc2ds2usS8Et9CWkpDJwMuxFdCyAqr",
+                "hdPath": "m/44'/1'/0'/0/0",
+                "transactions": []
+              },
+              ...
+            ],
+            "internalAddresses": [
+				//FOR INTERNAL USAGE
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>  
     
@@ -139,14 +352,26 @@ Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRh
       <content>
 			<para>Function to load transaction from old blocks.</para>
 			
-			<para>Call example:</para>
-		
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.RescanBlockChain(System.Nullable{System.Int32},System.Nullable{System.Int32})</codeEntityReference> </para>
 	
+				<para>Call example:</para>
+		
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"rescanblockchain", "params":["1","167"]}]'
 </code>
 			
+<para>Example of result:</para>			
+<code language="cs">
+{
+  "result": {
+    "start_height": 1,
+    "stop_height": 167
+  },
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>  
     
@@ -154,14 +379,46 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
       <title>GetTransaction</title>
       <content>
 			<para>Return information about specified transaction in block chain.</para>
-			
-			<para>Call example:</para>
 		
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController.GetTransaction(System.String[])</codeEntityReference></para>
-	
+
+			<para>Call example:</para>	
 <code language="cs">
-curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '{"method" : "gettransaction","params" : ["e5f5e26f25683422ce21ab255b3067340eed613af73a70b00bad6c985467942e"]}
+curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransaction","params" : ["a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
 </code>			
+
+<para>Example of result:</para>
+
+<code language="cs">
+{
+  "result": {
+    "amount": 0,
+    "totalAmount": 11.999,
+    "confirmations": 889,
+    "generated": false,
+    "blockHash": "94352c9c38148b9cff9f8f55b79aa5048ac88c591d0490934d1fb2de86d45de8",
+    "blockIndex": 2,
+    "blockTime": 1544462800,
+    "txId": "a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca",
+    "normTxId": "a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca",
+    "time": 1545303107,
+    "timeReceived": 1545303107,
+    "details": [
+      {
+        "account": "account 0",
+        "address": "TTefQdb3Bx2Raafo7KBUmgw3QDqh7NkPGN",
+        "category": "generate",
+        "amount": 11.999,
+        "fee": 0
+      }
+    ],
+    "hex": "0100000001a5dd2af762bb1e758383fee620ec405ceb248ded6ad729ab61f334b9852f3a94010000006b483045022100bb578c8f702889c66f99948c66e4e956aa33dcacb6b5be1643813f78ee18f6d5022021db13ee19670546b699b3e6a0a5edb925b1d357299d78951031d2615a3473d90121020c6203daccd901ab9fa6b5de6f9ca7ada0d3470d8c2bdcd8bd863db790ed574cfdffffff0260058547000000001976a914c1f0675fe7e5499b28c953f53561712eab48737588acb4c3ed0b020000001976a914402cc08a2363ea33bc4f97ced5144690032aa51788ac98000000"
+  },
+  "error": null,
+  "id": 0
+}
+</code>
+
       </content>
     </section>  
     
