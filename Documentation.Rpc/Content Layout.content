@@ -3,12 +3,12 @@
   <Topic id="e6f9a40d-c113-4447-814a-6aa048e368fc" visible="True" title="Welcome" />
   <Topic id="5519d91c-0d1b-4a1c-935c-4157832c00c9" visible="True" title="Technology &amp; Ports info" />
   <Topic id="e8437934-9f80-4efa-8d1b-fdf7c292be71" visible="True" title="Access Authentication" />
+  <Topic id="68886385-7fa1-424a-9ccb-a1e4f5207f85" visible="True" isSelected="true" title="Important links" />
   <Topic id="ab7662f3-3810-4857-abdd-8734d0d18622" visible="True" isExpanded="true" title="How to...">
     <Topic id="3f6ac9de-8691-4df4-99f5-5d627eddc2c5" visible="True" title="How to run a node" />
     <Topic id="6df01e78-de23-41c1-9360-28f4b663a01f" visible="True" title="How to setup firewall" />
     <Topic id="31619f23-c52f-4fbb-95a7-2d51b104abba" visible="True" title="How to work with RPC" />
-    <Topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" visible="True" isSelected="true" title="How to work with RPC - Wallet" />
+    <Topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" visible="True" title="How to work with RPC - Wallet" />
     <Topic id="2bcf79e6-50f8-4277-8cc4-fac25862b4bc" visible="True" title="How to validate addresses" />
   </Topic>
-  <Topic id="68886385-7fa1-424a-9ccb-a1e4f5207f85" visible="True" title="Important links" />
 </Topics>
