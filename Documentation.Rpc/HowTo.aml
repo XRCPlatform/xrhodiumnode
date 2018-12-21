@@ -41,7 +41,16 @@
             <link xlink:href="2bcf79e6-50f8-4277-8cc4-fac25862b4bc">How to validate addresses</link> </para>
              
           </content>
-        </step>         
+        </step>     
+           <step>
+          <content>
+            <para>If you want to be announced about new received or sended transaction read this.<lineBreak/>
+            <link xlink:href="a973fcc4-96f1-4216-a28d-b41407957d2f">How to be notified</link> </para>
+             
+          </content>
+        </step>      
+        
+       
         <step>
           <content>
             <para>Code generated documentation of all RPC-Json API.<lineBreak/>

@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="a973fcc4-96f1-4216-a28d-b41407957d2f" revisionNumber="1">
+  <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>Some some apps is important to be inform about received or sent transaction. We implemented this feature in the way of platform independent solution.</para>
+      <para>There are three options of callback:</para>
+      
+<list class="bullet">
+  <listItem><para><legacyBold>Both directions</legacyBold></para></listItem>
+  <listItem><para><legacyBold>Received only</legacyBold></para></listItem>
+    <listItem><para><legacyBold>Sent only</legacyBold></para></listItem>
+</list>
+
+<para>%s in your command is place which will be override with transaction id.</para>
+
+    </introduction>
+    <section address="Section1">
+      <title>WalletNotify under Windows</title>
+      <content>
+        <para>Our recommendation is to install         <externalLink>
+<linkText>CURL for Windows</linkText>
+<linkAlternateText>CURL for Windows</linkAlternateText>
+<linkUri>https://curl.haxx.se/download.html</linkUri>
+<linkTarget>_blank</linkTarget>
+</externalLink> to run your web call.</para>
+
+        <para>Node will call <legacyUnderline>cmd.exe /K + your command.</legacyUnderline></para>
+        <para>In your BRhodium.conf is important to uncomment or add this line:</para>
+        <para><legacyItalic>http://localhost:62602/walletnotify is your client side.</legacyItalic></para>
+<code language="cs">
+#walletnotify=curl.exe -s http://localhost:62602/walletnotify?%s
+or
+#walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s
+or
+#walletnotify=sent:curl.exe -s http://localhost:62602/walletnotify?%s
+</code>        
+
+      </content>
+    </section>
+    
+    <section address="Section1">
+      <title>WalletNotify under Linux and MacOSX</title>
+      <content>
+        <para>Node will call <legacyUnderline>/bin/bash + your command.</legacyUnderline></para>
+        <para>In your BRhodium.conf is important to uncomment or add this line:</para>
+        <para><legacyItalic>/home/myuser/transaction.sh is your bash script.</legacyItalic></para>
+<code language="cs">
+#walletnotify=/home/myuser/transaction.sh %s
+or
+#walletnotify=recieved:/home/myuser/transaction.sh %s
+or
+#walletnotify=sent:/home/myuser/transaction.sh %s
+</code>        
+
+<para><legacyBold>Example of bash script transaction.sh:</legacyBold></para>
+       <para><legacyItalic>http://127.0.0.1/some/route is your client side.</legacyItalic></para>
+<code language="cs">
+#!/bin/sh
+curl -d "txid=$1" http://127.0.0.1/some/route
+</code>
+
+      </content>
+    </section>    
+  </developerHowToDocument>
+</topic>

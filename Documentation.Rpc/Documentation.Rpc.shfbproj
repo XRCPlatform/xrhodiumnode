@@ -196,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AccessAuthentication.aml" />
+    <None Include="HowTo\HowToBeNotified.aml" />
     <None Include="Orientation.aml" />
     <None Include="HowTo\HowToValidateAddresses.aml" />
     <None Include="HowTo\HowToWorkWithRPCWallet.aml" />
