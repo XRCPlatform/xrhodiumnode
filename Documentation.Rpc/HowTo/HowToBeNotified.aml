@@ -12,6 +12,11 @@
 </list>
 
 <para>%s in your command is place which will be override with transaction id.</para>
+<para><legacyBold>Timeout for callback is 3 sec</legacyBold> and you are able to use more than one call. Here is an example of more call under Windows:</para>
+<code language="cs">
+walletnotify=recieved:curl.exe -s http://localhost:62602/wallet1notify?%s
+walletnotify=recieved:curl.exe -s http://localhost:62602/sys2notify?%s
+</code>  
 
     </introduction>
     <section address="Section1">
@@ -28,11 +33,11 @@
         <para>In your BRhodium.conf is important to uncomment or add this line:</para>
         <para><legacyItalic>http://localhost:62602/walletnotify is your client side.</legacyItalic></para>
 <code language="cs">
-#walletnotify=curl.exe -s http://localhost:62602/walletnotify?%s
+walletnotify=curl.exe -s http://localhost:62602/walletnotify?%s
 or
-#walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s
+walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s
 or
-#walletnotify=sent:curl.exe -s http://localhost:62602/walletnotify?%s
+walletnotify=sent:curl.exe -s http://localhost:62602/walletnotify?%s
 </code>        
 
       </content>
@@ -45,11 +50,11 @@ or
         <para>In your BRhodium.conf is important to uncomment or add this line:</para>
         <para><legacyItalic>/home/myuser/transaction.sh is your bash script.</legacyItalic></para>
 <code language="cs">
-#walletnotify=/home/myuser/transaction.sh %s
+walletnotify=/home/myuser/transaction.sh %s
 or
-#walletnotify=recieved:/home/myuser/transaction.sh %s
+walletnotify=recieved:/home/myuser/transaction.sh %s
 or
-#walletnotify=sent:/home/myuser/transaction.sh %s
+walletnotify=sent:/home/myuser/transaction.sh %s
 </code>        
 
 <para><legacyBold>Example of bash script transaction.sh:</legacyBold></para>
