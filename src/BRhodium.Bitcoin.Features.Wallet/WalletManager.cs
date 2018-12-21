@@ -866,7 +866,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
-            uint256 hash = transaction.GetHash();
+           uint256 hash = transaction.GetHash();
             this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(transaction), hash, nameof(blockHeight), blockHeight);
             
             bool foundReceivingTrx = false, foundSendingTrx = false;
@@ -883,7 +883,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         foundReceivingTrx = true;
                     }
                 }
-
+               
                 // Check the inputs - include those that have a reference to a transaction containing one of our scripts and the same index.
                 foreach (TxIn input in transaction.Inputs)
                 {
@@ -920,6 +920,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // Figure out what to do when this transaction is found to affect the wallet.
             if (foundSendingTrx || foundReceivingTrx)
             {
+                if (foundSendingTrx && blockHeight > 0)
+                {
+                    NotifyTransaction(TransactionNotificationType.Sent, hash);
+                }
+                if (foundReceivingTrx && blockHeight>0)
+                {
+                    NotifyTransaction(TransactionNotificationType.Received, hash);
+                }
                 // Save the wallet when the transaction was not included in a block. 
                 if (blockHeight == null)
                 {
@@ -929,6 +937,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             this.logger.LogTrace("(-)");
             return foundSendingTrx || foundReceivingTrx;
+        }
+
+        private void NotifyTransaction(TransactionNotificationType subsription, uint256 transactionHash )
+        {
+            foreach (var notificationSub in this.walletSettings.WalletNotify)
+            {
+                if (notificationSub.Trigger == subsription || notificationSub.Trigger == TransactionNotificationType.All)
+                {
+                    try
+                    {
+                        ShellHelper.Run(notificationSub.Command.Replace("%s", transactionHash.ToString()));
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.LogError(e.ToString());
+                    }
+                    
+                }
+            }     
         }
 
         /// <summary>
