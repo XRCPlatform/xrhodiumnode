@@ -65,14 +65,35 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return fileName;
         }
 
+        private static string GetArguments(string cmd)
+        {
+            string arguments = "";
+            try
+            {
+                switch (OS.GetCurrent())
+                {
+                    case "win":
+                        arguments = " /K " + cmd;
+                        break;
+                    case "mac":
+                    case "gnu":
+                        arguments = cmd;
+                        break;
+                }
+            }
+            catch (Exception Ex)
+            {
+                Console.WriteLine(Ex.Message);
+            }
+            return arguments;
+        }
 
         /// <summary>
         /// Runs shell command
         /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="dir"></param>
-        /// <returns></returns>
-        public static Response Run(string cmd, string dir = "")
+        /// <param name="cmd">Command</param>
+        /// <returns>Result of outputs</returns>
+        public static Response Run(string cmd)
         {
             var result = new Response();
 
@@ -81,10 +102,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = GetFileName();
-            startInfo.Arguments = " /K " + cmd;
+            startInfo.Arguments = GetArguments(cmd);
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
-            // direct start
             startInfo.UseShellExecute = false;
 
             Process p = new Process();
@@ -99,7 +119,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
 
-            // until we are done
             p.WaitForExit(3000);
             result.stdout = stdout.ToString();
             result.stderr = stderr.ToString();
