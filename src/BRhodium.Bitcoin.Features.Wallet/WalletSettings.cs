@@ -98,7 +98,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             builder.AppendLine("####Wallet Settings####");
             builder.AppendLine("#Save the hex of transactions in the wallet file. Default: 0.");
             builder.AppendLine("#savetrxhex=0");
-            builder.AppendLine("#walletnotify=recieved:'curl http://localhost:62602/walletnotify?%s'");
+            builder.AppendLine("#walletnotify=recieved:curl.exe http://localhost:62602/walletnotify?%s");
         }
     }
 }

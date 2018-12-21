@@ -11,7 +11,7 @@
             {
                 
                 string trigger = subcription.Substring(0, subcription.IndexOf(":"));
-                string command = subcription.Substring(subcription.IndexOf(":"));
+                string command = subcription.Substring(subcription.IndexOf(":")+1);
 
                 switch (trigger.ToLower())
                 {

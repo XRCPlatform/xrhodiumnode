@@ -66,28 +66,45 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
 
-
-        public static Response Run(string cmd,  string dir = "")
+        /// <summary>
+        /// Runs shell command
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static Response Run(string cmd, string dir = "")
         {
             var result = new Response();
+
             var stderr = new StringBuilder();
             var stdout = new StringBuilder();
+
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = GetFileName();
-            startInfo.Arguments = cmd;
-            startInfo.RedirectStandardOutput = false;
-            startInfo.RedirectStandardError = false;
-            startInfo.UseShellExecute = true;
-            startInfo.CreateNoWindow = false;
-            if (!String.IsNullOrEmpty(dir))
-            {
-                startInfo.WorkingDirectory = dir;
-            }
+            startInfo.Arguments = " /K " + cmd;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            // direct start
+            startInfo.UseShellExecute = false;
 
-            Process process = Process.Start(startInfo);
-            //result.stdout = process.StandardOutput.ReadToEnd();
-            //result.stderr = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            Process p = new Process();
+
+            p.OutputDataReceived += (sender, args) => stdout.AppendLine(args.Data);
+            p.ErrorDataReceived += (sender, args) => stderr.AppendLine(args.Data);
+
+            p.StartInfo = startInfo;
+
+            p.Start();
+
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+
+            // until we are done
+            p.WaitForExit(3000);
+            result.stdout = stdout.ToString();
+            result.stderr = stderr.ToString();
+            p.Close();
+           
             return result;
         }
     }
