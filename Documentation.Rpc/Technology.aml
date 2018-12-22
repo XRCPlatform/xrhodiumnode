@@ -5,7 +5,7 @@
       <title>Technology</title>
       <content>
   
-        <para>Our cryptocurrency is based on <legacyBold>MS .Net Core - C#</legacyBold>. Its mean that we are <legacyBold>platform independent</legacyBold>.</para>
+        <para>Our cryptocurrency is based on <legacyBold>MS .Net Core - C#</legacyBold>. It means that we are <legacyBold>platform independent</legacyBold>.</para>
         <para><legacyBold>Recommended requirements:</legacyBold></para>
         
 <list class="bullet">

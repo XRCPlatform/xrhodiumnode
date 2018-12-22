@@ -2,25 +2,25 @@
 <topic id="6df01e78-de23-41c1-9360-28f4b663a01f" revisionNumber="1">
   <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Security is very important for node. If your security will be poor. You can lost content of your wallet very easily.</para>
+      <para>-	Node security is very important. Poor security can result in your wallet being compromised.</para>
     </introduction>
     <section address="Section1">
       <title>How to secure node with firewall</title>
       <content>
-      <para>If your Linux server doesn't contains iptables is good to install it with command:</para>
+      <para>If your Linux server doesn't contain iptables, it is good to install them with command:</para>
 <code language="cs">
 sudo apt-get install iptables
 sudo apt-get install ip6tables
 </code>
       
-        <para>Is good to block all ip6tables access:</para>
+        <para>It is advised to block all ip6tables access:</para>
         
 <code language="cs">
 ip6tables -P INPUT DROP
 ip6tables -P OUTPUT DROP
 ip6tables -P FORWARD DROP
 </code>
-<para>If you use SSH access to your server then is necessary to allow SSH port:</para>
+<para>If you use SSH access to your server, then it is necessary to allow SSH port:</para>
         <code language="cs">
 sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport ssh -j ACCEPT
@@ -39,7 +39,7 @@ sudo iptables -A INPUT -p tcp --dport 16661 -j DROP
 sudo iptables -A INPUT -p tcp -m tcp --dport 16665 -m state --state NEW,ESTABLISHED -j ACCEPT
 </code>
 
-<para>And add to end drop of all other access:</para>
+<para>At the end, drop all other accesses:</para>
 
 <code language="cs">
 sudo iptables -D INPUT -j DROP
@@ -52,12 +52,13 @@ sudo iptables -A INPUT -j DROP
       <content>
         <!-- Uncomment this to create a sub-section outline
         <autoOutline /> -->
-        <para>Our recommendation is to install great Linux utility <legacyBold>iptables-permanently</legacyBold> which store your configuration in file and during boot restore your configuration automatically.<lineBreak/>For installation and store iptables configuration call in command line:</para>
+        <para>-	We recommend installing great Linux utility <legacyBold>iptables-permanently</legacyBold> which stores your configurations in a file and during boot it restores your configuration automatically.<lineBreak/>
+        For installation and store iptables configuration call following command line:</para>
 <code language="cs">
 sudo apt-get install iptables-persistent
 </code>
 
-        <para>And answer <legacyBold>YES</legacyBold> on all questions.</para>
+        <para>-	Answer <legacyBold>YES</legacyBold> to all questions.</para>
         <para><legacyItalic>Recommendation: If you make a change in your configuration uninstall it and install it again to store new configuration.</legacyItalic></para>
       </content>
     </section>    

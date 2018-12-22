@@ -2,7 +2,7 @@
 <topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" revisionNumber="1">
   <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>This "How to" describe flow of usage wallet in Bitcoin Rhodium node. Is based on these several parts:</para>
+      <para>This "How to" describes the flow of usage wallet in Bitcoin Rhodium node. It is based on following parts:</para>
 
 <list class="bullet">
   <listItem><link xlink:href="#GenerateWallet"><legacyBold>GenerateNewWallet</legacyBold></link> - Generate new wallet</listItem>
@@ -12,7 +12,7 @@
   <listItem><link xlink:href="#GetBlockCount"><legacyBold>GetBlockCount</legacyBold></link> - Get block count from block chain</listItem> 
   <listItem><link xlink:href="#SendToAddress"><legacyBold>SendToAddress</legacyBold></link> - Send coins to selected address</listItem>
   <listItem><link xlink:href="#RestoreWallet"><legacyBold>RestoreFromSeed</legacyBold></link> - Restore your wallet from seed and password</listItem>  
-  <listItem><link xlink:href="#Rescan"><legacyBold>RescanBlockchain</legacyBold></link> - Function to load transaction from old blocks</listItem>        
+  <listItem><link xlink:href="#Rescan"><legacyBold>RescanBlockchain</legacyBold></link> - Function to load transactions from old blocks</listItem>        
   <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction</legacyBold></link> - Return information about specified transaction</listItem> 
 </list>
       
@@ -22,7 +22,7 @@
     <section address="GenerateWallet">
       <title>GenerateNewWallet</title>
       <content>
-			<para>Node is possible to work with 10000+ wallets. But i think that for a lot of use case is enough to use one wallet only.</para>
+			<para>Node can work with 10000+ wallets.</para>
 			<para>Call example with and without base64 encoded password:</para>
 		
 <para><legacyBold>Default call</legacyBold><lineBreak/>
@@ -39,7 +39,7 @@ Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRh
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"generatenewwalletbase64", "params":["walletname","bXlwYXNzd29yZDE1K0JBU0U2NA=="]}]'
 </code>
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 <code language="cs">
 {
   "result": {
@@ -100,7 +100,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getnewaddress", "params":["walletname"] }]'
 </code>				
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 <code language="cs">
 {
   "result": "TSThvRAiSwwp4gMLKqw5j9XubeRdG9Lm8W",
@@ -126,7 +126,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"validateaddress", "params":["TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa"]}]'
 </code>			
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 <code language="cs">
 {
   "result": {
@@ -155,7 +155,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getwallet", "params":["walletname"] }]'
 </code>			
-<para>Example of result:</para>
+<para>Example of a result:</para>
 <code language="cs">
 {
   "result": {
@@ -256,7 +256,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getblockcount", "params": [] }]'
 </code>			
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 
 <code language="cs">
 {
@@ -288,7 +288,7 @@ Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRh
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"sendtoaddress", "params":["walletname","bXlwYXNzd29yZDE1K0JBU0U2NA==", "TS8jH5oC8PCF8KBKYTLoKsPzY4YC3vT4wv", 1]}]'
 </code>
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 <code language="cs">
 {
     "result": "255dcd945570c3481eb9bef9350fc33a5b5adc7f8f4cf942f0c60b872893663f",
@@ -304,7 +304,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
       <title>RestoreFromSeed</title>
       <content>
 			<para>Restore your wallet from seed and password.</para>
-			<para>Last param is a time of creation and <legacyBold>have to be greater then 1539810400</legacyBold>. Call example with and without base64 encoded password:</para>
+			<para>Last param is the time of creation and <legacyBold>have to be greater than 1539810400</legacyBold>. Call example with and without base64 encoded password:</para>
 		
 <para><legacyBold>Default call</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.Restore(System.String,System.String,System.String,System.Int64)</codeEntityReference></para>
@@ -320,7 +320,7 @@ Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRh
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' H 'cache-control: no-cache' -d '[{"method":"restorefromseedbase64", "params":["bXlwYXNzd29yZDE1K0JBU0U2NA==","walletname","firm water beef fury cranch sight drink problem lizard picnic strong clever", 1539810400]}]'
 </code>			
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 
 <code language="cs">
 {
@@ -381,7 +381,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"rescanblockchain", "params":["1","167"]}]'
 </code>
 			
-<para>Example of result:</para>			
+<para>Example of a result:</para>		
 <code language="cs">
 {
   "result": {
@@ -408,7 +408,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransaction","params" : ["a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
 </code>			
 
-<para>Example of result:</para>
+<para>Example of a result:</para>
 
 <code language="cs">
 {

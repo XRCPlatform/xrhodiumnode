@@ -4,7 +4,7 @@
     <section address="Section1">
       <title>Primary configuration of your node</title>
       <content>
-        <para>Is good to update your server to latest software:</para>
+        <para>It is good to update your server to latest software:</para>
         
 <code language="cs">
 apt-get update
@@ -14,13 +14,13 @@ apt-get autoremove -y
 apt-get autoclean –y
 </code>        
         
-        <para>Create new user for your node. It's much safer then to run it under root.</para>
+        <para>Create a new user for your node. It's much safer then to run it under root.</para>
 <code language="cs">
 adduser mynode
 adduser mynode sudo
 </code>
 
-        <para>For correct compilation is necessary to install:</para>
+        <para>For correct compilation it is necessary to install:</para>
         
 <code language="cs">
 apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev libsodium-dev libzmq5 tmux
@@ -32,7 +32,7 @@ apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev
 https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-current
 </code>
 
-<para>After you will finish these steps you can continue first run.</para>
+<para>After completing these steps you can continue with a first run.</para>
 
       </content>
     </section>
