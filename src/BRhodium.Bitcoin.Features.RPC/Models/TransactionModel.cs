@@ -50,7 +50,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
             if (trx != null)
             {
                 this.TxId = trx.GetHash().ToString();
-                this.Size = trx.GetSerializedSize();
+                this.Size = trx.GetVirtualSize();
                 this.Version = trx.Version;
                 this.LockTime = trx.LockTime;
 
