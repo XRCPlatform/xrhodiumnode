@@ -114,6 +114,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         HdAddress GetUnusedAddress(WalletAccountReference accountReference);
 
         /// <summary>
+        /// Create a new address.
+        /// </summary>
+        /// <param name="accountReference">The name of the wallet and account</param>
+        /// <returns>Newly created address, in Base58 format.</returns>
+        HdAddress GetNewAddress(WalletAccountReference accountReference);
+
+        /// <summary>
         /// Gets the first change address that contains no transaction.
         /// </summary>
         /// <param name="accountReference">The name of the wallet and account.</param>
@@ -130,6 +137,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false);
 
         /// <summary>
+        /// Create a collection of new receiving or change addresses.
+        /// </summary>
+        /// <param name="accountReference">The name of the wallet and account.</param>
+        /// <param name="count">The number of addresses to create.</param>
+        /// <param name="isChange">A value indicating whether or not the addresses to get should be receiving or change addresses.</param>
+        /// <returns>A list of new addresses.</returns>
+        IEnumerable<HdAddress> GetNewAddresses(WalletAccountReference accountReference, int count, bool isChange = false);
+
+        /// <summary>
         /// Gets a collection of unused receiving or change addresses.
         /// </summary>
         /// <param name="wallet">The wallet object.</param>
@@ -138,6 +154,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="accountName">Name of the account.</param>
         /// <returns></returns>
         IEnumerable<HdAddress> GetUnusedAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null);
+
+        /// <summary>
+        /// Create a collection of new receiving or change addresses.
+        /// </summary>
+        /// <param name="wallet">The wallet object.</param>
+        /// <param name="count">The number of addresses to create.</param>
+        /// <param name="isChange">A value indicating whether or not the addresses to get should be receiving or change addresses.</param>
+        /// <param name="accountName">Name of the account.</param>
+        /// <returns></returns>
+        IEnumerable<HdAddress> GetNewAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null);
 
         /// <summary>
         /// Gets the history of transactions contained in an account.

@@ -1161,7 +1161,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var address = this.walletManager.GetUnusedAddresses(wallet, 1);
+                 var address = this.walletManager.GetNewAddresses(wallet, 1);
 
                 if (address.Any())
                 {

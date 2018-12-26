@@ -437,6 +437,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
+        public HdAddress GetNewAddress(WalletAccountReference accountReference)
+        {
+            this.logger.LogTrace("({0}:'{1}')", nameof(accountReference), accountReference);
+
+            HdAddress res = this.GetNewAddresses(accountReference, 1).Single();
+
+            this.logger.LogTrace("(-)");
+            return res;
+        }
+
+        /// <inheritdoc />
         public HdAddress GetUnusedChangeAddress(WalletAccountReference accountReference)
         {
             this.logger.LogTrace("({0}:'{1}')", nameof(accountReference), accountReference);
@@ -457,6 +468,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Wallet wallet = this.GetWalletByName(accountReference.WalletName);
 
             return GetUnusedAddresses(wallet, count, isChange, accountReference.AccountName);
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<HdAddress> GetNewAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
+        {
+            Guard.NotNull(accountReference, nameof(accountReference));
+            Guard.Assert(count > 0);
+            this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(accountReference), accountReference, nameof(count), count);
+
+            Wallet wallet = this.GetWalletByName(accountReference.WalletName);
+
+            return GetNewAddresses(wallet, count, isChange, accountReference.AccountName);
         }
 
         /// <inheritdoc />
@@ -503,7 +526,42 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return addresses;
         }
-        
+
+        /// <inheritdoc />
+        public IEnumerable<HdAddress> GetNewAddresses(Wallet wallet, int count, bool isChange = false, string accountName = null)
+        {
+            Guard.Assert(count > 0);
+
+            IEnumerable<HdAddress> addresses;
+
+            if (accountName == null)
+            {
+                var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                accountName = accountReference.Accounts.First().Name;
+            }
+
+            lock (this.lockObject)
+            {
+                HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
+
+                List<HdAddress> unusedAddresses = isChange ?
+                    account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() :
+                    account.ExternalAddresses.Where(acc => !acc.Transactions.Any()).ToList();
+
+                List<HdAddress> newAddresses = new List<HdAddress>();
+                newAddresses = account.CreateAddresses(this.network, count, isChange: isChange).ToList();
+                this.UpdateKeysLookupLock(newAddresses);
+
+                addresses = unusedAddresses.Concat(newAddresses).OrderBy(x => x.Index).ToList();
+            }
+
+            // Save the changes to the file.
+            this.SaveWallet(wallet);
+
+            this.logger.LogTrace("(-)");
+            return addresses;
+        }
+
         /// <inheritdoc />
         public (string folderPath, IEnumerable<string>) GetWalletsFiles()
         {
