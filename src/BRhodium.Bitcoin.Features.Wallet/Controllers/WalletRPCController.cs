@@ -397,7 +397,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     foreach (var wallet in this.walletManager.Wallets)
                     {
-                        accounts.Concat(this.walletManager.GetAccounts(wallet.Name).ToList());
+                        foreach (var account in this.walletManager.GetAccounts(wallet.Name))
+                        {
+                            accounts.Add(account);
+                        }
+                        
                     }
                 }
                 else
