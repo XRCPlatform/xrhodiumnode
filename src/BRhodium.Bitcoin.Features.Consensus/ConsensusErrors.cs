@@ -131,6 +131,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
         public static readonly ConsensusError BadTransactionDuplicate = new ConsensusError("bad-txns-duplicate", "duplicate transaction");
         public static readonly ConsensusError BadTransactionNoInput = new ConsensusError("bad-txns-vin-empty", "no input in the transaction");
+        public static readonly ConsensusError BadTransactionTooManyInputs = new ConsensusError("bad-txns-too-many-inputs", "too many inputs in the transaction");
         public static readonly ConsensusError BadTransactionNoOutput = new ConsensusError("bad-txns-vout-empty", "no output in the transaction");
         public static readonly ConsensusError BadTransactionOversize = new ConsensusError("bad-txns-oversize", "oversized transaction");
         public static readonly ConsensusError BadTransactionEmptyOutput = new ConsensusError("user-txout-empty", "user transaction output is empty");
