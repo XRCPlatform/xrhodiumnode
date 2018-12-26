@@ -75,7 +75,10 @@ namespace NBitcoin.Policy
 
             List<TransactionPolicyError> errors = new List<TransactionPolicyError>();
 
-
+            if (transaction.Inputs.Count() > 500)
+            {
+                errors.Add(new InputPolicyExceededError("Too many inputs"));
+            }
 
             foreach(var input in transaction.Inputs.AsIndexedInputs())
             {
