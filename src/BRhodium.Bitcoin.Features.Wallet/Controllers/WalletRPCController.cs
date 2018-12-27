@@ -1165,7 +1165,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if (address.Any())
                 {
-                    var firstAddress = address.First();
+                    var firstAddress = address.Last();
                     result = firstAddress.Address;
                 }
 
