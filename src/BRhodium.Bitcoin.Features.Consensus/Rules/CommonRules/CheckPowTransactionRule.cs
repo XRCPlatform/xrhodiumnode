@@ -34,7 +34,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
 
         public virtual void CheckTransaction(Network network, PowConsensusOptions options, Transaction tx)
         {
-            if (tx.Inputs.Count >500)
+            if (tx.Inputs.Count >550)
             {
                 this.Logger.LogTrace("(-)[TX_TOO_MANY_INPUTS]");
                 ConsensusErrors.BadTransactionTooManyInputs.Throw();
