@@ -537,35 +537,21 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         break;
                     }
                 }
+                var total = currentTransaction.TotalOut;
 
-                transactionResponse.Details = new List<TransactionDetail>();
-                foreach (var item in currentTransaction.Outputs)
+                transactionResponse = this.walletManager.GetTransactionDetails(currentTransaction, total, transactionResponse);
+
+                if (currentTransaction.IsCoinBase && transactionResponse.Details.Count>0 && transactionResponse.Details.First<TransactionDetail>().Category == "receive")
                 {
-                    var detail = new TransactionDetail();
-                    var address = this.walletManager.GetAddressByPubKeyHash(item.ScriptPubKey);
-
-                    if (address == null)
-                    {
-                        continue;
-                    }
-
-                    detail.Account = "account 0";
-                    detail.Address = address.Address;
-
                     if (transactionResponse.Confirmations < 10)
                     {
-                        detail.Category = "immature";
+                        transactionResponse.Details.First<TransactionDetail>().Category = "immature";
                     }
                     else
                     {
-                        detail.Category = "generate";
+                        transactionResponse.Details.First<TransactionDetail>().Category = "generate";
                     }
-
-
-                    detail.Amount = (double)item.Value.Satoshi / 100000000;
-                    transactionResponse.Details.Add(detail);
                 }
-
                 transactionResponse.Hex = currentTransaction.ToHex();
 
                 var json = ResultHelper.BuildResultResponse(transactionResponse);

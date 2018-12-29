@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using BRhodium.Bitcoin.Features.Consensus.Models;
 using NBitcoin;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
@@ -353,5 +354,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="walletName">The name of the wallet to remove transactions from.</param>
         /// <returns>A list of objects made up of a transactions ID along with the time at which they were created.</returns>
         HashSet<(uint256, DateTimeOffset)> RemoveAllTransactions(string walletName);
+
+        TransactionModel GetTransactionDetails(Transaction transaction, Money money, TransactionModel transactionModel);
     }
 }
