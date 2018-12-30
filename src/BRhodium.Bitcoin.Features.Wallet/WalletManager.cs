@@ -1124,6 +1124,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
                         case TxOutType.TX_SEGWIT:
+                            destinationAddress = txOut.ScriptPubKey.GetDestinationAddress(this.network).ToString();
                             break;
                     }
                 }
@@ -1290,6 +1291,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
                         case TxOutType.TX_SEGWIT:
+                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network).ToString();
                             break;
                     }
 
