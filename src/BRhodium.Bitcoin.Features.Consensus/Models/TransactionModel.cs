@@ -10,7 +10,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 
     public class TransactionModel
     {
-        public decimal TotalAmount { get; set; }
+        public decimal Amount { get; set; }
 
         public int Confirmations { get; set; }
 

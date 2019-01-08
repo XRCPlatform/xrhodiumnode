@@ -37,6 +37,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <summary>Timer for saving wallet files to the file system.</summary>
         private const int WalletSavetimeIntervalInMinutes = 5;
+
+        /// <summary>Default account name </summary>
         private const string DefaultAccount = "account 0";
 
         /// <summary>
@@ -998,78 +1000,80 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return foundSendingTrx || foundReceivingTrx;
         }
-        /// <summary>
-        /// Provides transaction details
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public TransactionModel GetTransactionDetails(Transaction transaction, Money total, TransactionModel transactionModel)
+
+        /// <inheritdoc />
+        public TransactionModel GetTransactionDetails(Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel)
         {
             Guard.NotNull(transaction, nameof(transaction));
+
             transactionModel.Details = new List<TransactionDetail>();
             var details = transactionModel.Details;
-            transactionModel.TotalAmount = total.ToDecimal(MoneyUnit.BTR);
-            decimal changeSum = 0;
+
+            var totalInputs = prevTransactions.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+            var fee = totalInputs - transaction.TotalOut.ToUnit(MoneyUnit.Satoshi);
+            decimal unitFee = fee / prevTransactions.Count();
+
+            foreach (IndexedTxOut utxo in prevTransactions)
+            {
+                if (this.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
+                {
+                    details.Add(new TransactionDetail()
+                    {
+                        Account = DefaultAccount,
+                        Address = address.Address,
+                        Category = "send",
+                        Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.BTR) * -1,
+                        Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR)
+                    });
+                }
+            }
+
+            //checkfee
+            if (details.Count > 0)
+            {
+                //total fee is here if we just send tx
+                transactionModel.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR);
+
+                var sumFee = details.Sum(f => f.Fee);
+                if (sumFee != transactionModel.Fee)
+                {
+                    var restFee = transactionModel.Fee - sumFee;
+                    details[0].Fee = details[0].Fee + restFee;
+                }
+            }
+
+            var isSendTx = false;
+
             foreach (TxOut utxo in transaction.Outputs)
             {
                 if (this.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
                 {
                     if (address.IsChangeAddress())
                     {
-                        changeSum = changeSum + utxo.Value.ToUnit(MoneyUnit.BTR);
+                        isSendTx = true;
                     }
+
                     details.Add(new TransactionDetail()
                     {
                         Account = DefaultAccount,
                         Address = address.Address,
-                        Amount = (double)utxo.Value.ToUnit(MoneyUnit.BTR),
-                        Category = "receive"
+                        Category = "receive",
+                        Amount = utxo.Value.ToUnit(MoneyUnit.BTR)
                     });
                 }
             }
-           
-            // Check the inputs - include those that have a reference to a transaction containing one of our scripts and the same index.
-            foreach (TxIn input in transaction.Inputs)
+
+            if (isSendTx)
             {
-                if (!this.outpointLookup.TryGetValue(input.PrevOut, out TransactionData tTx))
-                {
-                    continue;
-                }
-                // Get the details of the outputs paid out.
-                IEnumerable<TxOut> paidOutTo = transaction.Outputs.Where(o =>
-                {
-                    // If script is empty ignore it.
-                    if (o.IsEmpty)
-                        return false;
-
-                    // Check if the destination script is one of the wallet's.
-                    bool found = this.keysLookup.TryGetValue(o.ScriptPubKey, out HdAddress addr);
-
-                    // Include the keys not included in our wallets (external payees).
-                    if (!found)
-                        return true;
-
-                    // Include the keys that are in the wallet but that are for receiving
-                    // addresses (which would mean the user paid itself). 
-                    // We also exclude the keys involved in a staking transaction.
-                    return !addr.IsChangeAddress();
-                });
-                decimal spentOutputValue = this.AddSpendingTransactionDetails(transaction, paidOutTo, tTx.Id, tTx.Index, details);
-                decimal totalOut = 0;
-                foreach (var item in paidOutTo)
-                {
-                    totalOut = totalOut + item.Value.ToDecimal(MoneyUnit.BTR);
-                }
-                decimal fee = spentOutputValue -  totalOut - changeSum ;
-                transactionModel.Fee = fee;
-                if (fee < 0)
-                {
-                    fee = Math.Abs(fee);
-                }
-                transactionModel.Fee = fee;
-                break;
+                var clearOutAmount = details.Where(o => o.Category == "receive").Sum(a => a.Amount);
+                transactionModel.Amount = transaction.TotalOut.ToUnit(MoneyUnit.BTR) - clearOutAmount;
             }
-            
+            else
+            {
+                var clearOutAmount = details.Where(o => o.Category == "receive").Sum(a => a.Amount);
+                transactionModel.Amount = clearOutAmount;
+            }
+
             return transactionModel;
         }
 
@@ -1094,7 +1098,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     Account = DefaultAccount,
                     Address = destinationAddress,
-                    Amount = (double)paidToOutput.Value.ToUnit(MoneyUnit.BTR),
+                    Amount = paidToOutput.Value.ToUnit(MoneyUnit.BTR),
                     Category = "send"
                 });
             }
