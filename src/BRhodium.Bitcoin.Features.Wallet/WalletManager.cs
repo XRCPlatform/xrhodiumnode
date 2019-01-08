@@ -12,6 +12,7 @@ using BRhodium.Bitcoin.Features.Wallet.Broadcasting;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.Utilities;
 using System.Text;
+using BRhodium.Bitcoin.Features.Consensus.Models;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.Wallet.Tests")]
 
@@ -36,6 +37,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <summary>Timer for saving wallet files to the file system.</summary>
         private const int WalletSavetimeIntervalInMinutes = 5;
+
+        /// <summary>Default account name </summary>
+        private const string DefaultAccount = "account 0";
 
         /// <summary>
         /// A lock object that protects access to the <see cref="Wallet"/>.
@@ -924,9 +928,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
-           uint256 hash = transaction.GetHash();
+            uint256 hash = transaction.GetHash();
             this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(transaction), hash, nameof(blockHeight), blockHeight);
-            
+
             bool foundReceivingTrx = false, foundSendingTrx = false;
 
             lock (this.lockObject)
@@ -941,7 +945,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         foundReceivingTrx = true;
                     }
                 }
-               
+
                 // Check the inputs - include those that have a reference to a transaction containing one of our scripts and the same index.
                 foreach (TxIn input in transaction.Inputs)
                 {
@@ -982,7 +986,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     NotifyTransaction(TransactionNotificationType.Sent, hash);
                 }
-                if (foundReceivingTrx && blockHeight>0)
+                if (foundReceivingTrx && blockHeight > 0)
                 {
                     NotifyTransaction(TransactionNotificationType.Received, hash);
                 }
@@ -995,6 +999,142 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             this.logger.LogTrace("(-)");
             return foundSendingTrx || foundReceivingTrx;
+        }
+
+        /// <inheritdoc />
+        public TransactionModel GetTransactionDetails(Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel)
+        {
+            Guard.NotNull(transaction, nameof(transaction));
+
+            transactionModel.Details = new List<TransactionDetail>();
+            var details = transactionModel.Details;
+
+            var totalInputs = prevTransactions.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+            var fee = totalInputs - transaction.TotalOut.ToUnit(MoneyUnit.Satoshi);
+            decimal unitFee = fee / prevTransactions.Count();
+
+            foreach (IndexedTxOut utxo in prevTransactions)
+            {
+                if (this.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
+                {
+                    details.Add(new TransactionDetail()
+                    {
+                        Account = DefaultAccount,
+                        Address = address.Address,
+                        Category = "send",
+                        Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.BTR) * -1,
+                        Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR)
+                    });
+                }
+            }
+
+            //checkfee
+            if (details.Count > 0)
+            {
+                //total fee is here if we just send tx
+                transactionModel.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR);
+
+                var sumFee = details.Sum(f => f.Fee);
+                if (sumFee != transactionModel.Fee)
+                {
+                    var restFee = transactionModel.Fee - sumFee;
+                    details[0].Fee = details[0].Fee + restFee;
+                }
+            }
+
+            var isSendTx = false;
+
+            foreach (TxOut utxo in transaction.Outputs)
+            {
+                if (this.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
+                {
+                    if (address.IsChangeAddress())
+                    {
+                        isSendTx = true;
+                    }
+
+                    details.Add(new TransactionDetail()
+                    {
+                        Account = DefaultAccount,
+                        Address = address.Address,
+                        Category = "receive",
+                        Amount = utxo.Value.ToUnit(MoneyUnit.BTR)
+                    });
+                }
+            }
+
+            if (isSendTx)
+            {
+                var clearOutAmount = details.Where(o => o.Category == "receive").Sum(a => a.Amount);
+                transactionModel.Amount = transaction.TotalOut.ToUnit(MoneyUnit.BTR) - clearOutAmount;
+            }
+            else
+            {
+                var clearOutAmount = details.Where(o => o.Category == "receive").Sum(a => a.Amount);
+                transactionModel.Amount = clearOutAmount;
+            }
+
+            return transactionModel;
+        }
+
+        private decimal AddSpendingTransactionDetails(Transaction transaction, IEnumerable<TxOut> paidToOutputs, uint256 spendingTransactionId, int spendingTransactionIndex, List<TransactionDetail> details)
+        {
+            
+            Guard.NotNull(transaction, nameof(transaction));
+            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));            
+            // Get the transaction being spent.
+            TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
+                .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
+            if (spentTransaction == null)
+            {
+               return 0;
+            }
+
+            List<PaymentDetails> payments = new List<PaymentDetails>();
+            foreach (TxOut paidToOutput in paidToOutputs)
+            {
+                string destinationAddress = GetOutputDestinationAddress(paidToOutput);
+                details.Add(new TransactionDetail()
+                {
+                    Account = DefaultAccount,
+                    Address = destinationAddress,
+                    Amount = paidToOutput.Value.ToUnit(MoneyUnit.BTR),
+                    Category = "send"
+                });
+            }
+
+            return spentTransaction.Amount.ToDecimal(MoneyUnit.BTR);
+        }
+
+        private string GetOutputDestinationAddress(TxOut txOut)
+        {
+            string destinationAddress = string.Empty;
+            if (txOut.ScriptPubKey != null)
+            {
+                ScriptTemplate scriptTemplate = txOut.ScriptPubKey.FindTemplate(this.network);
+                if (scriptTemplate != null)
+                {
+                    switch (scriptTemplate.Type)
+                    {
+                        // Pay to PubKey can be found in outputs of staking transactions.
+                        case TxOutType.TX_PUBKEY:
+                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(txOut.ScriptPubKey);
+                            destinationAddress = pubKey.GetAddress(this.network).ToString();
+                            break;
+                        // Pay to PubKey hash is the regular, most common type of output.
+                        case TxOutType.TX_PUBKEYHASH:
+                            destinationAddress = txOut.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            break;
+                        case TxOutType.TX_NONSTANDARD:
+                        case TxOutType.TX_SCRIPTHASH:
+                        case TxOutType.TX_MULTISIG:
+                        case TxOutType.TX_NULL_DATA:
+                            destinationAddress = txOut.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            break;
+                    }
+                }
+            }
+            return destinationAddress;
         }
 
         private void NotifyTransaction(TransactionNotificationType subsription, uint256 transactionHash )
@@ -1155,7 +1295,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_SCRIPTHASH:
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
-                        case TxOutType.TX_SEGWIT:
+                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network).ToString();
                             break;
                     }
 
@@ -1601,5 +1741,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return null;
             }
         }
+
     }
 }
