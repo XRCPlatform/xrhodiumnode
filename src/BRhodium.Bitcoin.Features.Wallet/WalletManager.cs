@@ -1011,7 +1011,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             var totalInputs = prevTransactions.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
             var fee = totalInputs - transaction.TotalOut.ToUnit(MoneyUnit.Satoshi);
-            decimal unitFee = fee / prevTransactions.Count();
+            decimal unitFee = 0;
+            if (prevTransactions != null && prevTransactions.Count() > 0) unitFee = fee / prevTransactions.Count();
 
             foreach (IndexedTxOut utxo in prevTransactions)
             {
