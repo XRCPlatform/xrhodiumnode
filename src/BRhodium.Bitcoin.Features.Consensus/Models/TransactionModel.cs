@@ -10,7 +10,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 
     public class TransactionModel
     {
-        public double TotalAmount { get; set; }
+        public decimal TotalAmount { get; set; }
 
         public int Confirmations { get; set; }
 
@@ -28,13 +28,14 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 
         public long Time { get; set; }
         public long TimeReceived { get; set; }
+        [DefaultValue(0)]
+        [JsonProperty(PropertyName = "Fee", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public decimal Fee { get; set; }
 
         public List<TransactionDetail> Details { get; set; }
         public string Hex { get; set; }
 
-        [DefaultValue(0)]
-        [JsonProperty(PropertyName = "Fee", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public decimal Fee { get; set; }
+        
     }   
 
     

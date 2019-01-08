@@ -1008,7 +1008,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(transaction, nameof(transaction));
             transactionModel.Details = new List<TransactionDetail>();
             var details = transactionModel.Details;
-            transactionModel.TotalAmount = (double) total.ToDecimal(MoneyUnit.BTR);
+            transactionModel.TotalAmount = total.ToDecimal(MoneyUnit.BTR);
             decimal changeSum = 0;
             foreach (TxOut utxo in transaction.Outputs)
             {
@@ -1054,26 +1054,26 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     // We also exclude the keys involved in a staking transaction.
                     return !addr.IsChangeAddress();
                 });
+                decimal spentOutputValue = this.AddSpendingTransactionDetails(transaction, paidOutTo, tTx.Id, tTx.Index, details);
                 decimal totalOut = 0;
                 foreach (var item in paidOutTo)
                 {
                     totalOut = totalOut + item.Value.ToDecimal(MoneyUnit.BTR);
                 }
-                decimal fee = total.ToDecimal(MoneyUnit.BTR) - changeSum - totalOut;
+                decimal fee = spentOutputValue -  totalOut - changeSum ;
                 transactionModel.Fee = fee;
-                if (totalOut > 0)
+                if (fee < 0)
                 {
-                    transactionModel.TotalAmount = (double)totalOut;
+                    fee = Math.Abs(fee);
                 }
-
-                this.AddSpendingTransactionDetails(transaction, paidOutTo, tTx.Id, tTx.Index, details);
+                transactionModel.Fee = fee;
                 break;
             }
             
             return transactionModel;
         }
 
-        private void AddSpendingTransactionDetails(Transaction transaction, IEnumerable<TxOut> paidToOutputs, uint256 spendingTransactionId, int spendingTransactionIndex, List<TransactionDetail> details)
+        private decimal AddSpendingTransactionDetails(Transaction transaction, IEnumerable<TxOut> paidToOutputs, uint256 spendingTransactionId, int spendingTransactionIndex, List<TransactionDetail> details)
         {
             
             Guard.NotNull(transaction, nameof(transaction));
@@ -1083,7 +1083,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
             if (spentTransaction == null)
             {
-               return;
+               return 0;
             }
 
             List<PaymentDetails> payments = new List<PaymentDetails>();
@@ -1098,6 +1098,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     Category = "send"
                 });
             }
+
+            return spentTransaction.Amount.ToDecimal(MoneyUnit.BTR);
         }
 
         private string GetOutputDestinationAddress(TxOut txOut)
