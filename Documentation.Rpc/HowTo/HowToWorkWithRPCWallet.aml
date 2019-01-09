@@ -399,7 +399,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
     <section address="GetTransaction">
       <title>GetTransaction</title>
       <content>
-			<para>Return information about specified transaction in block chain.</para>
+			<para>Return information about specified transaction in block chain base on your local wallet.</para>
 		
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController.GetTransaction(System.String[])</codeEntityReference></para>
 
@@ -412,31 +412,37 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
 
 <code language="cs">
 {
-  "result": {
-    "amount": 0,
-    "totalAmount": 11.999,
-    "confirmations": 889,
-    "generated": false,
-    "blockHash": "94352c9c38148b9cff9f8f55b79aa5048ac88c591d0490934d1fb2de86d45de8",
-    "blockIndex": 2,
-    "blockTime": 1544462800,
-    "txId": "a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca",
-    "normTxId": "a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca",
-    "time": 1545303107,
-    "timeReceived": 1545303107,
-    "details": [
-      {
-        "account": "account 0",
-        "address": "TTefQdb3Bx2Raafo7KBUmgw3QDqh7NkPGN",
-        "category": "generate",
-        "amount": 11.999,
-        "fee": 0
-      }
-    ],
-    "hex": "0100000001a5dd2af762bb1e758383fee620ec405ceb248ded6ad729ab61f334b9852f3a94010000006b483045022100bb578c8f702889c66f99948c66e4e956aa33dcacb6b5be1643813f78ee18f6d5022021db13ee19670546b699b3e6a0a5edb925b1d357299d78951031d2615a3473d90121020c6203daccd901ab9fa6b5de6f9ca7ada0d3470d8c2bdcd8bd863db790ed574cfdffffff0260058547000000001976a914c1f0675fe7e5499b28c953f53561712eab48737588acb4c3ed0b020000001976a914402cc08a2363ea33bc4f97ced5144690032aa51788ac98000000"
-  },
-  "error": null,
-  "id": 0
+   "result":{
+      "amount":2.4625000,
+      "confirmations":1,
+      "generated":false,
+      "blockHash":"4fa1a7534f3075eb8e028e60506fe9a96b5045268b3edcb533021533092b63e3",
+      "blockIndex":2,
+      "blockTime":1546974131,
+      "txId":"d5e0dee43245dc194f7bd315bda19689adde9edc54229767af7d347e60a0c45e",
+      "normTxId":"d5e0dee43245dc194f7bd315bda19689adde9edc54229767af7d347e60a0c45e",
+      "time":1546974617,
+      "timeReceived":1546974617,
+      "fee":-0.0001356,
+      "details":[
+         {
+            "account":"account 0",
+            "address":"TRbPDkwa8a73TS2FwGJv9ZhmTgnjtdPSkm",
+            "category":"send",
+            "amount":-2.5,
+            "fee":-0.0001356
+         },
+         {
+            "account":"account 0",
+            "address":"TBJLKYSU4t8L46GJ8DEYKdSHvR3xek6NiB",
+            "category":"receive",
+            "amount":0.0373644
+         }
+      ],
+      "hex":"01000000018f72b3fb4bb72e860a15ac30bcebc91bf094cea6d42c3483636fb38be5c86b7c000000006a4730440220617cdc627f10adf2ac990e4c38f11387fc1d951d2a518dc174e0ddc151139c9e0220669b20eaac7fc193df4fc430cf30f2073ff5fbe511f93036bc0dc802ed4aa6f301210202ca1d15f7ad59c7bd84ba9bcc82be89e0bc629201dea7cb4578db422ea594e6ffffffff0278033900000000001976a9140e96236d8d1a0ae3c7184709e5a0437201e7b03588ac107aad0e000000001976a914d9bf2945d33a4a16b54cb0b70bb4e225ecef58a988ac00000000"
+   },
+   "error":null,
+   "id":0
 }
 </code>
 
