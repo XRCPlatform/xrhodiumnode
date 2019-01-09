@@ -23,31 +23,17 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
     {
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
-
-        private readonly IPooledTransaction pooledTransaction;
-
-        /// <summary>An interface implementation used to retrieve unspent transactions from a pooled source.</summary>
-        private readonly IPooledGetUnspentTransaction pooledGetUnspentTransaction;
-
-        /// <summary>An interface implementation used to retrieve unspent transactions.</summary>
-        private readonly IGetUnspentTransaction getUnspentTransaction;
-
-        private readonly INetworkDifficulty networkDifficulty;
-
-        /// <summary>Manager of the longest fully validated chain of blocks.</summary>
-        private readonly IConsensusLoop consensusLoop;
+        
+        /// <summary>Instance of block store manager.</summary>
+        private readonly BlockStoreManager BlockStoreManager;
 
         public ExplorerRPCController(
             ILoggerFactory loggerFactory,
-            IPooledTransaction pooledTransaction = null,
-            IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,
-            IGetUnspentTransaction getUnspentTransaction = null,
-            INetworkDifficulty networkDifficulty = null,
-            IConsensusLoop consensusLoop = null,
+            ConcurrentChain chain,
+            BlockStoreManager blockStoreManager,
             IFullNode fullNode = null,
             NodeSettings nodeSettings = null,
             Network network = null,
-            ConcurrentChain chain = null,
             IChainState chainState = null,
             Node.Connection.IConnectionManager connectionManager = null)
             : base(
@@ -59,14 +45,12 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                   connectionManager: connectionManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.pooledTransaction = pooledTransaction;
-            this.pooledGetUnspentTransaction = pooledGetUnspentTransaction;
-            this.getUnspentTransaction = getUnspentTransaction;
-            this.networkDifficulty = networkDifficulty;
-            this.consensusLoop = consensusLoop;
+            this.BlockStoreManager = blockStoreManager;
         }
 
-        private ExplorerBlockModel ParseExplorerBlock(Block block, ChainedHeader chainedHeader, ChainedHeader chainedNextHeader = null)
+        private ExplorerBlockModel ParseExplorerBlock(Block block,
+            ChainedHeader chainedHeader,
+            ChainedHeader chainedNextHeader = null)
         {
             var result = new ExplorerBlockModel();
             result.Size = block.GetSerializedSize();
@@ -84,43 +68,55 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 result.Transactions = new List<ExplorerTransactionModel>();
 
-                var feeRate = new FeeRate(this.Settings.MinTxFeeRate.FeePerK);
-
-                foreach (var itemTransaction in block.Transactions)
+                foreach (var currentTx in block.Transactions)
                 {
-                    var newTransaction = new ExplorerTransactionModel();
-                    newTransaction.AddressTo = new List<ExplorerAddressModel>();
-                    newTransaction.AddressFrom = new List<ExplorerAddressModel>();
+                    var newTx = new ExplorerTransactionModel();
+                    newTx.AddressTo = new List<ExplorerAddressModel>();
+                    newTx.AddressFrom = new List<ExplorerAddressModel>();
 
-                    newTransaction.Hash = itemTransaction.GetHash().ToString();
-                    newTransaction.Time = chainedHeader.Header.BlockTime;
-                    newTransaction.Size = itemTransaction.GetSerializedSize();
-                    newTransaction.BlockHash = block.GetHash().ToString();
+                    newTx.Hash = currentTx.GetHash().ToString();
+                    newTx.Time = chainedHeader.Header.BlockTime;
+                    newTx.Size = currentTx.GetSerializedSize();
+                    newTx.BlockHash = block.GetHash().ToString();
 
-                    if (itemTransaction.Inputs != null)
+                    if (currentTx.Inputs != null)
                     {
-                        if (!itemTransaction.IsCoinBase)
+                        if (!currentTx.IsCoinBase)
                         {
-                            foreach (var itemInput in itemTransaction.Inputs)
+                            //read prevTx from blockchain
+                            var prevTxList = new List<IndexedTxOut>();
+                            foreach (var itemInput in currentTx.Inputs)
                             {
                                 var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
-                                //if (address == null) address = itemInput.ScriptSig.GetScriptAddress(this.Network);
-
                                 if (address != null)
                                 {
                                     var newAddress = new ExplorerAddressModel();
                                     newAddress.Address = address.ToString();
+                                    newTx.AddressFrom.Add(newAddress);
+                                }
 
-                                    newTransaction.AddressFrom.Add(newAddress);
+                                var prevTx = this.BlockStoreManager.BlockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                                if (prevTx != null)
+                                {
+                                    if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                                    {
+                                        var indexed = prevTx.Outputs.AsIndexedOutputs();
+                                        prevTxList.Add(indexed.First(i => i.N == itemInput.PrevOut.N));
+                                    }
                                 }
                             }
+
+                            var totalInputs = prevTxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+                            var fee = totalInputs - currentTx.TotalOut.ToUnit(MoneyUnit.Satoshi);
+                            newTx.Fee = fee;
+                            result.TransactionFees += fee;
                         }
                     }
 
-                    if (itemTransaction.Outputs != null)
+                    if (currentTx.Outputs != null)
                     {
                         var i = 0;
-                        foreach (var itemOutput in itemTransaction.Outputs)
+                        foreach (var itemOutput in currentTx.Outputs)
                         {
                             var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
                             if (address == null) address = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
@@ -130,21 +126,14 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                             newAddress.Satoshi = itemOutput.Value.Satoshi;
                             newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
 
-                            newTransaction.AddressTo.Add(newAddress);
+                            newTx.AddressTo.Add(newAddress);
                             i++;
                         }
 
-                        if (newTransaction.AddressTo != null) newTransaction.Satoshi = newTransaction.AddressTo.Sum(b => b.Satoshi);
+                        if (newTx.AddressTo != null) newTx.Satoshi = newTx.AddressTo.Sum(b => b.Satoshi);
                     }
 
-                    //calculate fee
-                    if (!itemTransaction.IsCoinBase)
-                    {
-                        var fee = feeRate.GetFee(itemTransaction);
-                        result.TransactionFees += fee.Satoshi;
-                    }
-
-                    result.Transactions.Add(newTransaction);
+                    result.Transactions.Add(newTx);
                 }
 
                 result.TotalSatoshi = result.Transactions.Sum(a => a.Satoshi);
@@ -163,20 +152,17 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             try
             {
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-
                 var result = new List<ExplorerBlockModel>();
 
                 ChainedHeader chainedNextHeader = null;
 
                 for (int i = 0; i < limit; i++)
                 {
-                    var height = chainRepository.Height;
+                    var height = this.Chain.Height;
                     if ((height - i) >= 0)
                     {
-                        var chainedHeader = chainRepository.GetBlock(height - i);
-                        var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                        var chainedHeader = this.Chain.GetBlock(height - i);
+                        var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
                         if (block == null) block = new PowBlock(chainedHeader.Header);
                         var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
@@ -210,15 +196,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             try
             {
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-
                 var result = new ExplorerBlockModel();
-
-                var block = blockStoreManager.BlockRepository.GetAsync(new uint256(hash)).Result;
-                var chainedHeader = chainRepository.GetBlock(new uint256(hash));
-
-                var chainedNextHeader = chainRepository.GetBlock(chainedHeader.Height + 1);
+                var block = this.BlockStoreManager.BlockRepository.GetAsync(new uint256(hash)).Result;
+                var chainedHeader = this.Chain.GetBlock(new uint256(hash));
+                var chainedNextHeader = this.Chain.GetBlock(chainedHeader.Height + 1);
 
                 if (chainedHeader != null)
                 {
@@ -245,29 +226,17 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             try
             {
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-
                 var result = new ExplorerBlockModel();
-                ChainedHeader chainedNextHeader = null;
 
-                for (int i = this.Chain.Height; i >= 0; i--)
+                var txHash = new uint256(hash);
+                var blockHash = this.BlockStoreManager.BlockRepository.GetTrxBlockIdAsync(txHash).GetAwaiter().GetResult();
+                var chainedHeader = this.Chain.GetBlock(new uint256(blockHash));
+                var chainedNextHeader = this.Chain.GetBlock(chainedHeader.Height + 1);
+                var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+
+                if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
                 {
-                    var chainedHeader = chainRepository.GetBlock(i);
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-
-                    if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
-                    {
-                        foreach (var itemTransaction in block.Transactions)
-                        {
-                            if (itemTransaction.GetHash().ToString() == hash)
-                            {
-                                result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
-                                chainedNextHeader = chainedHeader;
-                                break;
-                            }
-                        }
-                    }
+                    result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -283,20 +252,15 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// Gets the explorer address.
         /// </summary>
         /// <param name="offset">The offset.</param>
-        /// <param name="ignoreJson">The ignore json.</param>
-        /// <param name="address">The address.</param>
+        /// <param name="ignoreJson">Ignored height of blocks json.</param>
+        /// <param name="address">The address to find.</param>
         /// <returns>(List, ExplorerBlockModel) Object with information.</returns>
         [ActionName("getexploreraddress")]
         public IActionResult GetExplorerAddress(long offset, string ignoreJson, string address)
         {
             try
             {
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-
                 var result = new List<ExplorerBlockModel>();
-                ChainedHeader chainedNextHeader = null;
-
                 var ignoreArray = JsonConvert.DeserializeObject<List<int>>(ignoreJson);
 
                 for (int i = this.Chain.Height; i >= offset; i--)
@@ -306,34 +270,40 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         continue;
                     }
 
-                    var chainedHeader = chainRepository.GetBlock(i);
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    var chainedHeader = this.Chain.GetBlock(i);
+                    var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
                     try
                     {
                         if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
-                        {                                    
-                            var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+                        {
+                            var isForAdd = false;
 
-                            if (newBlock.Transactions != null)
+                            foreach (var currentTx in block.Transactions)
                             {
-                                foreach (var itemTx in newBlock.Transactions)
+                                foreach (var itemOutput in currentTx.Outputs)
                                 {
-                                    if (itemTx.AddressFrom != null)
-                                    {
-                                        if (itemTx.AddressFrom.Exists(a => a.Address == address))
-                                        {
-                                            result.Add(newBlock);
-                                            continue;
-                                        }
+                                    var txOutAddress = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
+                                    if (txOutAddress == null) txOutAddress = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
 
-                                        if (itemTx.AddressTo.Exists(a => a.Address == address))
-                                        {
-                                            result.Add(newBlock);
-                                            continue;
-                                        }
+                                    if ((txOutAddress != null) && (txOutAddress.ToString() == address))
+                                    {
+                                        isForAdd = true;
+                                        break;
                                     }
                                 }
+
+                                if (isForAdd)
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (isForAdd)
+                            {
+                                var chainedNextHeader = this.Chain.GetBlock(chainedHeader.Height + 1);
+                                var explorerBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+                                result.Add(explorerBlock);
                             }
                         }
                     }
@@ -341,7 +311,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     {
                         //be quite
                     }
-                    
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -354,7 +323,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         /// <summary>
-        /// Gets the height of the explorer address by.
+        /// Gets the blocks by heights.
         /// </summary>
         /// <param name="heightsJson">The heights json.</param>
         /// <returns>(List, ExplorerBlockModel) Object with information.</returns>
@@ -363,20 +332,16 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             try
             {
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-
                 var result = new List<ExplorerBlockModel>();
-
                 var heightsArray = JsonConvert.DeserializeObject<List<int>>(heightsJson);
 
                 foreach (var itemHeight in heightsArray)
                 {
-                    var chainedHeader = chainRepository.GetBlock(itemHeight);
+                    var chainedHeader = this.Chain.GetBlock(itemHeight);
                     if (chainedHeader == null) continue;
 
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-                    var chainedNextHeader = chainRepository.GetBlock(chainedHeader.Height + 1);
+                    var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    var chainedNextHeader = this.Chain.GetBlock(chainedHeader.Height + 1);
 
                     try
                     {
