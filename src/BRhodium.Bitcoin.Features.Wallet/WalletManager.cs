@@ -1397,10 +1397,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(wallet, nameof(wallet));
             this.logger.LogTrace("({0}:'{1}')", nameof(wallet), wallet.Name);
 
-            lock (this.lockObject)
-            {
-                this.DBreezeStorage.SaveToStorage(wallet, wallet.Name, this.network);
-            }
+            this.DBreezeStorage.SaveToStorage(wallet, wallet.Name, this.network);
 
             this.logger.LogTrace("(-)");
         }
