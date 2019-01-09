@@ -108,7 +108,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// Default for -mempoolreplacement, whether to replace memory pool.
         /// </summary>
         /// <seealso cref = "MempoolSettings" />
-        public const bool DefaultEnableReplacement = true;
+        public const bool DefaultEnableReplacement = false;
 
         /// <summary>Maximum age of our tip in seconds for us to be considered current for fee estimation.</summary>
         private const int MaxFeeEstimationTipAge = 3 * 60 * 60;
