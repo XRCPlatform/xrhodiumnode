@@ -1519,7 +1519,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
             if (balance.Transactions != null)
             {
-                newItemResult.TxIds = balance.Transactions.Select(a => a.Transaction.GetHash()).ToList();
+                newItemResult.TxIds = balance.Transactions.Select(a => a.Id).ToList();
 
                 var lastTx = balance.Transactions.Last();
                 var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
@@ -1624,9 +1624,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var result = new List<TransactionVerboseModel>();
-
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var txs = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 uint256 uintBlockHash = null;
@@ -1636,27 +1635,57 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var chainedTip = chainRepository.Tip;
 
-                foreach (var tx in txs)
+                if ((txList != null) && (txList.Count() > 0))
                 {
-                    if (uintBlockHash != null)
+                    txList = txList.OrderByDescending(t => t.BlockHeight).ToList();
+                    foreach (var txItem in txList)
                     {
-                        if (tx.BlockHash != uintBlockHash)
+                        if (uintBlockHash != null)
                         {
-                            continue;
+                            if (txItem.BlockHash != uintBlockHash)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                uintBlockHash = null; //remove block
+                            }
                         }
-                        else
+
+                        var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
+                        var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
+                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
+
+                        if ((tx != null) && (block != null) && (chainedHeader != null))
                         {
-                            uintBlockHash = null; //remove block
-                        }
-                    }
+                            chainedHeader.Block = block;
 
-                    if (tx.IsSpendable())
-                    {
-                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(tx.BlockHash);
-                        var newTxVerboseModel = new TransactionVerboseModel(tx.Transaction, this.network, chainedHeader, chainedTip);
+                            //read prevTx from blockchain
+                            var prevTxList = new List<IndexedTxOut>();
+                            foreach (var itemInput in tx.Inputs)
+                            {
+                                var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                                if (prevTx != null)
+                                {
+                                    if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                                    {
+                                        var indexed = prevTx.Outputs.AsIndexedOutputs();
+                                        prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
+                                    }
+                                }
+                            }
 
-                        if (newTxVerboseModel.Confirmations >= target_confirmations)
+                            var newTxVerboseModel = new TransactionVerboseModel(
+                                tx,
+                                prevTxList,
+                                block,
+                                chainedHeader,
+                                chainRepository.Tip,
+                                this.network,
+                                this.walletManager as WalletManager);
+
                             result.Add(newTxVerboseModel);
+                        }
                     }
                 }
 
@@ -1688,32 +1717,63 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var result = new List<TransactionVerboseModel>();
-
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var txs = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 var i = 0;
                 var chainedTip = chainRepository.Tip;
 
-                foreach (var tx in txs)
+                if ((txList != null) && (txList.Count() > 0))
                 {
-                    if (i >= from)
+                    txList = txList.OrderByDescending(t => t.BlockHeight).ToList();
+                    foreach (var txItem in txList)
                     {
-                        if (i > from + count)
+                        if (i >= from)
                         {
-                            break;
+                            if (i > from + count - 1)
+                            {
+                                break;
+                            }
+
+                            var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
+                            var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
+                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
+
+                            if ((tx != null) && (block != null) && (chainedHeader != null))
+                            {
+                                chainedHeader.Block = block;
+
+                                //read prevTx from blockchain
+                                var prevTxList = new List<IndexedTxOut>();
+                                foreach (var itemInput in tx.Inputs)
+                                {
+                                    var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                                    if (prevTx != null)
+                                    {
+                                        if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                                        {
+                                            var indexed = prevTx.Outputs.AsIndexedOutputs();
+                                            prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
+                                        }
+                                    }
+                                }
+
+                                var newTxVerboseModel = new TransactionVerboseModel(
+                                    tx,
+                                    prevTxList,
+                                    block,
+                                    chainedHeader,
+                                    chainedTip,
+                                    this.network,
+                                    this.walletManager as WalletManager);
+
+                                result.Add(newTxVerboseModel);
+                            }
                         }
 
-                        if (tx.IsSpendable())
-                        {
-                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(tx.BlockHash);
-                            var newTxVerboseModel = new TransactionVerboseModel(tx.Transaction, this.network, chainedHeader, chainedTip);
-                            result.Add(newTxVerboseModel);
-                        }
+                        i++;
                     }
-
-                    i++;
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -1753,9 +1813,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     foreach (var itemUnspendTx in unspendTx)
                     {
-                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(itemUnspendTx.Transaction.BlockHash);
-                        var newTxVerboseModel = new TransactionVerboseModel(itemUnspendTx.Transaction.Transaction, this.network, chainedHeader, chainRepository.Tip);
-                        result.Add(newTxVerboseModel);
+                        var txItem = itemUnspendTx.Transaction;
+                        var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
+                        var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
+                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
+
+                        if ((tx != null) && (block != null) && (chainedHeader != null))
+                        {
+                            chainedHeader.Block = block;
+
+                            //read prevTx from blockchain
+                            var prevTxList = new List<IndexedTxOut>();
+                            foreach (var itemInput in tx.Inputs)
+                            {
+                                var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                                if (prevTx != null)
+                                {
+                                    if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                                    {
+                                        var indexed = prevTx.Outputs.AsIndexedOutputs();
+                                        prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
+                                    }
+                                }
+                            }
+
+                            var newTxVerboseModel = new TransactionVerboseModel(
+                                tx,
+                                prevTxList,
+                                block,
+                                chainedHeader,
+                                chainRepository.Tip,
+                                this.network,
+                                this.walletManager as WalletManager);
+
+                            result.Add(newTxVerboseModel);
+                        }
                     }
                 }
 
