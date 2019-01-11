@@ -1681,6 +1681,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 block,
                                 chainedHeader,
                                 chainRepository.Tip,
+                                walletName,
                                 this.network,
                                 this.walletManager as WalletManager);
 
@@ -1765,6 +1766,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     block,
                                     chainedHeader,
                                     chainedTip,
+                                    walletName,
                                     this.network,
                                     this.walletManager as WalletManager);
 
@@ -1843,6 +1845,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 block,
                                 chainedHeader,
                                 chainRepository.Tip,
+                                walletName,
                                 this.network,
                                 this.walletManager as WalletManager);
 

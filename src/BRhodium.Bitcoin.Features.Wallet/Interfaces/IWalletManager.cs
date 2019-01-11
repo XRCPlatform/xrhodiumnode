@@ -358,10 +358,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Provides transaction details
         /// </summary>
+        /// <param name="walletName">Wallet Name</param>
         /// <param name="transaction">Transaction</param>
         /// <param name="prevTransactions">All prev inputs transactions</param>
         /// <param name="transactionModel">Output response model</param>
         /// <returns>Response transaction model</returns>
-        TransactionModel GetTransactionDetails(Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
+        TransactionModel GetTransactionDetails(string walletName, Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
     }
 }

@@ -486,7 +486,36 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                var reqTransactionId = uint256.Parse(args[0]);
+                if (this.walletManager.Wallets.Count() > 1)
+                {
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
+                    response.Code = "-100";
+                    response.Message = "Call gettransactionbywallet you have more than one wallet";
+                    return this.Json(ResultHelper.BuildResultResponse(response));
+                }
+
+                return GetTransactionByWallet(null, args[0]);
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Get detailed information about in-wallet transaction.
+        /// </summary>
+        /// <param name="walletName"></param>
+        /// <param name="txId"></param>
+        /// <returns></returns>
+        [ActionName("gettransactionbywallet")]
+        [ActionDescription("Get detailed information about in-wallet transaction.")]
+        public IActionResult GetTransactionByWallet(string walletName, string txId)
+        {
+            try
+            {
+                var reqTransactionId = uint256.Parse(txId);
                 if (reqTransactionId == null)
                 {
                     var response = new Node.Utilities.JsonContract.ErrorModel();
@@ -555,7 +584,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 //read tx details of in-wallet tx
-                txResponse = this.walletManager.GetTransactionDetails(currentTx, prevTxList, txResponse);
+                txResponse = this.walletManager.GetTransactionDetails(walletName, currentTx, prevTxList, txResponse);
 
                 //set state of newly generated coins
                 if (currentTx.IsCoinBase && txResponse.Details.Count > 0 && txResponse.Details.First().Category == "receive")

@@ -52,6 +52,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
             Block block,
             ChainedHeader blockHeader,
             ChainedHeader tipBlockHeader,
+            string walletName,
             Network network,
             WalletManager walletManager) : base(trx)
         {
@@ -94,10 +95,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                     {
                         if (walletManager.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
                         {
-                            this.Address = address.Address;
-                            this.Category = "send";
+                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
+                            {
+                                if (keyWalletName == walletName)
+                                {
+                                    this.Address = address.Address;
+                                    this.Category = "send";
 
-                            isSendTx = true;
+                                    isSendTx = true;
+                                }
+                            }
                         }
                     }
 
@@ -105,15 +112,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                     {
                         if (walletManager.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
                         {
-                            if (!address.IsChangeAddress())
+                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
                             {
-                                this.Address = address.Address;
-                                this.Category = "receive";
-                                clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
-                            }
-                            else
-                            {
-                                clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
+                                if (keyWalletName == walletName)
+                                {
+
+                                    if (!address.IsChangeAddress())
+                                    {
+                                        this.Address = address.Address;
+                                        this.Category = "receive";
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
+                                    }
+                                    else
+                                    {
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
+                                    }
+                                }
                             }
                         }
                     }

@@ -95,6 +95,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         // 2. the list of addresses contained in our wallet for checking whether a transaction is being paid to the wallet.
         private Dictionary<OutPoint, TransactionData> outpointLookup;
         internal Dictionary<Script, HdAddress> keysLookup;
+        internal Dictionary<Script, string> keysLookupToWalletName;
 
         public WalletManager(
             ILoggerFactory loggerFactory,
@@ -142,6 +143,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             this.keysLookup = new Dictionary<Script, HdAddress>();
+            this.keysLookupToWalletName = new Dictionary<Script, string>();
             this.outpointLookup = new Dictionary<OutPoint, TransactionData>();
         }
 
@@ -245,7 +247,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 HdAccount account = wallet.AddNewAccount(password, this.coinType, this.dateTimeProvider.GetTimeOffset());
                 IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this.network, UnusedAddressesBuffer);
                 IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this.network, UnusedAddressesBuffer, true);
-                this.UpdateKeysLookupLock(newReceivingAddresses.Concat(newChangeAddresses));
+                this.UpdateKeysLookupLock(newReceivingAddresses.Concat(newChangeAddresses), wallet.Name);
             }
 
             // If the chain is downloaded, we set the height of the newly created wallet to it.
@@ -338,7 +340,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 HdAccount account = wallet.AddNewAccount(password, this.coinType, this.dateTimeProvider.GetTimeOffset());
                 IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this.network, UnusedAddressesBuffer);
                 IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this.network, UnusedAddressesBuffer, true);
-                this.UpdateKeysLookupLock(newReceivingAddresses.Concat(newChangeAddresses));
+                this.UpdateKeysLookupLock(newReceivingAddresses.Concat(newChangeAddresses), wallet.Name);
             }
 
             // If the chain is downloaded, we set the height of the recovered wallet to that of the recovery date.
@@ -514,7 +516,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 if (diff < 0)
                 {
                     newAddresses = account.CreateAddresses(this.network, Math.Abs(diff), isChange: isChange).ToList();
-                    this.UpdateKeysLookupLock(newAddresses);
+                    this.UpdateKeysLookupLock(newAddresses, wallet.Name);
                     generated = true;
                 }
 
@@ -554,7 +556,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 List<HdAddress> newAddresses = new List<HdAddress>();
                 newAddresses = account.CreateAddresses(this.network, count, isChange: isChange).ToList();
-                this.UpdateKeysLookupLock(newAddresses);
+                this.UpdateKeysLookupLock(newAddresses, wallet.Name);
 
                 addresses = unusedAddresses.Concat(newAddresses).OrderBy(x => x.Index).ToList();
             }
@@ -1002,7 +1004,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public TransactionModel GetTransactionDetails(Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel)
+        public TransactionModel GetTransactionDetails(
+            string walletName,
+            Transaction transaction,
+            List<IndexedTxOut> prevTransactions,
+            TransactionModel transactionModel)
         {
             Guard.NotNull(transaction, nameof(transaction));
 
@@ -1018,14 +1024,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 if (this.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
                 {
-                    details.Add(new TransactionDetail()
+                    if (this.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
                     {
-                        Account = DefaultAccount,
-                        Address = address.Address,
-                        Category = "send",
-                        Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.BTR) * -1,
-                        Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR)
-                    });
+                        if ((walletName == null) || (keyWalletName == walletName))
+                        {
+                            details.Add(new TransactionDetail()
+                            {
+                                Account = DefaultAccount,
+                                Address = address.Address,
+                                Category = "send",
+                                Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.BTR) * -1,
+                                Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR)
+                            });
+                        }
+                    }
                 }
             }
 
@@ -1049,18 +1061,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 if (this.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
                 {
-                    if (address.IsChangeAddress())
+                    if (this.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
                     {
-                        isSendTx = true;
-                    }
+                        if ((walletName == null) || (keyWalletName == walletName))
+                        {
+                            if (address.IsChangeAddress())
+                            {
+                                isSendTx = true;
+                            }
 
-                    details.Add(new TransactionDetail()
-                    {
-                        Account = DefaultAccount,
-                        Address = address.Address,
-                        Category = "receive",
-                        Amount = utxo.Value.ToUnit(MoneyUnit.BTR)
-                    });
+                            details.Add(new TransactionDetail()
+                            {
+                                Account = DefaultAccount,
+                                Address = address.Address,
+                                Category = "receive",
+                                Amount = utxo.Value.ToUnit(MoneyUnit.BTR)
+                            });
+                        }
+                    }
                 }
             }
 
@@ -1369,7 +1387,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
                     var newAddresses = account.CreateAddresses(this.network, accountsToAdd, isChange);
 
-                    this.UpdateKeysLookupLock(newAddresses);
+                    this.UpdateKeysLookupLock(newAddresses, wallet.Name);
                 }
             }
 
@@ -1529,8 +1547,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (HdAddress address in addresses)
                     {
                         this.keysLookup[address.ScriptPubKey] = address;
+                        this.keysLookupToWalletName[address.ScriptPubKey] = wallet.Name;
                         if (address.Pubkey != null)
+                        {
                             this.keysLookup[address.Pubkey] = address;
+                            this.keysLookupToWalletName[address.Pubkey] = wallet.Name;
+                        }
 
                         foreach (var transaction in address.Transactions)
                         {
@@ -1544,7 +1566,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Update the keys and transactions we're tracking in memory for faster lookups.
         /// </summary>
-        public void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses)
+        public void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses, string walletName)
         {
             if (addresses == null || !addresses.Any())
             {
@@ -1556,8 +1578,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 foreach (HdAddress address in addresses)
                 {
                     this.keysLookup[address.ScriptPubKey] = address;
+                    this.keysLookupToWalletName[address.ScriptPubKey] = walletName;
                     if (address.Pubkey != null)
+                    {
                         this.keysLookup[address.Pubkey] = address;
+                        this.keysLookupToWalletName[address.Pubkey] = walletName;
+                    }
                 }
             }
         }
