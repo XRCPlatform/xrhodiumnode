@@ -7,13 +7,19 @@
 <list class="bullet">
   <listItem><link xlink:href="#GenerateWallet"><legacyBold>GenerateNewWallet</legacyBold></link> - Generate new wallet</listItem>
   <listItem><link xlink:href="#GetNewAddress"><legacyBold>GetNewAddress</legacyBold></link> - Get new address for your wallet</listItem>
-  <listItem><link xlink:href="#ValidateAddress"><legacyBold>ValidateAddress</legacyBold></link> - Validate your address</listItem>  
+  <listItem><link xlink:href="#ValidateAddress"><legacyBold>ValidateAddress</legacyBold></link> - Validate your address</listItem>   
   <listItem><link xlink:href="#GetWalletInfo"><legacyBold>GetWalletInfo</legacyBold></link> - Get information about your wallet</listItem>  
   <listItem><link xlink:href="#GetBlockCount"><legacyBold>GetBlockCount</legacyBold></link> - Get block count from block chain</listItem> 
   <listItem><link xlink:href="#SendToAddress"><legacyBold>SendToAddress</legacyBold></link> - Send coins to selected address</listItem>
   <listItem><link xlink:href="#RestoreWallet"><legacyBold>RestoreFromSeed</legacyBold></link> - Restore your wallet from seed and password</listItem>  
   <listItem><link xlink:href="#Rescan"><legacyBold>RescanBlockchain</legacyBold></link> - Function to load transactions from old blocks</listItem>        
-  <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction</legacyBold></link> - Return information about specified transaction</listItem> 
+  <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction/GetTransactionByWallet</legacyBold></link> - Return information about specified transaction</listItem> 
+  <listItem><link xlink:href="#ListTransactions"><legacyBold>ListTransactions</legacyBold></link> - Return list of last send/received transactions</listItem> 
+  <listItem><link xlink:href="#ListReceivedByAddress"><legacyBold>ListReceivedByAddress</legacyBold></link> - The lists the total number of XRC received by each address.</listItem> 
+  
+  ListReceivedByAddress
+  
+  
 </list>
       
     <para>You can find more API RPC-JSON in <codeEntityReference qualifyHint="true" linkText="full documentation">R:Project_Documentation</codeEntityReference>.</para>
@@ -397,16 +403,21 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
     </section>  
     
     <section address="GetTransaction">
-      <title>GetTransaction</title>
+      <title>GetTransaction/GetTransactionByWallet</title>
       <content>
 			<para>Return information about specified transaction in block chain base on your local wallet.</para>
-		
+		<para>If you have more then one wallet you need to use <legacyBold>gettransactionbywallet</legacyBold>.</para>
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController.GetTransaction(System.String[])</codeEntityReference></para>
 
 			<para>Call example:</para>	
 <code language="cs">
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransaction","params" : ["a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
 </code>			
+
+<para>If you have more wallets you have to call <legacyBold>gettransactionbywallet</legacyBold> with definition of wallet.</para>
+<code language="cs">
+curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransactionbywallet","params" : ["**yourwalletname**","a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
+</code>		
 
 <para>Example of a result:</para>
 
@@ -445,9 +456,120 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
    "id":0
 }
 </code>
-
       </content>
     </section>  
-     
+          
+   <section address="ListTransactions">
+      <title>ListTransactions</title>
+      <content>
+			<para>Return list of last send/received transactions in your local wallet.</para>
+<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ListTransactions(System.String,System.Int32,System.Int32)</codeEntityReference> </para>
+
+			<para>Call example:</para>	
+<code language="cs">
+curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "listtransactions","params" : ["**walletname**"]}]'
+</code>			
+
+<para>Example of a result:</para>
+
+<code language="cs">
+{
+   "result":[
+      {
+         "hex":"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2602ac0707062f503253482f04ed85385c00ed245688000000000c2f4d696e696e67436f72652f000000000180b2e60e000000001976a914ab616448c7c216ba684bb9af5154c5edc4ca9fbd88ac00000000",
+         "txid":"6fc4fd0ab858de3a77e3a40ffa3dea3195f2190b3de51247984cb3e9e65ac249",
+         "size":123,
+         "version":1,
+         "locktime":0,
+         "vin":[
+            {
+               "coinbase":"02ac0707062f503253482f04ed85385c00ed245688000000000c2f4d696e696e67436f72652f",
+               "sequence":0
+            }
+         ],
+         "vout":[
+            {
+               "value":2.50000000,
+               "n":0,
+               "scriptPubKey":{
+                  "asm":"OP_DUP OP_HASH160 ab616448c7c216ba684bb9af5154c5edc4ca9fbd OP_EQUALVERIFY OP_CHECKSIG",
+                  "hex":"76a914ab616448c7c216ba684bb9af5154c5edc4ca9fbd88ac",
+                  "reqSigs":1,
+                  "type":"pubkeyhash",
+                  "addresses":[
+                     "TRbPDkwa8a73TS2FwGJv9ZhmTgnjtdPSkm"
+                  ]
+               }
+            }
+         ],
+         "blockhash":"e61d5577060de8fc080c39507d7db6145b8bded0505ceb3ae08169c2c823a6f0",
+         "confirmations":1,
+         "time":1547208173,
+         "blocktime":1547208173,
+         "category":"immature",
+         "amount":2.5,
+         "fee":2.5,
+         "blockindex":1,
+         "timereceived":1547219969,
+         "address":"TRbPDkwa8a73TS2FwGJv9ZhmTgnjtdPSkm",
+         "blockheight":1964
+      },
+      {
+...
+      }
+   ],
+   "error":null,
+   "id":0
+}
+</code>
+      </content>
+    </section>  
+    
+   <section address="ListReceivedByAddress">
+      <title>ListReceivedByAddress</title>
+      <content>
+			<para>List balances by receiving address.</para>
+		<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ListReceivedByAddress(System.String,System.Int32,System.Boolean)</codeEntityReference></para>
+
+			<para>Call example:</para>	
+<code language="cs">
+curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "listreceivedbyaddress","params" : ["**walletname**"]}]'
+</code>			
+
+<para>Example of a result:</para>
+
+<code language="cs">
+{
+   "result":[
+      {
+         "address":"TTFfmc2ds2usS8Et9CWkpDJwMuxFdCyAqr",
+         "amount":55.0,
+         "confirmations":762,
+         "txids":[
+            "3afdf140ece5abb17786118ae3011193e1a6c2c9c7e5035e4597d7427ac3ebb6"
+         ]
+      },
+      {
+         "address":"TRbPDkwa8a73TS2FwGJv9ZhmTgnjtdPSkm",
+         "amount":122.99999998,
+         "confirmations":1,
+         "txids":[
+            "61613d6d6b477dd6aa03e2c9ebd894f586ffd157276c519465df4dbeb348b615",
+            "47739a81cf6d9fe24203441f4e57f34e79657884c3dd00cf4a9fb0999d40e490",
+            "82f59de992e6e37608838fc12d12369c85f6274b321992f75f6ae120dc1721ef",
+            "8c122c06f22d9cc5675452aad9551f2524731daa0a9e290f05c7a624d43c5bbe",
+     ...
+         ]
+      },
+	  
+	  ...
+   ],
+   "error":null,
+   "id":0
+}
+</code>
+      </content>
+    </section>  
+    
   </developerHowToDocument>
 </topic>

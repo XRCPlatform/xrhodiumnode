@@ -23,7 +23,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
             NodeSettings nodeSettings = NodeSettings.Default();
             uint expectedProtocolVersion = (uint)nodeSettings.ProtocolVersion;
-            var expectedRelayFee = nodeSettings.MinRelayTxFeeRate.FeePerK.ToUnit(NBitcoin.MoneyUnit.BTR);
+            var expectedRelayFee = nodeSettings.MinRelayTxFeeRate.FeePerK.ToUnit(NBitcoin.MoneyUnit.XRC);
             Assert.NotNull(info);
             Assert.Equal(0, info.Blocks);
             Assert.NotEqual<uint>(0, info.Version);

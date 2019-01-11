@@ -146,7 +146,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public Vout(int N, TxOut txout, Network network)
         {
             this.N = N;
-            this.Value = txout.Value.ToDecimal(MoneyUnit.BTR);
+            this.Value = txout.Value.ToDecimal(MoneyUnit.XRC);
             this.ScriptPubKey = new ScriptPubKey(txout.ScriptPubKey, network);
         }
 

@@ -144,7 +144,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
-                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliBTR), destination));
+                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliXRC), destination));
                 }
 
                 var txHex = transaction.ToHex();
@@ -239,7 +239,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var fee = feeRate.GetFee(fundTransaction);
 
                 result.Hex = fundTransaction.ToHex();
-                result.Fee = fee.ToUnit(MoneyUnit.BTR);
+                result.Fee = fee.ToUnit(MoneyUnit.XRC);
                 result.ChangePos = -1;
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -669,7 +669,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 decimal fee;
                 result = decimal.TryParse(amount, out fee);
 
-                if (result) this.WalletFeePolicy.SetPayTxFee(new Money(fee, MoneyUnit.BTR));
+                if (result) this.WalletFeePolicy.SetPayTxFee(new Money(fee, MoneyUnit.XRC));
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }

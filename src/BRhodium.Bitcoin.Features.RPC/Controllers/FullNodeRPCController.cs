@@ -92,7 +92,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     Proxy = string.Empty,
                     Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
                     Testnet = this.Network.IsTest(),
-                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
+                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.XRC) ?? 0,
                     Errors = string.Empty
                 };
 
@@ -127,7 +127,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     NetworkActive = this.ConnectionManager?.IsActive,
                     Networks = new List<GetNetworkInfoNetworkModel>(),
                     IncrementalFee = 0,
-                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.BTR) ?? 0,
+                    RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.XRC) ?? 0,
                     LocalAddresses = new List<GetNetworkInfoAddressModel>(),
                     Warning = string.Empty
                 };

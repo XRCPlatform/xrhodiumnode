@@ -1033,8 +1033,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 Account = DefaultAccount,
                                 Address = address.Address,
                                 Category = "send",
-                                Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.BTR) * -1,
-                                Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR)
+                                Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.XRC) * -1,
+                                Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC)
                             });
                         }
                     }
@@ -1045,7 +1045,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             if (details.Count > 0)
             {
                 //total fee is here if we just send tx
-                transactionModel.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR);
+                transactionModel.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
 
                 var sumFee = details.Sum(f => f.Fee);
                 if (sumFee != transactionModel.Fee)
@@ -1075,7 +1075,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 Account = DefaultAccount,
                                 Address = address.Address,
                                 Category = "receive",
-                                Amount = utxo.Value.ToUnit(MoneyUnit.BTR)
+                                Amount = utxo.Value.ToUnit(MoneyUnit.XRC)
                             });
                         }
                     }
@@ -1085,7 +1085,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             if (isSendTx)
             {
                 var clearOutAmount = details.Where(o => o.Category == "receive").Sum(a => a.Amount);
-                transactionModel.Amount = transaction.TotalOut.ToUnit(MoneyUnit.BTR) - clearOutAmount;
+                transactionModel.Amount = transaction.TotalOut.ToUnit(MoneyUnit.XRC) - clearOutAmount;
             }
             else
             {
@@ -1117,12 +1117,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     Account = DefaultAccount,
                     Address = destinationAddress,
-                    Amount = paidToOutput.Value.ToUnit(MoneyUnit.BTR),
+                    Amount = paidToOutput.Value.ToUnit(MoneyUnit.XRC),
                     Category = "send"
                 });
             }
 
-            return spentTransaction.Amount.ToDecimal(MoneyUnit.BTR);
+            return spentTransaction.Amount.ToDecimal(MoneyUnit.XRC);
         }
 
         private string GetOutputDestinationAddress(TxOut txOut)

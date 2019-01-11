@@ -313,5 +313,22 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
                 this.mempoolLogger.LogInformation("...{0} entries accepted.", i);
             }
         }
+
+        /// <summary>
+        /// Remove transaction from mempool.
+        /// </summary>
+        /// <param name="trxid">Transaction id.</param>
+        /// <returns></returns>
+        public Task RemoveTransactionFromMempool(uint256 trxid)
+        {
+            return this.MempoolLock.WriteAsync(() =>
+            {
+                var entry = this.memPool.GetEntry(trxid);
+                this.memPool.RemoveTransaction(entry);
+
+                this.Validator.PerformanceCounter.SetMempoolSize(this.memPool.Size);
+                this.Validator.PerformanceCounter.SetMempoolDynamicSize(this.memPool.DynamicMemoryUsage());
+            });
+        }
     }
 }

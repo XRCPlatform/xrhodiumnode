@@ -32,6 +32,7 @@ using System.Reflection;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.TransactionVerboseModel;
 using System.Security;
+using BRhodium.Node.Base;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -52,6 +53,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private readonly Network network;
         private readonly IConnectionManager connectionManager;
         private readonly IWalletSyncManager walletSyncManager;
+        private readonly ConcurrentChain chain;
+
         private BlockStoreCache blockStoreCache { get; set; }
         private IWalletManager walletManager { get; set; }
         private IConsensusLoop ConsensusLoop { get; set; }
@@ -72,33 +75,31 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             IWalletManager walletManager,
             ILoggerFactory loggerFactory,
             IFullNode fullNode,
+            NodeSettings nodeSettings,
+            Network network,
+            ConcurrentChain chain,
+            IConnectionManager connectionManager,
             IWalletFeePolicy walletFeePolicy,
             IWalletKeyPool walletKeyPool,
             IBlockRepository blockRepository,
-            NodeSettings nodeSettings,
-            Network network,
             IBroadcasterManager broadcasterManager,
-            IConnectionManager connectionManager,
             IWalletSyncManager walletSyncManager,
-            IConsensusLoop consensusLoop = null)
+            IChainState chainState = null,
+            IConsensusLoop consensusLoop = null) : base(fullNode, nodeSettings, network, chain, chainState, connectionManager)
         {
             this.walletManager = walletManager;
             this.serviceProvider = serviceProvider;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.Network = fullNode.Network;
-            this.FullNode = fullNode;
             this.broadcasterManager = broadcasterManager;
-            this.connectionManager = connectionManager;
             this.walletSyncManager = walletSyncManager;
             this.ConsensusLoop = consensusLoop;
             this.walletFeePolicy = walletFeePolicy;
             this.walletKeyPool = walletKeyPool;
+            this.chain = chain;
 
             this.loggerFactory = loggerFactory;
-            this.nodeSettings = nodeSettings;
             this.blockRepository = blockRepository;
-            this.network = network;
-            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
+            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.Settings);
         }
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var mywallet = this.walletManager.GetWallet(walletName);
 
-                var money = new Money(amount, MoneyUnit.BTR);
+                var money = new Money(amount, MoneyUnit.XRC);
                 var hdaccount = mywallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
                 var transaction = SendMoney(hdaccount.Name, walletName, address, password, money.Satoshi);
 
@@ -422,7 +423,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     totalBalance = MoneyExtensions.Sum(balances);
                 }
 
-                var balance = totalBalance.ToUnit(MoneyUnit.BTR);
+                var balance = totalBalance.ToUnit(MoneyUnit.XRC);
 
                 return this.Json(ResultHelper.BuildResultResponse(balance));
             }
@@ -607,7 +608,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
             var w = this.walletManager;
             var wallet = w.GetWalletByName(walletName);
-            return wallet.GetAccountsByCoinType((CoinType)this.network.Consensus.CoinType).ToArray().First();
+            return wallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
         }
 
         /// <summary>
@@ -759,7 +760,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 recipients.Add(new Recipient
                 {
-                    Amount = new Money(item.Value, MoneyUnit.BTR),
+                    Amount = new Money(item.Value, MoneyUnit.XRC),
                     ScriptPubKey = BitcoinAddress.Create(item.Key, this.Network).ScriptPubKey
                 });
             };
@@ -801,7 +802,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 // Get a list of all the transactions found in an account (or in a wallet if no account is specified), with the addresses associated with them.
                 IEnumerable<AccountHistory> accountsHistory = this.walletManager.GetHistory(walletName, hdAcccountName);
 
-                var feeRate = new FeeRate(this.nodeSettings.MinTxFeeRate.FeePerK);
+                var feeRate = new FeeRate(this.Settings.MinTxFeeRate.FeePerK);
                 var blockManager = this.FullNode.NodeService<BlockStoreManager>();
 
                 foreach (var accountHistory in accountsHistory)
@@ -904,7 +905,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         TransactionsHistory = transactionItems.OrderByDescending(t => t.Timestamp).ToList(),
                         Name = accountHistory.Account.Name,
-                        CoinType = (CoinType)this.network.Consensus.CoinType,
+                        CoinType = (CoinType)this.Network.Consensus.CoinType,
                         HdPath = accountHistory.Account.HdPath
                     });
                 }
@@ -1015,7 +1016,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         {
                             wallet.BlockLocator = chainedHeader.GetLocator().Blocks;
 
-                            foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType))
+                            foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.Network.Consensus.CoinType))
                             {
                                 if ((accountRoot.LastBlockSyncedHeight == null) || (accountRoot.LastBlockSyncedHeight < i))
                                 {
@@ -1122,7 +1123,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 fileContent.AppendLine("# * mined on" + Utils.UnixTimeToDateTime(chainedHeader.Header.Time).DateTime.ToString("yyyy-MM-ddTHH:mm:ssK"));
                 fileContent.AppendLine(string.Empty);
 
-                var addresses = wallet.GetAllAddressesByCoinType((CoinType)this.network.Consensus.CoinType);
+                var addresses = wallet.GetAllAddressesByCoinType((CoinType)this.Network.Consensus.CoinType);
 
                 foreach (var item in addresses)
                 {
@@ -1242,7 +1243,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 foreach (var itemWallet in this.walletManager.Wallets)
                 {
                     var balances = this.walletManager.GetBalances(itemWallet.Name);
-                    var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.network.Consensus.CoinType).ToList();
+                    var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.Network.Consensus.CoinType).ToList();
 
                     foreach (var itemAccount in accountBalances)
                     {
@@ -1251,7 +1252,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var money = new Money(unspendAmountSatoshi);
-                return this.Json(ResultHelper.BuildResultResponse(money.ToUnit(MoneyUnit.BTR)));
+                return this.Json(ResultHelper.BuildResultResponse(money.ToUnit(MoneyUnit.XRC)));
             }
             catch (Exception e)
             {
@@ -1281,15 +1282,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var wallet = this.walletManager.GetWalletByName(walletName);
                 var balances = this.walletManager.GetBalances(walletName);
 
-                var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.network.Consensus.CoinType).ToList();
+                var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.Network.Consensus.CoinType).ToList();
 
-                result.Balance = new Money(accountBalances.Sum(a => a.AmountConfirmed.Satoshi)).ToUnit(MoneyUnit.BTR);
+                result.Balance = new Money(accountBalances.Sum(a => a.AmountConfirmed.Satoshi)).ToUnit(MoneyUnit.XRC);
                 result.WalletVersion = this.FullNode?.Version?.ToString() ?? string.Empty;
                 result.WalletName = walletName;
-                result.UnconfirmedBalance = new Money(accountBalances.Sum(a => a.AmountUnconfirmed.Satoshi)).ToUnit(MoneyUnit.BTR);
-                result.PayTxFee = this.walletFeePolicy.GetPayTxFee().FeePerK.ToUnit(MoneyUnit.BTR);
+                result.UnconfirmedBalance = new Money(accountBalances.Sum(a => a.AmountUnconfirmed.Satoshi)).ToUnit(MoneyUnit.XRC);
+                result.PayTxFee = this.walletFeePolicy.GetPayTxFee().FeePerK.ToUnit(MoneyUnit.XRC);
 
-                var txCount = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var txCount = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 result.TxCount = txCount == null ? 0 : txCount.Count();
 
                 var passwordExpiration = walletPasswordExpiration.TryGet(wallet.Name);
@@ -1377,11 +1378,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 HdAddress hdAddress = null;
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.Network.Consensus.CoinType);
                 if (account != null)
                 {
                     var hdAccount = account.GetAccountByName(DEFAULT_ACCOUNT_NAME);
-                    hdAddress = hdAccount.ImportAddress(this.network, address);
+                    hdAddress = hdAccount.ImportAddress(this.Network, address);
                     if (hdAddress != null)
                     {
                         this.walletManager.SaveWallet(wallet);
@@ -1425,11 +1426,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 HdAddress hdAddress = null;
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+                var account = wallet.AccountsRoot.FirstOrDefault(a => a.CoinType == (CoinType)this.Network.Consensus.CoinType);
                 if (account != null)
                 {
                     var hdAccount = account.GetAccountByName(DEFAULT_ACCOUNT_NAME);
-                    hdAddress = hdAccount.CreateAddresses(this.network, pubKey);
+                    hdAddress = hdAccount.CreateAddresses(this.Network, pubKey);
                     if (hdAddress != null)
                     {
                         this.walletManager.SaveWallet(wallet);
@@ -1466,7 +1467,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType).ToList();
+                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.Network.Consensus.CoinType).ToList();
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 foreach (var itemAccount in accountsRoot)
@@ -1515,7 +1516,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
 
             newItemResult.Address = address;
-            newItemResult.Amount = balance.GetTotalAmount().ToUnit(MoneyUnit.BTR);
+            newItemResult.Amount = balance.GetTotalAmount().ToUnit(MoneyUnit.XRC);
 
             if (balance.Transactions != null)
             {
@@ -1581,7 +1582,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.network.Consensus.CoinType).ToList();
+                var accountsRoot = wallet.AccountsRoot.Where(a => a.CoinType == (CoinType)this.Network.Consensus.CoinType).ToList();
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 foreach (var itemAccount in accountsRoot)
@@ -1625,7 +1626,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var result = new List<TransactionVerboseModel>();
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 uint256 uintBlockHash = null;
@@ -1682,7 +1683,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 chainedHeader,
                                 chainRepository.Tip,
                                 walletName,
-                                this.network,
+                                this.Network,
                                 this.walletManager as WalletManager);
 
                             result.Add(newTxVerboseModel);
@@ -1719,7 +1720,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var result = new List<TransactionVerboseModel>();
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.network.Consensus.CoinType);
+                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
                 var i = 0;
@@ -1767,7 +1768,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     chainedHeader,
                                     chainedTip,
                                     walletName,
-                                    this.network,
+                                    this.Network,
                                     this.walletManager as WalletManager);
 
                                 result.Add(newTxVerboseModel);
@@ -1809,7 +1810,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
                 var wallet = this.walletManager.GetWalletByName(walletName);
 
-                var unspendTx = wallet.GetAllSpendableTransactions((CoinType)this.network.Consensus.CoinType, chainRepository.Height, minconf);
+                var unspendTx = wallet.GetAllSpendableTransactions((CoinType)this.Network.Consensus.CoinType, chainRepository.Height, minconf);
 
                 if (unspendTx != null)
                 {
@@ -1846,7 +1847,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 chainedHeader,
                                 chainRepository.Tip,
                                 walletName,
-                                this.network,
+                                this.Network,
                                 this.walletManager as WalletManager);
 
                             result.Add(newTxVerboseModel);
@@ -1937,7 +1938,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">Wallet name</param>
         /// <param name="mnemonic">Mnemonic seed (English)</param>
         /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
-        /// <returns></returns>
+        /// <returns>(Wallet) Return object or error.</returns>
         [ActionName("restorefromseedbase64")]
         [ActionDescription("Updates list of temporarily unspendable outputs. ")]
         public IActionResult RestoreBase64(string passwordBase64, string walletName, string mnemonic, long creationDate = 1539810400)
@@ -1953,7 +1954,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">Wallet name</param>
         /// <param name="mnemonic">Mnemonic seed (English)</param>
         /// <param name="creationDate">Wallet creation date in UnixEpoch. If unknown then 1483228800 would ensure that wallet properly synchronize. </param>
-        /// <returns></returns>
+        /// <returns>(Wallet) Return object or error.</returns>
         [ActionName("restorefromseed")]
         [ActionDescription("Updates list of temporarily unspendable outputs. ")]
         public IActionResult Restore(string password,string walletName, string mnemonic, long creationDate = 1539810400)
@@ -1965,5 +1966,53 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.walletSyncManager.SyncFromDate(date);
             return this.Json(ResultHelper.BuildResultResponse(wallet));
         }
+
+        /// <summary>
+        /// Remove transaction from wallet and sync it again.
+        /// </summary>
+        /// <param name="walletName">Wallet name.</param>
+        /// <param name="tx">Transaction id.</param>
+        /// <returns>(bool) Whether the command was successful or not.</returns>
+        [ActionName("restorefromseed")]
+        [ActionDescription("Remove transaction from wallet.")] 
+        public IActionResult RemoveTransaction(string walletName, string tx)
+        {
+            try
+            {
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var result = this.walletManager.RemoveTransactionsByIds(walletName, new uint256[] { new uint256(tx) });
+
+                if (result.Any())
+                {
+                    DateTimeOffset earliestDate = result.Min(r => r.Item2);
+                    ChainedHeader chainedHeader = this.chain.GetBlock(this.chain.GetHeightAtTime(earliestDate.DateTime));
+
+                    // Update the wallet and save it to the file system.
+                    wallet.SetLastBlockDetailsByCoinType((CoinType)this.Network.Consensus.CoinType, chainedHeader);
+                    this.walletManager.SaveWallet(wallet);
+
+                    // Start the syncing process from the block before the earliest transaction was seen.
+                    this.walletSyncManager.SyncFromHeight(chainedHeader.Height - 1);
+
+                    IEnumerable<RemovedTransactionModel> model = result.Select(r => new RemovedTransactionModel
+                    {
+                        TransactionId = r.Item1,
+                        CreationTime = r.Item2
+                    });
+
+                    return this.Json(ResultHelper.BuildResultResponse(true));
+                }
+                else
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(false));
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
     }
 }

@@ -87,7 +87,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
                     var totalInputs = prevTrxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
                     var fee = totalInputs - trx.TotalOut.ToUnit(MoneyUnit.Satoshi);
-                    this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.BTR);
+                    this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
 
                     var isSendTx = false;
                     decimal clearOutAmount = 0;
@@ -121,11 +121,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                                     {
                                         this.Address = address.Address;
                                         this.Category = "receive";
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
                                     }
                                     else
                                     {
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.BTR);
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
                                     }
                                 }
                             }
@@ -134,7 +134,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
                     if (isSendTx)
                     {
-                        this.Amount = trx.TotalOut.ToUnit(MoneyUnit.BTR) - clearOutAmount;
+                        this.Amount = trx.TotalOut.ToUnit(MoneyUnit.XRC) - clearOutAmount;
                     }
                     else
                     {
@@ -255,7 +255,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         public Vout(int N, TxOut txout, Network network)
         {
             this.N = N;
-            this.Value = txout.Value.ToDecimal(MoneyUnit.BTR);
+            this.Value = txout.Value.ToDecimal(MoneyUnit.XRC);
             this.ScriptPubKey = new ScriptPubKey(txout.ScriptPubKey, network);
         }
 

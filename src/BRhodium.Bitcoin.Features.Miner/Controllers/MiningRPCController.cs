@@ -526,7 +526,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 var estimation = this.txMempool.EstimateSmartFee(nblocks, out foundAtBlock, isConservative);
 
                 result.Blocks = foundAtBlock;
-                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.BTR);
+                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.XRC);
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }

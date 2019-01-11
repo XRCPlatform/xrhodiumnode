@@ -57,7 +57,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
             UnspentCoin coin = unspent[0];
             UnspentTransaction resultTxOut = rpc.GetTxOut(coin.OutPoint.Hash, coin.OutPoint.N, true);
             Assert.Equal((int)coin.Confirmations, resultTxOut.confirmations);
-            Assert.Equal(coin.Amount.ToDecimal(MoneyUnit.BTR), resultTxOut.value);
+            Assert.Equal(coin.Amount.ToDecimal(MoneyUnit.XRC), resultTxOut.value);
             Assert.Equal(coin.Address.ToString(), resultTxOut.scriptPubKey.addresses[0]);
         }
 
@@ -73,7 +73,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
             UnspentCoin coin = unspent[0];
             UnspentTransaction resultTxOut = await rpc.GetTxOutAsync(coin.OutPoint.Hash, coin.OutPoint.N, true);
             Assert.Equal((int)coin.Confirmations, resultTxOut.confirmations);
-            Assert.Equal(coin.Amount.ToDecimal(MoneyUnit.BTR), resultTxOut.value);
+            Assert.Equal(coin.Amount.ToDecimal(MoneyUnit.XRC), resultTxOut.value);
             Assert.Equal(coin.Address.ToString(), resultTxOut.scriptPubKey.addresses[0]);
         }
 

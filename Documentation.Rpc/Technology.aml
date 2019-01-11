@@ -2,14 +2,14 @@
 <topic id="5519d91c-0d1b-4a1c-935c-4157832c00c9" revisionNumber="1">
   <developerSampleDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <section address="Section0">
-      <title>Units in satoshi</title>
+      <title>Units</title>
 <content>
 
 <code language="cs">
-        BTR = 100000000,
-        MilliBTR = 100000,
-        Bit = 100,
-        Satoshi = 1
+        XRC = 100000000 Satoshi
+        MilliXRC = 100000 Satoshi
+        Bit = 100 Satoshi
+        Satoshi = 1 Satoshi
 </code>
 
       </content>

@@ -265,5 +265,11 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// <param name="hash">The hash.</param>
         /// <param name="satoshi">The satoshi.</param>
         void PrioritiseTransaction(uint256 hash, Money satoshi);
+
+        /// <summary>
+        /// Remove transaction from node mempool.
+        /// </summary>
+        /// <param name="entry">Transaction to remove.</param>
+        void RemoveTransaction(TxMempoolEntry entry);
     }
 }

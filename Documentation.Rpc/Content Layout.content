@@ -9,7 +9,8 @@
     <Topic id="6df01e78-de23-41c1-9360-28f4b663a01f" visible="True" title="How to setup firewall" />
     <Topic id="31619f23-c52f-4fbb-95a7-2d51b104abba" visible="True" title="How to work with RPC" />
     <Topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" visible="True" title="How to work with RPC - Wallet" />
+    <Topic id="988686eb-46ab-4553-a011-b8981e5bab3a" visible="True" isSelected="true" title="How to work with RPC - Forget TX" />
     <Topic id="2bcf79e6-50f8-4277-8cc4-fac25862b4bc" visible="True" title="How to validate addresses" />
-    <Topic id="a973fcc4-96f1-4216-a28d-b41407957d2f" visible="True" isSelected="true" title="How to be notified" />
+    <Topic id="a973fcc4-96f1-4216-a28d-b41407957d2f" visible="True" title="How to be notified" />
   </Topic>
 </Topics>
