@@ -108,7 +108,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">The wallet name.</param>
         /// <param name="passwordBase64">Password base64 for your wallet.</param>
         /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in BTR.</param>
+        /// <param name="amount">The amount in XRC.</param>
         /// <returns>(string) The transaction id.</returns>
         [ActionName("sendtoaddressbase64")]
         [ActionDescription("Sends some amount to specified address.")]
@@ -124,7 +124,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">The wallet name.</param>
         /// <param name="password">Password for your wallet.</param>
         /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in BTR.</param>
+        /// <param name="amount">The amount in XRC.</param>
         /// <returns>(string) The transaction id.</returns>
         [ActionName("sendtoaddress")]
         [ActionDescription("Sends some amount to specified address.")]
@@ -384,7 +384,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// If [walletName] is "*", get the balance of all accounts.</p>
         /// </summary>
         /// <param name="walletName">The wallet name.</param>
-        /// <returns>(string) The balance of the account or the total wallet in BTR.</returns>
+        /// <returns>(string) The balance of the account or the total wallet in XRC.</returns>
         [ActionName("getbalance")]
         [ActionDescription("Gets account balance.")]
         public IActionResult GetBalance(string walletName)
@@ -1205,7 +1205,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// </summary>
         /// <param name="address">The bitcoin address for transactions.</param>
         /// <param name="walletName">Limit calculation for some wallet only.</param>
-        /// <returns>(decimal) The total amount in BTR received at this address for one or all wallets.</returns>
+        /// <returns>(decimal) The total amount in XRC received at this address for one or all wallets.</returns>
         [ActionName("getreceivedbyaddress")]
         [ActionDescription("Returns the total amount received by the given address in transactions with at least minconf confirmations.")]
         public IActionResult GetReceivedByAddress(string address, string walletName = null)
@@ -1231,7 +1231,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Returns the server's total unconfirmed balance.
         /// </summary>
-        /// <returns>(decimal) BTR unconfirmed amount.</returns>
+        /// <returns>(decimal) XRC unconfirmed amount.</returns>
         [ActionName("getunconfirmedbalance")]
         [ActionDescription("Returns the server's total unconfirmed balance.")]
         public IActionResult GetUnconfirmedBalance()

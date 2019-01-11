@@ -652,7 +652,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.
         /// </summary>
-        /// <param name="amount">The transaction fee in BTR/kB.</param>
+        /// <param name="amount">The transaction fee in XRC/kB.</param>
         /// <returns>(bool) True or False.</returns>
         [ActionName("settxfee")]
         [ActionDescription("Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.")]
