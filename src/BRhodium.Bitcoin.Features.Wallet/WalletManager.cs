@@ -1164,7 +1164,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     try
                     {
-                        ShellHelper.Run(notificationSub.Command.Replace("%s", transactionHash.ToString()));
+                       string command = notificationSub.Command.Replace("%s", transactionHash.ToString());
+                       this.logger.LogInformation($"About to call walletnotify command [{command}]");
+                       var result = ShellHelper.Run(command);
+                       this.logger.LogInformation($"[{result.stdout}]");
+                       this.logger.LogInformation($"[{result.stderr}]");
                     }
                     catch (Exception e)
                     {
