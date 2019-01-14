@@ -1973,7 +1973,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="walletName">Wallet name.</param>
         /// <param name="tx">Transaction id.</param>
         /// <returns>(bool) Whether the command was successful or not.</returns>
-        [ActionName("restorefromseed")]
+        [ActionName("removetransaction")]
         [ActionDescription("Remove transaction from wallet.")] 
         public IActionResult RemoveTransaction(string walletName, string tx)
         {
