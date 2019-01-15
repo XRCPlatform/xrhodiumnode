@@ -11,7 +11,14 @@ namespace BRhodium.Node.Utilities.JsonErrors
             {
                 Status = (int)statusCode,
                 ErrorCode = message,
+#if DEBUG
                 Description = description
+#endif
+#if !DEBUG
+                // The description can contain exception backtrace data
+                // which is inappropriate for a release build.
+                Description = ""
+#endif
             };
            
 
