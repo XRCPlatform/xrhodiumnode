@@ -155,7 +155,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var hdaccount = mywallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
                 var transaction = SendMoney(hdaccount.Name, walletName, address, password, money.Satoshi);
 
-                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
+                return this.Json(ResultHelper.BuildResultResponse(transaction.ToString()));
             }
             catch (Exception e)
             {
@@ -397,7 +397,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     foreach (var walletNameLocal in this.walletManager.GetWalletNames())
                     {
-                        foreach (var account in this.walletManager.GetAccounts(wallet.Name))
+                        foreach (var account in this.walletManager.GetAccounts(walletNameLocal))
                         {
                             accounts.Add(account);
                         }
@@ -1087,7 +1087,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                var fullFileName = ((WalletManager)this.walletManager).DBreezeStorage.FolderPath + filename;
+                var fullFileName = ((WalletManager)this.walletManager).FileStorage.FolderPath + filename;
 
                 Directory.CreateDirectory(fullFileName);
 

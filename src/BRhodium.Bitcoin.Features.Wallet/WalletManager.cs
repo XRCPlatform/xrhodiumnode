@@ -158,13 +158,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             //LoadWalletsFromFiles();
         }
 
-        public WalletManager()
-        {
-        }
-
+       
         public void LoadWalletsFromFiles() {
             // Find wallets and load them in memory.
-            IEnumerable<Wallet> wallets = this.fileStorage.LoadByFileExtension(WalletFileExtension);
+            IEnumerable<Wallet> wallets = this.FileStorage.LoadByFileExtension(WalletFileExtension);
             int count = 0;
             Stopwatch sw = new Stopwatch();
             int length= wallets.Count();
@@ -594,7 +591,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 List<HdAddress> newAddresses = new List<HdAddress>();
                 newAddresses = account.CreateAddresses(this.network, count, isChange: isChange).ToList();
-                this.UpdateKeysLookupLock(newAddresses, wallet.Name);
+
+                List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
+                foreach (var address in newAddresses)
+                {
+                    walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                }
+
+                this.UpdateKeysLookupLock(walletLinkerList);
 
                 addresses = unusedAddresses.Concat(newAddresses).OrderBy(x => x.Index).ToList();
             }
@@ -604,12 +608,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             this.logger.LogTrace("(-)");
             return addresses;
-        }
-
-        /// <inheritdoc />
-        public (string folderPath, IEnumerable<string>) GetWalletsFiles()
-        {
-            return (this.DBreezeStorage.FolderPath, this.DBreezeStorage.GetDatabaseKeys());
         }
 
         /// <inheritdoc />
@@ -799,9 +797,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             get
             {
-                return fileStorage;
+                return this.fileStorage;
             }
-        }    
+        }
 
         /// <summary>
         /// Gets the hash of the last block received by the wallets.
@@ -1049,17 +1047,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
             }
 
-            this.logger.LogTrace("(-)");
-            return foundSendingTrx || foundReceivingTrx;
-        }
-
-        private string GetOutputDestinationAddress(TxOut utxo)
-        {
-            string destinationAddress = string.Empty;
-            if (utxo.ScriptPubKey != null)
+            // Figure out what to do when this transaction is found to affect the wallet.
+            if (foundSendingTrx || foundReceivingTrx)
             {
-                 ScriptTemplate scriptTemplate = utxo.ScriptPubKey.FindTemplate(this.network);
-                if (scriptTemplate != null)
                 if (foundSendingTrx && blockHeight > 0)
                 {
                     NotifyTransaction(TransactionNotificationType.Sent, hash);
@@ -1067,29 +1057,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 if (foundReceivingTrx && blockHeight > 0)
                 {
                     NotifyTransaction(TransactionNotificationType.Received, hash);
-                }
-                {
-                    switch (scriptTemplate.Type)
-                    {
-                        // Pay to PubKey can be found in outputs of staking transactions.
-                        case TxOutType.TX_PUBKEY:
-                            PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(utxo.ScriptPubKey);
-                            destinationAddress = pubKey.GetAddress(this.network).ToString();
-                            break;
-                        // Pay to PubKey hash is the regular, most common type of output.
-                        case TxOutType.TX_PUBKEYHASH:
-                            destinationAddress = utxo.ScriptPubKey.GetDestinationAddress(this.network).ToString();
-                            break;
-                        case TxOutType.TX_NONSTANDARD:
-                        case TxOutType.TX_SCRIPTHASH:
-                        case TxOutType.TX_MULTISIG:
-                        case TxOutType.TX_NULL_DATA:
-                        case TxOutType.TX_SEGWIT:
-                            break;
-                    }
-                }
-            }            
-            return destinationAddress;
+                }                
+            }
+
+            this.logger.LogTrace("(-)");
+            return foundSendingTrx || foundReceivingTrx;
         }
 
         /// <inheritdoc />
@@ -1111,21 +1083,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             foreach (IndexedTxOut utxo in prevTransactions)
             {
-                if (this.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
+                if (this.addressByScriptLookup.TryGetValue(utxo.TxOut.ScriptPubKey.Hash, out WalletLinkedHdAddress linkedAddress))
                 {
-                    if (this.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
+                    var address = linkedAddress.HdAddress;
+                    long walletId = linkedAddress.WalletId;
+                    if (walletId>0)
                     {
-                        if ((walletName == null) || (keyWalletName == walletName))
+                        details.Add(new TransactionDetail()
                         {
-                            details.Add(new TransactionDetail()
-                            {
-                                Account = DefaultAccount,
-                                Address = address.Address,
-                                Category = "send",
-                                Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.XRC) * -1,
-                                Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC)
-                            });
-                        }
+                            Account = DefaultAccount,
+                            Address = address.Address,
+                            Category = "send",
+                            Amount = utxo.TxOut.Value.ToUnit(MoneyUnit.XRC) * -1,
+                            Fee = new Money(unitFee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC)
+                        });
                     }
                 }
             }
@@ -1148,25 +1119,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             foreach (TxOut utxo in transaction.Outputs)
             {
-                if (this.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
+                if (this.addressByScriptLookup.TryGetValue(utxo.ScriptPubKey.Hash, out WalletLinkedHdAddress linkedAddress))
                 {
-                    if (this.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
+                    var address = linkedAddress.HdAddress;
+                    long walletId = linkedAddress.WalletId;
+                    if (walletId > 0)
                     {
-                        if ((walletName == null) || (keyWalletName == walletName))
+                        if (address.IsChangeAddress())
                         {
-                            if (address.IsChangeAddress())
-                            {
-                                isSendTx = true;
-                            }
-
-                            details.Add(new TransactionDetail()
-                            {
-                                Account = DefaultAccount,
-                                Address = address.Address,
-                                Category = "receive",
-                                Amount = utxo.Value.ToUnit(MoneyUnit.XRC)
-                            });
+                            isSendTx = true;
                         }
+
+                        details.Add(new TransactionDetail()
+                        {
+                            Account = DefaultAccount,
+                            Address = address.Address,
+                            Category = "receive",
+                            Amount = utxo.Value.ToUnit(MoneyUnit.XRC)
+                        });
                     }
                 }
             }
@@ -1191,11 +1161,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(paidToOutputs, nameof(paidToOutputs));            
             // Get the transaction being spent.
-            TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
-                .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
-            if (spentTransaction == null)
+            TransactionData spentTransaction = null;
+            WalletLinkedHdAddress currentWalletLinkedHdAddress = null;
+            foreach (var walletLinkedHdAddress in this.addressByScriptLookup.Values)
             {
-               return 0;
+                spentTransaction = walletLinkedHdAddress.HdAddress.Transactions.SingleOrDefault(
+                        t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex)
+                    );
+                if (spentTransaction != null)
+                {
+                    currentWalletLinkedHdAddress = walletLinkedHdAddress;
+                    break;
+                }
+            }
+
+            if (spentTransaction == null | currentWalletLinkedHdAddress == null)
+            {
+                // Strange, why would it be null?
+                this.logger.LogTrace("(-)[TX_NULL]");
+                return 0;
             }
 
             List<PaymentDetails> payments = new List<PaymentDetails>();
@@ -1686,7 +1670,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.DBreezeStorage.FolderPath}' and try restoring the wallet again. " +
+                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.FileStorage.FolderPath}' and try restoring the wallet again. " +
                                                     "Make sure you have your mnemonic and your password handy!");
             }
 

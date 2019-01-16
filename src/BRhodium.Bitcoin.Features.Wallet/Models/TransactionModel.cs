@@ -93,43 +93,38 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                     decimal clearOutAmount = 0;
                     foreach (IndexedTxOut utxo in prevTrxList)
                     {
-                        if (walletManager.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
+                        if (walletManager.addressByScriptLookup.TryGetValue(utxo.TxOut.ScriptPubKey.Hash, out WalletLinkedHdAddress linkedAddress))
                         {
-                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
+                            if (linkedAddress.WalletId > 0)
                             {
-                                if (keyWalletName == walletName)
-                                {
-                                    this.Address = address.Address;
-                                    this.Category = "send";
+                                this.Address = linkedAddress.HdAddress.Address;
+                                this.Category = "send";
 
-                                    isSendTx = true;
-                                }
+                                isSendTx = true;
                             }
+                           
                         }
                     }
 
                     foreach (TxOut utxo in trx.Outputs)
                     {
-                        if (walletManager.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
+                        if (walletManager.addressByScriptLookup.TryGetValue(utxo.ScriptPubKey.Hash, out WalletLinkedHdAddress linkedAddress))
                         {
-                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
+                            if (linkedAddress.WalletId > 0)
                             {
-                                if (keyWalletName == walletName)
+                                var address = linkedAddress.HdAddress;
+                                if (!address.IsChangeAddress())
                                 {
-
-                                    if (!address.IsChangeAddress())
-                                    {
-                                        this.Address = address.Address;
-                                        this.Category = "receive";
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
-                                    }
-                                    else
-                                    {
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
-                                    }
+                                    this.Address = address.Address;
+                                    this.Category = "receive";
+                                    clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
+                                }
+                                else
+                                {
+                                    clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
                                 }
                             }
-                        }
+                        }                        
                     }
 
                     if (isSendTx)

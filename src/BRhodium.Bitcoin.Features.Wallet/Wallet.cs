@@ -16,31 +16,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     public class Wallet : IBitcoinSerializable
     {
-        protected Wallet(SerializationInfo info, StreamingContext context)
-        {
-            this.Name = info.GetString("name");
-            this.EncryptedSeed = info.GetString("encryptedSeed");
-            this.ChainCode = (byte[])info.GetValue("chainCode", typeof(byte[]));
-            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
-            var blockLocator = (string[])info.GetValue("blockLocator", typeof(string[]));
-            this.BlockLocator = blockLocator != null ? blockLocator.ToList().ConvertAll(a => new uint256(a)).ToList() : null;
-            var nameNetwork = info.GetString("network");
-            this.Network = Network.GetNetwork(nameNetwork.ToLowerInvariant());
-            this.AccountsRoot = (ICollection<AccountRoot>)info.GetValue("accountsRoot", typeof(ICollection<AccountRoot>));
-        }
-
-        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("name", this.Name);
-            info.AddValue("encryptedSeed", this.EncryptedSeed);
-            info.AddValue("chainCode", this.ChainCode);
-            info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
-            info.AddValue("blockLocator", this.BlockLocator != null ? this.BlockLocator.ToList().ConvertAll(a => a.ToString()).ToArray() : null);
-            info.AddValue("network", this.Network.Name);
-            info.AddValue("accountsRoot", this.AccountsRoot);
-        }
-
         /// <summary>
         /// Initializes a new instance of the wallet.
         /// </summary>
