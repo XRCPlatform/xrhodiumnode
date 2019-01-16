@@ -12,7 +12,8 @@ namespace NBitcoin.Crypto
 
     public sealed class HashX13
     {
-        private readonly List<IHash> hashers;
+        private readonly List<IHash> hashersV1;
+        private readonly List<IHash> hashersV2;
 
         private readonly object hashLock;
 
@@ -20,7 +21,7 @@ namespace NBitcoin.Crypto
 
         public HashX13()
         {
-            this.hashers = new List<IHash>
+            this.hashersV1 = new List<IHash>
             {
                 HashFactory.Crypto.SHA3.CreateBlake512(),
                 HashFactory.Crypto.SHA3.CreateBlueMidnightWish512(),
@@ -37,11 +38,28 @@ namespace NBitcoin.Crypto
                 HashFactory.Crypto.SHA3.CreateFugue512(),
             };
 
+            this.hashersV2 = new List<IHash>
+            {
+                HashFactory.Crypto.SHA3.CreateBlake512(),
+                HashFactory.Crypto.SHA3.CreateBlueMidnightWish512(),
+                HashFactory.Crypto.SHA3.CreateGroestl512(),
+                HashFactory.Crypto.SHA3.CreateSkein512_Custom(),
+                HashFactory.Crypto.SHA3.CreateJH512(),
+                HashFactory.Crypto.SHA3.CreateKeccak512(),
+                HashFactory.Crypto.SHA3.CreateLuffa512(),
+                HashFactory.Crypto.SHA3.CreateCubeHash512(),
+                HashFactory.Crypto.SHA3.CreateSHAvite3_512_Custom(),
+                HashFactory.Crypto.SHA3.CreateSIMD512(),
+                HashFactory.Crypto.SHA3.CreateEcho512(),
+                HashFactory.Crypto.SHA3.CreateHamsi512(),
+                HashFactory.Crypto.SHA3.CreateFugue512(),
+            };
+
             this.hashLock = new object();
             this.Multiplier = 1;
         }
 
-        public uint Multiplier { get; private set; }
+        public uint Multiplier { get; private set; }    
 
         /// <summary>
         /// using the instance method is not thread safe. 
@@ -54,13 +72,19 @@ namespace NBitcoin.Crypto
             return new HashX13();
         }
 
-        public uint256 Hash(byte[] input)
+        public uint256 Hash(byte[] input, int version)
         {
             var buffer = input;
 
             lock (this.hashLock)
             {
-                foreach (var hasher in this.hashers)
+                var hashers = this.hashersV1;
+                if (version == 2)
+                {
+                    hashers = this.hashersV2;
+                }
+
+                foreach (var hasher in hashers)
                 {
                     buffer = hasher.ComputeBytes(buffer).GetBytes();
                 }
