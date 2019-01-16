@@ -144,7 +144,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
-                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliBTR), destination));
+                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliXRC), destination));
                 }
 
                 var txHex = transaction.ToHex();
@@ -239,7 +239,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var fee = feeRate.GetFee(fundTransaction);
 
                 result.Hex = fundTransaction.ToHex();
-                result.Fee = fee.ToUnit(MoneyUnit.BTR);
+                result.Fee = fee.ToUnit(MoneyUnit.XRC);
                 result.ChangePos = -1;
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -515,12 +515,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                var reqTransactionId = uint256.Parse(args[0]);
+                if (this.walletManager.Wallets.Count() > 1)
+                {
+                    var response = new Node.Utilities.JsonContract.ErrorModel();
+                    response.Code = "-100";
+                    response.Message = "Call gettransactionbywallet you have more than one wallet";
+                    return this.Json(ResultHelper.BuildResultResponse(response));
+                }
+
+                return GetTransactionByWallet(null, args[0]);
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Get detailed information about in-wallet transaction.
+        /// </summary>
+        /// <param name="walletName"></param>
+        /// <param name="txId"></param>
+        /// <returns></returns>
+        [ActionName("gettransactionbywallet")]
+        [ActionDescription("Get detailed information about in-wallet transaction.")]
+        public IActionResult GetTransactionByWallet(string walletName, string txId)
+        {
+            try
+            {
+                var reqTransactionId = uint256.Parse(txId);
                 if (reqTransactionId == null)
                 {
                     var response = new Node.Utilities.JsonContract.ErrorModel();
                     response.Code = "-5";
-                    response.Message = "Invalid or non-wallet transaction id";
+                    response.Message = "Invalid transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
 
@@ -533,68 +562,73 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     chainedHeader = this.ConsensusLoop.Chain.GetBlock(blockHash);
                 }
 
-                var currentTransaction = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
-                if (currentTransaction == null)
+                var currentTx = this.blockRepository.GetTrxAsync(reqTransactionId).GetAwaiter().GetResult();
+                if (currentTx == null)
                 {
                     var response = new Node.Utilities.JsonContract.ErrorModel();
                     response.Code = "-5";
-                    response.Message = "Invalid or non-wallet transaction id";
+                    response.Message = "Invalid transaction id";
                     return this.Json(ResultHelper.BuildResultResponse(response));
                 }
 
-                var transactionResponse = new Consensus.Models.TransactionModel();
-                var transactionHash = currentTransaction.GetHash();
-                transactionResponse.NormTxId = string.Format("{0:x8}", transactionHash);
-                transactionResponse.TxId = string.Format("{0:x8}", transactionHash);
+                var txResponse = new Consensus.Models.TransactionModel();
+                var txHash = currentTx.GetHash();
+                txResponse.NormTxId = string.Format("{0:x8}", txHash);
+                txResponse.TxId = string.Format("{0:x8}", txHash);
                 if (block != null && chainedHeader != null)
                 {
-                    transactionResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; 
-                    transactionResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
+                    txResponse.Confirmations = this.ConsensusLoop.Chain.Tip.Height - chainedHeader.Height; // ExtractBlockHeight(block.Transactions.First().Inputs.First().ScriptSig);
+                    txResponse.BlockTime = block.Header.BlockTime.ToUnixTimeSeconds();
+                }
+                txResponse.BlockHash = string.Format("{0:x8}", blockHash);
+
+                txResponse.Time = currentTx.Time;
+                txResponse.TimeReceived = currentTx.Time;
+                txResponse.BlockIndex = 0;
+                txResponse.Hex = currentTx.ToHex();
+
+                //calculate ux index in block
+                foreach (var tx in block.Transactions)
+                {
+                    txResponse.BlockIndex++;
+                    if (tx.GetHash() == txHash)
+                    {
+                        break;
+                    }
                 }
 
-                transactionResponse.BlockHash = string.Format("{0:x8}", blockHash);
-
-
-                transactionResponse.Time = currentTransaction.Time;
-                transactionResponse.TimeReceived = currentTransaction.Time;
-                //transactionResponse.BlockIndex = currentTransaction.Inputs.Transaction.;//The index of the transaction in the block that includes it
-
-                transactionResponse.Details = new List<TransactionDetail>();
-                foreach (var item in currentTransaction.Outputs)
+                //read prevTx from blockchain
+                var prevTxList = new List<IndexedTxOut>();
+                foreach (var itemInput in currentTx.Inputs)
                 {
-                    var detail = new TransactionDetail();
-
-                    // Figure out how to retrieve the destination address.
-                    string destinationAddress = GetOutputDestinationAddress(item);
-
-                    if (string.IsNullOrEmpty(destinationAddress))
+                    var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                    if (prevTx != null)
                     {
-                        var response = new Node.Utilities.JsonContract.ErrorModel();
-                        response.Code = "-5";
-                        response.Message = "Invalid or non-wallet transaction id";
-                        return this.Json(ResultHelper.BuildResultResponse(response));
+                        if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                        {
+                            var indexed = prevTx.Outputs.AsIndexedOutputs();
+                            prevTxList.Add(indexed.First(i => i.N == itemInput.PrevOut.N));
+                        }
                     }
+                }
 
-                    detail.Account = destinationAddress;
-                    detail.Address = destinationAddress;
+                //read tx details of in-wallet tx
+                txResponse = this.walletManager.GetTransactionDetails(walletName, currentTx, prevTxList, txResponse);
 
-                    if (transactionResponse.Confirmations < 10)
+                //set state of newly generated coins
+                if (currentTx.IsCoinBase && txResponse.Details.Count > 0 && txResponse.Details.First().Category == "receive")
+                {
+                    if (txResponse.Confirmations < 10)
                     {
-                        detail.Category = "immature";
+                        txResponse.Details.First().Category = "immature";
                     }
                     else
                     {
-                        detail.Category = "generate";
+                        txResponse.Details.First().Category = "generate";
                     }
-
-
-                    detail.Amount = (double)item.Value.Satoshi / 100000000;
-                    transactionResponse.Details.Add(detail);
                 }
 
-                transactionResponse.Hex = currentTransaction.ToHex();
-
-                var json = ResultHelper.BuildResultResponse(transactionResponse);
+                var json = ResultHelper.BuildResultResponse(txResponse);
                 return this.Json(json);
             }
             catch (Exception e)
@@ -647,7 +681,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.
         /// </summary>
-        /// <param name="amount">The transaction fee in BTR/kB.</param>
+        /// <param name="amount">The transaction fee in XRC/kB.</param>
         /// <returns>(bool) True or False.</returns>
         [ActionName("settxfee")]
         [ActionDescription("Set the transaction fee per kB for this wallet. Overrides the global -paytxfee command line parameter.")]
@@ -664,7 +698,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 decimal fee;
                 result = decimal.TryParse(amount, out fee);
 
-                if (result) this.WalletFeePolicy.SetPayTxFee(new Money(fee, MoneyUnit.BTR));
+                if (result) this.WalletFeePolicy.SetPayTxFee(new Money(fee, MoneyUnit.XRC));
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }

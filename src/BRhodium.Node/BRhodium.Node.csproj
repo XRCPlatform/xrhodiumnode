@@ -19,7 +19,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ConcurrentHashSet" Version="1.0.2" />
-    <PackageReference Include="DBreeze" Version="1.91.6" />
+    <PackageReference Include="DBreeze" Version="1.92.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.1.0" />

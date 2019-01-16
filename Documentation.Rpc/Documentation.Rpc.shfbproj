@@ -78,6 +78,8 @@
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Controllers" isExposed="False">
         <Filter entryType="Class" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController" filterName="MiningRPCController" isExposed="True">
           <Filter entryType="Constructor" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.#ctor" filterName=".ctor" isExposed="False" />
+          <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.Generate" filterName="Generate" isExposed="False" />
+          <Filter entryType="Method" fullName="BRhodium.Bitcoin.Features.Miner.Controllers.MiningRPCController.GenerateToAddress" filterName="GenerateToAddress" isExposed="False" />
         </Filter>
       </Filter>
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Miner.Interfaces" isExposed="False" />
@@ -116,16 +118,17 @@
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Notifications" isExposed="False" />
       <Filter entryType="Namespace" fullName="BRhodium.Bitcoin.Features.Wallet.Validations" isExposed="False" />
     </ApiFilter>
-    <HelpTitle>BitCoin Rhodium RPC Documentation</HelpTitle>
+    <HelpTitle>Bitcoin Rhodium Wiki</HelpTitle>
     <HelpFileVersion>1.0.0.0</HelpFileVersion>
     <RootNamespaceContainer>True</RootNamespaceContainer>
     <NamespaceGrouping>False</NamespaceGrouping>
     <Preliminary>False</Preliminary>
     <SdkLinkTarget>Blank</SdkLinkTarget>
-    <HeaderText>This is documentation of RPCs in BitCoin Rhodium project. This methods is possible to call when you have own node or you have access to external node. Implementation include all important RPCs for network usage.</HeaderText>
+    <HeaderText>
+    </HeaderText>
     <CopyrightHref>https://www.bitcoinrh.org/</CopyrightHref>
     <CopyrightText>%40 2018 BitCoin Rhodium</CopyrightText>
-    <RootNamespaceTitle>RPC Namespaces</RootNamespaceTitle>
+    <RootNamespaceTitle>API Reference %28JSON-RPC%29</RootNamespaceTitle>
     <TransformComponentArguments>
       <Argument Key="logoFile" Value="logo.png" xmlns="" />
       <Argument Key="logoHeight" Value="" xmlns="" />
@@ -156,6 +159,8 @@
       <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Wallet.Controllers" isDocumented="True">Wallet Controller RPCs method</NamespaceSummaryItem>
       <NamespaceSummaryItem name="BRhodium.Bitcoin.Features.Miner.Controllers" isDocumented="True">Mining Controller RPCs method</NamespaceSummaryItem>
     </NamespaceSummaries>
+    <NamingMethod>HashedMemberName</NamingMethod>
+    <MaximumGroupParts>2</MaximumGroupParts>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in order for Visual Studio to perform
 			 the build.  The others are optional common platform types that may appear. -->
@@ -186,4 +191,35 @@
     </PostBuildEvent>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <ContentLayout Include="Content Layout.content" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AccessAuthentication.aml" />
+    <None Include="HowTo\HowToWorkWithRPCForgotTx.aml" />
+    <None Include="HowTo\HowToBeNotified.aml" />
+    <None Include="Orientation.aml" />
+    <None Include="HowTo\HowToValidateAddresses.aml" />
+    <None Include="HowTo\HowToWorkWithRPCWallet.aml" />
+    <None Include="HowTo\HowToWorkWithRPC.aml" />
+    <None Include="HowTo\HowToSetupFirewall.aml" />
+    <None Include="HowTo\HowToRunANode.aml" />
+    <None Include="HowTo\HowToRunANode.aml" />
+    <None Include="HowTo.aml" />
+    <None Include="Technology.aml" />
+    <None Include="Welcome.aml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="HowTo\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="firstrun.jpg">
+      <ImageId>firstrun</ImageId>
+      <AlternateText>firstrun</AlternateText>
+    </Image>
+    <Image Include="downloading.jpg">
+      <ImageId>downloading</ImageId>
+      <AlternateText>downloading</AlternateText>
+    </Image>
+  </ItemGroup>
 </Project>

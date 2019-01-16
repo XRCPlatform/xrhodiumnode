@@ -148,6 +148,7 @@ namespace BRhodium.Node.Configuration.Logging
 
             // Default logging level is Info for all components.
             var defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(Node)}.*", NLog.LogLevel.Info, mainTarget);
+            var defaultFeatureRule = new LoggingRule($"BRhodium.Bitcoin.Features.*", NLog.LogLevel.Info, mainTarget);
 
             if (settings.DebugArgs.Any())
             {
@@ -155,6 +156,7 @@ namespace BRhodium.Node.Configuration.Logging
                 {
                     // Increase all logging to Debug level.
                     defaultRule = new LoggingRule($"{nameof(BRhodium)}.{nameof(Node)}.*", NLog.LogLevel.Debug, mainTarget);
+                    defaultFeatureRule = new LoggingRule($"BRhodium.Bitcoin.Features.*", NLog.LogLevel.Debug, mainTarget);
                 }
                 else
                 {
@@ -180,6 +182,7 @@ namespace BRhodium.Node.Configuration.Logging
             }
 
             LogManager.Configuration.LoggingRules.Add(defaultRule);
+            LogManager.Configuration.LoggingRules.Add(defaultFeatureRule);
 
             // Apply new rules.
             LogManager.ReconfigExistingLoggers();

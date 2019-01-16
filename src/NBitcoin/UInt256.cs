@@ -1,13 +1,39 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using System.Text;
 using NBitcoin.DataEncoders;
 
 namespace NBitcoin
 {
-    public class uint256
+    [Serializable]
+    public class uint256 : ISerializable
     {
+
+        protected uint256(SerializationInfo info, StreamingContext context)
+        {
+            var uint256string = info.GetString("uint256");
+
+            var uint256 = new uint256(uint256string);
+            this.pn0 = uint256.pn0;
+            this.pn1 = uint256.pn1;
+            this.pn2 = uint256.pn2;
+            this.pn3 = uint256.pn3;
+            this.pn4 = uint256.pn4;
+            this.pn5 = uint256.pn5;
+            this.pn6 = uint256.pn6;
+            this.pn7 = uint256.pn7;
+        }
+
+        [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("uint256", this.ToString());
+        }
+
         public class MutableUint256 : IBitcoinSerializable
         {
             uint256 _Value;

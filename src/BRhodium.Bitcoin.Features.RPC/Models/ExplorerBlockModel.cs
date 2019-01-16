@@ -17,7 +17,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public List<ExplorerTransactionModel> Transactions { get; set; }
 
         [JsonProperty(Order = 3, PropertyName = "totalsatoshi")]
-        public double TotalSatoshi { get; set; }
+        public decimal TotalSatoshi { get; set; }
 
         [JsonProperty(Order = 4, PropertyName = "size")]
         public int Size { get; set; }
@@ -32,7 +32,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public int Version { get; set; }
 
         [JsonProperty(Order = 8, PropertyName = "fees")]
-        public double TransactionFees { get; set; }
+        public decimal TransactionFees { get; set; }
 
         [JsonProperty(Order = 9, PropertyName = "difficult")]
         public double Difficult { get; set; }
@@ -53,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public string Hash { get; set; }
 
         [JsonProperty(Order = 1, PropertyName = "satoshi")]
-        public double Satoshi { get; set; }
+        public decimal Satoshi { get; set; }
 
         [JsonProperty(Order = 2, PropertyName = "addressfrom")]
         public List<ExplorerAddressModel> AddressFrom { get; set; }
@@ -69,6 +69,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
 
         [JsonProperty(Order = 6, PropertyName = "blockhash")]
         public string BlockHash { get; set; }
+
+        [JsonProperty(Order = 7, PropertyName = "fee")]
+        public decimal Fee { get; set; }
     }
 
     public class ExplorerAddressModel
@@ -77,7 +80,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public string Address { get; set; }
 
         [JsonProperty(Order = 1, PropertyName = "satoshi")]
-        public double Satoshi { get; set; }
+        public decimal Satoshi { get; set; }
 
         [JsonProperty(Order = 1, PropertyName = "scripts")]
         public string Scripts { get; set; }

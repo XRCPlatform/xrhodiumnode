@@ -50,7 +50,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
             if (trx != null)
             {
                 this.TxId = trx.GetHash().ToString();
-                this.Size = trx.GetSerializedSize();
+                this.Size = trx.GetVirtualSize();
                 this.Version = trx.Version;
                 this.LockTime = trx.LockTime;
 
@@ -146,7 +146,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         public Vout(int N, TxOut txout, Network network)
         {
             this.N = N;
-            this.Value = txout.Value.ToDecimal(MoneyUnit.BTR);
+            this.Value = txout.Value.ToDecimal(MoneyUnit.XRC);
             this.ScriptPubKey = new ScriptPubKey(txout.ScriptPubKey, network);
         }
 

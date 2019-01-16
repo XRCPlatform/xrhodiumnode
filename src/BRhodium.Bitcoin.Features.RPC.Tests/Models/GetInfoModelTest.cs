@@ -126,7 +126,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
             Assert.Equal(expectedSortedPropertyNames, actualSortedPropertyNames);
             Assert.Equal(1010000u, model.Version);
             Assert.Equal(70012u, model.ProtocolVersion);
-            Assert.Equal(Money.Satoshis(2).ToUnit(MoneyUnit.BTR), model.Balance);
+            Assert.Equal(Money.Satoshis(2).ToUnit(MoneyUnit.XRC), model.Balance);
             Assert.Equal(460828, model.Blocks);
             Assert.Equal(0, model.TimeOffset);
             Assert.Equal(44, model.Connections);
@@ -136,8 +136,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
             Assert.Equal(1437418454, model.KeypoolOldest);
             Assert.Equal(101, model.KeypoolSize);
             Assert.Equal(0u, model.UnlockedUntil);
-            Assert.Equal(Money.Satoshis(10000).ToUnit(MoneyUnit.BTR), model.PayTxFee);
-            Assert.Equal(Money.Satoshis(1000).ToUnit(MoneyUnit.BTR), model.RelayFee);
+            Assert.Equal(Money.Satoshis(10000).ToUnit(MoneyUnit.XRC), model.PayTxFee);
+            Assert.Equal(Money.Satoshis(1000).ToUnit(MoneyUnit.XRC), model.RelayFee);
             Assert.Equal("URGENT: Alert key compromised, upgrade required", model.Errors);
         }
     }

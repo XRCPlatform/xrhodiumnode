@@ -833,10 +833,24 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             this.blockSinceLastRollingFeeBump = true;
         }
 
-        /// <summary>
-        /// Removes conflicting transactions.
-        /// </summary>
-        /// <param name="tx">Transaction to remove conflicts from.</param>
+        /// <inheritdoc />
+        public void RemoveTransaction(TxMempoolEntry entry)
+        {
+            if (entry != null)
+            {
+                SetEntries stage = new SetEntries();
+                stage.Add(entry);
+                this.RemoveStaged(stage, true);
+
+                this.RemoveConflicts(entry.Transaction);
+                this.ClearPrioritisation(entry.TransactionHash);
+
+                this.lastRollingFeeUpdate = this.TimeProvider.GetTime();
+                this.blockSinceLastRollingFeeBump = true;
+            }
+        }
+
+        /// <inheritdoc />
         private void RemoveConflicts(Transaction tx)
         {
             // Remove transactions which depend on inputs of tx, recursively
@@ -866,11 +880,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             this.mapDeltas.Remove(hash);
         }
 
-        /// <summary>
-        /// Prioritize Transaction
-        /// </summary>
-        /// <param name="hash">hash of delta pair</param>
-        /// <param name="deltaFee"></param>
+        /// <inheritdoc />
         public void PrioritiseTransaction(uint256 hash, Money deltaFee)
         {
             //LOCK(cs);

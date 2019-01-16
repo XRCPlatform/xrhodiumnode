@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="ab7662f3-3810-4857-abdd-8734d0d18622" revisionNumber="1">
+  <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>Here are several important "How tos.." for easy work with our node.</para>
+    </introduction>
+    <procedure>
+      <title>How tos...</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>Specific activities required to setup your Linux based node.<lineBreak/>
+            <link xlink:href="3f6ac9de-8691-4df4-99f5-5d627eddc2c5">How to run a node</link> </para>
+          	           
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Security is important part for our coin. Because of it ..here is our recommendation how to secure your Linux based node.<lineBreak/>
+            <link xlink:href="6df01e78-de23-41c1-9360-28f4b663a01f">How to setup firewall</link> </para>
+             
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>How to call node API RPC-JSON? All information about authentication and examples of call are here.<lineBreak/>
+            <link xlink:href="31619f23-c52f-4fbb-95a7-2d51b104abba">How to work with RPC</link> </para>
+             
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>How to manage wallets on node. Example of basic methods.<lineBreak/>
+            <link xlink:href="a8247dcf-e6f6-4b13-83c5-8c25779636e0">How to work with Wallet API RPC-JSON</link> </para>
+             
+          </content>
+        </step>  
+        <step>
+          <content>
+            <para>How to forget tx on your node. Example of basic methods.<lineBreak/>
+            <link xlink:href="988686eb-46ab-4553-a011-b8981e5bab3a">How to forget TX in your node</link> </para>
+             
+          </content>
+        </step>          
+        <step>
+          <content>
+            <para>Validation of Bitcoin Rhodium addresses on client side and backend side.<lineBreak/>
+            <link xlink:href="2bcf79e6-50f8-4277-8cc4-fac25862b4bc">How to validate addresses</link> </para>
+             
+          </content>
+        </step>     
+           <step>
+          <content>
+            <para>If you want to be announced about new received or sended transaction read this.<lineBreak/>
+            <link xlink:href="a973fcc4-96f1-4216-a28d-b41407957d2f">How to be notified</link> </para>
+             
+          </content>
+        </step>      
+        
+       
+        <step>
+          <content>
+            <para>Code generated documentation of all RPC-Json API.<lineBreak/>
+            <codeEntityReference qualifyHint="true" linkText="Read more about RPC-Json API">R:Project_Documentation</codeEntityReference></para>
+          </content>
+        </step>      
+      </steps>
+    </procedure>
+  </developerHowToDocument>
+</topic>

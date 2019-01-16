@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Utilities;
+using System.Collections.Generic;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -21,11 +22,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// A value indicating whether the wallet being run is the light wallet or the full wallet.
         /// </summary>
         public bool IsLightWallet { get; set; }
-
+        /// <summary>
+        /// Wallet notification subscriptions.
+        /// </summary>
+        public List<WalletNotification> WalletNotify
+        {
+            get
+            {
+                return _walletNotify;
+            }
+        }
         /// <summary>
         /// A callback allow changing the default settings.
         /// </summary>
         private readonly Action<WalletSettings> callback;
+
+        private List<WalletNotification> _walletNotify = new List<WalletNotification>();
 
         /// <summary>
         /// Initializes an instance of the object.
@@ -53,6 +65,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             TextFileConfiguration config = nodeSettings.ConfigReader;
             this.SaveTransactionHex = config.GetOrDefault<bool>("savetrxhex", false);
+            var walletNotifications = config.GetAll("walletnotify");
+
+            foreach (var subcription in walletNotifications)
+            {
+                this._walletNotify.Add(new WalletNotification(subcription));
+            }
+
             this.callback?.Invoke(this);
         }
 
@@ -79,6 +98,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             builder.AppendLine("####Wallet Settings####");
             builder.AppendLine("#Save the hex of transactions in the wallet file. Default: 0.");
             builder.AppendLine("#savetrxhex=0");
+            builder.AppendLine("#walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s");
+            builder.AppendLine("#walletnotify=recieved:/home/myuser/transaction.sh %s");
         }
     }
 }

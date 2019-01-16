@@ -210,7 +210,7 @@ namespace NBitcoin.RPC
                     jOptions.Add(new JProperty("reserveChangeKey", options.ReserveChangeKey));
 
                 if (options.FeeRate != null)
-                    jOptions.Add(new JProperty("feeRate", options.FeeRate.GetFee(1000).ToDecimal(MoneyUnit.BTR)));
+                    jOptions.Add(new JProperty("feeRate", options.FeeRate.GetFee(1000).ToDecimal(MoneyUnit.XRC)));
 
                 if (options.SubtractFeeFromOutputs != null)
                 {

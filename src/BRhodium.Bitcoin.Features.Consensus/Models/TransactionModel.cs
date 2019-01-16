@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace BRhodium.Bitcoin.Features.Consensus.Models
 {
 
     public class TransactionModel
     {
-        public double Amount { get; set; } // seems it's set to 0 for immature transactions or generation transactions.
-
-        /// <summary>
-        /// As Amount may not always return the total transaction amount, TotalAmount calculates and return the value using transaction details
-        /// </summary>
-        public double TotalAmount { get { return Details.Sum(item => item.Amount); } }
+        public decimal Amount { get; set; }
 
         public int Confirmations { get; set; }
 
@@ -31,9 +28,14 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 
         public long Time { get; set; }
         public long TimeReceived { get; set; }
+        [DefaultValue(0)]
+        [JsonProperty(PropertyName = "Fee", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public decimal Fee { get; set; }
 
         public List<TransactionDetail> Details { get; set; }
         public string Hex { get; set; }
+
+        
     }   
 
     

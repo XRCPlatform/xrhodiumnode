@@ -199,6 +199,14 @@ namespace NBitcoin.Policy
             }
         }
     }
+
+    public class InputPolicyExceededError : TransactionPolicyError
+    {
+        public InputPolicyExceededError(string message) : base(message)
+        {
+        }
+    }
+
     public class CoinNotFoundPolicyError : InputPolicyError
     {
         IndexedTxIn _TxIn;

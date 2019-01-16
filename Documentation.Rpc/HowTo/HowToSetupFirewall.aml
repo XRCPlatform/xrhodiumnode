@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="6df01e78-de23-41c1-9360-28f4b663a01f" revisionNumber="1">
+  <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>-	Node security is very important. Poor security can result in your wallet being compromised.</para>
+    </introduction>
+    <section address="Section1">
+      <title>How to secure node with firewall</title>
+      <content>
+      <para>If your Linux server doesn't contain iptables, it is good to install them with command:</para>
+<code language="cs">
+sudo apt-get install iptables
+sudo apt-get install ip6tables
+</code>
+      
+        <para>It is advised to block all ip6tables access:</para>
+        
+<code language="cs">
+ip6tables -P INPUT DROP
+ip6tables -P OUTPUT DROP
+ip6tables -P FORWARD DROP
+</code>
+<para>If you use SSH access to your server, then it is necessary to allow SSH port:</para>
+        <code language="cs">
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+</code>
+<para>Allow communication with node:</para>
+
+<list class="bullet">
+  <listItem><para><legacyBold>127.0.0.1</legacyBold> - allowed ip for access to API RPC-JSON</para></listItem>
+  <listItem><para><legacyBold>16661</legacyBold> - testnet API RPC-JSON port</para></listItem>
+  <listItem><para><legacyBold>16665</legacyBold> - node communication port</para></listItem>  
+</list>
+
+<code language="cs">
+sudo iptables -A INPUT -p tcp -s 127.0.0.1 --dport 16661 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 16661 -j DROP
+sudo iptables -A INPUT -p tcp -m tcp --dport 16665 -m state --state NEW,ESTABLISHED -j ACCEPT
+</code>
+
+<para>At the end, drop all other accesses:</para>
+
+<code language="cs">
+sudo iptables -D INPUT -j DROP
+sudo iptables -A INPUT -j DROP
+</code>
+      </content>
+    </section>
+    <section address="Section2">
+      <title>How to save this settings permanently</title>
+      <content>
+        <!-- Uncomment this to create a sub-section outline
+        <autoOutline /> -->
+        <para>-	We recommend installing great Linux utility <legacyBold>iptables-permanently</legacyBold> which stores your configurations in a file and during boot it restores your configuration automatically.<lineBreak/>
+        For installation and store iptables configuration call following command line:</para>
+<code language="cs">
+sudo apt-get install iptables-persistent
+</code>
+
+        <para>-	Answer <legacyBold>YES</legacyBold> to all questions.</para>
+        <para><legacyItalic>Recommendation: If you make a change in your configuration uninstall it and install it again to store new configuration.</legacyItalic></para>
+      </content>
+    </section>    
+  </developerHowToDocument>
+</topic>

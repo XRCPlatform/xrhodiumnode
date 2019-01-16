@@ -72,6 +72,7 @@ namespace BRhodium.Dns
                     node = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
                         .UsePowConsensus()
+                        .UseBlockStore()
                         .UseApi()
                         .AddRPC()
                         .UseDns(serviceTest)

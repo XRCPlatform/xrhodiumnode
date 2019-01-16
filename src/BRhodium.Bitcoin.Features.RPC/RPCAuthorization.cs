@@ -15,6 +15,8 @@ namespace BRhodium.Bitcoin.Features.RPC
         bool IsAuthorized(string user);
 
         bool IsAuthorized(IPAddress ip);
+
+        bool IsWithoutAuthorization();
     }
 
     public class RPCAuthorization : IRPCAuthorization
@@ -29,6 +31,18 @@ namespace BRhodium.Bitcoin.Features.RPC
 
         public List<IPAddress> AllowIp { get; }
 
+        public bool IsWithoutAuthorization()
+        {
+            if (this.Authorized.Count > 0)
+            {
+                foreach (var itemAuthorized in this.Authorized)
+                {
+                    if (!itemAuthorized.Contains("cookie")) return false;
+                }
+            }
+            return true;
+        }
+
         public bool IsAuthorized(string user)
         {
             Guard.NotEmpty(user, nameof(user));
@@ -40,10 +54,7 @@ namespace BRhodium.Bitcoin.Features.RPC
         {
             Guard.NotNull(ip, nameof(ip));
 
-            //TODO BTR: this is wrong check - it doesnt work on linux
-            //if (this.AllowIp.Count == 0)
-                return true;
-            //return this.AllowIp.Any(i => i.AddressFamily == ip.AddressFamily && i.Equals(ip));
+            return true;
         }
     }
 }

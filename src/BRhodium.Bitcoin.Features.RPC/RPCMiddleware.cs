@@ -115,12 +115,19 @@ namespace BRhodium.Bitcoin.Features.RPC
 
         private bool Authorized(HttpContext httpContext)
         {
+            if (this.authorization.IsWithoutAuthorization())
+                return true;
+
             if (!this.authorization.IsAuthorized(httpContext.Connection.RemoteIpAddress))
                 return false;
+
             StringValues auth;
+
             if (!httpContext.Request.Headers.TryGetValue("Authorization", out auth) || auth.Count != 1)
                 return false;
+
             var splittedAuth = auth[0].Split(' ');
+
             if (splittedAuth.Length != 2 ||
                splittedAuth[0] != "Basic")
                 return false;

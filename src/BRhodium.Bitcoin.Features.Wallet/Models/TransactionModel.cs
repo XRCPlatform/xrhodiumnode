@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using BRhodium.Bitcoin.Features.RPC.Converters;
+using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Models
 {
@@ -45,7 +46,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         {
         }
 
-        public TransactionVerboseModel(Transaction trx, Network network, ChainedHeader block = null, ChainedHeader tip = null) : base(trx)
+        public TransactionVerboseModel(
+            Transaction trx,
+            List<IndexedTxOut> prevTrxList,
+            Block block,
+            ChainedHeader blockHeader,
+            ChainedHeader tipBlockHeader,
+            string walletName,
+            Network network,
+            WalletManager walletManager) : base(trx)
         {
             if (trx != null)
             {
@@ -53,6 +62,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                 this.Size = trx.GetSerializedSize();
                 this.Version = trx.Version;
                 this.LockTime = trx.LockTime;
+                this.TimeReceived = trx.Time;
 
                 this.VIn = trx.Inputs.Select(txin => new Vin(txin.PrevOut, txin.Sequence, txin.ScriptSig)).ToList();
 
@@ -61,10 +71,87 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
                 if (block != null)
                 {
-                    this.BlockHash = block.HashBlock.ToString();
+                    this.BlockHeight = blockHeader.Height;
+                    this.BlockHash = blockHeader.HashBlock.ToString();
                     this.Time = this.BlockTime = Utils.DateTimeToUnixTime(block.Header.BlockTime);
-                    if (tip != null)
-                        this.Confirmations = tip.Height - block.Height + 1;
+                    this.Confirmations = tipBlockHeader.Height - blockHeader.Height + 1;
+
+                    foreach (var tx in block.Transactions)
+                    {
+                        this.BlockIndex++;
+                        if (tx.GetHash().ToString() == this.TxId)
+                        {
+                            break;
+                        }
+                    }
+
+                    var totalInputs = prevTrxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+                    var fee = totalInputs - trx.TotalOut.ToUnit(MoneyUnit.Satoshi);
+                    this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
+
+                    var isSendTx = false;
+                    decimal clearOutAmount = 0;
+                    foreach (IndexedTxOut utxo in prevTrxList)
+                    {
+                        if (walletManager.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
+                        {
+                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
+                            {
+                                if (keyWalletName == walletName)
+                                {
+                                    this.Address = address.Address;
+                                    this.Category = "send";
+
+                                    isSendTx = true;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (TxOut utxo in trx.Outputs)
+                    {
+                        if (walletManager.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
+                        {
+                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
+                            {
+                                if (keyWalletName == walletName)
+                                {
+
+                                    if (!address.IsChangeAddress())
+                                    {
+                                        this.Address = address.Address;
+                                        this.Category = "receive";
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
+                                    }
+                                    else
+                                    {
+                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (isSendTx)
+                    {
+                        this.Amount = trx.TotalOut.ToUnit(MoneyUnit.XRC) - clearOutAmount;
+                    }
+                    else
+                    {
+                        this.Amount = clearOutAmount;
+                    }
+
+                    if (trx.IsCoinBase && this.Category == "receive")
+                    {
+                        if (this.Confirmations < 10)
+                        {
+                            this.Category = "immature";
+                        }
+                        else
+                        {
+                            this.Category = "generate";
+                        }
+                    }
                 }
             }
         }
@@ -98,6 +185,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
         [JsonProperty(Order = 10, PropertyName = "blocktime", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint? BlockTime { get; set; }
+
+
+        [JsonProperty(Order = 11, PropertyName = "category", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string Category { get; set; }
+
+        [JsonProperty(Order = 12, PropertyName = "amount", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public decimal Amount { get; set; }
+
+        [JsonProperty(Order = 12, PropertyName = "fee", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public decimal Fee { get; set; }
+
+        [JsonProperty(Order = 12, PropertyName = "blockindex", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public int BlockIndex { get; set; }
+
+        [JsonProperty(Order = 15, PropertyName = "blockheight", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public int BlockHeight { get; set; }
+
+        [JsonProperty(Order = 13, PropertyName = "timereceived", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public uint? TimeReceived { get; set; }
+
+        [JsonProperty(Order = 14, PropertyName = "address", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string Address { get; set; }
     }
 
     public class Vin
@@ -146,7 +255,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         public Vout(int N, TxOut txout, Network network)
         {
             this.N = N;
-            this.Value = txout.Value.ToDecimal(MoneyUnit.BTR);
+            this.Value = txout.Value.ToDecimal(MoneyUnit.XRC);
             this.ScriptPubKey = new ScriptPubKey(txout.ScriptPubKey, network);
         }
 
