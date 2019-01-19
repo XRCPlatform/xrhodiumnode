@@ -64,7 +64,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             this.SerializeTransactionNoWitness = 0x40000000;
             this.MaxStandardVersion = 2;
             this.MaxStandardTxWeight = this.MaxBlockWeight / 10;
-            this.MaxBlockSigopsCost = 80000;
+            this.MaxBlockSigopsCost = 120000;
             this.MaxMoney = 2100000 * Money.COIN;
             this.CoinbaseMaturity = 10;
             this.ProofOfWorkReward = Money.Coins((decimal)2.5);
