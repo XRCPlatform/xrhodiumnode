@@ -147,7 +147,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
             var (cache, controller) = GetControllerAndCache();
 
             cache.Setup(c => c.GetBlockAsync(It.IsAny<uint256>()))
-                .Returns(Task.FromResult(Block.Parse(BlockAsHex, Network.BRhodiumTest)));
+                .Returns(Task.FromResult(Block.Parse(BlockAsHex, Network.TestNet)));
 
             var response = controller.GetBlockAsync(new SearchByHashRequest()
                 {Hash = ValidHash, OutputJson = true});
@@ -162,19 +162,19 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
         }
 
         [Fact]
-        public void Get_Block_When_Block_Is_Found_And_Requesting_RawOuput()
+        public void Get_Block_When_Block_Is_Found_And_Requesting_RawOutput()
         {
                 var (cache, controller) = GetControllerAndCache();
 
                 cache.Setup(c => c.GetBlockAsync(It.IsAny<uint256>()))
-                    .Returns(Task.FromResult(Block.Parse(BlockAsHex, Network.BRhodiumTest)));
+                    .Returns(Task.FromResult(Block.Parse(BlockAsHex, Network.TestNet)));
 
                 var response = controller.GetBlockAsync(new SearchByHashRequest()
                 { Hash = ValidHash, OutputJson = false });
 
                 response.Result.Should().BeOfType<JsonResult>();
                 var result = (JsonResult)response.Result;
-                ((Block)(result.Value)).ToHex(Network.BRhodiumTest).Should().Be(BlockAsHex); 
+                ((Block)(result.Value)).ToHex(Network.TestNet).Should().Be(BlockAsHex);
         }
 
         private static (Mock<IBlockStoreCache> cache, BlockStoreController controller) GetControllerAndCache()
