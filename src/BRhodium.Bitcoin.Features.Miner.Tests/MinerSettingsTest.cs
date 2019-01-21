@@ -62,32 +62,5 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             Assert.Null(minersettings.MineAddress);
             Assert.True(callbackCalled);
         }
-
-        [Fact]
-        public void Load_StakingDisabled_DoesNotLoadWalletDetails()
-        {
-            bool callbackCalled = false;
-            Action<MinerSettings> callback = (MinerSettings settings) =>
-            {
-                callbackCalled = true;
-            };
-
-            var minersettings = new MinerSettings(callback);
-
-            var nodeSettings = new NodeSettings(args:new string[] {
-                "-mine=true",
-                "-walletname=mytestwallet",
-                "-walletpassword=test",
-                "-mineaddress=TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms"
-            });
-
-            minersettings.Load(nodeSettings);
-
-            Assert.True(minersettings.Mine);
-            Assert.Null(minersettings.WalletName);
-            Assert.Null(minersettings.WalletPassword);
-            Assert.Equal("TFE7R2FSAgAeJxt1fgW2YVCh9Zc448f3ms", minersettings.MineAddress);
-            Assert.True(callbackCalled);
-        }
     }
 }
