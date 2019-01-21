@@ -22,7 +22,7 @@ namespace BRhodium.Node.Tests.Utilities
         /// <summary>
         /// Initializes the DBreeze serializer.
         /// </summary>
-        public DBreezeTest() : base(Network.BRhodiumRegTest)
+        public DBreezeTest() : base(Network.RegTest)
         {
             this.dbreezeSerializer = new DBreezeSerializer();
             this.dbreezeSerializer.Initialize(this.Network);
@@ -31,7 +31,7 @@ namespace BRhodium.Node.Tests.Utilities
         [Fact]
         public void SerializerWithBitcoinSerializableReturnsAsBytes()
         {
-            Block block = Network.BRhodiumRegTest.Consensus.ConsensusFactory.CreateBlock();
+            Block block = Network.RegTest.Consensus.ConsensusFactory.CreateBlock();
 
             byte[] result = this.dbreezeSerializer.Serializer(block);
 
@@ -62,11 +62,11 @@ namespace BRhodium.Node.Tests.Utilities
         [Fact]
         public void DeserializerWithCoinsDeserializesObject()
         {
-            var network = Network.BRhodiumRegTest;
+            var network = Network.RegTest;
             var genesis = network.GetGenesis();
             var coins = new Coins(genesis.Transactions[0], 0);
 
-            var result = (Coins)this.dbreezeSerializer.Deserializer(coins.ToBytes(network: Network.BRhodiumRegTest), typeof(Coins));
+            var result = (Coins)this.dbreezeSerializer.Deserializer(coins.ToBytes(network: Network.RegTest), typeof(Coins));
 
             Assert.Equal(coins.CoinBase, result.CoinBase);
             Assert.Equal(coins.Height, result.Height);
@@ -83,11 +83,11 @@ namespace BRhodium.Node.Tests.Utilities
         [Fact]
         public void DeserializerWithBlockHeaderDeserializesObject()
         {
-            var network = Network.BRhodiumRegTest;
+            var network = Network.RegTest;
             var genesis = network.GetGenesis();
             var blockHeader = genesis.Header;
 
-            var result = (BlockHeader)this.dbreezeSerializer.Deserializer(blockHeader.ToBytes(network: Network.BRhodiumRegTest), typeof(BlockHeader));
+            var result = (BlockHeader)this.dbreezeSerializer.Deserializer(blockHeader.ToBytes(network: Network.RegTest), typeof(BlockHeader));
 
             Assert.Equal(blockHeader.GetHash(), result.GetHash());
         }
@@ -95,7 +95,7 @@ namespace BRhodium.Node.Tests.Utilities
         [Fact]
         public void DeserializerWithRewindDataDeserializesObject()
         {
-            Network network = Network.BRhodiumRegTest;
+            Network network = Network.RegTest;
             Block genesis = network.GetGenesis();
             var rewindData = new RewindData(genesis.GetHash());
 
@@ -117,10 +117,10 @@ namespace BRhodium.Node.Tests.Utilities
         [Fact]
         public void DeserializerWithBlockDeserializesObject()
         {
-            Network network = Network.BRhodiumRegTest;
+            Network network = Network.RegTest;
             Block block = network.GetGenesis();
 
-            var result = (Block)this.dbreezeSerializer.Deserializer(block.ToBytes(network: Network.BRhodiumRegTest), typeof(Block));
+            var result = (Block)this.dbreezeSerializer.Deserializer(block.ToBytes(network: Network.RegTest), typeof(Block));
 
             Assert.Equal(block.GetHash(), result.GetHash());
         }
