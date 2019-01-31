@@ -532,7 +532,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
             Wallet currWallet = this.walletManager.GetWalletByAddress(address);
             if (currWallet != null) {
-                var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.network.Consensus.CoinType);
+                var currAccount = currWallet.GetAccountByCoinType("account 0", (CoinType)this.Network.Consensus.CoinType);
                 if (currAccount != null) {
                     foreach (var walletAddress in currAccount.ExternalAddresses)
                     {

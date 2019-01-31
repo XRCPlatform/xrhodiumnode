@@ -1665,14 +1665,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 throw new WalletException($"Wallet with name '{name}' already exists.");
             }            
 
-            List<Wallet> similarWallets = this.Wallets.Where(w => w.EncryptedSeed == encryptedSeed).ToList();
-            if (similarWallets.Any())
-            {
-                this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
-                throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.FileStorage.FolderPath}' and try restoring the wallet again. " +
-                                                    "Make sure you have your mnemonic and your password handy!");
-            }
+            //List<Wallet> similarWallets = this.Wallets.Where(w => w.EncryptedSeed == encryptedSeed).ToList();
+            //if (similarWallets.Any())
+            //{
+            //    this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
+            //    throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
+            //                                        $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.FileStorage.FolderPath}' and try restoring the wallet again. " +
+            //                                        "Make sure you have your mnemonic and your password handy!");
+            //}
 
             Wallet walletFile = new Wallet
             {

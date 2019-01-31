@@ -5,9 +5,11 @@ using System.Net;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
+using ProtoBuf;
 
 namespace NBitcoin
 {
+    [ProtoContract]
     public enum CoinType
     {
         /// <summary>

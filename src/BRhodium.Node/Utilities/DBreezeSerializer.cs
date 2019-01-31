@@ -3,8 +3,7 @@ using System.Linq;
 using DBreeze.Utils;
 using NBitcoin;
 using NBitcoin.BitcoinCore;
-using Newtonsoft.Json;
-
+using ProtoBuf;
 
 namespace BRhodium.Node.Utilities
 {
@@ -18,11 +17,12 @@ namespace BRhodium.Node.Utilities
         /// <summary>
         /// Initializes custom serializers for DBreeze engine.
         /// </summary>
-        public void Initialize(Network network) 
+        public void Initialize(Network network)
         {
             this.Network = network;
             CustomSerializator.ByteArraySerializator = this.Serializer;
             CustomSerializator.ByteArrayDeSerializator = this.Deserializer;
+
         }
 
         /// <summary>
@@ -53,6 +53,7 @@ namespace BRhodium.Node.Utilities
                 DateTimeOffset dateTimeOffset = (DateTimeOffset)obj;
                 return dateTimeOffset.ToBytes();
             }
+
             if (obj.GetType() == typeof(DateTime))
             {
                 DateTime dateTime = (DateTime)obj;
@@ -71,8 +72,11 @@ namespace BRhodium.Node.Utilities
                     itemIndex++;
                 }
                 return ConcatArrays(serializedItems);
-            }         
-                
+            }
+
+            IProtoBufSerializeable proto = obj as IProtoBufSerializeable;
+            return SerializeProtobuf(obj);
+
             throw new NotSupportedException();
         }
 
@@ -127,20 +131,83 @@ namespace BRhodium.Node.Utilities
             {
                 return new uint256(bytes);
             }
-
+                
 
             if (type == typeof(Block))
             {
                 return Block.Load(bytes, this.Network);
             }
-
+                
             var o = Activator.CreateInstance(type) as IBitcoinSerializable;
-            if (o != null) {
+            if (o != null)
+            {
                 o.ReadWrite(bytes);
                 return o;
             }
+            var proto = Activator.CreateInstance(type) as IProtoBufSerializeable;
+            if (proto != null)
+            {
+                return DeserializeProtobuf(bytes,type);
+            }
 
             throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Deserializes protobuf object from byte[]
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public T DeserializeProtobuf<T>(byte[] data)
+        {
+            T ret = default(T);
+
+            using (System.IO.MemoryStream ms = new System.IO.MemoryStream(data))
+            {
+
+                ret = ProtoBuf.Serializer.Deserialize<T>(ms);
+                ms.Close();
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Deserializes protobuf object from byte[]. Non-generic style.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="T"></param>
+        /// <returns></returns>
+        public static object DeserializeProtobuf(byte[] data, Type T)
+        {
+            object ret = null;
+            using (System.IO.MemoryStream ms = new System.IO.MemoryStream(data))
+            {
+
+                ret = ProtoBuf.Serializer.NonGeneric.Deserialize(T, ms);
+                ms.Close();
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Serialize object using protobuf serializer
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public byte[] SerializeProtobuf(object data)
+        {
+            byte[] bt = null;
+            using (System.IO.MemoryStream ms = new System.IO.MemoryStream())
+            {
+                ProtoBuf.Serializer.NonGeneric.Serialize(ms, data);
+                bt = ms.ToArray();
+                ms.Close();
+            }
+
+            return bt;
         }
     }
 }

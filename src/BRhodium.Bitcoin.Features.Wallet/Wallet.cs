@@ -8,13 +8,146 @@ using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
 using System.ComponentModel;
 using DateTimeOffsetConverter = BRhodium.Node.Utilities.JsonConverters.DateTimeOffsetConverter;
+using ProtoBuf;
+using ProtoBuf.Meta;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
+    [ProtoContract]
+    public class ScriptSurogate
+    {
+        [ProtoMember(1)] public byte[] bytes = new byte[0];
+        public static implicit operator Script(ScriptSurogate value)
+        {
+            return new Script(value?.bytes);
+        }
+
+        public static implicit operator ScriptSurogate(Script value)
+        {
+            if (value == null)
+            {
+                return new ScriptSurogate();
+            }          
+            return new ScriptSurogate()
+            {
+                bytes = value.ToBytes()
+            };
+        }
+    }
+
+    [ProtoContract]
+    public class PartialMerkleTreeSurogate
+    {
+        [ProtoMember(1)] public byte[] bytes = new byte[0];
+        public static implicit operator PartialMerkleTree(PartialMerkleTreeSurogate value)
+        {
+            PartialMerkleTree t = new PartialMerkleTree();
+            t.FromBytes(value.bytes);
+            return t;
+        }
+        public static implicit operator PartialMerkleTreeSurogate(PartialMerkleTree value)
+        {            
+            if (value == null)
+            {
+                return new PartialMerkleTreeSurogate();
+            }           
+            return new PartialMerkleTreeSurogate()
+            {
+                bytes = value.ToBytes()
+            };
+        }
+    }
+
+    [ProtoContract]
+    public class Uint256Surogate
+    {
+        [ProtoMember(1)] public byte[] bytes = new byte[0];
+        public static implicit operator uint256(Uint256Surogate value)
+        {
+            return new uint256(value.bytes);
+        }
+        public static implicit operator Uint256Surogate(uint256 value)
+        {
+            if (value == null)
+            {
+                return new Uint256Surogate();
+            }        
+            return new Uint256Surogate()
+            {
+                bytes = value.ToBytes()
+            };
+        }
+    }
+    [ProtoContract]
+    public class NetworkSurogate
+    {
+        [ProtoMember(1)]
+        public string NetworkName { get; set; }
+        public override string ToString()
+        {
+            return this.NetworkName;
+        }
+
+        public static explicit operator Network(NetworkSurogate value)
+        {
+            return Network.GetNetwork(value.NetworkName);
+        }
+        public static implicit operator NetworkSurogate(Network value)
+        {
+            return new NetworkSurogate()
+            {
+                NetworkName = value?.Name
+            };
+        }
+    }
+    [ProtoContract]
+    public class MoneySurogate
+    {
+        [ProtoMember(1)] public long Satoshis;
+        public static implicit operator MoneySurogate(Money value)
+        {
+            if (value == null)
+            {
+                return new MoneySurogate();
+            }
+            return new MoneySurogate()
+            {
+                Satoshis = value.Satoshi
+            };
+        }
+        public static implicit operator Money(MoneySurogate value)
+        {
+            var result = new Money(value.Satoshis);
+            return result;
+        }
+    }
+
+    [ProtoContract]
+    public class DateTimeOffsetSurogate
+    {
+        [ProtoMember(1)] public DateTime UtcTime;
+        [ProtoMember(2)] public TimeSpan Offset;
+
+        public static implicit operator DateTimeOffsetSurogate(DateTimeOffset value)
+        {
+            return new DateTimeOffsetSurogate()
+            {
+                UtcTime = value.UtcDateTime,
+                Offset = value.Offset
+            };
+        }
+
+        public static implicit operator DateTimeOffset(DateTimeOffsetSurogate value)
+        {
+            var result = new DateTimeOffset(value.UtcTime);
+            return result.ToOffset(value.Offset);
+        }
+    }
     /// <summary>
     /// A wallet.
     /// </summary>
-    public class Wallet : IBitcoinSerializable
+    [ProtoContract]
+    public class Wallet : IProtoBufSerializeable
     {
         /// <summary>
         /// Initializes a new instance of the wallet.
@@ -24,211 +157,66 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.AccountsRoot = new List<AccountRoot>();
         }
         private bool changed = false;
-        private byte[] _name = Array.Empty<byte>();
-        private byte[] _chainCode = Array.Empty<byte>();
-        private byte[] _encryptedSeed = Array.Empty<byte>();
-        private UInt32 _creationTime;
-        private long _id;
-        private List<AccountRoot> _accountsRoot;
-        private Network _network;
-   
-        
-        public void ReadWrite(BitcoinStream stream)
-        {
-            byte[] networkNameShadow = Array.Empty<byte>();
-            if (_network != null) {
-                networkNameShadow = StringToByteArray(_network.ToString());
-            }
-            
-            stream.ReadWrite(ref this._id);
-            stream.ReadWrite(ref this._creationTime);
-            stream.ReadWriteAsVarString(ref this._name);
-            stream.ReadWriteAsVarString(ref this._encryptedSeed);
-            stream.ReadWriteAsVarString(ref this._chainCode);
-            stream.ReadWriteAsVarString(ref networkNameShadow);
 
-            stream.ReadWrite<List<AccountRoot>, AccountRoot>(ref this._accountsRoot);
-            if (stream.Serializing)
-            {
-                stream.Inner.Flush();
-            }
-            else
-            {
-                var network = GetNetwork(networkNameShadow);
-                if (network != null) {
-                    this.Network = network;
-                }               
-            }
-        }
 
-        private byte[] StringToByteArray(string value) {
-            return System.Text.Encoding.UTF8.GetBytes(value);
-        }
-        private string ByteArrayToString(byte[] value)
-        {
-            return System.Text.Encoding.UTF8.GetString(value);
-        }
+        [ProtoMember(1)]
+        [JsonIgnore]
+        public long Id { get; set; }
 
-        private Network GetNetwork(byte[] networkName) {
-            return NetworkHelpers.GetNetwork(ByteArrayToString(networkName));
-        }
-
-        public static Wallet Load(byte[] bytes, Network network = null)
-        {
-            if (bytes == null)
-                throw new ArgumentNullException(nameof(bytes));
-
-            var wallet = new Wallet();
-            wallet.FromBytes(bytes, network: network);
-            return wallet;
-        }
         /// <summary>
         /// The name of this wallet.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "name")]
-        public string Name
-        {
-            get
-            {
-                if (this._name != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._name);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._name = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._name = Array.Empty<byte>();
-                }
-            }
-        }
+        public string Name { get; set; }
 
         /// <summary>
         /// The seed for this wallet, password encrypted.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "encryptedSeed")]
-        public string EncryptedSeed
-        {
-            get
-            {
-                if (this._encryptedSeed != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._encryptedSeed);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._encryptedSeed = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._encryptedSeed = Array.Empty<byte>();
-                }
-            }
-        }
+        public string EncryptedSeed { get; set; }
 
         /// <summary>
         /// The chain code.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "chainCode")]
         [JsonConverter(typeof(ByteArrayConverter))]
-        public byte[] ChainCode
-        {
-            get
-            {
-                if (this._chainCode == null)
-                {
-                    this._chainCode = Array.Empty<byte>();
-                }
-                return this._chainCode;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    this._chainCode = Array.Empty<byte>();
-                    return;
-                }
-                this._chainCode = value;
-            }
-        }
+        public byte[] ChainCode { get; set; }
 
         /// <summary>
-        /// Gets or sets the merkle path.
+        /// Gets or sets block locator.
         /// </summary>
+        [ProtoMember(5)]
         [JsonProperty(PropertyName = "blockLocator", ItemConverterType = typeof(UInt256JsonConverter))]
         public List<uint256> BlockLocator { get; set; }
 
         /// <summary>
         /// The network this wallet is for.
         /// </summary>
+        [ProtoMember(6)]
         [JsonProperty(PropertyName = "network")]
         [JsonConverter(typeof(NetworkConverter))]
-        public Network Network
-        {
-            get
-            {
-                return _network;
-            }
-            set
-            {
-                _network = value;
-            }
-        }
+        public Network Network { get; set; }
 
         /// <summary>
         /// The time this wallet was created.
         /// </summary>
+
+        [ProtoMember(7)]
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime
-        {
-            get
-            {
-                return Utils.UnixTimeToDateTime(this._creationTime);
-            }
-            set
-            {
-                this._creationTime = Utils.DateTimeToUnixTime(value);
-            }
-        }
+        public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>
         /// The root of the accounts tree.
         /// </summary>
+
+        [ProtoMember(8)]
         [JsonProperty(PropertyName = "accountsRoot")]
-        public List<AccountRoot> AccountsRoot
-        {
-            get
-            {
-                return this._accountsRoot;
-            }
-            set
-            {
-                this._accountsRoot = value;
-            }
-        }
-        [JsonIgnore]
-        public long Id
-        {
-            get
-            {
-                return this._id;
-            }
-            internal set
-            {
-                this._id = value;
-            }
-        }
+        public List<AccountRoot> AccountsRoot { get; set; }
+
 
         /// <summary>
         /// This is sets a runtime flag to show if wallet has been changed since last save operation.
@@ -456,9 +444,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// The root for the accounts for any type of coins.
     /// </summary>
-    public class AccountRoot : IBitcoinSerializable
+    [ProtoContract]
+    public class AccountRoot : IProtoBufSerializeable
     {
-        private int _coinType;
         private List<HdAccount> _accounts;
 
         /// <summary>
@@ -468,45 +456,25 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.Accounts = new List<HdAccount>();
         }
-        /// <summary>
-        /// Implmenting IBitcoinSerializable member to make this object serializebale.
-        /// </summary>
-        /// <param name="stream"></param>
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._coinType);
-            stream.ReadWrite<List<HdAccount>, HdAccount>(ref this._accounts);
-            if (stream.Serializing)
-            {
-                stream.Inner.Flush();
-            }
-            //block sychronization position is kept separately so no need to serialize
-        }
+
         /// <summary>
         /// The type of coin, Bitcoin or BRhodium.
         /// </summary>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "coinType")]
-        public CoinType CoinType
-        {
-            get
-            {
-                return (CoinType)this._coinType;
-            }
-            set
-            {
-                this._coinType = (int) value;
-            }
-        }
+        public CoinType CoinType { get; set; }
 
         /// <summary>
         /// The height of the last block that was synced.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "lastBlockSyncedHeight", NullValueHandling = NullValueHandling.Ignore)]
         public int? LastBlockSyncedHeight { get; set; }
 
         /// <summary>
         /// The hash of the last block that was synced.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "lastBlockSyncedHash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
         public uint256 LastBlockSyncedHash { get; set; }
@@ -514,18 +482,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The accounts used in the wallet.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "accounts")]
-        public List<HdAccount> Accounts
-        {
-            get
-            {
-                return this._accounts;
-            }
-            set
-            {
-                this._accounts = value;
-            }
-        }
+        public List<HdAccount> Accounts { get; set; }
 
         /// <summary>
         /// Gets the first account that contains no transaction.
@@ -632,31 +591,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD account's details.
     /// </summary>
-    public class HdAccount : IBitcoinSerializable
+    [ProtoContract]
+    public class HdAccount : IProtoBufSerializeable
     {
-        private int _index;
-        private byte[] _name = Array.Empty<byte>();
-        private byte[] _hdPath = Array.Empty<byte>();
-        private byte[] _extendedPubKey = Array.Empty<byte>();
-        private UInt32 _creationTime;
-
         public HdAccount()
         {
             this.ExternalAddresses = new List<HdAddress>();
             this.InternalAddresses = new List<HdAddress>();
-        }
-
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._index);
-            stream.ReadWrite(ref this._creationTime);
-            stream.ReadWriteAsVarString(ref this._name);
-            stream.ReadWriteAsVarString(ref this._hdPath);
-            stream.ReadWriteAsVarString(ref this._extendedPubKey);
-            if (stream.Serializing)
-            {
-                stream.Inner.Flush();
-            }
         }
 
         /// <summary>
@@ -666,125 +607,52 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// According to BIP44, an account at index (i) can only be created when the account
         /// at index (i - 1) contains transactions.
         /// </remarks>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "index")]
-        public int Index
-        {
-            get
-            {
-                return this._index;
-            }
-            set
-            {
-                this._index = value;
-            }
-        }
+        public int Index { get; set; }
 
         /// <summary>
         /// The name of this account.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "name")]
-        public string Name
-        {
-            get
-            {
-                if (this._name != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._name);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._name = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else {
-                    this._name = Array.Empty<byte>();
-                }
-            }
-        }
+        public string Name { get; set; }
+
 
         /// <summary>
         /// A path to the account as defined in BIP44.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "hdPath")]
-        public string HdPath
-        {
-            get
-            {
-                if (this._hdPath != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._hdPath);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._hdPath = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._hdPath = Array.Empty<byte>();
-                }
-            }
-        }
+        public string HdPath { get; set; }
+
 
         /// <summary>
         /// An extended pub key used to generate addresses.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "extPubKey")]
-        public string ExtendedPubKey
-        {
-            get
-            {
-                if (this._extendedPubKey != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._extendedPubKey);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._extendedPubKey = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._extendedPubKey = Array.Empty<byte>();
-                }
-            }
-        }
+        public string ExtendedPubKey { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
+        [ProtoMember(5)]
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime
-        {
-            get
-            {
-                return Utils.UnixTimeToDateTime(this._creationTime);
-            }
-            set
-            {
-                this._creationTime = Utils.DateTimeToUnixTime(value);
-            }
-        }
+        public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>
         /// The list of external addresses, typically used for receiving money.
         /// </summary>
+        [ProtoMember(6)]
         [JsonProperty(PropertyName = "externalAddresses")]
         public ICollection<HdAddress> ExternalAddresses { get; set; }
 
         /// <summary>
         /// The list of internal addresses, typically used to receive change.
         /// </summary>
+        [ProtoMember(7)]
         [JsonProperty(PropertyName = "internalAddresses")]
         public ICollection<HdAddress> InternalAddresses { get; set; }
 
@@ -1107,7 +975,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// Provides a link composition between wallets and addresses from cached objects
     /// </summary>
-    public class WalletLinkedHdAddress{
+    public class WalletLinkedHdAddress
+    {
         private readonly HdAddress hdAddress;
         private readonly long walletId;
         /// <summary>
@@ -1123,7 +992,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public HdAddress HdAddress
         {
-            get {
+            get
+            {
                 return this.hdAddress;
             }
         }
@@ -1139,197 +1009,75 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An HD address.
     /// </summary>
-    public class HdAddress : IBitcoinSerializable
+    [ProtoContract]
+    public class HdAddress : IProtoBufSerializeable
     {
-        private int _index;
-        private Script _scriptPubKey;
-        private Script _pubkey;
-        private byte[] _address = Array.Empty<byte>();
-        private byte[] _hdPath = Array.Empty<byte>();
-        private long _id;
-        private long _walletid;
         private List<TransactionData> _transactions;
-
         public HdAddress()
         {
-            this.Transactions = new List<TransactionData>();
-        }
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._id);
-            stream.ReadWrite(ref this._walletid);
-            stream.ReadWrite(ref this._index);
-            stream.ReadWrite(ref this._scriptPubKey);
-            stream.ReadWrite(ref this._pubkey);
-            stream.ReadWriteAsVarString(ref this._address);
-            stream.ReadWriteAsVarString(ref this._hdPath);
-            bool hasTransactions = false;
-
-            if (stream.Serializing)
-            {
-                if (this._transactions.Count > 0)
-                {
-                    hasTransactions = true;                   
-                }
-                stream.ReadWrite(ref hasTransactions);
-                if (hasTransactions)
-                {
-                    stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
-                }
-
-                stream.Inner.Flush();
-            }
-            else {
-                stream.ReadWrite(ref hasTransactions);
-                if (hasTransactions)
-                {
-                    stream.ReadWrite<List<TransactionData>, TransactionData>(ref this._transactions);
-                }                
-            }
+            _transactions = new List<TransactionData>();
         }
         /// <summary>
         /// The index of the address.
         /// </summary>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "index")]
-        public int Index
-        {
-            get
-            {
-                return this._index;
-            }
-            set
-            {
-                this._index = value;
-            }
-        }
+        public int Index { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script ScriptPubKey
-        {
-            get
-            {
-                return this._scriptPubKey;
-            }
-            set
-            {
-                this._scriptPubKey = value;
-            }
-        }
+        public Script ScriptPubKey { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "pubkey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script Pubkey
-        {
-            get
-            {
-                return this._pubkey;
-            }
-            set
-            {
-                this._pubkey = value;
-            }
-        }
+        public Script Pubkey { get; set; }
 
         /// <summary>
         /// The Base58 representation of this address.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "address")]
-        public string Address
-        {
-            get
-            {
-                if (this._address != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._address);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._address = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._address = Array.Empty<byte>();
-                }
-            }
-        }
+        public string Address { get; set; }
 
         /// <summary>
         /// A path to the address as defined in BIP44.
         /// </summary>
+        [ProtoMember(5)]
         [JsonProperty(PropertyName = "hdPath")]
-        public string HdPath
-        {
-            get
-            {
-                if (this._hdPath != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._hdPath);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._hdPath = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._hdPath = Array.Empty<byte>();
-                }
-            }
-        }
+        public string HdPath { get; set; }
 
         /// <summary>
         /// A list of transactions involving this address.
         /// </summary>
+        [ProtoMember(6)]
         [JsonProperty(PropertyName = "transactions")]
         public List<TransactionData> Transactions
         {
             get
             {
-                return this._transactions;
+                return _transactions;
             }
             set
             {
-                this._transactions = value;
+                _transactions = value;
             }
         }
+
         [JsonIgnore]
-        public long WalletId
-        {
-            get
-            {
-                return this._walletid;
-            }
-            internal set
-            {
-                this._walletid = value;
-            }
-        }
+        [ProtoMember(7)]
+        public long WalletId { get; set; }
+
         [JsonIgnore]
-        public long Id
-        {
-            get
-            {
-                return this._id;
-            }
-            internal set
-            {
-                this._id = value;
-            }
-        }
+        [ProtoMember(8)]
+        public long Id { get; set; }
 
         /// <summary>
         /// Determines whether this is a change address or a receive address.
@@ -1373,125 +1121,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object containing transaction data.
     /// </summary>
-    public class TransactionData : IBitcoinSerializable
+    [ProtoContract]
+    public class TransactionData : IProtoBufSerializeable
     {
-        private uint256 _id;
-        private long _amount;
-        private int _index;
-        private int? _blockHeight;
-        private uint256 _blockHash;
-        private long _creationTime;
-        private PartialMerkleTree _merkleProof;
-        private Script _scriptPubKey;
-        private byte[] _hex;
-        private short _isPropagatedProxy = 0;
-
-        private SpendingDetails _spendingDetails;
-
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._id);
-            stream.ReadWrite(ref this._amount);
-            stream.ReadWrite(ref this._index);
-            stream.ReadWrite(ref this._blockHash);
-            stream.ReadWrite(ref this._creationTime);
-            stream.ReadWrite(ref this._merkleProof);
-            stream.ReadWrite(ref this._scriptPubKey);            
-            stream.ReadWrite(ref this._isPropagatedProxy);
-            
-            bool hasSpending = false;
-            bool hasHex = false;
-
-            if (stream.Serializing)
-            {
-                if (this._spendingDetails != null && !this._spendingDetails.TransactionId.Equals(new uint256()))
-                {
-                    hasSpending = true;
-                    stream.ReadWrite(ref hasSpending);
-                    stream.ReadWrite<SpendingDetails>(ref this._spendingDetails);
-                }
-                else
-                {
-                    hasSpending = false;
-                    stream.ReadWrite(ref hasSpending);
-                }
-                //if (this._hex != null && this._hex.Length>0)
-                //{
-                //    hasHex = true;
-                //    stream.ReadWrite(ref hasHex);
-                //    stream.ReadWriteAsVarString(ref this._hex);
-                //}
-                //else
-                //{
-                //    hasHex = false;
-                //    stream.ReadWrite(ref hasHex);
-                //}
-
-                if (this._blockHeight.HasValue)
-                {
-                    stream.ReadWrite((int)this._blockHeight.Value);
-                }
-                else {
-                    stream.ReadWrite(0);
-                }
-
-                stream.Inner.Flush();
-            }
-            else
-            {
-                stream.ReadWrite(ref hasSpending);
-                if (hasSpending) {
-                    stream.ReadWrite<SpendingDetails>(ref this._spendingDetails);
-                }
-
-                //stream.ReadWrite(ref hasHex);
-                //if (hasHex)
-                //{
-                //    stream.ReadWriteAsVarString(ref this._hex);
-                //}
-
-                int tempValue = 0;
-                stream.ReadWrite(ref tempValue);
-                if (tempValue > 0)
-                {
-                    this._blockHeight = tempValue;
-                }
-            }
-        }
-
         /// <summary>
         /// Transaction id.
         /// </summary>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "id")]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 Id
-        {
-            get
-            {
-                return this._id;
-            }
-            set
-            {
-                this._id = value;
-            }
-        }
+        public uint256 Id { get; set; }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "amount")]
         [JsonConverter(typeof(MoneyJsonConverter))]
-        public Money Amount
-        {
-            get
-            {
-                return new Money(this._amount);
-            }
-            set
-            {
-                this._amount = value.Satoshi;
-            }
-        }
+        public Money Amount { get; set; }
 
 
         /// <summary>
@@ -1500,155 +1147,65 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <remarks>
         /// This is effectively the index of the output, the position of the output in the parent transaction.
         /// </remarks>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "index", NullValueHandling = NullValueHandling.Ignore)]
-        public int Index
-        {
-            get
-            {
-                return this._index;
-            }
-            set
-            {
-                this._index = value;
-            }
-        }
+        public int Index { get; set; }
 
         /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public int? BlockHeight
-        {
-            get
-            {
-                return this._blockHeight;
-            }
-            set
-            {
-                this._blockHeight = value;  
-            }
-        }
+        public int? BlockHeight { get; set; }
 
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
+        [ProtoMember(5)]
         [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 BlockHash
-        {
-            get
-            {
-                return this._blockHash;
-            }
-            set
-            {
-                this._blockHash = value;
-            }
-        }
+        public uint256 BlockHash { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
+        [ProtoMember(6)]
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime
-        {
-            get
-            {
-                return Utils.UnixTimeToDateTime(this._creationTime);
-            }
-            set
-            {
-                this._creationTime = Utils.DateTimeToUnixTime(value);
-            }
-        }
+        public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>
         /// Gets or sets the Merkle proof for this transaction.
         /// </summary>
+        [ProtoMember(7)]
         [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
-        public PartialMerkleTree MerkleProof
-        {
-            get
-            {
-                return this._merkleProof;
-            }
-            set
-            {
-                this._merkleProof = value;
-            }
-        }
+        public PartialMerkleTree MerkleProof { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
+        [ProtoMember(8)]
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script ScriptPubKey
-        {
-            get
-            {
-                return this._scriptPubKey;
-            }
-            set
-            {
-                this._scriptPubKey = value;
-            }
-        }
+        public Script ScriptPubKey { get; set; }
 
         /// <summary>
         /// Hexadecimal representation of this transaction.
         /// </summary>
+        [ProtoMember(9)]
         [DefaultValue("")]
-        [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling =DefaultValueHandling.Ignore)]
-        public string Hex
-        {
-            get
-            {
-                if (this._hex != null && this._hex.Length>0 && this._hex != Array.Empty<byte>())
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._hex);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._hex = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._hex = Array.Empty<byte>();
-                }
-            }
-        }
+        [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string Hex { get; set; }
 
         /// <summary>
         /// Propagation state of this transaction.
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
+        [ProtoMember(10)]
         [DefaultValue(false)]
-        [JsonProperty(PropertyName = "isPropagated", DefaultValueHandling = DefaultValueHandling.Ignore )]
-        public bool IsPropagated
-        {
-            get
-            {
-                return this._isPropagatedProxy.Equals((short) 1);
-            }
-            set
-            {
-                if (value)
-                {
-                    this._isPropagatedProxy = 1;
-                }
-                else
-                {
-                    this._isPropagatedProxy = 0; 
-                }
-            }
-        }
+        [JsonProperty(PropertyName = "isPropagated", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool IsPropagated { get; set; }
 
         /// <summary>
         /// Gets or sets the full transaction object.
@@ -1659,18 +1216,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The details of the transaction in which the output referenced in this transaction is spent.
         /// </summary>
+        [ProtoMember(11)]
         [JsonProperty(PropertyName = "spendingDetails", NullValueHandling = NullValueHandling.Ignore)]
-        public SpendingDetails SpendingDetails
-        {
-            get
-            {
-                return this._spendingDetails;
-            }
-            set
-            {
-                this._spendingDetails = value;
-            }
-        }
+        public SpendingDetails SpendingDetails { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -1710,244 +1258,88 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <summary>
     /// An object representing a payment.
     /// </summary>
-    public class PaymentDetails : IBitcoinSerializable
+    [ProtoContract]
+    public class PaymentDetails : IProtoBufSerializeable
     {
-        private Script _destinationScriptPubKey;
-        private byte[] _destinationAddress = Array.Empty<byte>();
-        private long _amount;
-
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._destinationScriptPubKey);
-            stream.ReadWrite(ref this._amount);
-            stream.ReadWriteAsVarString(ref this._destinationAddress);
-            if (stream.Serializing)
-            {
-                stream.Inner.Flush();
-            }
-        }
-
         /// <summary>
         /// The script pub key of the destination address.
         /// </summary>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "destinationScriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script DestinationScriptPubKey
-        {
-            get
-            {
-                return this._destinationScriptPubKey;
-            }
-            set
-            {
-                this._destinationScriptPubKey = value;
-            }
-        }
+        public Script DestinationScriptPubKey { get; set; }
 
         /// <summary>
         /// The Base58 representation of the destination  address.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "destinationAddress")]
-        public string DestinationAddress
-        {
-            get
-            {
-                if (this._destinationAddress != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._destinationAddress);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._destinationAddress = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._destinationAddress = Array.Empty<byte>();
-                }
-            }
-        }
+        public string DestinationAddress { get; set; }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "amount")]
         [JsonConverter(typeof(MoneyJsonConverter))]
-        public Money Amount
-        {
-            get
-            {
-                return new Money(this._amount);
-            }
-            set
-            {
-                this._amount = value.Satoshi;
-            }
-        }
-
+        public Money Amount { get; set; }
 
     }
-
-    public class SpendingDetails : IBitcoinSerializable
+    [ProtoContract]
+    public class SpendingDetails : IProtoBufSerializeable
     {
-        private uint256 _transactionId;
         private List<PaymentDetails> _payments;
-        private int? _blockHeight;        
-        private uint _creationTime;
-        private byte[] _hex = Array.Empty<byte>();
 
         public SpendingDetails()
         {
-            this.Payments = new List<PaymentDetails>();
+            _payments = new List<PaymentDetails>();
         }
-
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._transactionId);            
-            stream.ReadWrite(ref this._creationTime);     
-            stream.ReadWrite<List<PaymentDetails>, PaymentDetails>(ref this._payments);
-
-            bool hasHex = false;
-            bool hasHeight = false;
-            if (stream.Serializing)
-            {
-               
-                if (this._hex != null && this._hex.Length > 0)
-                {
-                    hasHex = true;
-                    stream.ReadWrite(ref hasHex);
-                    stream.ReadWriteAsVarString(ref this._hex);
-                }
-                else
-                {
-                    hasHex = false;
-                    stream.ReadWrite(ref hasHex);
-                }
-
-                if (this._blockHeight.HasValue)
-                {
-                    stream.ReadWrite((int)this._blockHeight.Value);
-                }
-                else
-                {
-                    stream.ReadWrite(0);
-                }
-
-
-                stream.Inner.Flush();
-            }
-            else
-            {
-                stream.ReadWrite(ref hasHex);
-                if (hasHex)
-                {
-                    stream.ReadWriteAsVarString(ref this._hex);
-                }
-
-                int tempValue = 0;
-                stream.ReadWrite(ref tempValue);
-                if (tempValue > 0)
-                {
-                    this._blockHeight = tempValue;
-                }
-            }
-        }
-
         /// <summary>
         /// The id of the transaction in which the output referenced in this transaction is spent.
         /// </summary>
+        [ProtoMember(1)]
         [JsonProperty(PropertyName = "transactionId", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
-        public uint256 TransactionId
-        {
-            get
-            {
-                return this._transactionId;
-            }
-            set
-            {
-                this._transactionId = value;
-            }
-        }
+        public uint256 TransactionId { get; set; }
 
         /// <summary>
         /// A list of payments made out in this transaction.
         /// </summary>
+        [ProtoMember(2)]
         [JsonProperty(PropertyName = "payments", NullValueHandling = NullValueHandling.Ignore)]
         public List<PaymentDetails> Payments
         {
             get
             {
-                return this._payments;
+                return _payments;
             }
             set
             {
-                this._payments = value;
+                _payments = value;
             }
         }
 
         /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
+        [ProtoMember(3)]
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public int? BlockHeight
-        {
-            get
-            {
-                return this._blockHeight;
-            }
-            set
-            {
-                this._blockHeight = value;
-            }
-        }
+        public int? BlockHeight { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
+        [ProtoMember(4)]
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime
-        {
-            get
-            {
-                return Utils.UnixTimeToDateTime(this._creationTime);
-            }
-            set
-            {
-                this._creationTime = Utils.DateTimeToUnixTime(value);
-            }
-        }
+        public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>
         /// Hexadecimal representation of this spending transaction.
         /// </summary>
+        [ProtoMember(5)]
         [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
-        public string Hex
-        {
-            get
-            {
-                if (this._hex != null)
-                {
-                    return System.Text.Encoding.UTF8.GetString(this._hex);
-                }
-                return null;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    this._hex = System.Text.Encoding.UTF8.GetBytes(value);
-                }
-                else
-                {
-                    this._hex = Array.Empty<byte>();
-                }
-            }
-        }
+        public string Hex { get; set; }
 
         /// <summary>
         /// Gets or sets the full transaction object.
@@ -1971,68 +1363,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <remarks>
     /// This is useful when an UTXO needs access to its HD properties like the HD path when reconstructing a private key.
     /// </remarks>
-    public class UnspentOutputReference : IBitcoinSerializable
+    [ProtoContract]
+    public class UnspentOutputReference : IProtoBufSerializeable
     {
-        private HdAccount _account;
-        private HdAddress _address;
-        private TransactionData _transaction;
-
-        public void ReadWrite(BitcoinStream stream)
-        {
-            stream.ReadWrite(ref this._account);
-            stream.ReadWrite(ref this._address);
-            stream.ReadWrite(ref this._transaction);
-            if (stream.Serializing)
-            {
-                stream.Inner.Flush();
-            }
-        }
         /// <summary>
         /// The account associated with this UTXO
         /// </summary>
-        public HdAccount Account
-        {
-            get
-            {
-                return this._account;
-            }
-            set
-            {
-                this._account = value;
-            }
-        }
+        [ProtoMember(1)]
+        public HdAccount Account { get; set; }
 
         /// <summary>
         /// The address associated with this UTXO
         /// </summary>
-        public HdAddress Address
-        {
-            get
-            {
-                return this._address;
-            }
-            set
-            {
-                this._address = value;
-            }
-        }
+        /// 
+        [ProtoMember(2)]
+        public HdAddress Address { get; set; }
 
         /// <summary>
         /// The transaction representing the UTXO.
         /// </summary>
-        public TransactionData Transaction
-        {
-            get
-            {
-                return this._transaction;
-            }
-            set
-            {
-                this._transaction = value;
-            }
-        }
-
-
+        [ProtoMember(3)]
+        public TransactionData Transaction { get; set; }
 
         /// <summary>
         /// Convert the <see cref="TransactionData"/> to an <see cref="OutPoint"/>

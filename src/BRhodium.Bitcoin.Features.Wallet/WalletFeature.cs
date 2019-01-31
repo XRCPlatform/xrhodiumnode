@@ -18,6 +18,7 @@ using BRhodium.Bitcoin.Features.Wallet.Notifications;
 using BRhodium.Node.Interfaces;
 using BRhodium.Node.Signals;
 using BRhodium.Node.Utilities;
+using ProtoBuf.Meta;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -142,6 +143,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public override void Initialize()
         {
+            //must register these before wallet feature gets initialized
+            var model = RuntimeTypeModel.Default;
+            model.Add(typeof(uint256), false).SetSurrogate(typeof(Uint256Surogate));
+            model.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurogate));
+            model.Add(typeof(Network), false).SetSurrogate(typeof(NetworkSurogate));
+            model.Add(typeof(Money), false).SetSurrogate(typeof(MoneySurogate));
+            model.Add(typeof(PartialMerkleTree), false).SetSurrogate(typeof(PartialMerkleTreeSurogate));
+            model.Add(typeof(Script), false).SetSurrogate(typeof(ScriptSurogate));
+
             // subscribe to receiving blocks and transactions
             this.blockSubscriberDisposable = this.signals.SubscribeForBlocks(new BlockObserver(this.walletSyncManager));
             this.transactionSubscriberDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.walletSyncManager));
@@ -150,6 +160,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.walletSyncManager.Start();
 
             this.connectionManager.Parameters.TemplateBehaviors.Add(this.broadcasterBehavior);
+                      
         }
 
         /// <inheritdoc />

@@ -20,18 +20,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly string walletPath;
         private readonly CoinType coinType;
         /// <summary>Access to DBreeze database.</summary>
-        protected readonly DBreezeEngine DBreeze;
+        protected readonly DBreezeEngine dBreeze;
         private readonly Network network;
-        private DBreezeSerializer dBreezeSerializer;
+        private DBreezeProtoBufSerializer dBreezeSerializer;
 
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
-            this.DBreeze = new DBreezeEngine(walletPath);
-            this.dBreezeSerializer = new DBreezeSerializer();
-            this.dBreezeSerializer.Initialize(network);
+            this.dBreeze = new DBreezeEngine(walletPath);
+            //this.dBreezeSerializer = new DBreezeProtoBuffSerializer();
+            //this.dBreezeSerializer.Initialize(network);
+            
         }
 
         public void SaveWallet(string walletName, Wallet wallet)
@@ -43,7 +44,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             //Task task = Task.Run(() =>
            // {
-                using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+                using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
                 {
                     breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair");
                     bool newEntity = false;
@@ -155,7 +156,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
         public void SaveAddress(long walletId, HdAddress address)
         {
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 bool newEntity = false;
                 if (address.Id < 1)
@@ -191,7 +192,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             Guard.NotNull(walletName, nameof(walletName));
 
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 WalletSyncPosition syncPosition = new WalletSyncPosition() {
                     Height= chainedHeader.Height,
@@ -206,7 +207,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             Guard.NotNull(walletName, nameof(walletName));
             WalletSyncPosition syncPosition = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 syncPosition = GetLastSyncedBlock(walletName,  breezeTransaction);
             }
@@ -228,7 +229,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public Wallet GetWallet(string name)
         {
             Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
                 var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(name)).ObjectGet<Wallet>();
@@ -293,7 +294,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public IEnumerable<string> GetAllWalletNames()//TODO: implement caching
         {
             List<string> result = new List<string>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
                 {
@@ -309,7 +310,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public IEnumerable<WalletPointer> GetAllWalletPointers()
         {
             List<WalletPointer> result = new List<WalletPointer>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
                 {
@@ -334,7 +335,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             Guard.NotNull(walletName, nameof(walletName));
 
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 SaveBlockLocator(walletName, breezeTransaction, blocks);
                 breezeTransaction.Commit();
@@ -344,7 +345,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public ICollection<uint256> GetFirstWalletBlockLocator()
         {
             List<uint256> result = new List<uint256>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 foreach (var row in breezeTransaction.SelectForward<int, BlockLocator>("WalletBlockLocator"))
                 {
@@ -362,7 +363,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal int? GetEarliestWalletHeight()
         {
             int? result = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
 
                 foreach (var row in breezeTransaction.SelectForwardFromTo<byte[], byte[]>("Wallet",
@@ -389,7 +390,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal DateTimeOffset GetOldestWalletCreationTime()
         {
             DateTimeOffset result = DateTimeOffset.MinValue;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 foreach (var row in breezeTransaction.SelectForwardFromTo<byte[], byte[]>("Wallet",
                     3.ToIndex(DateTime.MinValue, long.MinValue), true,
@@ -417,7 +418,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal Wallet GetWalletByAddress(string address)
         {
             Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
                 var pairRow = breezeTransaction.Select<string, string>("AddressToWalletPair", address);
@@ -446,7 +447,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal string GetLastUpdatedWalletName()
         {
             string result = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 foreach (var row in breezeTransaction.SelectBackwardFromTo<byte[], byte[]>("Wallet",
                    3.ToIndex(DateTime.MaxValue, long.MaxValue), true,
@@ -470,7 +471,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal Wallet GetWalletByScriptHash(ScriptId hash)
         {
             Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.DBreeze.GetTransaction())
+            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
                 breezeTransaction.ValuesLazyLoadingIsOn = false;
                 var pairRow = breezeTransaction.Select<byte[], string>("ScriptToWalletPair", hash.ToBytes());
