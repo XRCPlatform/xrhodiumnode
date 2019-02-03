@@ -30,7 +30,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var repo = new WalletRepository(dataFolder.WalletPath, coinType);
             Wallet walletTarget = createWallet(dataFolder, repo);
 
-            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+            Wallet WalletResult = repo.GetWalletByName(walletTarget.Name);
 
             Assert.NotNull(WalletResult);
             Assert.Equal(WalletResult.EncryptedSeed, walletTarget.EncryptedSeed);
@@ -47,7 +47,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var accountTarget = walletTarget.GetAccountByCoinType("account 0", coinType);
 
 
-            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+            Wallet WalletResult = repo.GetWalletByName(walletTarget.Name);
             var accountResult = WalletResult.GetAccountByCoinType("account 0", coinType);
 
             HdAddress[] resultAddressArray = accountResult.ExternalAddresses.ToArray<HdAddress>();
@@ -71,7 +71,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var accountTarget = walletTarget.GetAccountByCoinType("account 0", coinType);
 
 
-            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+            Wallet WalletResult = repo.GetWalletByName(walletTarget.Name);
             var accountResult = WalletResult.GetAccountByCoinType("account 0", coinType);
             int mathces=0;
             foreach (var item in accountResult.ExternalAddresses)
@@ -134,7 +134,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             chain.SetTip(block.Header);
 
             repo.SaveLastSyncedBlock(walletTarget.Name, chain.Tip);
-            Wallet WalletResult = repo.GetWallet(walletTarget.Name);
+            Wallet WalletResult = repo.GetWalletByName(walletTarget.Name);
 
             Assert.Equal(chain.Tip.Height, WalletResult.AccountsRoot.FirstOrDefault().LastBlockSyncedHeight);
             Assert.Equal(chain.Tip.HashBlock, WalletResult.AccountsRoot.FirstOrDefault().LastBlockSyncedHash);

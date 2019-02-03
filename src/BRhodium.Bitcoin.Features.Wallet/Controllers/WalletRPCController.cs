@@ -544,6 +544,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             return this.Json(ResultHelper.BuildResultResponse(walletCombix));
                         }
                     }
+                    foreach (var walletAddress in currAccount.InternalAddresses)
+                    {
+                        if (walletAddress.Address.ToString().Equals(address))
+                        {
+                            walletCombix = $"{currAccount.Name}/{currWallet.Name}";
+                            walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                            hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                            return this.Json(ResultHelper.BuildResultResponse(walletCombix));
+                        }
+                    }
                 }
             }
             

@@ -19,6 +19,7 @@ using BRhodium.Node.Interfaces;
 using BRhodium.Node.Signals;
 using BRhodium.Node.Utilities;
 using ProtoBuf.Meta;
+using static BRhodium.Bitcoin.Features.Wallet.SurrogateProtoBufSerializers;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {

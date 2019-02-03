@@ -302,7 +302,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
 
             // Load the file from the local system.
-            Wallet wallet = this.repository.GetWallet(name);
+            Wallet wallet = this.repository.GetWalletByName(name);
 
             // Check the password.
             try
@@ -389,7 +389,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Save the changes to the file and add addresses to be tracked.
             this.SaveWallet(wallet);
-            wallet = this.repository.GetWallet(wallet.Name);
+            wallet = this.repository.GetWalletByName(wallet.Name);
             this.logger.LogTrace("(-)");
             return wallet;
         }
@@ -715,7 +715,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                //optimise retrieving wallet by address
                 Wallet wallet = this.repository.GetWalletByAddress(address);
                 HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                 if (hdAddress != null)
@@ -1352,7 +1351,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foundTransaction.IsPropagated = true;
             }
             this.repository.SaveAddress(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress);
-            this.TransactionFoundInternal(utxo.ScriptPubKey);
+            this.TransactionFoundInternal_New(utxo.ScriptPubKey);
 
             this.logger.LogTrace("(-)");
         }
@@ -1481,7 +1480,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Wallet wallet = null;
             foreach (string walletName in this.repository.GetAllWalletNames())
             {
-                wallet = this.repository.GetWallet(walletName);
+                wallet = this.repository.GetWalletByName(walletName);
                 foreach (HdAccount account in wallet.GetAccountsByCoinType(this.coinType))
                 {
                     hdAccount = account;
@@ -1659,7 +1658,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
 
             // Check if any wallet file already exists, with case insensitive comparison.
-            if ((Wallet)this.repository.GetWallet(name) != null)
+            if ((Wallet)this.repository.GetWalletByName(name) != null)
             {
                 this.logger.LogTrace("(-)[WALLET_ALREADY_EXISTS]");
                 throw new WalletException($"Wallet with name '{name}' already exists.");
@@ -1771,7 +1770,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.logger.LogTrace("({0}:'{1}')", nameof(walletName), walletName);
 
-            Wallet wallet = this.repository.GetWallet(walletName);
+            Wallet wallet = this.repository.GetWalletByName(walletName);
             if (wallet == null)
             {
                 this.logger.LogTrace("(-)[NOT_FOUND]");
