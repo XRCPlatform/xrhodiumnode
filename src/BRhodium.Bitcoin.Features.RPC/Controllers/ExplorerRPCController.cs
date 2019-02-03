@@ -85,24 +85,34 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         {
                             //read prevTx from blockchain
                             var prevTxList = new List<IndexedTxOut>();
+
                             foreach (var itemInput in currentTx.Inputs)
                             {
-                                var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
-                                if (address != null)
-                                {
-                                    var newAddress = new ExplorerAddressModel();
-                                    newAddress.Address = address.ToString();
-                                    newTx.AddressFrom.Add(newAddress);
-                                }
-
                                 var prevTx = this.BlockStoreManager.BlockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                                IndexedTxOut outTx = null;
                                 if (prevTx != null)
                                 {
                                     if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
                                     {
                                         var indexed = prevTx.Outputs.AsIndexedOutputs();
-                                        prevTxList.Add(indexed.First(i => i.N == itemInput.PrevOut.N));
+                                        outTx = indexed.First(i => i.N == itemInput.PrevOut.N);
+                                        prevTxList.Add(outTx);
                                     }
+                                }
+
+                                var address = itemInput.ScriptSig.GetSignerAddress(this.Network);
+                                if (address != null)
+                                {
+                                    var newAddress = new ExplorerAddressModel();
+                                    newAddress.Address = address.ToString();
+
+                                    if (outTx != null)
+                                    {
+                                        newAddress.Satoshi = outTx.TxOut.Value.ToUnit(MoneyUnit.Satoshi);
+                                        newAddress.Scripts = outTx.TxOut.ScriptPubKey.ToString();
+                                    }
+
+                                    newTx.AddressFrom.Add(newAddress);
                                 }
                             }
 

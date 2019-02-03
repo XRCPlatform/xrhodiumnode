@@ -281,6 +281,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
                 // tx timeout in seconds
                 long expiryTimeout = this.mempoolSettings.MempoolExpiry * 60 * 60;
 
+                entries = entries.OrderBy(a => a.Time).ToList();
+
                 this.mempoolLogger.LogInformation("...loaded {0} cached entries.", entries.Count());
                 foreach (MempoolPersistenceEntry entry in entries)
                 {
