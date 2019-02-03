@@ -177,25 +177,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
         {
-            this.logger.LogTrace("()");
-            try
+            Task task = Task.Run(() =>
             {
-                if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
+                this.logger.LogTrace("()");
+                try
                 {
-                    this.ProcessTransaction(transactionEntry.Transaction, null, null, null, transactionEntry.State == State.Propagated);
+                    if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
+                    {
+                        this.ProcessTransaction(transactionEntry.Transaction, null, null, null, transactionEntry.State == State.Propagated);
+                    }
+                    else
+                    {
+                        this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
+                        this.logger.LogTrace("(-)[EXCEPTION]");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
+                    this.logger.LogTrace("Exception occurred: {0}: {1}", e.GetType().Name, e.Message);
                     this.logger.LogTrace("(-)[EXCEPTION]");
                 }
-            }
-            catch (Exception e)
-            {
-                this.logger.LogTrace("Exception occurred: {0}: {1}",e.GetType().Name,e.Message);
-                this.logger.LogTrace("(-)[EXCEPTION]");
-            }
-            this.logger.LogTrace("(-)");
+                this.logger.LogTrace("(-)");
+            });
         }
 
         public void Start()
