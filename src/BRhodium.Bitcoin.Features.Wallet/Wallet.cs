@@ -58,7 +58,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Gets or sets block locator.
         /// </summary>
-        [ProtoMember(5)]
+        //[ProtoMember(5)]//skipping from protobuff serialization as saved as separate high churn entity
         [JsonProperty(PropertyName = "blockLocator", ItemConverterType = typeof(UInt256JsonConverter))]
         public List<uint256> BlockLocator { get; set; }
 

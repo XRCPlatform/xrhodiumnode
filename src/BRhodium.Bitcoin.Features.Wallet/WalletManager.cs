@@ -155,7 +155,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.addressLookup = new ConcurrentDictionary<string, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
 
-            //LoadWalletsFromFiles();
         }
 
        
@@ -170,11 +169,40 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 sw.Start();
                 count++;
                 this.repository.SaveWallet(wallet.Name, wallet);
+                var walletResult = this.repository.GetWalletByName(wallet.Name);
+                EnsureAddress(walletResult, false);
+                EnsureAddress(walletResult, true);
+                this.repository.SaveWallet(wallet.Name, walletResult);
                 sw.Stop();                
                 this.logger.LogInformation($"Migrated wallet to db: {wallet.Name} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100,2) }% complete");
                 sw.Reset();
             }
         }
+
+        private void EnsureAddress(Wallet wallet, bool isChange) {
+
+            var accountReference = wallet.AccountsRoot.Single(a => a.CoinType == (CoinType)this.network.Consensus.CoinType);
+            var hdAccount = accountReference.Accounts.First();
+
+            var lastAddy = hdAccount.GetLastUsedAddress(isChange);
+            int lastUsedAddressIndex = 0;
+            if (lastAddy != null)
+            {
+                lastUsedAddressIndex = lastAddy.Index;
+            }
+            int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
+            int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
+            int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
+            var newAddresses = hdAccount.CreateAddresses(this.network, accountsToAdd, isChange);
+
+            List<WalletLinkedHdAddress> walletLinkerList = new List<WalletLinkedHdAddress>();
+            foreach (var address in newAddresses)
+            {
+                walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+            }
+            this.UpdateKeysLookupLock(walletLinkerList);
+        }
+
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
         {
             Task task = Task.Run(() =>
@@ -200,10 +228,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.logger.LogTrace("(-)");
             });
         }
-
+        
         public void Start()
         {
             this.logger.LogTrace("()");
+
+            //LoadWalletsFromFiles();
 
             // Load data in memory for faster lookups.
             this.LoadKeysLookupLock();
@@ -918,6 +948,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void ProcessBlock(Block block, ChainedHeader chainedHeader)
         {
+            //Task task = Task.Run(() =>
+            //{
+           
             Guard.NotNull(block, nameof(block));
             Guard.NotNull(chainedHeader, nameof(chainedHeader));
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(block), block.GetHash(), nameof(chainedHeader), chainedHeader);
@@ -972,6 +1005,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             this.logger.LogTrace("(-)");
+            //});
         }
 
         /// <inheritdoc />

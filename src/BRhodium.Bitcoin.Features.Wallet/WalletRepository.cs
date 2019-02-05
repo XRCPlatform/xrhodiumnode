@@ -22,7 +22,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>Access to DBreeze database.</summary>
         protected readonly DBreezeEngine dBreeze;
         private readonly Network network;
-        private DBreezeProtoBufSerializer dBreezeSerializer;
+        private Dictionary<string, Wallet> walletCache = new Dictionary<string, Wallet>();
 
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
@@ -37,13 +37,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(walletName, nameof(walletName));
             Guard.NotNull(wallet, nameof(wallet));
 
+              //reset cache so that get all the references from db rebuilt
+            walletCache.Remove(wallet.Name);          
             //walletNames.Clear();//reset cache perhaps a bit brutal but fair
 
             //Task task = Task.Run(() =>
            // {
                 using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
                 {
-                    breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair");
+                    breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair", "ScriptToWalletPair");
                     bool newEntity = false;
                     if (GetLastSyncedBlock(walletName, breezeTransaction) == null)
                     {
@@ -76,6 +78,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         {
                             SaveAddress(wallet, breezeTransaction, address);
                         }
+
+
                         //reset to not save them as blobs
                         account.ExternalAddresses.Clear();
                         account.InternalAddresses.Clear();
@@ -88,7 +92,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         Indexes = new List<DBreezeIndex>
                             {
                                 new DBreezeIndex(1,wallet.Name) { PrimaryIndex = true },
-                                new DBreezeIndex(2,wallet.Id),
+                                //new DBreezeIndex(2,wallet.Id),
                                 new DBreezeIndex(3,dateTime)
                             }
                     }, false);
@@ -105,6 +109,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                     
                     breezeTransaction.Commit();
+                   
                 }
             //});
             //return task;
@@ -140,11 +145,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
                     }
             }, false);
-            //think about how to remove these in case of fork as saveAddress now does not 
-            foreach (var transaction in address.Transactions)
-            {
-                breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
-            }
+            
             if (newEntity) {
                 //used when we find address in transaction to find right wallet and GetWalletByAddress API
                 breezeTransaction.Insert<string, long>("AddressToWalletPair", address.Address, wallet.Id);
@@ -177,10 +178,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                 }, false);
 
-                foreach (var transaction in address.Transactions)
-                {
-                    breezeTransaction.Insert<byte[], TransactionData>("OutPointLookup", new OutPoint(transaction.Id, transaction.Index).ToBytes(), transaction);
-                }
                 if (newEntity)
                 {
                     //used when we find address in transaction to find right wallet and GetWalletByAddress API
@@ -227,9 +224,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             return syncPosition;
         }
- 
+
         public Wallet GetWalletByName(string name)
         {
+            if (walletCache.ContainsKey(name)) {
+                return walletCache[name];
+            }
+
             Wallet wallet = null;
             using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
             {
@@ -237,6 +238,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(name));
                 wallet = ReadWalletFromDb(obj, breezeTransaction);
             }
+
+            if (wallet != null)
+            {
+                walletCache[name] = wallet;
+            }            
+
             return wallet;
         }
 
@@ -251,27 +258,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var nameRow = breezeTransaction.Select<long, string>("WalletNames", id);
                 if (nameRow.Exists)
                 {
-                    var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(nameRow.Value));
-                    wallet = ReadWalletFromDb(obj, breezeTransaction);
+                    wallet = GetWalletByName(nameRow.Value);
+                    //var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(nameRow.Value));
+                    //wallet = ReadWalletFromDb(obj, breezeTransaction);
                 }
-                //secondary indexes do not work the way I have expected. Documenation is faint and unsure how to proceed.
-                //int cnt = 0;
-                //foreach (var row in breezeTransaction.SelectForwardFromTo<byte[], Wallet>("Wallet",
-                //   2.ToIndex(id), true,
-                //   2.ToIndex(id), true))
-                //{
-                //    Console.WriteLine(row.Key); 
-                //    //wallet = ReadWalletFromDb(row, breezeTransaction);
-                //    cnt++;
-                //}
-                //if (cnt > 1) throw new Exception("Must not match more than 1 wallet ever");
-
-                //var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(id));
-                //wallet = ReadWalletFromDb(obj, breezeTransaction);
-            }
+             }
             return wallet;
         }
-
 
 
         private Wallet ReadWalletFromDb(Row<byte[], Wallet> obj, DBreeze.Transactions.Transaction breezeTransaction)
