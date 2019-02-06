@@ -53,69 +53,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             this.networkDifficulty = networkDifficulty;
         }
 
-        /// <summary>
-        /// Gets the block.
-        /// If verbosity is 0, returns a string that is serialized, hex-encoded data for block 'hash'.
-        /// If verbosity is 1, returns an Object with information about block 'hash'.
-        /// If verbosity is 2, returns an Object with information about block 'hash' and information about each transaction. 
-        /// </summary>
-        /// <param name="hash">Hash of block.</param>
-        /// <param name="verbosity">The verbosity.</param>
-        /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
-        [ActionName("getblock")]
-        [ActionDescription("Gets the block.")]
-        public IActionResult GetBlock(string hash, int verbosity)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(hash))
-                {
-                    throw new ArgumentNullException("hash");
-                }
-
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-                var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-
-                var chainedHeader = chainRepository.GetBlock(new uint256(hash));
-                var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-
-                switch (verbosity)
-                {
-                    case 1:
-                        var blockTemplate = new GetBlockWithTransactionModel<GetTransactionBlockModel>();
-                        blockTemplate = FillBlockBaseData<GetTransactionBlockModel>(blockTemplate, block, chainedHeader);
-
-                        foreach (var item in block.Transactions)
-                        {
-                            blockTemplate.Transactions.Add(new GetTransactionBlockModel(item.GetHash().ToString()));
-                        }
-
-                        return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
-
-                    case 2:
-                        var detailBlockTemplate = new GetBlockWithTransactionModel<GetTransactionDateBlockModel>();
-                        detailBlockTemplate = FillBlockBaseData<GetTransactionDateBlockModel>(detailBlockTemplate, block, chainedHeader);
-
-                        foreach (var item in block.Transactions)
-                        {
-                            detailBlockTemplate.Transactions.Add(new GetTransactionDateBlockModel(item.ToHex()));
-                        }
-
-                        return this.Json(ResultHelper.BuildResultResponse(detailBlockTemplate));
-
-                    case 0:
-                    default:
-                        var hex = block.ToHex(this.Network);
-                        return this.Json(ResultHelper.BuildResultResponse(hex));
-                }
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
         private GetBlockWithTransactionModel<T> FillBlockBaseData<T>(GetBlockWithTransactionModel<T> blockTemplate, Block block, ChainedHeader chainedHeader)
         {
             blockTemplate.Hash = chainedHeader.HashBlock.ToString();

@@ -139,6 +139,17 @@ namespace BRhodium.Bitcoin.Features.Consensus
         //        return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
         //    }
         //}
+
+
+        /// <summary>
+        /// Gets the block.
+        /// If verbosity is 0, returns a string that is serialized, hex-encoded data for block 'hash'.
+        /// If verbosity is 1, returns an Object with information about block 'hash'.
+        /// If verbosity is 2, returns an Object with information about block 'hash' and information about each transaction.
+        /// </summary>
+        /// <param name="hash">Hash of block.</param>
+        /// <param name="verbosity">The verbosity.</param>
+        /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
         [ActionName("getblock")]
         [ActionDescription("Returns a block details.")]
         public IActionResult GetBlock(string blockHashHex, int verbosity = 1)
