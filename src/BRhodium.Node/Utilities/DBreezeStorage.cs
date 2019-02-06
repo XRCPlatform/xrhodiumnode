@@ -15,6 +15,7 @@ namespace BRhodium.Node.Utilities
         public string FolderPath { get; }
         public string DatabaseName { get; }
         private readonly DBreezeEngine dbreeze;
+        private readonly object optimizeLock = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DBreezeStorage{T}"/> class.
@@ -53,10 +54,38 @@ namespace BRhodium.Node.Utilities
             bf.Serialize(memorystream, toSave);
             byte[] byteObject = memorystream.ToArray();
 
-            using (var transaction = this.dbreeze.GetTransaction())
+            lock (this.optimizeLock)
             {
-                transaction.Insert<string, byte[]>(this.DatabaseName, idKey, byteObject);
-                transaction.Commit();
+                using (var transaction = this.dbreeze.GetTransaction())
+                {
+                    transaction.Technical_SetTable_OverwriteIsNotAllowed(this.DatabaseName);
+                    transaction.Insert<string, byte[]>(this.DatabaseName, idKey, byteObject);
+                    transaction.Commit();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Optimize storage
+        /// </summary>
+        public void OptimizeStorage()
+        {
+            lock (this.optimizeLock)
+            {
+                using (var transaction = this.dbreeze.GetTransaction())
+                {
+                    transaction.SynchronizeTables(this.DatabaseName, "optimizedTable");
+                    foreach (var row in transaction.SelectForward<string, byte[]>(this.DatabaseName))
+                    {
+                        transaction.Technical_SetTable_OverwriteIsNotAllowed("optimizedTable");
+                        transaction.Insert("optimizedTable", row.Key, row.Value);
+                    }
+
+                    transaction.Commit();
+                }
+
+                this.dbreeze.Scheme.DeleteTable(this.DatabaseName);
+                this.dbreeze.Scheme.RenameTable("optimizedTable", this.DatabaseName);
             }
         }
 

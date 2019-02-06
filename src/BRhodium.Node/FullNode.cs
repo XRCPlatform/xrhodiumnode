@@ -219,7 +219,37 @@ namespace BRhodium.Node
 
             this.StartPeriodicLog();
 
+            //DBreeze storage vacuum.
+            this.StartPeriodicOptimalization();
+
             this.State = FullNodeState.Started;
+        }
+
+        /// <summary>
+        /// Starts feature optimalizations
+        /// </summary>
+        private void StartPeriodicOptimalization()
+        {
+            IAsyncLoop periodicOptimalizationLoop = this.AsyncLoopFactory.Run("OptimalizationLog", (cancellation) =>
+            {
+                StringBuilder optimalizationLog = new StringBuilder();
+
+                optimalizationLog.AppendLine("======Optimalizations====== " + this.DateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
+
+                // Now display the other stats.
+                foreach (var feature in this.Services.Features.OfType<IOptimalization>())
+                    feature.OptimizeIt(optimalizationLog);
+
+                optimalizationLog.AppendLine();
+
+                this.logger.LogInformation(optimalizationLog.ToString());
+                return Task.CompletedTask;
+            },
+                this.nodeLifetime.ApplicationStopping,
+                repeatEvery: TimeSpan.FromHours(12),
+                startAfter: TimeSpan.FromHours(12));
+
+            this.Resources.Add(periodicOptimalizationLoop);
         }
 
         /// <summary>

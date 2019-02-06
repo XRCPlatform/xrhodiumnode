@@ -20,6 +20,8 @@ using BRhodium.Node.Signals;
 using BRhodium.Node.Utilities;
 using ProtoBuf.Meta;
 using static BRhodium.Bitcoin.Features.Wallet.SurrogateProtoBufSerializers;
+using System.Globalization;
+using BRhodium.Node.Utilities;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -28,7 +30,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     /// <seealso cref="BRhodium.Node.Builder.Feature.FullNodeFeature" />
     /// <seealso cref="BRhodium.Node.Interfaces.INodeStats" />
-    public class WalletFeature : FullNodeFeature, INodeStats, IFeatureStats
+    public class WalletFeature : FullNodeFeature, INodeStats, IFeatureStats, IOptimalization
     {
         private readonly IWalletSyncManager walletSyncManager;
 
@@ -50,6 +52,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private readonly WalletSettings walletSettings;
 
+        private readonly IDateTimeProvider dateTimeProvider;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="WalletFeature"/> class.
         /// </summary>
@@ -67,6 +71,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Signals signals,
             ConcurrentChain chain,
             IConnectionManager connectionManager,
+            IDateTimeProvider dateTimeProvider,
             BroadcasterBehavior broadcasterBehavior,
             NodeSettings nodeSettings,
             WalletSettings walletSettings)
@@ -79,6 +84,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.broadcasterBehavior = broadcasterBehavior;
             this.nodeSettings = nodeSettings;
             this.walletSettings = walletSettings;
+            this.dateTimeProvider = dateTimeProvider;
         }
 
         /// <inheritdoc />
@@ -104,6 +110,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public static void BuildDefaultConfigurationFile(StringBuilder builder, Network network)
         {
             WalletSettings.BuildDefaultConfigurationFile(builder, network);
+        }
+
+        /// <inheritdoc />
+        public void OptimizeIt(StringBuilder optimalizationLog)
+        {
+            WalletManager walletManager = this.walletManager as WalletManager;
+
+            if (walletManager != null)
+            {
+                optimalizationLog.AppendLine("DBreeze VACUUM:");
+                optimalizationLog.AppendLine("Start : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
+
+                walletManager.DBreezeStorage.OptimizeStorage();
+
+                optimalizationLog.AppendLine("End : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
+            }
         }
 
         /// <inheritdoc />

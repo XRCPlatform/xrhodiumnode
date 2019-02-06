@@ -996,6 +996,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 lock (this.walletManager.GetLock())
                 {
+                    var walletUpdated = false;
+
                     for (int i = startHeight.Value; i <= stopHeight; i++)
                     {
                         if (!inRescan) break;
@@ -1020,6 +1022,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             }
                         }
                         result.StopHeight = i;
+                    }
+
+                    if (walletUpdated)
+                    {
+                        this.walletManager.SaveWallets();
                     }
                 }
 
