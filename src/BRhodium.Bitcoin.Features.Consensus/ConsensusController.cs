@@ -13,20 +13,20 @@ using BRhodium.Bitcoin.Features.Consensus.Models;
 using BRhodium.Bitcoin.Features.BlockStore;
 using BRhodium.Node.Configuration;
 using NBitcoin.RPC;
-
+using BRhodium.Node;
 
 namespace BRhodium.Bitcoin.Features.Consensus
 {
     public class ConsensusController : FeatureController
     {
         private readonly ILogger logger;
-        
         public IConsensusLoop ConsensusLoop { get; private set; }
         private readonly ILoggerFactory loggerFactory;
         private BlockStoreCache blockStoreCache;
         private readonly IBlockRepository blockRepository;
         private readonly NodeSettings nodeSettings;
         private readonly Network network;
+
         public ConsensusController(
             ILoggerFactory loggerFactory,
             IBlockRepository blockRepository,
@@ -34,7 +34,8 @@ namespace BRhodium.Bitcoin.Features.Consensus
             Network network,
             IChainState chainState = null,
             IConsensusLoop consensusLoop = null,
-            ConcurrentChain chain = null
+            ConcurrentChain chain = null,
+            IFullNode fullNode = null
             )
             : base(chainState: chainState, chain: chain)
         {
@@ -45,6 +46,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             this.blockRepository = blockRepository;
             this.network = network;
             this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.nodeSettings);
+            this.FullNode = fullNode;
         }
 
         [ActionName("getbestblockhash")]
@@ -139,56 +141,102 @@ namespace BRhodium.Bitcoin.Features.Consensus
         //}
         [ActionName("getblock")]
         [ActionDescription("Returns a block details.")]
-        public IActionResult GetBlock(string[] args)
+        public IActionResult GetBlock(string blockHashHex, int verbosity = 1)
         {
-                // exceptions correctly handled and formated at RPCMiddleware layer
-                var blockHash = uint256.Parse(args[0]);
-                if (blockHash == null)
+            // exceptions correctly handled and formated at RPCMiddleware layer
+            switch (verbosity)
+            {
+                case 1:
+                case 2:
+                default:
+                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosity);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModel));
+                case 0:
+                    var blockModelHex = GetBlockHex(blockHashHex);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
+            }
+        }
+
+        public BlockModel GetBlockVerbose(string blockHashHex, int verbosity)
+        {
+            return GetBlockVerbose(this.GetChainedHeader(blockHashHex), verbosity);
+        }
+
+        public BlockModel GetBlockVerbose(ChainedHeader currentBlock, int verbosity)
+        {
+            var blockModel = new BlockModel();
+            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+
+            blockModel.Hash = string.Format("{0:x8}", currentBlock.HashBlock);
+            blockModel.Bits = string.Format("{0:x8}", currentBlock.Header.Bits.ToCompact());
+            blockModel.Confirmations = this.ConsensusLoop.Chain.Tip.Height - currentBlock.Height;
+            blockModel.Version = currentBlock.Header.Version;
+            blockModel.VersionHex = currentBlock.Header.Version.ToString("X");
+            blockModel.MerkleRoot = string.Format("{0:x8}", currentBlock.Header.HashMerkleRoot);
+            blockModel.Difficulty = currentBlock.Header.Bits.Difficulty;
+            blockModel.Time = (int)currentBlock.Header.Time;
+            blockModel.Height = currentBlock.Height;
+            blockModel.ChainWork = currentBlock.ChainWork.ToString();
+
+            blockModel.Weight = block.GetSerializedSize(this.Chain.Network, TransactionOptions.None) *
+                (this.Chain.Network.Consensus.Option<PowConsensusOptions>().WitnessScaleFactor - 1) +
+                block.GetSerializedSize(this.Chain.Network, TransactionOptions.Witness);
+
+            blockModel.ProofHash = currentBlock.Header.GetPoWHash(currentBlock.Height, Network.Main.Consensus.PowLimit2Height);
+            if (this.ConsensusLoop.Chain.Tip.Height > currentBlock.Height)
+            {
+                blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
+            }
+            //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
+            //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
+            blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+
+            if (blockModel.Height > 0)
+            {
+                blockModel.PreviousBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height - 1).Header.GetHash());
+                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
+                if (fullBlock == null)
                 {
-                   throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
-                }
-                var currentBlock = this.ConsensusLoop.Chain.GetBlock(blockHash);
-                if (currentBlock == null)
-                {
-                    throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
+                    throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
                 }
 
-                var blockModel = new BlockModel();
-                blockModel.Hash = string.Format("{0:x8}", currentBlock.HashBlock);
-                blockModel.Bits = string.Format("{0:x8}", currentBlock.Header.Bits.ToCompact());
-                blockModel.Confirmations = this.ConsensusLoop.Chain.Tip.Height - currentBlock.Height;
-                blockModel.Version = currentBlock.Header.Version;
-                blockModel.MerkleRoot = string.Format("{0:x8}", currentBlock.Header.HashMerkleRoot);                
-                blockModel.Difficulty = currentBlock.Header.Bits.Difficulty;
-                blockModel.Time = (int)currentBlock.Header.Time;
-                blockModel.Height = currentBlock.Height;
-                blockModel.ProofHash = currentBlock.Header.GetPoWHash(currentBlock.Height, Network.Main.Consensus.PowLimit2Height);
-                if (this.ConsensusLoop.Chain.Tip.Height > currentBlock.Height)
+                foreach (var tx in fullBlock.Transactions)
                 {
-                    blockModel.NextBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
+                    blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
                 }
-                //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
-                //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
-                blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+            }
 
-                if (blockModel.Height > 0)
-                {
-                     blockModel.PreviousBlockHash = string.Format("{0:x8}", this.ConsensusLoop.Chain.GetBlock(currentBlock.Height - 1).Header.GetHash());
-                    Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
-                    if (fullBlock == null)
-                    {
-                        throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
-                    }
+            return blockModel;
+        }
 
-                    foreach (var tx in fullBlock.Transactions)
-                    {
-                        blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
-                    }
-                }
-                
-                var json = ResultHelper.BuildResultResponse(blockModel);
-                return this.Json(json);
-          
+        public string GetBlockHex(string blockHashHex)
+        {
+            return GetBlockHex(GetChainedHeader(blockHashHex));
+        }
+
+        public string GetBlockHex(ChainedHeader currentBlock)
+        {
+            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var blockAsHex = block.ToHex(this.Chain.Network);
+            return blockAsHex;
+        }
+
+        private ChainedHeader GetChainedHeader(string blockHashHex)
+        {
+            var blockHash = uint256.Parse(blockHashHex);
+            if (blockHash == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
+            }
+            var currentBlock = this.ConsensusLoop.Chain.GetBlock(blockHash);
+            if (currentBlock == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
+            }
+
+            return currentBlock;
         }
 
     }
