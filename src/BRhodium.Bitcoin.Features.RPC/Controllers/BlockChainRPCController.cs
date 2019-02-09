@@ -8,13 +8,17 @@ using BRhodium.Node.Base;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Controllers;
 using BRhodium.Node.Interfaces;
+using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonContract;
 using BRhodium.Node.Utilities.JsonErrors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBitcoin.RPC;
+using BRhodium.Bitcoin.Features.Consensus;
+using BRhodium.Bitcoin.Features.BlockStore;
 
-namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
+namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
     /// <summary>
     /// BlockChain RPCs method
@@ -30,8 +34,15 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
 
         private readonly INetworkDifficulty networkDifficulty;
 
+        private readonly IBlockRepository blockRepository;
+        private BlockStoreCache blockStoreCache;
+
+        /// <summary>
+        ///   Constructor for creating BlockChain RPC controller.
+        /// </summary>
         public BlockChainRPCController(
             ILoggerFactory loggerFactory,
+            IBlockRepository blockRepository,
             INetworkDifficulty networkDifficulty = null,
             IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,
             IGetUnspentTransaction getUnspentTransaction = null,
@@ -51,12 +62,14 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.networkDifficulty = networkDifficulty;
+            this.blockRepository = blockRepository;
+            this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, loggerFactory, nodeSettings);
         }
 
         private GetBlockWithTransactionModel<T> FillBlockBaseData<T>(GetBlockWithTransactionModel<T> blockTemplate, Block block, ChainedHeader chainedHeader)
         {
             blockTemplate.Hash = chainedHeader.HashBlock.ToString();
-            blockTemplate.Size = blockTemplate.Weight = blockTemplate.Strippedsize = block.GetSerializedSize();
+            blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
             blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
             blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
             blockTemplate.Difficulty = block.Header.Bits.Difficulty;
@@ -79,18 +92,15 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <summary>
         /// Gets the best blockhash.
         /// </summary>
-        /// <param name="verbosity">The verbosity.</param>
         /// <returns>(string) Return block hash.</returns>
         [ActionName("getbestblockhash")]
         [ActionDescription("Gets the block.")]
-        public IActionResult GetBestBlockhash(int verbosity)
+        public IActionResult GetBestBlockHash()
         {
             try
             {
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-
-                var blockResult = GetBlock(chainRepository.Tip.HashBlock.ToString(), verbosity);
-                return this.Json(ResultHelper.BuildResultResponse(blockResult));
+                var chainState = this.FullNode.NodeService<IChainState>();
+                return this.Json(ResultHelper.BuildResultResponse(chainState.ConsensusTip.HashBlock.ToString()));
             }
             catch (Exception e)
             {
@@ -105,19 +115,32 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
         /// <returns>(int) Block count.</returns>
         [ActionName("getblockcount")]
         [ActionDescription("Returns the number of blocks in the longest blockchain.")]
-        public IActionResult GetBlockCount()
+        public int GetBlockCount()
         {
-            try
-            {
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-                return this.Json(ResultHelper.BuildResultResponse(chainRepository.Tip.Height));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
+            var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+            return chainRepository.Tip.Height;
         }
+
+        /// <summary>
+        /// Permanently marks a block as invalid, as if it violated a consensus rule.
+        /// <param name="blockHashHex">The hash of the block to invalidate.</param>
+        /// </summary>
+        [ActionName("invalidateblock")]
+        [ActionDescription("Get the hash of the block at the consensus tip.")]
+        public uint256 InvalidateBlockHash(string blockHashHex)
+        {
+            Guard.NotNull(this.ChainState, nameof(this.ChainState));
+            var blockHash = uint256.Parse(blockHashHex);
+            if (blockHash == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
+            }
+            this.ChainState.MarkBlockInvalid(blockHash);
+            //this.blockRepository.DeleteAsync(blockHash).GetAwaiter().GetResult();
+
+            return this.ChainState?.ConsensusTip?.HashBlock;
+        }
+
 
         /// <summary>
         /// Returns hash of block in best-block-chain at height provided.
@@ -139,6 +162,134 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Gets the block.
+        /// If verbosity is 0, returns a string that is serialized, hex-encoded data for block 'hash'.
+        /// If verbosity is 1, returns an Object with information about block 'hash'.
+        /// If verbosity is 2, returns an Object with information about block 'hash' and information about each transaction.
+        /// </summary>
+        /// <param name="blockHashHex">Hash of block.</param>
+        /// <param name="verbosity">The verbosity.</param>
+        /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
+        [ActionName("getblock")]
+        [ActionDescription("Returns a block details.")]
+        public IActionResult GetBlock(string blockHashHex, int verbosity = 1)
+        {
+            // exceptions correctly handled and formated at RPCMiddleware layer
+            switch (verbosity)
+            {
+                case 1:
+                case 2:
+                default:
+                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosity);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModel));
+                case 0:
+                    var blockModelHex = GetBlockHex(blockHashHex);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
+            }
+        }
+
+        /// <summary>
+        ///   Function to get a verbose version of getblock with a string.
+        /// <param name="blockHashHex">Hash of block.</param>
+        /// <param name="verbosity">Verbosity level (1, 2)</param>
+        /// </summary>
+        public GetBlockModel GetBlockVerbose(string blockHashHex, int verbosity)
+        {
+            return GetBlockVerbose(this.GetChainedHeader(blockHashHex), verbosity);
+        }
+
+        /// <summary>
+        ///   Function to get a verbose version of getblock with a string.
+        /// <param name="currentBlock">ChainedHeader of block.</param>
+        /// <param name="verbosity">Verbosity level (1, 2)</param>
+        /// </summary>
+        public GetBlockModel GetBlockVerbose(ChainedHeader currentBlock, int verbosity)
+        {
+            var blockModel = new GetBlockModel();
+            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            blockModel.Hash = string.Format("{0:x8}", currentBlock.HashBlock);
+            blockModel.Bits = string.Format("{0:x8}", currentBlock.Header.Bits.ToCompact());
+            blockModel.Confirmations = this.Chain.Tip.Height - currentBlock.Height;
+            blockModel.Version = currentBlock.Header.Version;
+            blockModel.VersionHex = currentBlock.Header.Version.ToString("X");
+            blockModel.Merkleroot = string.Format("{0:x8}", currentBlock.Header.HashMerkleRoot);
+            blockModel.Difficulty = currentBlock.Header.Bits.Difficulty;
+            blockModel.Time = (int)currentBlock.Header.Time;
+            blockModel.Height = currentBlock.Height;
+            blockModel.Chainwork = currentBlock.ChainWork.ToString();
+            blockModel.StrippedSize = block.GetSerializedSize();
+
+            blockModel.Weight = block.GetSerializedSize(this.Chain.Network, TransactionOptions.None) *
+                (this.Chain.Network.Consensus.Option<PowConsensusOptions>().WitnessScaleFactor - 1) +
+                block.GetSerializedSize(this.Chain.Network, TransactionOptions.Witness);
+
+            blockModel.ProofHash = currentBlock.Header.GetPoWHash(currentBlock.Height, Network.Main.Consensus.PowLimit2Height);
+            if (this.Chain.Tip.Height > currentBlock.Height)
+            {
+                blockModel.NextBlockHash = string.Format("{0:x8}", this.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
+            }
+            //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
+            //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
+            blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+
+            if (blockModel.Height > 0)
+            {
+                blockModel.PreviousBlockHash = string.Format("{0:x8}", this.Chain.GetBlock(currentBlock.Height - 1).Header.GetHash());
+                Block fullBlock = this.blockStoreCache.GetBlockAsync(currentBlock.HashBlock).GetAwaiter().GetResult();
+                if (fullBlock == null)
+                {
+                    throw new Exception("Failed to load block transactions");// this is for diagnostic purposes to see how often this happens
+                }
+
+                blockModel.Tx = new List<string>();
+                foreach (var tx in fullBlock.Transactions)
+                {
+                    blockModel.Tx.Add(string.Format("{0:x8}", tx.GetHash()));
+                }
+            }
+
+            return blockModel;
+        }
+
+        /// <summary>
+        ///   Get the block as a hex string.
+        /// <param name="blockHashHex">Block hex</param>
+        /// </summary>
+        public string GetBlockHex(string blockHashHex)
+        {
+            return GetBlockHex(GetChainedHeader(blockHashHex));
+        }
+
+        /// <summary>
+        ///   Get the block as a hex string.
+        /// <param name="currentBlock">Get block as hex from chained header</param>
+        /// </summary>
+        public string GetBlockHex(ChainedHeader currentBlock)
+        {
+            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
+            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var blockAsHex = block.ToHex(this.Chain.Network);
+            return blockAsHex;
+        }
+
+        private ChainedHeader GetChainedHeader(string blockHashHex)
+        {
+            var blockHash = uint256.Parse(blockHashHex);
+            if (blockHash == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
+            }
+            var currentBlock = this.Chain.GetBlock(blockHash);
+            if (currentBlock == null)
+            {
+                throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
+            }
+
+            return currentBlock;
         }
 
         /// <summary>
@@ -236,7 +387,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
                         var blockTemplate = new GetBlockModel();
 
                         blockTemplate.Hash = chainedHeader.HashBlock.ToString();
-                        blockTemplate.Size = blockTemplate.Weight = blockTemplate.Strippedsize = block.GetSerializedSize();
+                        blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
                         blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
                         blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
                         blockTemplate.Difficulty = block.Header.Bits.Difficulty;
