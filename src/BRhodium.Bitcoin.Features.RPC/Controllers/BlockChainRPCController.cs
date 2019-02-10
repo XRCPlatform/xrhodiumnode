@@ -73,7 +73,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
             blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
             blockTemplate.Difficulty = block.Header.Bits.Difficulty;
-            blockTemplate.Nonce = block.Header.Nonce;
+            blockTemplate.Nonce = (int)block.Header.Nonce;
             blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
             blockTemplate.Version = block.Header.Version;
             blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
@@ -234,7 +234,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
             //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
             //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
-            blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+            blockModel.Nonce = (int)currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
 
             if (blockModel.Height > 0)
             {
@@ -391,7 +391,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
                         blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
                         blockTemplate.Difficulty = block.Header.Bits.Difficulty;
-                        blockTemplate.Nonce = block.Header.Nonce;
+                        blockTemplate.Nonce = (int)block.Header.Nonce;
                         blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
                         blockTemplate.Version = block.Header.Version;
                         blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
