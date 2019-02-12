@@ -13,19 +13,6 @@ namespace BRhodium.Node.IntegrationTests.RPC
         }
 
         [Fact]
-        public void CanCall_GetBestBlockHash()
-        {
-            string dir = CreateTestDir(this);
-
-            var fullNode = this.BuildServicedNode(dir);
-            var controller = fullNode.Services.ServiceProvider.GetService<ConsensusController>();
-
-            uint256 result = controller.GetBestBlockHash();
-
-            Assert.Null(result);
-        }
-
-        [Fact]
         public void CanCall_GetBlockHash()
         {
             string dir = CreateTestDir(this);

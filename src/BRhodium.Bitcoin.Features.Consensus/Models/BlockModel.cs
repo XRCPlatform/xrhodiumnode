@@ -8,34 +8,55 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
 {
     public class BlockModel
     {
+        [JsonProperty(PropertyName = "hash")]
         public string Hash { get; set; }
 
+        [JsonProperty(PropertyName = "confirmations")]
         public Int32 Confirmations { get; set; }
 
+        [JsonProperty(PropertyName = "size")]
         public Int32 Size { get; set; }
 
+        [JsonProperty(PropertyName = "height")]
         public Int32 Height { get; set; }
 
+        [JsonProperty(PropertyName = "weight")]
+        public int Weight { get; set; }
+
+        [JsonProperty(PropertyName = "version")]
         public Int32 Version { get; set; }
 
-        /// <summary>
-        /// Every transaction has a hash associated with it. In a block, all of the transaction hashes in the block are themselves hashed (sometimes several times -- the exact process is complex), and the result is the Merkle root. In other words, the Merkle root is the hash of all the hashes of all the transactions in the block. The Merkle root is included in the block header. With this scheme, it is possible to securely verify that a transaction has been accepted by the network (and get the number of confirmations) by downloading just the tiny block headers and Merkle tree -- downloading the entire block chain is unnecessary.
-        /// </summary>
+        [JsonProperty(PropertyName = "versionhex")]
+        public string VersionHex { get; set; }
+
+        [JsonProperty(PropertyName = "merkleroot")]
         public string MerkleRoot { get; set; }
 
+        [JsonProperty(PropertyName = "tx")]
         public List<string> Tx { get; set; }
 
+        [JsonProperty(PropertyName = "time")]
         public Int32 Time { get; set; }
 
+        [JsonProperty(PropertyName = "nonce")]
         public UInt32 Nonce { get; set; }
 
+        [JsonProperty(PropertyName = "bits")]
         public string Bits { get; set; }
 
+        [JsonProperty(PropertyName = "difficulty")]
         public double Difficulty { get; set; }
 
+        [JsonProperty(PropertyName = "chainwork")]
+        public string ChainWork { get; set; }
+
+        [JsonProperty(PropertyName = "nextblockhash")]
         public string NextBlockHash { get; set; }
 
+        [JsonProperty(PropertyName = "previousblockhash")]
         public string PreviousBlockHash { get; set; }
+
+        [JsonProperty(PropertyName = "proofhash")]
         public uint256 ProofHash { get; set; }
 
         public BlockModel()
