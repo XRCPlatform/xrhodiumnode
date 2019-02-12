@@ -1,0 +1,63 @@
+#!/bin/bash
+
+DOTNET=`which dotnet`
+CMD=$1
+SUBCMD=$2
+
+# Build node
+# Start node
+# access cli
+
+CURRENT_DIR=`dirname "$(readlink -f "$0")"`
+BRHODIUM_PATH="$CURRENT_DIR/../build"
+
+if [[ $CMD == "help" ]] || [[ $CMD == "" ]]; then
+    cat <<EOF
+BitCoin Rhodium Node
+
+Commands:
+build - build node software. .NET Core SDK required.
+
+node - run node software. Optional flags:
+     -conf=file.conf - Path to configuration file (default: $datadir/brhodium/{BRhodiumMain|BRhodiumTest|BRhodiumRegtest}/BRhodium.conf)
+     -datadir=/path/to/data - Path to blockchain and wallet data (default: ~/.brhodium)
+     -testnet - Load testnet chain
+     -regtest - Load regtest chain
+
+rpc - run an rpc command. Optional flags:
+    -rpchost=hostname (default: 127.0.0.1)
+    -rpcport=<n> (default: 19660)
+    -rpcuser=username
+    -rpcpassword=password
+
+Examples:
+
+$ brhodium build
+$ brhodium node
+$ brhodium rpc getblock 0
+
+EOF
+    exit 0
+fi
+
+if [[ $CMD == "build" ]]; then
+    pushd src/BRhodium
+    dotnet publish -c Release -o ../../build -r ubuntu-x64 --self-contained true
+    popd
+
+    pushd src/BRhodium.Cli
+    dotnet publish -c Release -o ../../build -r ubuntu-x64 --self-contained true
+    popd
+
+    cp src/BRhodium/bin/Release/netcoreapp2.0/ubuntu-x64/BRhodium .
+    cp src/BRhodium.Cli/bin/Release/netcoreapp2.0/ubuntu-x64/BRhodium .
+fi
+
+if [ $CMD == "node" ]; then
+    $BRHODIUM_PATH/BRhodium $@
+    exit $?
+fi
+
+if [ $CMD == "rpc" ]; then
+    $BRHODIUM_PATH/BRhodium.Cli $@
+fi
