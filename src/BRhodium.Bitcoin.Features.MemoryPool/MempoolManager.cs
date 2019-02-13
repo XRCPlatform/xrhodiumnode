@@ -26,7 +26,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
     public class MempoolManager : IPooledTransaction, IPooledGetUnspentTransaction
     {
         /// <summary>Memory pool persistence methods for loading and saving from storage.</summary>
-        private IMempoolPersistence mempoolPersistence;
+        internal IMempoolPersistence mempoolPersistence;
 
         /// <summary>Instance logger for memory pool manager.</summary>
         private readonly ILogger mempoolLogger;

@@ -105,7 +105,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             IEnumerable<MempoolPersistenceEntry> toSave = this.CreateTestEntries(numTx);
             MempoolManager mempoolManager = CreateTestMempool(settings, out TxMempool unused);
 
-            MemPoolSaveResult result = (new MempoolPersistence(settings, new LoggerFactory())).Save(settings.Network, toSave, fileName);
+            MemPoolSaveResult result = mempoolManager.mempoolPersistence.Save(settings.Network, toSave, fileName);
             mempoolManager.LoadPoolAsync(fileName).GetAwaiter().GetResult();
             long actualSize = mempoolManager.MempoolSize().GetAwaiter().GetResult();
 
@@ -137,7 +137,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                     FeeDelta = expectedTx1FeeDelta
                 },
             };
-            MemPoolSaveResult result = (new MempoolPersistence(settings, new LoggerFactory())).Save(settings.Network, toSave, fileName);
+            MemPoolSaveResult result = mempoolManager.mempoolPersistence.Save(settings.Network, toSave, fileName);
 
             long expectedSize = 2;
             await mempoolManager.LoadPoolAsync(fileName);
@@ -174,7 +174,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                     FeeDelta = expectedTx1FeeDelta
                 },
             };
-            MemPoolSaveResult result = (new MempoolPersistence(settings, new LoggerFactory())).Save(settings.Network, toSave, fileName);
+            MemPoolSaveResult result = mempoolManager.mempoolPersistence.Save(settings.Network, toSave, fileName);
 
             long expectedSize = 1;
             await mempoolManager.LoadPoolAsync(fileName);

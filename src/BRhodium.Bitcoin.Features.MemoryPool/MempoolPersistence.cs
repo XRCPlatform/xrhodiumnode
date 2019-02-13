@@ -22,10 +22,20 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <summary>
         /// Persists the memory pool to a file.
         /// </summary>
+        /// <param name="network">Network.</param>
         /// <param name="memPool">The transaction memory pool.</param>
         /// <param name="fileName">The filename to persist to. Default filename is used if null.</param>
         /// <returns>Result of saving the memory pool.</returns>
         MemPoolSaveResult Save(Network network, ITxMempool memPool, string fileName = null);
+
+        /// <summary>
+        /// Persists the memory pool to a file.
+        /// </summary>
+        /// <param name="network">Network.</param>
+        /// <param name="toSave">The transaction memory pool.</param>
+        /// <param name="fileName">The filename to persist to. Default filename is used if null.</param>
+        /// <returns>Result of saving the memory pool.</returns>
+        MemPoolSaveResult Save(Network network, IEnumerable<MempoolPersistenceEntry> toSave, string fileName);
 
         /// <summary>
         /// Loads the memory pool from a persisted file.
@@ -213,7 +223,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         /// <param name="toSave">List of persistence transactions to save.</param>
         /// <param name="fileName">The filename to persist transactions to.</param>
         /// <returns>The save result.</returns>
-        internal MemPoolSaveResult Save(Network network, IEnumerable<MempoolPersistenceEntry> toSave, string fileName)
+        public MemPoolSaveResult Save(Network network, IEnumerable<MempoolPersistenceEntry> toSave, string fileName)
         {
             Guard.NotEmpty(this.dataDir, nameof(this.dataDir));
             Guard.NotEmpty(fileName, nameof(fileName));

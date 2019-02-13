@@ -568,7 +568,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Transaction originalTx = txBuilder
                .AddCoins(coin)
                .AddKeys(miner)
-               .Send(bob, "10.00")
+               .Send(bob, "1")
                .SendFees("0.001")
                .SetChange(miner)
                .BuildTransaction(true);
@@ -581,15 +581,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Transaction conflictingTx = txBuilder
                .AddCoins(coin)
                .AddKeys(miner)
-               .Send(bob, "10.00")
+               .Send(bob, "1")
                .SendFees("0.001")
                .SetChange(miner)
                .BuildTransaction(true);
 
             //Mempool should reject the second transaction
             Assert.False(await validator.AcceptToMemoryPool(state, conflictingTx).ConfigureAwait(false), $"Transaction: {nameof(conflictingTx)} should have failed mempool validation.");
-
-            Directory.Delete(dataDir, true);
         }
 
         [Fact]

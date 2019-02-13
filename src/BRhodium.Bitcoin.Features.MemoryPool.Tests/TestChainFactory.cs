@@ -113,6 +113,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
 
             // We can't make transactions until we have inputs
             // Therefore, load 100 blocks :)
+            newBlock = blockDefinition.Build(chain.Tip, scriptPubKey);
             int baseheight = 0;
             List<Block> blocks = new List<Block>();
             List<Transaction> srcTxs = new List<Transaction>();
@@ -125,7 +126,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                 Transaction txCoinbase = currentBlock.Transactions[0].Clone();
                 txCoinbase.Inputs.Clear();
                 txCoinbase.Version = 2;
-                txCoinbase.AddInput(new TxIn(new Script(new[] { Op.GetPushOp(blockinfo[i].extraNonce), Op.GetPushOp(chain.Height) })));
+                txCoinbase.AddInput(new TxIn(new Script(new[] { Op.GetPushOp(chain.Height + 1), OpcodeType.OP_0 })));
                 // Ignore the (optional) segwit commitment added by CreateNewBlock (as the hardcoded nonces don't account for this)
                 txCoinbase.AddOutput(new TxOut(Money.Zero, new Script()));
                 currentBlock.Transactions[0] = txCoinbase;
@@ -142,7 +143,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                 var ruleContextForBlock = new RuleContext(new BlockValidationContext { Block = currentBlock }, network.Consensus, consensusLoop.Tip)
                 {
                     CheckPow = false,
-                    CheckMerkleRoot = false,
+                    CheckMerkleRoot = false
                 };
                 await consensusLoop.ValidateAndExecuteBlockAsync(ruleContextForBlock);
                 blocks.Add(currentBlock);
