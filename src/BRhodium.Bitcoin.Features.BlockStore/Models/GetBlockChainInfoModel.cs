@@ -32,7 +32,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
         public string ChainWork { get; set; }
 
         [JsonProperty(PropertyName = "size_on_disk")]
-        public double SizeOnDisk { get; set; }
+        public int SizeOnDisk { get; set; }
 
         [JsonProperty(PropertyName = "pruned")]
         public bool Pruned { get; set; }
