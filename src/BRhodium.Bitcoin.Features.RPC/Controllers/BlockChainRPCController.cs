@@ -222,7 +222,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             var blockModel = new GetBlockModel();
             var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var block = this.GetBlockOrGenesisFromHeader(currentBlock);
+
             blockModel.Hash = string.Format("{0:x8}", currentBlock.HashBlock);
             blockModel.Bits = string.Format("{0:x8}", currentBlock.Header.Bits.ToCompact());
             blockModel.Confirmations = this.Chain.Tip.Height - currentBlock.Height;
@@ -282,8 +283,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         public string GetBlockHex(ChainedHeader currentBlock)
         {
-            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var block = this.GetBlockOrGenesisFromHeader(currentBlock);
             var blockAsHex = block.ToHex(this.Chain.Network);
             return blockAsHex;
         }
