@@ -175,19 +175,31 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
         [ActionName("getblock")]
         [ActionDescription("Returns a block details.")]
-        public IActionResult GetBlock(string blockHashHex, int verbosity = 1)
+        public IActionResult GetBlock(string blockHashHex, string verbosity = "1")
         {
+             Console.WriteLine("verbosity {0}, {1}", verbosity, verbosity.GetType());
+             if (verbosity == "false" || verbosity == "False")
+             {
+                  verbosity = "0";
+             }
+             else if (verbosity == "true" || verbosity == "True")
+             {
+                  verbosity = "1";
+             }
+
+             var verbosityInt = Int32.Parse(verbosity);
+
             // exceptions correctly handled and formated at RPCMiddleware layer
-            switch (verbosity)
+            switch (verbosityInt)
             {
-                case 1:
-                case 2:
-                default:
-                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosity);
-                    return this.Json(ResultHelper.BuildResultResponse(blockModel));
                 case 0:
                     var blockModelHex = GetBlockHex(blockHashHex);
                     return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
+                case 1:
+                case 2:
+                default:
+                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosityInt);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModel));
             }
         }
 
