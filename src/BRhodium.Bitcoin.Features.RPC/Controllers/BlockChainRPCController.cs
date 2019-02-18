@@ -378,7 +378,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(string or GetBlockModel) Object with informations.</returns>
         [ActionName("getblockheader")]
         [ActionDescription("If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader 'hash'.")]
-        public IActionResult GetBlockHeader(string hash, string verbose)
+        public IActionResult GetBlockHeader(string hash, bool verbose)
         {
             try
             {
@@ -395,13 +395,20 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 switch (verbose)
                 {
-                    case "true":
+                    case true:
                         var blockTemplate = new GetBlockModel();
 
                         blockTemplate.Hash = chainedHeader.HashBlock.ToString();
                         blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
                         blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
                         blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+
+                        if (this.Chain.Tip.Height > chainedHeader.Height)
+                        {
+                             blockTemplate.NextBlockHash = string.Format("{0:x8}", this.Chain.GetBlock(chainedHeader.Height + 1).Header.GetHash());
+                        }
+
+                        blockTemplate.Confirmations = this.Chain.Tip.Height - chainedHeader.Height;
                         blockTemplate.Difficulty = block.Header.Bits.Difficulty;
                         blockTemplate.Nonce = (int)block.Header.Nonce;
                         blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
