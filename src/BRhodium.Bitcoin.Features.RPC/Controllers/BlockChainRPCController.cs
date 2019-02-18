@@ -295,7 +295,16 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
             }
+
+            if (new uint256(blockHashHex) == Network.GenesisHash)
+            {
+                var genesisBlock = this.Network.GetGenesis();
+                return new ChainedHeader(genesisBlock.Header, genesisBlock.GetHash(), null);
+            }
+
             var currentBlock = this.Chain.GetBlock(blockHash);
+
+
             if (currentBlock == null)
             {
                 throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
