@@ -559,7 +559,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 result.BestBlockHash = chainRepository.Tip.HashBlock.ToString();
                 result.Blocks = chainRepository.Height;
                 result.Chain = this.Network.Name.Replace("BRhodium", string.Empty);
-                result.ChainWork = this.Network.Name;
 
                 var difficulty = this.networkDifficulty?.GetNetworkDifficulty().Difficulty;
                 if (difficulty.HasValue) result.Difficulty = difficulty.Value;
