@@ -177,7 +177,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         [ActionDescription("Returns a block details.")]
         public IActionResult GetBlock(string blockHashHex, string verbosity = "1")
         {
-             Console.WriteLine("verbosity {0}, {1}", verbosity, verbosity.GetType());
              if (verbosity == "false" || verbosity == "False")
              {
                   verbosity = "0";
