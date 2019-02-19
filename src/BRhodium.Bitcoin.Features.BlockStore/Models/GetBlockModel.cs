@@ -95,7 +95,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
         ///   The nonce
         /// </summary>
         [JsonProperty(PropertyName = "nonce")]
-        public int Nonce { get; set; }
+        public uint Nonce { get; set; }
 
         /// <summary>
         ///   The bits

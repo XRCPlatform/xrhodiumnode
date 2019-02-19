@@ -73,7 +73,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
             blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
             blockTemplate.Difficulty = block.Header.Bits.Difficulty;
-            blockTemplate.Nonce = (int)block.Header.Nonce;
+            blockTemplate.Nonce = block.Header.Nonce;
             blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
             blockTemplate.Version = block.Header.Version;
             blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
@@ -155,6 +155,12 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
                 var chainedHeader = chainRepository.GetBlock(height);
+
+                if (chainedHeader == null)
+                {
+                    return this.Json(ResultHelper.BuildResultResponse("Block not found"));
+                }
+
                 return this.Json(ResultHelper.BuildResultResponse(chainedHeader.HashBlock.ToString()));
             }
             catch (Exception e)
@@ -175,19 +181,36 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(string or GetBlockWithTransactionModel) Return data based on verbosity.</returns>
         [ActionName("getblock")]
         [ActionDescription("Returns a block details.")]
-        public IActionResult GetBlock(string blockHashHex, int verbosity = 1)
+        public IActionResult GetBlock(string blockHashHex, string verbosity = "1")
         {
+             if (verbosity == "false" || verbosity == "False")
+             {
+                  verbosity = "0";
+             }
+             else if (verbosity == "true" || verbosity == "True")
+             {
+                  verbosity = "1";
+             }
+
+             var verbosityInt = Int32.Parse(verbosity);
+             var chainedHeader = GetChainedHeader(blockHashHex);
+
+             if (chainedHeader == null)
+             {
+                  return this.Json(ResultHelper.BuildResultResponse("Block not found"));
+             }
+
             // exceptions correctly handled and formated at RPCMiddleware layer
-            switch (verbosity)
+            switch (verbosityInt)
             {
+                case 0:
+                    var blockModelHex = GetBlockHex(chainedHeader);
+                    return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
                 case 1:
                 case 2:
                 default:
-                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosity);
+                    var blockModel = this.GetBlockVerbose(chainedHeader, verbosityInt);
                     return this.Json(ResultHelper.BuildResultResponse(blockModel));
-                case 0:
-                    var blockModelHex = GetBlockHex(blockHashHex);
-                    return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
             }
         }
 
@@ -210,7 +233,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         {
             var blockModel = new GetBlockModel();
             var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var block = this.GetBlockOrGenesisFromHeader(currentBlock);
+
             blockModel.Hash = string.Format("{0:x8}", currentBlock.HashBlock);
             blockModel.Bits = string.Format("{0:x8}", currentBlock.Header.Bits.ToCompact());
             blockModel.Confirmations = this.Chain.Tip.Height - currentBlock.Height;
@@ -234,7 +258,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             }
             //CachedCoinView cachedCoinView = this.ConsensusLoop.UTXOSet as CachedCoinView;
             //blockRepo.GetBlockHashAsync().GetAwaiter().GetResult();
-            blockModel.Nonce = (int)currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
+            blockModel.Nonce = currentBlock.Header.Nonce; //fullBlock.Header.Nonce; nonce is 0 here as well ist it important for this?
 
             if (blockModel.Height > 0)
             {
@@ -270,8 +294,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// </summary>
         public string GetBlockHex(ChainedHeader currentBlock)
         {
-            var blockStoreManager = this.FullNode.NodeService<BlockStoreManager>();
-            var block = blockStoreManager.BlockRepository.GetAsync(currentBlock.HashBlock).Result;
+            var block = this.GetBlockOrGenesisFromHeader(currentBlock);
             var blockAsHex = block.ToHex(this.Chain.Network);
             return blockAsHex;
         }
@@ -283,7 +306,16 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null, false);
             }
+
+            if (new uint256(blockHashHex) == Network.GenesisHash)
+            {
+                var genesisBlock = this.Network.GetGenesis();
+                return new ChainedHeader(genesisBlock.Header, genesisBlock.GetHash(), null);
+            }
+
             var currentBlock = this.Chain.GetBlock(blockHash);
+
+
             if (currentBlock == null)
             {
                 throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Block not found", null,false);
@@ -366,7 +398,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(string or GetBlockModel) Object with informations.</returns>
         [ActionName("getblockheader")]
         [ActionDescription("If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader 'hash'.")]
-        public IActionResult GetBlockHeader(string hash, string verbose)
+        public IActionResult GetBlockHeader(string hash, bool verbose)
         {
             try
             {
@@ -383,15 +415,22 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 switch (verbose)
                 {
-                    case "true":
+                    case true:
                         var blockTemplate = new GetBlockModel();
 
                         blockTemplate.Hash = chainedHeader.HashBlock.ToString();
                         blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
                         blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
                         blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+
+                        if (this.Chain.Tip.Height > chainedHeader.Height)
+                        {
+                             blockTemplate.NextBlockHash = string.Format("{0:x8}", this.Chain.GetBlock(chainedHeader.Height + 1).Header.GetHash());
+                        }
+
+                        blockTemplate.Confirmations = this.Chain.Tip.Height - chainedHeader.Height;
                         blockTemplate.Difficulty = block.Header.Bits.Difficulty;
-                        blockTemplate.Nonce = (int)block.Header.Nonce;
+                        blockTemplate.Nonce = block.Header.Nonce;
                         blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
                         blockTemplate.Version = block.Header.Version;
                         blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
@@ -531,7 +570,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 result.BestBlockHash = chainRepository.Tip.HashBlock.ToString();
                 result.Blocks = chainRepository.Height;
                 result.Chain = this.Network.Name.Replace("BRhodium", string.Empty);
-                result.ChainWork = this.Network.Name;
 
                 var difficulty = this.networkDifficulty?.GetNetworkDifficulty().Difficulty;
                 if (difficulty.HasValue) result.Difficulty = difficulty.Value;
@@ -551,8 +589,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
                     if (block!= null)
                     {
-                        result.SizeOnDisk += block.GetSerializedSize();
-                    }                    
+                        result.SizeOnDisk += (int)block.GetSerializedSize();
+                    }
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -566,7 +604,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
         /// <summary>
         /// Verifies blockchain database.
-        /// 
+        ///
         /// 0 - Check reading blocks from chain
         /// 1 - Validate header of blocks
         /// </summary>
@@ -585,7 +623,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 if (this.Chain.Tip == null) return this.Json(ResultHelper.BuildResultResponse(true));
 
                 if (nblocks <= 0 || nblocks > this.Chain.Height) nblocks = this.Chain.Height;
-                
+
                 Console.WriteLine(string.Format("Verifying last {0} blocks at level {1}", nblocks, checklevel));
 
                 int reportDone = 0;
