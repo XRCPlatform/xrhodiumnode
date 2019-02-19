@@ -155,6 +155,12 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             {
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
                 var chainedHeader = chainRepository.GetBlock(height);
+
+                if (chainedHeader == null)
+                {
+                    return this.Json(ResultHelper.BuildResultResponse("Block not found"));
+                }
+
                 return this.Json(ResultHelper.BuildResultResponse(chainedHeader.HashBlock.ToString()));
             }
             catch (Exception e)
@@ -187,17 +193,23 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
              }
 
              var verbosityInt = Int32.Parse(verbosity);
+             var chainedHeader = GetChainedHeader(blockHashHex);
+
+             if (chainedHeader == null)
+             {
+                  return this.Json(ResultHelper.BuildResultResponse("Block not found"));
+             }
 
             // exceptions correctly handled and formated at RPCMiddleware layer
             switch (verbosityInt)
             {
                 case 0:
-                    var blockModelHex = GetBlockHex(blockHashHex);
+                    var blockModelHex = GetBlockHex(chainedHeader);
                     return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
                 case 1:
                 case 2:
                 default:
-                    var blockModel = this.GetBlockVerbose(blockHashHex, verbosityInt);
+                    var blockModel = this.GetBlockVerbose(chainedHeader, verbosityInt);
                     return this.Json(ResultHelper.BuildResultResponse(blockModel));
             }
         }
