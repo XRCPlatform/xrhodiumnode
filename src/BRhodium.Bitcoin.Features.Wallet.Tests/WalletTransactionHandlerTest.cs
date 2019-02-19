@@ -79,7 +79,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Throws<WalletException>(() =>
             {
                 var walletFeePolicy = new Mock<IWalletFeePolicy>();
-                walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low.ToConfirmations()))
+                walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low))
                     .Returns(new FeeRate(0));
 
                 var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet1", "password");
@@ -268,7 +268,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
-            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low.ToConfirmations()))
+            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low))
                 .Returns(new FeeRate(20000));
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(),
@@ -324,7 +324,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
-            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low.ToConfirmations())).Returns(new FeeRate(20000));
+            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
             var overrideFeeRate = new FeeRate(20000);
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object, 
@@ -488,7 +488,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             DataFolder dataFolder = CreateDataFolder(this);
 
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
-            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low.ToConfirmations())).Returns(new FeeRate(20000));
+            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new ConcurrentChain(Network.Main), NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);

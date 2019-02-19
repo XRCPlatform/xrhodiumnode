@@ -8,19 +8,29 @@ namespace BRhodium.Bitcoin.Features.Wallet
     public enum FeeType
     {
         /// <summary>
+        /// VeryLow.
+        /// </summary>
+        VeryLow = 0,
+
+        /// <summary>
         /// Slow.
         /// </summary>
-        Low = 0,
+        Low = 10,
 
         /// <summary>
         /// Avarage.
         /// </summary>
-        Medium = 1,
+        Medium = 50,
 
         /// <summary>
         /// Fast.
         /// </summary>
-        High = 105
+        High = 100,
+
+        /// <summary>
+        /// VeryHigh.
+        /// </summary>
+        VeryHigh = 150
     }
 
     public static class FeeParser
@@ -43,13 +53,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             switch (fee)
             {
+                case FeeType.VeryLow:
+                    return 40;
+
                 case FeeType.Low:
-                    return 50;
+                    return 30;
 
                 case FeeType.Medium:
                     return 20;
 
                 case FeeType.High:
+                    return 10;
+
+                case FeeType.VeryHigh:
                     return 5;
             }
 

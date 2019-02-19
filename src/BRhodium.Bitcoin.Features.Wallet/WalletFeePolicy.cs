@@ -83,8 +83,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 int estimateFoundTarget = confirmTarget;
 
-                // TODO: the fee estimation is not ready for release for now use the fall back fee
-                //nFeeNeeded = this.blockPolicyEstimator.EstimateSmartFee(confirmTarget, this.mempool, out estimateFoundTarget).GetFee(txBytes);
+                //TODO: this.blockPolicyEstimator.EstimateSmartFee?
                 // ... unless we don't have enough mempool data for estimatefee, then use fallbackFee
                 if (nFeeNeeded == 0)
                     nFeeNeeded = this.fallbackFee.GetFee(txBytes);
@@ -98,10 +97,26 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public FeeRate GetFeeRate(int confirmTarget)
+        public FeeRate GetFeeRate(FeeType feeType)
         {
-            //this.blockPolicyEstimator.EstimateSmartFee(confirmTarget, this.mempool, out estimateFoundTarget).GetFee(txBytes);
-            return this.fallbackFee;
+            //TODO: this.blockPolicyEstimator.EstimateSmartFee?
+            switch (feeType)
+            {
+                case FeeType.VeryLow:
+                    return new FeeRate(Money.Satoshis(10000));
+
+                case FeeType.Low:
+                    return new FeeRate(Money.Satoshis(20000));
+
+                case FeeType.High:
+                    return new FeeRate(Money.Satoshis(50000));
+
+                case FeeType.VeryHigh:
+                    return new FeeRate(Money.Satoshis(100000));
+
+                default:
+                    return new FeeRate(Money.Satoshis(30000));
+            }
         }
 
         /// <inheritdoc />

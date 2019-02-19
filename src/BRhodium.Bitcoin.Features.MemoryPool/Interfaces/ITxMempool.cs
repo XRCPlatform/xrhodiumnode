@@ -119,8 +119,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// Gets the estimated fee using <see cref="MinerPolicyEstimator"/>.
         /// </summary>
         /// <param name="nBlocks">The confirmation target blocks.</param>
+        /// <param name="currentHeight">Current height which can override actual processed block height.</param>
         /// <returns>The fee rate estimate.</returns>
-        FeeRate EstimateFee(int nBlocks);
+        FeeRate EstimateFee(int nBlocks, int? currentHeight = null);
 
         /// <summary>
         /// Estimates the priority using <see cref="MinerPolicyEstimator"/>.
@@ -135,8 +136,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Interfaces
         /// <param name="nBlocks">The confirmation target blocks.</param>
         /// <param name="answerFoundAtBlocks">The block where the fee was found.</param>
         /// <param name="requireGreater">Return the lowest feerate such that all higher values pass minSuccess OR return the highest feerate such that all lower values fail minSuccess.</param>
+        /// <param name="currentHeight">Current height which can override actual processed block height.</param>
         /// <returns>The fee rate estimate.</returns>
-        FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks, bool requireGreater = true);
+        FeeRate EstimateSmartFee(int nBlocks, out int answerFoundAtBlocks, int? currentHeight = null, bool requireGreater = true);
 
         /// <summary>
         /// Estimates the smart priority using <see cref="MinerPolicyEstimator"/>.
