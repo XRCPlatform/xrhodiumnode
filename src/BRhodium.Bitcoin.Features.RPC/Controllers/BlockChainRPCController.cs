@@ -579,8 +579,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     var block = this.GetBlockOrGenesisFromHeader(chainedHeader);
                     if (block!= null)
                     {
-                        result.SizeOnDisk += block.GetSerializedSize();
-                    }                    
+                        result.SizeOnDisk += (int)block.GetSerializedSize();
+                    }
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -594,7 +594,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
         /// <summary>
         /// Verifies blockchain database.
-        /// 
+        ///
         /// 0 - Check reading blocks from chain
         /// 1 - Validate header of blocks
         /// </summary>
@@ -613,7 +613,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 if (this.Chain.Tip == null) return this.Json(ResultHelper.BuildResultResponse(true));
 
                 if (nblocks <= 0 || nblocks > this.Chain.Height) nblocks = this.Chain.Height;
-                
+
                 Console.WriteLine(string.Format("Verifying last {0} blocks at level {1}", nblocks, checklevel));
 
                 int reportDone = 0;
