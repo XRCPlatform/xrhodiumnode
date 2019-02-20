@@ -35,19 +35,17 @@
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Api\BRhodium.Bitcoin.Features.Api.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.BlockStore\BRhodium.Bitcoin.Features.BlockStore.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Consensus\BRhodium.Bitcoin.Features.Consensus.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin.Features.LightWallet\BRhodium.Bitcoin.Features.LightWallet.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.MemoryPool\BRhodium.Bitcoin.Features.MemoryPool.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Miner\BRhodium.Bitcoin.Features.Miner.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Notifications\BRhodium.Bitcoin.Features.Notifications.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.RPC\BRhodium.Bitcoin.Features.RPC.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Wallet\BRhodium.Bitcoin.Features.Wallet.csproj" />
-    <ProjectReference Include="..\BRhodium.Bitcoin.Features.WatchOnlyWallet\BRhodium.Bitcoin.Features.WatchOnlyWallet.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Common\BRhodium.Bitcoin.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.4.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="FluentAssertions" Version="5.6.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
   </ItemGroup>
 
   <ItemGroup>
