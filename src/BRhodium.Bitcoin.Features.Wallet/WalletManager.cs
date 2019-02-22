@@ -808,13 +808,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             lock (this.lockObject)
             {
                 res = 0;
-                string walletName = this.repository.GetLastUpdatedWalletName();
-                if (!string.IsNullOrEmpty(walletName))
+                var rlast = this.repository.GetLastSyncedBlock();
+                if (rlast != null)
                 {
-                    var rlast = this.repository.GetLastSyncedBlock(walletName);
-                    if (rlast != null) {
-                        res = rlast.Height;
-                    }                    
+                    res = rlast.Height;
                 }
             }
             
@@ -839,23 +836,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <returns>Hash of the last block received by the wallets.</returns>
         public uint256 LastReceivedBlockHash()
         {
-            this.logger.LogTrace("()");
-            string walletName = this.repository.GetLastUpdatedWalletName();
-            if (String.IsNullOrEmpty(walletName))
-            {
-                uint256 hash = this.chain.Tip.HashBlock;
-                this.logger.LogTrace("(-)[NO_WALLET]:'{0}'", hash);
-                return hash;
-            }
+            this.logger.LogTrace("()");           
 
             uint256 lastBlockSyncedHash = new uint256();
             lock (this.lockObject)
             {
-                if (!string.IsNullOrEmpty(walletName))
+                lastBlockSyncedHash = this.repository.GetLastUpdatedBlockHash();
+                if (lastBlockSyncedHash == null)
                 {
-                    lastBlockSyncedHash = this.repository.GetLastSyncedBlock(walletName)?.BlockHash;
-                }               
-               
+                    string walletName = this.repository.GetLastUpdatedWalletName();
+                    if (String.IsNullOrEmpty(walletName))
+                    {
+                        uint256 hash = this.chain.Tip.HashBlock;
+                        this.logger.LogTrace("(-)[NO_WALLET]:'{0}'", hash);
+                        return hash;
+                    }
+                }
+
                 // If details about the last block synced are not present in the wallet,
                 // find out which is the oldest wallet and set the last block synced to be the one at this date.
                 if (lastBlockSyncedHash == null)
@@ -928,14 +925,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (TransactionData transactionData in makeUnspendable)
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
-                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        throw new NotImplementedException();
+                        //this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
                     foreach (TransactionData transactionData in makeSpendable)
                     {
                         transactionData.SpendingDetails = null;
-                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        //this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                 }
 
@@ -1719,8 +1717,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 Network = this.network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this.coinType } },
             };
-
-            this.SaveWallet(walletFile);
             
             this.logger.LogTrace("(-)");
             return walletFile;

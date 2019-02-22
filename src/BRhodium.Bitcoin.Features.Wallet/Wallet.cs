@@ -17,7 +17,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// A wallet.
     /// </summary>
     [ProtoContract]
-    public class Wallet : IProtoBufSerializeable
+    public class Wallet:  IProtoBufSerializeable
     {
         /// <summary>
         /// Initializes a new instance of the wallet.
@@ -27,7 +27,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.AccountsRoot = new List<AccountRoot>();
         }
         private bool changed = false;
-
 
         [ProtoMember(1)]
         [JsonIgnore]
@@ -525,6 +524,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [ProtoMember(7)]
         [JsonProperty(PropertyName = "internalAddresses")]
         public ICollection<HdAddress> InternalAddresses { get; set; }
+
+        [JsonIgnore]
+        public long Id { get; internal set; }
 
         /// <summary>
         /// Gets the type of coin this account is for.
@@ -1233,26 +1235,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// <remarks>
     /// This is useful when an UTXO needs access to its HD properties like the HD path when reconstructing a private key.
     /// </remarks>
-    [ProtoContract]
-    public class UnspentOutputReference : IProtoBufSerializeable
+    public class UnspentOutputReference 
     {
         /// <summary>
         /// The account associated with this UTXO
         /// </summary>
-        [ProtoMember(1)]
         public HdAccount Account { get; set; }
 
         /// <summary>
         /// The address associated with this UTXO
         /// </summary>
         /// 
-        [ProtoMember(2)]
         public HdAddress Address { get; set; }
 
         /// <summary>
         /// The transaction representing the UTXO.
         /// </summary>
-        [ProtoMember(3)]
         public TransactionData Transaction { get; set; }
 
         /// <summary>

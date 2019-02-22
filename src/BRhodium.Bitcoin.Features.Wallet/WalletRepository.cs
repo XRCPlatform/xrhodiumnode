@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using BRhodium.Node.Utilities;
 using DBreeze;
 using DBreeze.DataTypes;
 using DBreeze.Objects;
 using DBreeze.Utils;
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Linq;
-using DBreeze.Transactions;
+//using DBreeze.Transactions;
+using System.Data.SQLite;
+using NBitcoin.DataEncoders;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -20,16 +18,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly string walletPath;
         private readonly CoinType coinType;
         /// <summary>Access to DBreeze database.</summary>
-        protected readonly DBreezeEngine dBreeze;
+        //protected readonly DBreezeEngine dBreeze;
         private readonly Network network;
         private Dictionary<string, Wallet> walletCache = new Dictionary<string, Wallet>();
+        protected readonly SQLiteConnection connection;
 
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
-            this.dBreeze = new DBreezeEngine(walletPath);
+            //this.dBreeze = new DBreezeEngine(walletPath);
+            this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
+            {
+                DataSource = $"{walletPath}\\Wallet.db"
+            }
+            .ToString());
+            this.connection.Open();
         }
 
         public void SaveWallet(string walletName, Wallet wallet)
@@ -37,314 +42,476 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(walletName, nameof(walletName));
             Guard.NotNull(wallet, nameof(wallet));
 
-              //reset cache so that get all the references from db rebuilt
-            walletCache.Remove(wallet.Name);          
-            //walletNames.Clear();//reset cache perhaps a bit brutal but fair
+            //reset cache so that get all the references from db rebuilt
+            walletCache.Remove(wallet.Name);
+            walletCache.Remove("wallet_" + wallet.Id);
 
             //Task task = Task.Run(() =>
-           // {
-                using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+            // {
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                bool newEntity = false;
+                if (wallet.Id < 1)
                 {
-                    breezeTransaction.SynchronizeTables("Wallet", "WalletNames", "Address", "AddressToWalletPair", "ScriptToWalletPair");
-                    bool newEntity = false;
-                    if (GetLastSyncedBlock(walletName, breezeTransaction) == null)
+                    var insertCommand = connection.CreateCommand();
+                    insertCommand.Transaction = dbTransaction;
+                    insertCommand.CommandText = "INSERT INTO Wallet ( Name, EncryptedSeed, ChainCode, Network, CreationTime, LastBlockSyncedHash, LastBlockSyncedHeight, CoinType, LastUpdated) " +
+                    "VALUES ( $Name, $EncryptedSeed, $ChainCode, $Network, $CreationTime, $LastBlockSyncedHash, $LastBlockSyncedHeight, $CoinType, $LastUpdated)";
+                    insertCommand.Parameters.AddWithValue("$Name", wallet.Name);
+                    insertCommand.Parameters.AddWithValue("$EncryptedSeed", wallet.EncryptedSeed);
+                    insertCommand.Parameters.AddWithValue("$ChainCode", wallet.ChainCode.ToBase64String());
+                    insertCommand.Parameters.AddWithValue("$Network", wallet.Network.Name);
+                    insertCommand.Parameters.AddWithValue("$CreationTime", wallet.CreationTime.ToUnixTimeSeconds());
+                    insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
+                    insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHeight);
+                    insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.AccountsRoot.FirstOrDefault().CoinType);
+                    insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
+
+                    insertCommand.ExecuteNonQuery();
+
+                    var selectCommand = connection.CreateCommand();
+                    selectCommand.Transaction = dbTransaction;
+                    selectCommand.CommandText = "SELECT id FROM Wallet WHERE Name = $Name";
+                    selectCommand.Parameters.AddWithValue("$Name", wallet.Name);
+                    using (var reader = selectCommand.ExecuteReader())
                     {
-                        if (wallet.Id < 1)
+                        while (reader.Read())
                         {
-                            wallet.Id = breezeTransaction.ObjectGetNewIdentity<long>("Wallet");
-                            newEntity = true;
+                            wallet.Id = reader.GetInt32(0);
                         }
                     }
-                   
-                    DateTime dateTime = wallet.CreationTime.DateTime;
-                    
-
-                    // Index addresses.
-                    foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
-                    {
-                        //sort before storing to db
-                        var exAddresses =(IList<HdAddress>) account.ExternalAddresses;
-                        exAddresses.OrderBy(a=>a.Index);
-
-                        foreach (var address in exAddresses)
-                        {
-                            SaveAddress(wallet, breezeTransaction, address);
-                        }
-                        //sort before storing to db
-                        var intAddresses = (IList<HdAddress>)account.InternalAddresses;
-                        intAddresses.OrderBy(a => a.Index);
-
-                        foreach (var address in intAddresses)
-                        {
-                            SaveAddress(wallet, breezeTransaction, address);
-                        }
-
-
-                        //reset to not save them as blobs
-                        account.ExternalAddresses.Clear();
-                        account.InternalAddresses.Clear();
-                    }
-
-                    breezeTransaction.ObjectInsert("Wallet", new DBreezeObject<Wallet>
-                    {
-                        NewEntity = newEntity,
-                        Entity = wallet,
-                        Indexes = new List<DBreezeIndex>
-                            {
-                                new DBreezeIndex(1,wallet.Name) { PrimaryIndex = true },
-                                //new DBreezeIndex(2,wallet.Id),
-                                new DBreezeIndex(3,dateTime)
-                            }
-                    }, false);
-                    if (newEntity)
-                    {
-                        //used when we find all wallets, to avoid lifting all wallet blobs
-                        breezeTransaction.Insert<long, string>("WalletNames", wallet.Id, wallet.Name);
-                    }
-
-                    if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0) {
-                        SaveBlockLocator(wallet.Name, breezeTransaction, new BlockLocator(){
-                            Blocks = wallet.BlockLocator
-                        });
-                    }
-                    
-                    breezeTransaction.Commit();
-                   
+                    newEntity = true;
                 }
+
+                foreach (var item in wallet.AccountsRoot.FirstOrDefault<AccountRoot>().Accounts)
+                {
+                    SaveAccount(wallet.Id, dbTransaction, item);
+                }
+
+                // Index addresses.
+                foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
+                {
+                    foreach (var address in account.ExternalAddresses)
+                    {
+                        SaveAddress(wallet.Id, dbTransaction, address);
+                    }
+                    foreach (var address in account.InternalAddresses)
+                    {
+                        SaveAddress(wallet.Id, dbTransaction, address);
+                    }
+                }
+                
+                if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0) {
+                    SaveBlockLocator(wallet.Name, new BlockLocator(){
+                        Blocks = wallet.BlockLocator
+                    });
+                }
+
+                dbTransaction.Commit();
+
+            }
             //});
             //return task;
         }
 
-       
-        /// <summary>
-        /// Saves address to breeze db making it queryable by address, ScriptPubKey. It relates to account through HD path. Does not commit transaction itself. Caller controlls transaction and must commit.
-        /// </summary>
-        /// <param name="wallet"></param>
-        /// <param name="breezeTransaction"></param>
-        /// <param name="address"></param>
-        private static void SaveAddress(Wallet wallet, DBreeze.Transactions.Transaction breezeTransaction, HdAddress address)
-        {
-            bool newEntity = false;
-            if (address.Id < 1)
-            {
-                address.Id = breezeTransaction.ObjectGetNewIdentity<long>("Address");
-                newEntity = true;
-            }
-            address.WalletId = wallet.Id;
-            int subIndex = address.IsChangeAddress() ? 1:0;
-            breezeTransaction.ObjectInsert("Address", new DBreezeObject<HdAddress>
-            {
-                NewEntity = newEntity,
-                Entity = address,
-                Indexes = new List<DBreezeIndex>
-                    {
-                        new DBreezeIndex(1,wallet.Id, subIndex, address.Index) { PrimaryIndex = true },
-                        new DBreezeIndex(2,wallet.Id),
-                        new DBreezeIndex(3,address.Address),
-                        new DBreezeIndex(4,address.Id),
-                        new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
-                    }
-            }, false);
-            
-            if (newEntity) {
-                //used when we find address in transaction to find right wallet and GetWalletByAddress API
-                breezeTransaction.Insert<string, long>("AddressToWalletPair", address.Address, wallet.Id);
-                breezeTransaction.Insert<byte[], long>("ScriptToWalletPair", address.ScriptPubKey.Hash.ToBytes(), wallet.Id);
-            }           
-        }
-        public void SaveAddress(long walletId, HdAddress address)
-        {
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
-            {
-                bool newEntity = false;
-                if (address.Id < 1)
-                {
-                    address.Id = breezeTransaction.ObjectGetNewIdentity<long>("Address");
-                    newEntity = true;
-                }
-                address.WalletId = walletId;
-                int subIndex = address.IsChangeAddress() ? 1 : 0;
-                breezeTransaction.ObjectInsert("Address", new DBreezeObject<HdAddress>
-                {
-                    NewEntity = newEntity,
-                    Entity = address,
-                    Indexes = new List<DBreezeIndex>
-                    {
-                        new DBreezeIndex(1,walletId, subIndex, address.Index) { PrimaryIndex = true },
-                        new DBreezeIndex(2,walletId),
-                        new DBreezeIndex(3,address.Address),
-                        new DBreezeIndex(4,address.Id),
-                        new DBreezeIndex(5,address.ScriptPubKey.ToBytes())
-                    }
-                }, false);
-
-                if (newEntity)
-                {
-                    //used when we find address in transaction to find right wallet and GetWalletByAddress API
-                    breezeTransaction.Insert<string, long>("AddressToWalletPair", address.Address, walletId);
-                    breezeTransaction.Insert<byte[], long>("ScriptToWalletPair", address.ScriptPubKey.Hash.ToBytes(), walletId);
-                }
-                breezeTransaction.Commit();
-            }
-        }
-        public void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
-        {
-            Guard.NotNull(walletName, nameof(walletName));
-
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
-            {
-                WalletSyncPosition syncPosition = new WalletSyncPosition() {
-                    Height= chainedHeader.Height,
-                    BlockHash = chainedHeader.HashBlock
-                };
-                breezeTransaction.Insert<string, WalletSyncPosition>("WalletLastBlockSyncedBlock", walletName, syncPosition);
-                breezeTransaction.Commit();
-            }
-        }
-
-        public WalletSyncPosition GetLastSyncedBlock(string walletName)
-        {
-            Guard.NotNull(walletName, nameof(walletName));
-            WalletSyncPosition syncPosition = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
-            {
-                syncPosition = GetLastSyncedBlock(walletName,  breezeTransaction);
-            }
-            return syncPosition;
-        }
-
-        private  WalletSyncPosition GetLastSyncedBlock(string walletName,  DBreeze.Transactions.Transaction breezeTransaction)
-        {
-            WalletSyncPosition syncPosition = null;
-            var row = breezeTransaction.Select<string, WalletSyncPosition>("WalletLastBlockSyncedBlock", walletName);
-            if (row.Exists)
-            {
-                syncPosition = row.Value;              
-            }
-
-            return syncPosition;
-        }
 
         public Wallet GetWalletByName(string name)
         {
-            if (walletCache.ContainsKey(name)) {
+            if (walletCache.ContainsKey(name))
+            {
                 return walletCache[name];
             }
 
             Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(name));
-                wallet = ReadWalletFromDb(obj, breezeTransaction);
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
+                    "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE Name = $Name";
+                selectWalletCmd.Parameters.AddWithValue("$Name", name);
+
+                wallet = ReadWalletFromDb(wallet, dbTransaction, selectWalletCmd);
             }
 
             if (wallet != null)
             {
                 walletCache[name] = wallet;
-            }            
-
-            return wallet;
-        }
-
-
-        public Wallet GetWalletById(long id)
-        {
-            Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
-            {
-                breezeTransaction.ValuesLazyLoadingIsOn = false;
-
-                var nameRow = breezeTransaction.Select<long, string>("WalletNames", id);
-                if (nameRow.Exists)
-                {
-                    wallet = GetWalletByName(nameRow.Value);
-                    //var obj = breezeTransaction.Select<byte[], Wallet>("Wallet", 1.ToIndex(nameRow.Value));
-                    //wallet = ReadWalletFromDb(obj, breezeTransaction);
-                }
-             }
-            return wallet;
-        }
-
-
-        private Wallet ReadWalletFromDb(Row<byte[], Wallet> obj, DBreeze.Transactions.Transaction breezeTransaction)
-        {
-            Wallet wallet = null;
-            string walletName;
-            if (obj != null)
-            {
-
-                HdAccount hdAccount = null;
-                if (!obj.Exists)
-                {
-                    return null;
-                }
-                wallet = obj.ObjectGet<Wallet>().Entity;
-                walletName = wallet.Name;
-                var position = GetLastSyncedBlock(walletName, breezeTransaction);
-                if (position != null)
-                {
-                    // Update the wallets with the last processed block height.
-                    foreach (AccountRoot accountRoot in wallet.AccountsRoot.Where(a => a.CoinType == this.coinType))
-                    {
-                        accountRoot.LastBlockSyncedHeight = position.Height;
-                        accountRoot.LastBlockSyncedHash = position.BlockHash;
-                    }
-                }
-
-                foreach (var row in breezeTransaction.SelectForwardStartsWith<byte[], byte[]>("Address", 2.ToIndex(wallet.Id)))
-                {
-                    var temp = row.ObjectGet<HdAddress>();
-                    var address = temp.Entity;
-                    if (address != null)
-                    {
-                        //if not initialized or different than previous find and cache 
-                        if (hdAccount == null || !address.HdPath.Contains(hdAccount.HdPath))
-                        {
-                            hdAccount = wallet.GetAccountByHdPathCoinType(address.HdPath, this.coinType);
-                        }
-                        if (hdAccount != null)
-                        {
-                            if (address.IsChangeAddress())
-                            {
-                                hdAccount.InternalAddresses.Add(address);
-                            }
-                            else
-                            {
-                                hdAccount.ExternalAddresses.Add(address);
-                            }
-                        }
-                    }
-                }
-                var blockLocator = breezeTransaction.Select<string, BlockLocator>("WalletBlockLocator", walletName, false);
-                if (blockLocator.Exists)
-                {
-                    if (wallet.BlockLocator == null)
-                    {
-                        wallet.BlockLocator = new List<uint256>();
-                    }
-                    wallet.BlockLocator = blockLocator.Value.Blocks;
-                }
             }
             return wallet;
         }
+
+        private Wallet ReadWalletFromDb(Wallet wallet, SQLiteTransaction dbTransaction, SQLiteCommand selectWalletCmd)
+        {
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    wallet = new Wallet();
+                    wallet.Id = reader.GetInt32(0);
+                    wallet.Name = reader.GetString(1);
+                    wallet.EncryptedSeed = reader.GetString(2);
+                    wallet.ChainCode = Convert.FromBase64String(reader.GetString(3));
+                    wallet.Network = NetworkHelpers.GetNetwork(reader.GetString(4));
+                    wallet.CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(5));
+                    string blockHash = reader[6] as string;
+                    int LastBlockSyncedHeight = 0;
+
+                    if (reader[7].GetType() != typeof(DBNull))
+                    {
+                        LastBlockSyncedHeight = (int)reader[7];
+                    }
+
+                    int coinType = reader.GetInt16(8);
+                    uint256 lastBlockHash = null;
+                    if (!String.IsNullOrEmpty(blockHash))
+                    {
+                        lastBlockHash = new uint256(reader.GetString(4));
+                    }
+                    BuildAccountRoot(wallet, dbTransaction, LastBlockSyncedHeight, coinType, lastBlockHash);
+                }
+            }
+
+            return wallet;
+        }
+
+        private void BuildAccountRoot(Wallet wallet, SQLiteTransaction dbTransaction, int LastBlockSyncedHeight, int coinType, uint256 lastBlockHash)
+        {
+            HdAccount hdAccount = null;
+            List<HdAccount> accounts = new List<HdAccount>();
+            var selectAccountsCmd = connection.CreateCommand();
+            selectAccountsCmd.Transaction = dbTransaction;
+            selectAccountsCmd.CommandText = "SELECT id, HdIndex, Name, HdPath, ExtendedPubKey, CreationTime " +
+                " FROM Account WHERE WalletId = $WalletId order by HdIndex asc";
+            selectAccountsCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
+            using (var reader = selectAccountsCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    accounts.Add(new HdAccount()
+                    {
+                        Id = reader.GetInt32(0),
+                        Index = reader.GetInt32(1),
+                        Name = reader.GetString(2),
+                        HdPath = reader.GetString(3),
+                        ExtendedPubKey = reader.GetString(4),
+                        CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(5))
+                    });
+                }
+            }
+
+            wallet.AccountsRoot.Add(new AccountRoot()
+            {
+                LastBlockSyncedHash = lastBlockHash,
+                LastBlockSyncedHeight = EvalNullableInt(LastBlockSyncedHeight),
+                CoinType = (CoinType)coinType,
+                Accounts = accounts
+            });
+
+            //in single account scenario logic is simple
+            if (accounts.Count == 1)
+            {
+                hdAccount = accounts[0];
+            }
+
+            var selectAddressesCmd = connection.CreateCommand();
+            selectAddressesCmd.Transaction = dbTransaction;
+            selectAddressesCmd.CommandText = "SELECT id, WalletId, HdIndex, ScriptPubKey, Pubkey, Address, HdPath " +
+                " FROM Address WHERE WalletId = $WalletId order by HdIndex asc";
+            selectAddressesCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
+            using (var reader = selectAddressesCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var address = new HdAddress()
+                    {
+                        Id = reader.GetInt32(0),
+                        WalletId = reader.GetInt32(1),
+                        Index = reader.GetInt32(2),
+                        ScriptPubKey = EvalScript(reader.GetString(3)),
+                        Pubkey = EvalScript(reader.GetString(4)),
+                        Address = reader.GetString(5),
+                        HdPath = reader.GetString(6)
+                    };
+
+                    //if not initialized or different than previous find and cache 
+                    if (hdAccount == null || !address.HdPath.Contains(hdAccount.HdPath))
+                    {
+                        hdAccount = wallet.GetAccountByHdPathCoinType(address.HdPath, this.coinType);
+                    }
+                    if (hdAccount != null)
+                    {
+                        if (address.IsChangeAddress())
+                        {
+                            hdAccount.InternalAddresses.Add(address);
+                        }
+                        else
+                        {
+                            hdAccount.ExternalAddresses.Add(address);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Could not locate account");
+                    }
+                }
+            }
+
+            List<uint256> locator = new List<uint256>();
+
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.Transaction = dbTransaction;
+            selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator WHERE WalletId = $WalletId";
+            selectAddressesCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    locator.Add(new uint256(reader.GetString(0)));
+                }
+            }
+            wallet.BlockLocator = locator;
+        }
+
+        private Script EvalScript(string value)
+        {
+            return Script.FromBytesUnsafe(Encoders.Hex.DecodeData(value));
+        }
+
+        private int? EvalNullableInt(int lastBlockSyncedHeight)
+        {
+            if (lastBlockSyncedHeight > 0)
+            {
+                return lastBlockSyncedHeight;
+            }
+            return null;
+        }
+
+        public Wallet GetWalletById(long id)
+        {
+            if (id < 1)
+            {
+                return null;
+            }
+            string cacheKey = "wallet_" + id;
+            if (walletCache.ContainsKey(cacheKey))
+            {
+                return walletCache[cacheKey];
+            }
+
+            Wallet wallet = null;
+
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
+                    "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE id = $id";
+                selectWalletCmd.Parameters.AddWithValue("$id", id);
+
+                wallet = ReadWalletFromDb(wallet, dbTransaction, selectWalletCmd);
+            }
+
+            if (wallet != null)
+            {
+                walletCache[wallet.Name] = wallet;
+                walletCache["wallet_" + wallet.Id] = wallet;
+            }
+
+            return wallet;
+        }
+
+
+
+
+        public long SaveAddress(long walletId, HdAddress address)
+        {
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var retval = SaveAddress(walletId, dbTransaction, address);
+                dbTransaction.Commit();
+                return retval;
+            }
+        }
+
+        /// <summary>
+        /// Saves address to db making it queryable by address, ScriptPubKey. It relates to account through HD path. Does not commit transaction itself. Caller controlls transaction and must commit.
+        /// </summary>
+        /// <param name="wallet"></param>
+        /// <param name="dbTransaction"></param>
+        /// <param name="address"></param>
+        private long SaveAddress(long walletId, SQLiteTransaction dbTransaction, HdAddress address)
+        {
+            if (address.Id < 1)
+            {
+                var insertCommand = this.connection.CreateCommand();
+                insertCommand.Transaction = dbTransaction;
+                insertCommand.CommandText = "INSERT INTO Address (WalletId, HdIndex, ScriptPubKey, Pubkey, Address, HdPath ) " +
+                " VALUES ( $WalletId, $Index, $ScriptPubKey, $Pubkey, $Address, $HdPath )";
+                insertCommand.Parameters.AddWithValue("$WalletId", walletId);
+                insertCommand.Parameters.AddWithValue("$Index", address.Index);
+                insertCommand.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(address.ScriptPubKey));
+                insertCommand.Parameters.AddWithValue("$Pubkey", PackageSriptToString(address.Pubkey));
+                insertCommand.Parameters.AddWithValue("$Address", address.Address);
+                insertCommand.Parameters.AddWithValue("$HdPath", address.HdPath);
+
+                insertCommand.ExecuteNonQuery();
+
+                var selectAccountsCmd = connection.CreateCommand();
+                selectAccountsCmd.Transaction = dbTransaction;
+                selectAccountsCmd.CommandText = "SELECT id  FROM Address WHERE Address = $Address";
+                selectAccountsCmd.Parameters.AddWithValue("$Address", address.Address);
+                using (var reader = selectAccountsCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        address.Id = reader.GetInt64(0);
+                    }
+                }
+            }
+            address.WalletId = walletId;
+            return address.Id;
+        }
+
+
+        private long SaveAccount(long walletId, SQLiteTransaction dbTransaction, HdAccount account)
+        {
+            if (account.Id < 1)
+            {
+                var insertCommand = this.connection.CreateCommand();
+                insertCommand.Transaction = dbTransaction;
+                insertCommand.CommandText = "INSERT INTO Account (WalletId, HdIndex, Name, HdPath, ExtendedPubKey, CreationTime ) " +
+                " VALUES ( $WalletId, $Index, $Name, $HdPath, $ExtendedPubKey, $CreationTime )";
+                insertCommand.Parameters.AddWithValue("$WalletId", walletId);
+                insertCommand.Parameters.AddWithValue("$Index", account.Index);
+                insertCommand.Parameters.AddWithValue("$Name", account.Name);
+                insertCommand.Parameters.AddWithValue("$HdPath", account.HdPath);
+                insertCommand.Parameters.AddWithValue("$ExtendedPubKey", account.ExtendedPubKey);
+                insertCommand.Parameters.AddWithValue("$CreationTime", account.CreationTime.ToUnixTimeSeconds());
+
+                insertCommand.ExecuteNonQuery();
+
+                var selectAccountsCmd = connection.CreateCommand();
+                selectAccountsCmd.Transaction = dbTransaction;
+                selectAccountsCmd.CommandText = "SELECT max(id)  FROM Account WHERE WalletId = $WalletId";
+                selectAccountsCmd.Parameters.AddWithValue("$WalletId", walletId);
+                using (var reader = selectAccountsCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        account.Id = reader.GetInt64(0);
+                    }
+                }
+            }
+            return account.Id;
+        }
+
+        private string PackageSriptToString(Script value)
+        {
+            if (value is Script)
+            {
+                return Encoders.Hex.EncodeData(((Script)value).ToBytes(false));
+            }
+            if (value is WitScript)
+            {
+                return ((WitScript)value).ToString();
+            }
+            return null;
+        }
+
+        public void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
+        {
+            Guard.NotNull(walletName, nameof(walletName));
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var insertCommand = connection.CreateCommand();
+                insertCommand.Transaction = dbTransaction;
+                insertCommand.CommandText = "UPDATE Wallet set LastBlockSyncedHash = $LastBlockSyncedHash, LastBlockSyncedHeight = $LastBlockSyncedHeight,  LastUpdated = $LastUpdated WHERE Name = $Name";
+
+                insertCommand.Parameters.AddWithValue("$Name", walletName);
+                insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", chainedHeader.HashBlock);
+                insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", chainedHeader.Height);
+                insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
+
+                insertCommand.ExecuteNonQuery();
+
+                dbTransaction.Commit();
+            }
+        }
+
+
+        public WalletSyncPosition GetLastSyncedBlock()
+        {
+            WalletSyncPosition syncPosition = null;
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT top 1 LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet WHERE  order by LastUpdated desc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        syncPosition = new WalletSyncPosition()
+                        {
+                            Height = reader.GetInt32(0),
+                            BlockHash = uint256.Parse(reader.GetString(1))
+                        };
+                    }
+                }
+            }
+
+            return syncPosition;
+        }
+
+        private WalletSyncPosition GetLastSyncedBlock(string walletName)
+        {
+            WalletSyncPosition syncPosition = null;
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet WHERE walletName = $Name ";
+                selectWalletCmd.Parameters.AddWithValue("$Name", walletName);
+
+                using (var reader = selectWalletCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        syncPosition = new WalletSyncPosition()
+                        {
+                            Height = reader.GetInt32(0),
+                            BlockHash = uint256.Parse(reader.GetString(1))
+                        };
+                    }
+                }
+            }
+
+            return syncPosition;
+        }
+
         internal IEnumerable<HdAddress> GetAllWalletAddressesByCoinType(string walletName, CoinType coinType)
         {
             Wallet wallet = GetWalletByName(walletName);
             return wallet?.GetAllAddressesByCoinType(this.coinType);
         }
 
-        //List<string> walletNames = new List<string>();
         public IEnumerable<string> GetAllWalletNames()//TODO: implement caching
         {
             List<string> result = new List<string>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT Name FROM Wallet";
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        result.Add(row.Value);
+                        result.Add(reader.GetString(1));
                     }
                 }
             }
@@ -354,22 +521,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public IEnumerable<WalletPointer> GetAllWalletPointers()
         {
             List<WalletPointer> result = new List<WalletPointer>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<long, string>("WalletNames"))
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT id,Name FROM Wallet";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        result.Add(new WalletPointer(row.Key, row.Value));
+                        result.Add(new WalletPointer(reader.GetInt32(0), reader.GetString(1)));
                     }
                 }
             }
             return result;
         }
-        private void SaveBlockLocator(string walletName, DBreeze.Transactions.Transaction breezeTransaction, BlockLocator blockLocator)
-        {
-            breezeTransaction.Insert<string, BlockLocator>("WalletBlockLocator", walletName, blockLocator);
-        }
+
         /// <summary>
         /// Stores blocks for future use.
         /// </summary>
@@ -378,55 +547,81 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void SaveBlockLocator(string walletName, BlockLocator blocks)
         {
             Guard.NotNull(walletName, nameof(walletName));
-
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+            HashSet<uint256> blocksFromDb = new HashSet<uint256>();
+            long walletId = 0;
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                SaveBlockLocator(walletName, breezeTransaction, blocks);
-                breezeTransaction.Commit();
-            }
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT Wallet.id, Wallet.Name, BlockLocator.BlockHash  FROM Wallet " +
+                    "LEFT JOIN BlockLocator ON Wallet.Id = BlockLocator.WalletId  WHERE Name = $Name ";
+                selectWalletCmd.Parameters.AddWithValue("$Name", walletName);
+
+                using (var reader = selectWalletCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        walletId = reader.GetInt32(0);
+                        blocksFromDb.Add(new uint256(reader.GetString(3)));
+                    }
+                }
+
+                foreach (var item in blocks.Blocks)
+                {
+                    if (!blocksFromDb.Contains(item))
+                    {
+                        var insertCommand = this.connection.CreateCommand();
+                        insertCommand.Transaction = dbTransaction;
+                        insertCommand.CommandText = "INSERT INTO BlockLocator (WalletId, BlockHash ) " +
+                        " VALUES ( $WalletId, $BlockHash )";
+                        insertCommand.Parameters.AddWithValue("$WalletId", walletId);
+                        insertCommand.Parameters.AddWithValue("$BlockHash", item.ToString());
+
+                        insertCommand.ExecuteNonQuery();
+                    }
+                }
+                dbTransaction.Commit();
+            } 
         }
 
         public ICollection<uint256> GetFirstWalletBlockLocator()
         {
             List<uint256> result = new List<uint256>();
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForward<int, BlockLocator>("WalletBlockLocator"))
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator INNER JOIN Wallet ON BlockLocator.WalletId = Wallet.Id order by CreationTime asc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        result = row.Value.Blocks;
+                        result.Add(new uint256(reader.GetString(0)));
                     }
-                    break;
                 }
             }
+
             return result;
-            
         }
 
         internal int? GetEarliestWalletHeight()
         {
             int? result = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
-            {
 
-                foreach (var row in breezeTransaction.SelectForwardFromTo<byte[], byte[]>("Wallet",
-                    3.ToIndex(DateTime.MinValue, long.MinValue), true,
-                    3.ToIndex(DateTime.MaxValue, long.MaxValue), true))
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT top 1 LastBlockSyncedHeight FROM Wallet order by CreationTime asc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        var r = row.ObjectGet<Wallet>();
-                        var wallet = r.Entity;
-                        if (wallet != null) {
-                            var pos = GetLastSyncedBlock(wallet.Name, breezeTransaction);
-                            if (pos!= null)
-                            {
-                                result = pos.Height;
-                            }
-                        }
+                        result = reader.GetInt32(0);
                     }
-                    break;
                 }
             }
             return result;
@@ -434,22 +629,19 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal DateTimeOffset GetOldestWalletCreationTime()
         {
             DateTimeOffset result = DateTimeOffset.MinValue;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                foreach (var row in breezeTransaction.SelectForwardFromTo<byte[], byte[]>("Wallet",
-                    3.ToIndex(DateTime.MinValue, long.MinValue), true,
-                    3.ToIndex(DateTime.MaxValue, long.MaxValue), true))
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT top 1 CreationTime FROM Wallet order by CreationTime asc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        var r = row.ObjectGet<Wallet>();
-                        var wallet = r.Entity;
-                        if (wallet != null)
-                        {
-                            result = wallet.CreationTime.ToUniversalTime();
-                        }
+                        result = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0));
                     }
-                    break;
                 }
             }
             return result;
@@ -462,20 +654,53 @@ namespace BRhodium.Bitcoin.Features.Wallet
         internal Wallet GetWalletByAddress(string address)
         {
             Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+            long walletId = 0;
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var pairRow = breezeTransaction.Select<string, long>("AddressToWalletPair", address);
-                if (pairRow.Exists)
+                var selectAccountsCmd = connection.CreateCommand();
+                selectAccountsCmd.Transaction = dbTransaction;
+                selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE Address = $Address";
+                selectAccountsCmd.Parameters.AddWithValue("$Address", address);
+                using (var reader = selectAccountsCmd.ExecuteReader())
                 {
-                    long walletId = pairRow.Value;
-                    wallet = GetWalletById(walletId);
+                    while (reader.Read())
+                    {
+                        walletId = reader.GetInt64(1);
+                    }
                 }
             }
+
+            wallet = GetWalletById(walletId);
+
             return wallet;
         }
 
-        
+        internal Wallet GetWalletByScriptHash(ScriptId hash)
+        {
+            Wallet wallet = null;
+            long walletId = 0;
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectAccountsCmd = connection.CreateCommand();
+                selectAccountsCmd.Transaction = dbTransaction;
+                selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE ScriptPubKey = $ScriptPubKey";
+                selectAccountsCmd.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(hash.ScriptPubKey));
+
+                using (var reader = selectAccountsCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        walletId = reader.GetInt64(1);
+                    }
+                }
+            }
+
+            wallet = GetWalletById(walletId);
+
+            return wallet;
+        }
+
+
         internal void RemoveTransactionFromHdAddress(HdAddress hdAddress, uint256 id)
         {
             hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.Id == id));
@@ -488,45 +713,50 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.SaveAddress(hdAddress.WalletId, hdAddress);
         }
 
-        internal string GetLastUpdatedWalletName()
+        internal uint256 GetLastUpdatedBlockHash()
         {
-            string result = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+            uint256 result = null;
+
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                foreach (var row in breezeTransaction.SelectBackwardFromTo<byte[], byte[]>("Wallet",
-                   3.ToIndex(DateTime.MaxValue, long.MaxValue), true,
-                   3.ToIndex(DateTime.MinValue, long.MinValue), true))
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT top 1 LastBlockSyncedHash FROM Wallet order by LastUpdated asc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    if (row.Exists)
+                    while (reader.Read())
                     {
-                        var r = row.ObjectGet<Wallet>();
-                        var wallet = r.Entity;
-                        if (wallet != null)
-                        {
-                            result = wallet.Name;
-                        }
+                        result = uint256.Parse(reader.GetString(0));
                     }
-                    break;
                 }
             }
             return result;
         }
 
-        internal Wallet GetWalletByScriptHash(ScriptId hash)
+        internal string GetLastUpdatedWalletName()
         {
-            Wallet wallet = null;
-            using (DBreeze.Transactions.Transaction breezeTransaction = this.dBreeze.GetTransaction())
+            string result = null;
+
+
+            using (var dbTransaction = this.connection.BeginTransaction())
             {
-                breezeTransaction.ValuesLazyLoadingIsOn = false;
-                var pairRow = breezeTransaction.Select<byte[], long>("ScriptToWalletPair", hash.ToBytes());
-                if (pairRow.Exists)
+                var selectWalletCmd = connection.CreateCommand();
+                selectWalletCmd.Transaction = dbTransaction;
+                selectWalletCmd.CommandText = "SELECT top 1 Name FROM Wallet order by LastUpdated asc";
+
+                using (var reader = selectWalletCmd.ExecuteReader())
                 {
-                    long walletId = pairRow.Value;
-                    wallet = GetWalletById(walletId);
+                    while (reader.Read())
+                    {
+                        result = reader.GetString(0);
+                    }
                 }
             }
-            return wallet;
+            return result;
         }
+
 
         public bool HasWallets()
         {

@@ -158,7 +158,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             chain.SetTip(block.Header);
 
             repo.SaveLastSyncedBlock(walletTarget.Name, chain.Tip);
-            var result = repo.GetLastSyncedBlock(walletTarget.Name);
+            var result = repo.GetLastSyncedBlock();
 
             Assert.Equal(chain.Tip.Height, result.Height);
             Assert.Equal(chain.Tip.HashBlock, result.BlockHash);
