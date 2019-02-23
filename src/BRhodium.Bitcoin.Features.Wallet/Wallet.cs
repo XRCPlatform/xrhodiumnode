@@ -996,6 +996,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     [ProtoContract]
     public class TransactionData : IProtoBufSerializeable
     {
+        [JsonIgnore]
+        public long DbId { get; set; }
         /// <summary>
         /// Transaction id.
         /// </summary>
@@ -1133,6 +1135,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     [ProtoContract]
     public class PaymentDetails : IProtoBufSerializeable
     {
+        [JsonIgnore]
+        public long DbId { get; set; }
         /// <summary>
         /// The script pub key of the destination address.
         /// </summary>
@@ -1160,6 +1164,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     [ProtoContract]
     public class SpendingDetails : IProtoBufSerializeable
     {
+        [JsonIgnore]
+        public long DbId { get; set; }
         private List<PaymentDetails> _payments;
 
         public SpendingDetails()
