@@ -123,7 +123,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
                 TestSample.Outbound(true,  true,  false, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.3.49")),
                 TestSample.Outbound(true,  true,  false, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.31.4")),
                 TestSample.Outbound(true,  true,  false, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.32.4")),
-                TestSample.Outbound(true,  true,  false, -offsetAbovSwitchOffLevelMs/2, TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.33.4")), 
 
                 // Now the feature should be turned off.
                 TestSample.Outbound( true,  true,  true, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.33.5")), 

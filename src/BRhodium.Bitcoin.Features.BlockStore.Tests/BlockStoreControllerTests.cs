@@ -137,8 +137,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
             response.Result.Should().BeOfType<ErrorResult>();
             var notFoundObjectResult = (ErrorResult)response.Result;
             notFoundObjectResult.StatusCode.Should().Be(400);
-            ((ErrorResponse)notFoundObjectResult.Value).Errors[0]
-                .Description.Should().Contain("Invalid Hex String");
+            ((ErrorModel)notFoundObjectResult.Value).ErrorCode.Should().Contain("Invalid Hex String");
         }
 
         [Fact]

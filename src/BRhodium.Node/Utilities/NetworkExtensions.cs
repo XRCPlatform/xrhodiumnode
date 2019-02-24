@@ -25,7 +25,7 @@ namespace BRhodium.Node.Utilities
         /// </summary>
         /// <param name="network">The network.</param>
         /// <returns><c>true</c> if the specified network is bitcoin, <c>false</c> otherwise.</returns>
-        public static bool IsBitcoin(this Network network)
+        public static bool IsBRhodium(this Network network)
         {
             return !network.Name.ToLowerInvariant().Contains("BRhodium");
         }

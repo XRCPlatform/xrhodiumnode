@@ -110,9 +110,9 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             Assert.NotNull(this.ruleContext.Flags);
             Assert.True(this.ruleContext.Flags.EnforceBIP30);
-            Assert.False(this.ruleContext.Flags.EnforceBIP34);
+            Assert.True(this.ruleContext.Flags.EnforceBIP34);
             Assert.Equal(LockTimeFlags.None, this.ruleContext.Flags.LockTimeFlags);
-            Assert.Equal(ScriptVerify.Mandatory, this.ruleContext.Flags.ScriptFlags);
+            Assert.Equal(ScriptVerify.Mandatory | ScriptVerify.DerSig | ScriptVerify.CheckLockTimeVerify, this.ruleContext.Flags.ScriptFlags);
         }
     }
 }

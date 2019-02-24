@@ -30,9 +30,10 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
         [Fact]
         public void GetBlockAsyncBlockInCacheReturnsBlock()
         {
-            var block = new Block();
-            block.Header.Version = 1513;
-            this.blockStoreCache.AddToCache(block);
+            var powBlockHeader = new PowBlockHeader();
+            powBlockHeader.Version = 1513;
+            var block = new PowBlock(powBlockHeader);
+            this.blockStoreCache.AddToCache(new PowBlock(block.Header));
 
             uint256 hash = block.GetHash();
             Block blockFromCache = this.blockStoreCache.GetBlockAsync(hash).GetAwaiter().GetResult();

@@ -80,12 +80,12 @@ namespace BRhodium.Node.Tests.Common
             }
         }
 
-        public List<Block> CreateBlocks(int amount, bool bigBlocks = false)
+        public List<PowBlock> CreateBlocks(int amount, bool bigBlocks = false)
         {
-            var blocks = new List<Block>();
+            var blocks = new List<PowBlock>();
             for (int i = 0; i < amount; i++)
             {
-                Block block = this.CreateBlock(i);
+                var block = this.CreateBlock(i);
                 block.Header.HashPrevBlock = blocks.LastOrDefault()?.GetHash() ?? this.Network.GenesisHash;
                 blocks.Add(block);
             }
@@ -93,9 +93,10 @@ namespace BRhodium.Node.Tests.Common
             return blocks;
         }
 
-        public Block CreateBlock(int blockNumber, bool bigBlocks = false)
+        public PowBlock CreateBlock(int blockNumber, bool bigBlocks = false)
         {
-            var block = new Block();
+            var blockHeader = new PowBlockHeader();
+            var block = new PowBlock(blockHeader);
 
             int transactionCount = bigBlocks ? 1000 : 10;
 
