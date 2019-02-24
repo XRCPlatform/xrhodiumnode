@@ -84,7 +84,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
             rpcSettings.Load(nodeSettings);
 
             Assert.False(rpcSettings.Server);
-            Assert.Equal(18332, rpcSettings.RPCPort);
+            Assert.Equal(16661, rpcSettings.RPCPort);
             Assert.Null(rpcSettings.RpcUser);
             Assert.Null(rpcSettings.RpcPassword);
             Assert.Empty(rpcSettings.Bind);

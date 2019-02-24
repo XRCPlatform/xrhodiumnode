@@ -138,11 +138,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var descriptor = new ControllerActionDescriptor()
             {
                 ActionName = "getblockheader",
-                MethodInfo = typeof(FullNodeRPCController).GetMethod("GetBlockHeader"),
+                MethodInfo = typeof(BlockChainRPCController).GetMethod("GetBlockHeader"),
                 Parameters = new List<ParameterDescriptor>()
             };
 
-            foreach (var parameter in typeof(FullNodeRPCController).GetMethod("GetBlockHeader").GetParameters())
+            foreach (var parameter in typeof(BlockChainRPCController).GetMethod("GetBlockHeader").GetParameters())
             {
                 descriptor.Parameters.Add(new ControllerParameterDescriptor()
                 {
@@ -154,7 +154,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             this.descriptors.Add(descriptor);
             var values = new Dictionary<string, StringValues>();
             values.Add("hash", new StringValues(new uint256(1000).ToString()));
-            values.Add("isjsonformat", new StringValues("true"));
+            values.Add("verbose", new StringValues("true"));
 
 
             this.controller.ControllerContext = new ControllerContext();
@@ -166,7 +166,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
                 var rpcResponse = RPCResponse.Load(stream);
                 this.rpcClient.Setup(c => c.SendCommand(It.Is<RPCRequest>(r => r.Method == "getblockheader"
                                                         && ((string)r.Params[0]) == new uint256(1000).ToString()
-                                                        && ((string)r.Params[1]) == "true"), true))
+                                                        && ((bool)r.Params[1]) == true), true))
                     .Returns(rpcResponse)
                     .Verifiable();
 
