@@ -36,8 +36,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>
@@ -106,8 +106,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace BRhodium.Node.Api.Tests
         }
 
         /// <summary>
-        /// Tests that if we're on the Bitcoin main network, the port used in the API is the right one.
+        /// Tests that if we're on the Brhodium main network, the port used in the API is the right one.
         /// </summary>
         [Fact]
         public void GivenBRhodiumMainnet_ThenUseTheCorrectPort()
@@ -202,14 +202,14 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
         }
 
         /// <summary>
-        /// Tests that if we're on the BRhodium test network, the port used in the API is the right one.
+        /// Tests that if we're on the Brhodium test network, the port used in the API is the right one.
         /// </summary>
         [Fact]
-        public void GivenBRhodiumTestnet_ThenUseTheCorrectPort()
+        public void GivenBrhodiumTestnet_ThenUseTheCorrectPort()
         {
             // Arrange.
             NodeSettings nodeSettings = NodeSettings.Default(Network.TestNet);
@@ -223,7 +223,7 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.TestBitcoinApiPort, settings.ApiPort);
+            Assert.Equal(ApiSettings.TestBRhodiumApiPort, settings.ApiPort);
         }
     }
 }

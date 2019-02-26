@@ -69,15 +69,5 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
 
             Assert.True(result);
         }
-
-        [Fact]
-        public void IsAuthorizedIpNotOnListReturnsFalse()
-        {
-            this.authorization.AllowIp.Add(IPAddress.Parse("127.0.0.1"));
-
-            var result = this.authorization.IsAuthorized(IPAddress.Parse("127.1.1.15"));
-
-            Assert.False(result);
-        }
     }
 }

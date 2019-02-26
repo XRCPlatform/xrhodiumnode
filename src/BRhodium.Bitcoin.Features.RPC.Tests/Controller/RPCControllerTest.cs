@@ -168,7 +168,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
                 var rpcResponse = RPCResponse.Load(stream);
                 this.rpcClient.Setup(c => c.SendCommand(It.Is<RPCRequest>(r => r.Method == "getblockheader"
                                                         && ((string)r.Params[0]) == new uint256(1000).ToString()
-                                                        && ((string)r.Params[1]) == "true"), true))
+                                                        && ((bool)r.Params[1]) == true), true))
                     .Returns(rpcResponse)
                     .Verifiable();
 

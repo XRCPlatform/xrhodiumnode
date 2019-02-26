@@ -101,9 +101,9 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
             return testRulesContext;
         }
 
-        public static Block MineBlock(Network network, ConcurrentChain chain)
+        public static PowBlock MineBlock(Network network, ConcurrentChain chain)
         {
-            var block = new Block();
+            var block = new PowBlock(new PowBlockHeader());
             var coinbase = new Transaction();
             coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
             coinbase.AddOutput(new TxOut(Money.Zero, new Key()));

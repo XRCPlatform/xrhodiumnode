@@ -13,17 +13,11 @@ namespace BRhodium.Bitcoin.Features.Api
     /// </summary>
     public class ApiSettings
     {
-        /// <summary>The default port used by the API when the node runs on the bitcoin network.</summary>
-        public const int DefaultBitcoinApiPort = 37270;
-
         /// <summary>The default port used by the API when the node runs on the BRhodium network.</summary>
         public const int DefaultBRhodiumApiPort = 37270;
 
-        /// <summary>The default port used by the API when the node runs on the bitcoin testnet network.</summary>
-        public const int TestBitcoinApiPort = 38220;
-
         /// <summary>The default port used by the API when the node runs on the BRhodium testnet network.</summary>
-        public const int TestBRhodiumApiPort = 16661;
+        public const int TestBRhodiumApiPort = 16665;
 
         /// <summary>The default port used by the API when the node runs on the BRhodium network.</summary>
         public const string DefaultApiHost = "http://localhost";
@@ -41,7 +35,7 @@ namespace BRhodium.Bitcoin.Features.Api
         private Action<ApiSettings> callback;
 
         /// <summary>
-        /// Constructs this object whilst providing a callback to override/constrain/extend 
+        /// Constructs this object whilst providing a callback to override/constrain/extend
         /// the settings provided by the Load method.
         /// </summary>
         /// <param name="callback">The callback used to override/constrain/extend the settings provided by the Load method.</param>
@@ -98,9 +92,9 @@ namespace BRhodium.Bitcoin.Features.Api
         /// <returns>The default API port.</returns>
         private static int GetDefaultPort(Network network)
         {
-            if (network.IsBitcoin())
-                return network.IsTest() ? TestBitcoinApiPort : DefaultBitcoinApiPort;
-            
+            if (network.IsBRhodium())
+                return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
+
             return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
         }
 
