@@ -17,7 +17,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         public async Task RunAsync_CheckpointViolation_ThrowsCheckpointValidationConsensusErrorsExceptionAsync()
         {
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 1 };
-            this.ruleContext.BlockValidationContext.Block = new PowBlock(new PowBlockHeader());
+            this.ruleContext.BlockValidationContext.Block = new Block(new BlockHeader());
 
             this.checkpoints.Setup(c => c.CheckHardened(2, this.ruleContext.BlockValidationContext.Block.GetHash(Network.BRhodiumMain)))
                 .Returns(false);
@@ -33,7 +33,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
             this.consensusSettings.UseCheckpoints = false;
 
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 1 };
-            this.ruleContext.BlockValidationContext.Block = new PowBlock(new PowBlockHeader());
+            this.ruleContext.BlockValidationContext.Block = new Block(new BlockHeader());
             this.checkpoints.Setup(c => c.CheckHardened(2, this.ruleContext.BlockValidationContext.Block.GetHash(Network.BRhodiumMain)))
                 .Returns(true);
 
@@ -47,7 +47,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 1 };
-            this.ruleContext.BlockValidationContext.Block = new PowBlock(new PowBlockHeader());
+            this.ruleContext.BlockValidationContext.Block = new Block(new BlockHeader());
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(5);
 
             this.checkpoints.Setup(c => c.CheckHardened(2, this.ruleContext.BlockValidationContext.Block.GetHash(Network.BRhodiumMain)))
@@ -67,7 +67,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 1 };
-            this.ruleContext.BlockValidationContext.Block = new PowBlock(new PowBlockHeader());
+            this.ruleContext.BlockValidationContext.Block = new Block(new BlockHeader());
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(5);
 
             this.checkpoints.Setup(c => c.CheckHardened(2, this.ruleContext.BlockValidationContext.Block.GetHash(Network.BRhodiumMain)))
@@ -87,7 +87,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BestBlock = new ContextBlockInformation() { Height = 1 };
-            this.ruleContext.BlockValidationContext.Block = new PowBlock(new PowBlockHeader());
+            this.ruleContext.BlockValidationContext.Block = new Block(new BlockHeader());
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(5);
 
             this.checkpoints.Setup(c => c.CheckHardened(2, this.ruleContext.BlockValidationContext.Block.GetHash(Network.BRhodiumMain)))

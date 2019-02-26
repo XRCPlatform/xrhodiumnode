@@ -34,11 +34,11 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         {
             this.ruleContext.BlockValidationContext = new BlockValidationContext()
             {
-                Block = new PowBlock(new PowBlockHeader())
+                Block = new Block(new BlockHeader())
                 {
                     Transactions = new List<Transaction>()
                         {
-                            new NBitcoin.PowTransaction()
+                            new NBitcoin.Transaction()
                         }
                 },
                 ChainedHeader = this.concurrentChain.GetBlock(4)

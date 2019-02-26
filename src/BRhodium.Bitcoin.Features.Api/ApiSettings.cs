@@ -57,7 +57,7 @@ namespace BRhodium.Bitcoin.Features.Api
 
             // Find out which port should be used for the API.
             var apiPort = config.GetOrDefault("apiport", GetDefaultPort(nodeSettings.Network));
-            
+
             // If no port is set in the API URI.
             if (apiUri.IsDefaultPort)
             {

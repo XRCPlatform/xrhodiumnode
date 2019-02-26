@@ -20,9 +20,9 @@ namespace BRhodium.Node.Tests.Common
         {
             this.Network = network;
             DBreezeSerializer serializer = new DBreezeSerializer();
-            serializer.Initialize(this.Network); 
+            serializer.Initialize(this.Network);
         }
-        
+
         public static string AssureEmptyDir(string dir)
         {
             if (Directory.Exists(dir))
@@ -80,9 +80,9 @@ namespace BRhodium.Node.Tests.Common
             }
         }
 
-        public List<PowBlock> CreateBlocks(int amount, bool bigBlocks = false)
+        public List<Block> CreateBlocks(int amount, bool bigBlocks = false)
         {
-            var blocks = new List<PowBlock>();
+            var blocks = new List<Block>();
             for (int i = 0; i < amount; i++)
             {
                 var block = this.CreateBlock(i);
@@ -93,10 +93,10 @@ namespace BRhodium.Node.Tests.Common
             return blocks;
         }
 
-        public PowBlock CreateBlock(int blockNumber, bool bigBlocks = false)
+        public Block CreateBlock(int blockNumber, bool bigBlocks = false)
         {
-            var blockHeader = new PowBlockHeader();
-            var block = new PowBlock(blockHeader);
+            var blockHeader = new BlockHeader();
+            var block = new Block(blockHeader);
 
             int transactionCount = bigBlocks ? 1000 : 10;
 

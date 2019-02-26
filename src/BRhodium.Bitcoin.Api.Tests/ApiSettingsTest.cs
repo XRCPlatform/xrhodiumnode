@@ -59,8 +59,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>
@@ -130,8 +130,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>

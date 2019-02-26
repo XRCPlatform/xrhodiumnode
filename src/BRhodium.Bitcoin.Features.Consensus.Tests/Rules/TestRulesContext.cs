@@ -49,7 +49,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
     /// Test consensus rules for unit tests.
     /// </summary>
     public class TestConsensusRules : ConsensusRules
-    {        
+    {
         private Mock<IRuleRegistration> ruleRegistration;
 
         public TestConsensusRules(Network network, ILoggerFactory loggerFactory, IDateTimeProvider dateTimeProvider, ConcurrentChain chain, NodeDeployments nodeDeployments, ConsensusSettings consensusSettings, ICheckpoints checkpoints)
@@ -66,7 +66,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
 
             this.Register(this.ruleRegistration.Object);
             return rule;
-        }       
+        }
     }
 
     /// <summary>
@@ -101,9 +101,9 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
             return testRulesContext;
         }
 
-        public static PowBlock MineBlock(Network network, ConcurrentChain chain)
+        public static Block MineBlock(Network network, ConcurrentChain chain)
         {
-            var block = new PowBlock(new PowBlockHeader());
+            var block = new Block(new BlockHeader());
             var coinbase = new Transaction();
             coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
             coinbase.AddOutput(new TxOut(Money.Zero, new Key()));
