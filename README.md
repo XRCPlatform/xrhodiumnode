@@ -1,9 +1,9 @@
-BitCoin Rhodium (BTR) - BRhodium, BitcoinRh
+Bitcoin Rhodium (BTR) - BRhodium, BitcoinRh
 ===========================================
 
-Project web site: [BitCoin Rhodium](https://www.bitcoinrh.org)
+Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
-## About BitCoin Rhodium
+## About Bitcoin Rhodium
 
 Bitcoin Rhodium is a unique crypto commodity with limited supply and strong use case. Its store-of-value qualities are further supported by a set of features that meet the demand for a long-term crypto investment, incentivize strong-hand investor behaviour and bridge the gap between the world of crypto and traditional investment.
 

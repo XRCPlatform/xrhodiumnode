@@ -127,7 +127,7 @@
     <HeaderText>
     </HeaderText>
     <CopyrightHref>https://www.bitcoinrh.org/</CopyrightHref>
-    <CopyrightText>%40 2018 BitCoin Rhodium</CopyrightText>
+    <CopyrightText>%40 2018 Bitcoin Rhodium</CopyrightText>
     <RootNamespaceTitle>API Reference %28JSON-RPC%29</RootNamespaceTitle>
     <TransformComponentArguments>
       <Argument Key="logoFile" Value="logo.png" xmlns="" />

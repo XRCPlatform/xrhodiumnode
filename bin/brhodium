@@ -13,7 +13,7 @@ BRHODIUM_PATH="$CURRENT_DIR/../build"
 
 if [[ $CMD == "help" ]] || [[ $CMD == "" ]]; then
     cat <<EOF
-BitCoin Rhodium Node
+Bitcoin Rhodium Node
 
 Commands:
 build - build node software. .NET Core SDK required.
