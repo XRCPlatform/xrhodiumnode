@@ -16,13 +16,15 @@ if [[ $CMD == "help" ]] || [[ $CMD == "" ]]; then
 Bitcoin Rhodium Node
 
 Commands:
-build - build node software. .NET Core SDK required.
+build - build node software. .NET Core SDK required.`
 
 node - run node software. Optional flags:
      -conf=file.conf - Path to configuration file (default: $datadir/brhodium/{BRhodiumMain|BRhodiumTest|BRhodiumRegtest}/BRhodium.conf)
      -datadir=/path/to/data - Path to blockchain and wallet data (default: ~/.brhodium)
      -testnet - Load testnet chain
      -regtest - Load regtest chain
+
+run - Do development build and run node. Takes same parameters as "node".
 
 rpc - run an rpc command. Optional flags:
     -rpchost=hostname (default: 127.0.0.1)
@@ -47,6 +49,12 @@ if [[ $CMD == "build" ]]; then
 
     pushd src/BRhodium.Cli
     dotnet publish -c Release -o ../../build -r ubuntu-x64 --self-contained true
+    popd
+fi
+
+if [[ $CMD == "run" ]]; then
+    pushd src/BRhodium
+    dotnet run
     popd
 fi
 
