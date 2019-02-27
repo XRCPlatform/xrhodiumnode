@@ -24,6 +24,7 @@ using BRhodium.Node.Tests.Common.Logging;
 using BRhodium.Node.Utilities.JsonErrors;
 using Xunit;
 using BRhodium.Node;
+using BRhodium.Bitcoin.Features.BlockStore.Controllers;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 {
@@ -80,11 +81,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var descriptor = new ControllerActionDescriptor()
             {
                 ActionName = "getblockheader",
-                MethodInfo = typeof(FullNodeRPCController).GetMethod("GetBlockHeader"),
+                MethodInfo = typeof(BlockChainRPCController).GetMethod("GetBlockHeader"),
                 Parameters = new List<ParameterDescriptor>()
             };
 
-            foreach (var parameter in typeof(FullNodeRPCController).GetMethod("GetBlockHeader").GetParameters())
+            foreach (var parameter in typeof(BlockChainRPCController).GetMethod("GetBlockHeader").GetParameters())
             {
                 descriptor.Parameters.Add(new ControllerParameterDescriptor()
                 {
@@ -101,8 +102,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var model = Assert.IsType<List<RpcCommandModel>>(jsonResult.Value);
             Assert.NotEmpty(model);
             var commandModel = model[0];
-            Assert.Equal("getblockheader <hash> [<isjsonformat>]", commandModel.Command);
-            Assert.Equal("Gets the block header of the block identified by the hash.", commandModel.Description);
+            Assert.Equal("getblockheader <hash> <verbose>", commandModel.Command);
+            Assert.Contains("If verbose is true, returns an Object with information about blockheader 'hash'.",
+                            commandModel.Description);
         }
 
         [Fact]
@@ -126,9 +128,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
-            var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].ErrorCode);
-            Assert.Equal(400, errorValue.Errors[0].Status);
+            var errorValue = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal("Could not find RPCHost", errorValue.ErrorCode);
+            Assert.Equal(400, errorValue.Status);
         }
 
         [Fact]
@@ -186,7 +188,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
         {
             var values = new Dictionary<string, StringValues>();
             values.Add("hash", new StringValues(new uint256(1000).ToString()));
-            values.Add("isjsonformat", new StringValues("true"));
+            values.Add("verbose", new StringValues("true"));
             this.controller.ControllerContext = new ControllerContext();
             this.controller.ControllerContext.HttpContext = new DefaultHttpContext();
             this.controller.ControllerContext.HttpContext.Request.Query = new QueryCollection(values);
@@ -195,9 +197,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
-            var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("RPC method 'getblockheader' not found.", errorValue.Errors[0].ErrorCode);
-            Assert.Equal(400, errorValue.Errors[0].Status);
+            var errorValue = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal("RPC method 'getblockheader' not found.", errorValue.ErrorCode);
+            Assert.Equal(400, errorValue.Status);
         }
 
         [Fact]
@@ -210,9 +212,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
 
             var errorResult = Assert.IsType<ErrorResult>(controllerResult);
             Assert.Equal(400, errorResult.StatusCode);
-            var errorValue = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Equal("Could not find RPCHost", errorValue.Errors[0].ErrorCode);
-            Assert.Equal(400, errorValue.Errors[0].Status);
+            var errorValue = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal("Could not find RPCHost", errorValue.ErrorCode);
+            Assert.Equal(400, errorValue.Status);
         }
 
         private class RPCResponseObject

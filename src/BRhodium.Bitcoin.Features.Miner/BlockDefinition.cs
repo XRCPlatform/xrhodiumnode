@@ -156,7 +156,9 @@ namespace BRhodium.Bitcoin.Features.Miner
             {
                 ThresholdState state = thresholdConditionCache.GetState(prevChainedHeader, deployment);
                 if ((state == ThresholdState.LockedIn) || (state == ThresholdState.Started))
+                {
                     version |= thresholdConditionCache.Mask(deployment);
+                }
             }
 
             return (int)version;

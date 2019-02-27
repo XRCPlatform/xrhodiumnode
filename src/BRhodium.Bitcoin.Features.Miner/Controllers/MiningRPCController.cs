@@ -367,7 +367,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 }
 
                 var hexBytes = Encoders.Hex.DecodeData(hex);
-                var pblock = PowBlock.Load(hexBytes, this.Network);
+                var pblock = Block.Load(hexBytes, this.Network);
 
                 if (pblock == null)
                 {

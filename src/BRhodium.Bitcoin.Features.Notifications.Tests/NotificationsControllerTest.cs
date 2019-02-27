@@ -28,11 +28,8 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             IActionResult result = notificationController.SyncFrom(from);
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
-
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal(400, errorResponse.Status);
         }
 
         [Fact]
@@ -96,11 +93,8 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             IActionResult result = notificationController.SyncFrom(hashLocation);
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
-
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal(400, errorResponse.Status);
         }
 
         [Fact]
@@ -133,11 +127,8 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
             IActionResult result = notificationController.SyncFrom("15");
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
-
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
+            Assert.Equal(400, errorResponse.Status);
         }
     }
 }

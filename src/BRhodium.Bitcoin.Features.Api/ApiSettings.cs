@@ -14,7 +14,7 @@ namespace BRhodium.Bitcoin.Features.Api
     public class ApiSettings
     {
         /// <summary>The default port used by the API when the node runs on the BRhodium network.</summary>
-        public const int DefaultBRhodiumApiPort = 37220;
+        public const int DefaultBRhodiumApiPort = 37270;
 
         /// <summary>The default port used by the API when the node runs on the BRhodium testnet network.</summary>
         public const int TestBRhodiumApiPort = 16665;
@@ -35,7 +35,7 @@ namespace BRhodium.Bitcoin.Features.Api
         private Action<ApiSettings> callback;
 
         /// <summary>
-        /// Constructs this object whilst providing a callback to override/constrain/extend 
+        /// Constructs this object whilst providing a callback to override/constrain/extend
         /// the settings provided by the Load method.
         /// </summary>
         /// <param name="callback">The callback used to override/constrain/extend the settings provided by the Load method.</param>
@@ -57,7 +57,7 @@ namespace BRhodium.Bitcoin.Features.Api
 
             // Find out which port should be used for the API.
             var apiPort = config.GetOrDefault("apiport", GetDefaultPort(nodeSettings.Network));
-            
+
             // If no port is set in the API URI.
             if (apiUri.IsDefaultPort)
             {
@@ -94,7 +94,7 @@ namespace BRhodium.Bitcoin.Features.Api
         {
             if (network.IsBRhodium())
                 return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
-            
+
             return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
         }
 

@@ -10,7 +10,7 @@ namespace BRhodium.Node.Tests.Base
 {
     public class ChainRepositoryTest : TestBase
     {
-        public ChainRepositoryTest() : base(Network.BRhodiumRegTest)
+        public ChainRepositoryTest() : base(Network.RegTest)
         {
         }
 
@@ -18,7 +18,7 @@ namespace BRhodium.Node.Tests.Base
         public void SaveWritesChainToDisk()
         {
             string dir = CreateTestDir(this);
-            var chain = new ConcurrentChain(Network.BRhodiumRegTest);
+            var chain = new ConcurrentChain(Network.RegTest);
             this.AppendBlock(chain);
 
             using (var repo = new ChainRepository(dir))
@@ -43,7 +43,7 @@ namespace BRhodium.Node.Tests.Base
         public void GetChainReturnsConcurrentChainFromDisk()
         {
             string dir = CreateTestDir(this);
-            var chain = new ConcurrentChain(Network.BRhodiumRegTest);
+            var chain = new ConcurrentChain(Network.RegTest);
             var tip = this.AppendBlock(chain);
 
             using (var engine = new DBreezeEngine(dir))
@@ -68,7 +68,7 @@ namespace BRhodium.Node.Tests.Base
             }
             using (var repo = new ChainRepository(dir))
             {
-                var testChain = new ConcurrentChain(Network.BRhodiumRegTest);
+                var testChain = new ConcurrentChain(Network.RegTest);
                 repo.LoadAsync(testChain).GetAwaiter().GetResult();
                 Assert.Equal(tip, testChain.Tip);
             }

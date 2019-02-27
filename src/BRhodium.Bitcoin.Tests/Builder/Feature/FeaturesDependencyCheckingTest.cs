@@ -59,7 +59,7 @@ namespace BRhodium.Node.Tests.Builder.Feature
         [Fact]
         public void DependencyCheckWithValidDependencies()
         {
-            var builder = new FullNodeBuilder().UseNodeSettings(NodeSettings.Default(Network.BRhodiumRegTest));
+            var builder = new FullNodeBuilder().UseNodeSettings(NodeSettings.Default(Network.RegTest));
 
             builder.ConfigureFeature(features =>
             {
@@ -83,7 +83,7 @@ namespace BRhodium.Node.Tests.Builder.Feature
         [Fact]
         public void DependencyCheckWithInvalidDependenciesThrowsException()
         {
-            var builder = new FullNodeBuilder().UseNodeSettings(NodeSettings.Default(Network.BRhodiumRegTest));
+            var builder = new FullNodeBuilder().UseNodeSettings(NodeSettings.Default(Network.RegTest));
             builder.ConfigureFeature(features =>
             {
                 features

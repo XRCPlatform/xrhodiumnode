@@ -269,7 +269,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 })
                 .Verifiable();
 
-            Network network = Network.BRhodiumTest;
+            Network network = Network.TestNet;
             NodeSettings nodeSettings = new NodeSettings(network, args:args);
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsPeerBlacklistThresholdInSeconds = inactiveTimePeriod;
@@ -357,7 +357,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 })
                 .Verifiable();
 
-            Network network = Network.BRhodiumTest;
+            Network network = Network.TestNet;
             NodeSettings nodeSettings = new NodeSettings(network, args:args);
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsFullNode = true;
