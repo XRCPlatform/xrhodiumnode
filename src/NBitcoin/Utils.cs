@@ -363,7 +363,7 @@ namespace NBitcoin
         }
 
 
-        internal static String BITCOIN_SIGNED_MESSAGE_HEADER = "Bitcoin Rhodium Signed Message:\n";
+        internal static String BITCOIN_SIGNED_MESSAGE_HEADER = "BitCoin Rhodium Signed Message:\n";
         internal static byte[] BITCOIN_SIGNED_MESSAGE_HEADER_BYTES = Encoding.UTF8.GetBytes(BITCOIN_SIGNED_MESSAGE_HEADER);
 
         //http://bitcoinj.googlecode.com/git-history/keychain/core/src/main/java/com/google/bitcoin/core/Utils.java
