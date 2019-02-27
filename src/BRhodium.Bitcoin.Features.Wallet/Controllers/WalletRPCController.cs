@@ -104,7 +104,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Wallets the password with unicode support.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -127,7 +127,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Wallets the password.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -174,7 +174,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Dumps the priv key.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -253,7 +253,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     try
                     {
                         var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, password, this.Network);
- 
+
                         var secret = new BitcoinSecret(privateKey, this.Network);
                         var stringPrivateKey = secret.ToString();
                         return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
@@ -275,7 +275,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Lock the wallets.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -316,7 +316,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Gets account balance.
-        /// 
+        ///
         /// <p>If [walletName] is not specified, returns the server's total available balance.<br/>
         /// If [walletName] is specified, returns the balance in the account.<br/>
         /// If [walletName] is "*", get the balance of all accounts.</p>
@@ -340,7 +340,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         {
                             accounts.Add(account);
                         }
-                        
+
                     }
                 }
                 else
@@ -1265,7 +1265,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var chainedHeader = chainRepository.GetBlock(chainRepository.Height);
 
                 var fileContent = new StringBuilder();
-                fileContent.AppendLine("# Wallet dump created by BitCoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
+                fileContent.AppendLine("# Wallet dump created by Bitcoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
                 fileContent.AppendLine("# * Created on " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK"));
                 fileContent.AppendLine("# * Best block at time of backup was " + chainRepository.Height + " ," + chainedHeader.HashBlock);
                 fileContent.AppendLine("# * mined on" + Utils.UnixTimeToDateTime(chainedHeader.Header.Time).DateTime.ToString("yyyy-MM-ddTHH:mm:ssK"));
@@ -1586,7 +1586,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         if (rescan) this.RescanBlockChain();
                     }
                 }
-               
+
                 return this.Json(ResultHelper.BuildResultResponse(hdAddress));
             }
             catch (Exception e)
@@ -2013,7 +2013,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Updates list of temporarily unspendable outputs. 
+        /// Updates list of temporarily unspendable outputs.
         /// <p>Temporarily lock (unlock=false) or unlock(unlock=true) specified transaction outputs.<br/>
         /// If no transaction outputs are specified when unlocking then all current locked transaction outputs are unlocked.<br/>
         /// A locked transaction output will not be chosen by automatic coin selection, when spending bitcoins.<br/>
@@ -2122,7 +2122,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="tx">Transaction id.</param>
         /// <returns>(bool) Whether the command was successful or not.</returns>
         [ActionName("removetransaction")]
-        [ActionDescription("Remove transaction from wallet.")] 
+        [ActionDescription("Remove transaction from wallet.")]
         public IActionResult RemoveTransaction(string walletName, string tx)
         {
             try
