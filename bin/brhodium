@@ -48,9 +48,6 @@ if [[ $CMD == "build" ]]; then
     pushd src/BRhodium.Cli
     dotnet publish -c Release -o ../../build -r ubuntu-x64 --self-contained true
     popd
-
-    cp src/BRhodium/bin/Release/netcoreapp2.0/ubuntu-x64/BRhodium .
-    cp src/BRhodium.Cli/bin/Release/netcoreapp2.0/ubuntu-x64/BRhodium .
 fi
 
 if [ $CMD == "node" ]; then
