@@ -100,14 +100,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         SaveAddress(wallet.Id, dbTransaction, address);
                     }
                 }
-                
-                if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0) {
-                    SaveBlockLocator(wallet.Name, dbTransaction, new BlockLocator(){
+
+                if (wallet.BlockLocator != null && wallet.BlockLocator.Count > 0)
+                {
+                    SaveBlockLocator(wallet.Name, dbTransaction, new BlockLocator()
+                    {
                         Blocks = wallet.BlockLocator
                     });
                 }
 
                 dbTransaction.Commit();
+
+                if (wallet != null)
+                {
+                    walletCache[wallet.Name] = wallet;
+                    walletCache["wallet_" + wallet.Id] = wallet;
+                }
 
             }
             //});
@@ -124,25 +132,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             Wallet wallet = null;
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
-                    "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE Name = $Name";
-                selectWalletCmd.Parameters.AddWithValue("$Name", name);
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
+                "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE Name = $Name";
+            selectWalletCmd.Parameters.AddWithValue("$Name", name);
 
-                wallet = ReadWalletFromDb(wallet, dbTransaction, selectWalletCmd);
-            }
+            wallet = ReadWalletFromDb(wallet, selectWalletCmd);
 
             if (wallet != null)
             {
                 walletCache[name] = wallet;
+                walletCache["wallet_" + wallet.Id] = wallet;
             }
+
             return wallet;
         }
 
-        private Wallet ReadWalletFromDb(Wallet wallet, SQLiteTransaction dbTransaction, SQLiteCommand selectWalletCmd)
+        private Wallet ReadWalletFromDb(Wallet wallet, SQLiteCommand selectWalletCmd)
         {
             using (var reader = selectWalletCmd.ExecuteReader())
             {
@@ -156,7 +162,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     wallet.Network = NetworkHelpers.GetNetwork(reader.GetString(4));
                     wallet.CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(5));
                     string blockHash = reader[6] as string;
-                    int LastBlockSyncedHeight = ExtractNullableInt(reader,7);
+                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 7);
 
                     int coinType = reader.GetInt16(8);
                     uint256 lastBlockHash = null;
@@ -164,7 +170,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         lastBlockHash = new uint256(blockHash);
                     }
-                    BuildAccountRoot(wallet, dbTransaction, LastBlockSyncedHeight, coinType, lastBlockHash);
+                    BuildAccountRoot(wallet, LastBlockSyncedHeight, coinType, lastBlockHash);
                 }
             }
 
@@ -183,12 +189,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return LastBlockSyncedHeight;
         }
 
-        private void BuildAccountRoot(Wallet wallet, SQLiteTransaction dbTransaction, int LastBlockSyncedHeight, int coinType, uint256 lastBlockHash)
+        private void BuildAccountRoot(Wallet wallet, int LastBlockSyncedHeight, int coinType, uint256 lastBlockHash)
         {
             HdAccount hdAccount = null;
             List<HdAccount> accounts = new List<HdAccount>();
             var selectAccountsCmd = connection.CreateCommand();
-            selectAccountsCmd.Transaction = dbTransaction;
             selectAccountsCmd.CommandText = "SELECT id, HdIndex, Name, HdPath, ExtendedPubKey, CreationTime " +
                 " FROM Account WHERE WalletId = $WalletId order by HdIndex asc";
             selectAccountsCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
@@ -223,7 +228,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             var selectAddressesCmd = connection.CreateCommand();
-            selectAddressesCmd.Transaction = dbTransaction;
             selectAddressesCmd.CommandText = "SELECT id, WalletId, HdIndex, ScriptPubKey, Pubkey, Address, HdPath " +
                 " FROM Address WHERE WalletId = $WalletId order by HdIndex asc";
             selectAddressesCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
@@ -236,8 +240,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         Id = reader.GetInt32(0),
                         WalletId = reader.GetInt32(1),
                         Index = reader.GetInt32(2),
-                        ScriptPubKey = EvalScript(reader.GetString(3)),
-                        Pubkey = EvalScript(reader.GetString(4)),
+                        ScriptPubKey = ExtractScriptFromDb(reader.GetString(3)),
+                        Pubkey = ExtractScriptFromDb(reader.GetString(4)),
                         Address = reader.GetString(5),
                         HdPath = reader.GetString(6)
                     };
@@ -265,10 +269,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
             }
 
+            ReadTransactions(wallet);
+
             List<uint256> locator = new List<uint256>();
 
             var selectWalletCmd = connection.CreateCommand();
-            selectWalletCmd.Transaction = dbTransaction;
             selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator WHERE WalletId = $WalletId";
             selectWalletCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
             using (var reader = selectWalletCmd.ExecuteReader())
@@ -281,7 +286,173 @@ namespace BRhodium.Bitcoin.Features.Wallet
             wallet.BlockLocator = locator;
         }
 
-        private Script EvalScript(string value)
+        private void ReadTransactions(Wallet wallet)
+        {
+
+            Dictionary<uint256, List<PaymentDetails>> paymentDetails = GetPaymentDetailsForThisWallet(wallet);
+            Dictionary<uint256, SpendingDetails> spendingDetails = GetSpendingDetailsForThisWallet(wallet, paymentDetails);
+
+            long last_AddressId = 0;
+            HdAddress last_hdAddress = null;
+            var selectTrnCommand = connection.CreateCommand();
+            selectTrnCommand.CommandText = "SELECT Id, TxIndex, Hash, Amount, BlockHeight, BlockHash, CreationTime, MerkleProof, ScriptPubKey, Hex, IsPropagated,  AddressId, IsFinal " +
+                " FROM [Transaction] WHERE WalletId = $WalletId order by AddressId asc";
+            selectTrnCommand.Parameters.AddWithValue("$WalletId", wallet.Id);
+            using (var reader = selectTrnCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var merkle = new PartialMerkleTree();
+                    string merkleString = ExtractStringFromNullableDbField(reader, 7);
+                    if (!String.IsNullOrEmpty(merkleString))
+                    {
+                        merkle.FromBytes(merkleString.ToByteArrayFromHex());
+                    }
+
+                    var transaction = new TransactionData()
+                    {
+                        DbId = reader.GetInt64(0),
+                        Index = reader.GetInt32(1),
+                        Id = ExtractUint256FromNullableDbField(reader, 2),
+                        Amount = new Money(reader.GetInt64(3)),
+                        BlockHeight = ExtractNullableInt(reader, 4),
+                        BlockHash = ExtractUint256FromNullableDbField(reader, 5),
+                        CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(6)),
+                        MerkleProof = merkle,
+                        ScriptPubKey = ExtractScriptFromDb(reader.GetString(8)),
+                        Hex = ExtractStringFromNullableDbField(reader, 9),
+                        IsPropagated = (reader.GetInt32(10) == 1),
+                        AddressId = reader.GetInt64(11),
+                        IsFinal = (reader.GetInt32(12) == 1)
+                    };
+                    if (spendingDetails.ContainsKey(transaction.Id))
+                    {
+                        transaction.SpendingDetails = spendingDetails[transaction.Id];
+                    }
+
+                    if (reader.GetInt64(11) != last_AddressId)
+                    {
+                        last_hdAddress = AddTransactionToAddressInWallet(wallet, transaction);
+                        last_AddressId = reader.GetInt64(11);
+                    }
+                    else
+                    {
+                        if (last_hdAddress != null)
+                        {
+                            last_hdAddress.Transactions.Add(transaction);
+                        }
+                    }
+                }
+            }
+        }
+
+        private Dictionary<uint256, List<PaymentDetails>> GetPaymentDetailsForThisWallet(Wallet wallet)
+        {
+            Dictionary<uint256, List<PaymentDetails>> paymentDetailsList = new Dictionary<uint256, List<PaymentDetails>>();
+            var selectSpendTrnCmd = connection.CreateCommand();
+            selectSpendTrnCmd.CommandText = "SELECT pd.Id, pd.AddressId, pd.TransactionId, pd.SpendingTransactionId, pd.Amount, " +
+                "pd.DestinationAddress, pd.DestinationScriptPubKey , sd.TransactionHash FROM PaymentDetails pd " +
+                "INNER JOIN SpendingDetails sd ON sd.Id = pd.SpendingTransactionId WHERE pd.WalletId = $WalletId";
+            selectSpendTrnCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
+
+            using (var reader = selectSpendTrnCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    uint256 trnId = ExtractUint256FromNullableDbField(reader, 7);
+                    if (!paymentDetailsList.ContainsKey(trnId))
+                    {
+                        paymentDetailsList.Add(trnId,new List<PaymentDetails>());
+                    }
+
+                    var paymentDetail = new PaymentDetails()
+                    {
+                        DbId = reader.GetInt64(0),
+                        DbAddressId = reader.GetInt64(1),
+                        DbTransactionId = reader.GetInt64(2),
+                        DbSpendingTransactionId = reader.GetInt64(3),
+                        Amount = Money.Satoshis(reader.GetInt64(4)),
+                        DestinationAddress = reader.GetString(5),
+                        DestinationScriptPubKey = ExtractScriptFromDb(reader.GetString(6)),
+                        TransactionId = trnId
+                    };
+
+                    var list = paymentDetailsList[trnId];
+                    list.Add(paymentDetail);
+                    paymentDetailsList.AddOrReplace(trnId, list);
+                }
+            }
+            return paymentDetailsList;
+        }
+
+        private Dictionary<uint256, SpendingDetails> GetSpendingDetailsForThisWallet(Wallet wallet, Dictionary<uint256, List<PaymentDetails>> paymentDetails)
+        {
+            Dictionary<uint256, SpendingDetails> spendingDetailsList = new Dictionary<uint256, SpendingDetails>();
+            var selectSpendTrnCmd = connection.CreateCommand();
+            selectSpendTrnCmd.CommandText = "SELECT sp.Id, sp.TransactionHash, sp.BlockHeight, sp.CreationTime, sp.Hex, tr.Hash as ParentTranscationHash, sp.IsFinal FROM SpendingDetails sp " +
+                " INNER JOIN [Transaction] tr ON tr.Id = sp.TransactionId  WHERE sp.WalletId = $WalletId";
+            selectSpendTrnCmd.Parameters.AddWithValue("$WalletId", wallet.Id);
+
+            using (var reader = selectSpendTrnCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    uint256 TransactionId = ExtractUint256FromNullableDbField(reader, 1);
+                    uint256 parentTrnHash = ExtractUint256FromNullableDbField(reader, 5);
+                    var spendingDetails = new SpendingDetails()
+                    {
+                        DbId = reader.GetInt64(0),
+                        TransactionId = TransactionId,
+                        BlockHeight = ExtractNullableInt(reader, 2),
+                        CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(3)),
+                        Hex = ExtractStringFromNullableDbField(reader, 4),
+                        ParentTransactionHash = parentTrnHash,
+                        IsFinal = reader.GetInt32(6) ==1
+
+                    };
+                    if (paymentDetails.ContainsKey(TransactionId))
+                    {
+                        var payment = paymentDetails[TransactionId];
+                        spendingDetails.Payments = payment;
+                    }                    
+                    spendingDetailsList.AddOrReplace(parentTrnHash, spendingDetails);
+                }
+            }
+
+            return spendingDetailsList;
+        }
+
+        private HdAddress AddTransactionToAddressInWallet(Wallet wallet, TransactionData transaction)
+        {
+            if (wallet != null && transaction != null)
+            {
+                var accounts = wallet.AccountsRoot.FirstOrDefault().Accounts;
+
+                List<HdAddress> allAddresses = new List<HdAddress>();
+                foreach (HdAccount account in accounts)
+                {
+                    foreach (var address in account.ExternalAddresses)
+                    {
+                        if (address.Id == transaction.AddressId)
+                        {
+                            address.Transactions.Add(transaction);
+                            return address;
+                        }
+                    }
+                    foreach (var address in account.InternalAddresses)
+                    {
+                        if (address.Id == transaction.AddressId)
+                        {
+                            address.Transactions.Add(transaction);
+                            return address;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private Script ExtractScriptFromDb(string value)
         {
             return Script.FromBytesUnsafe(Encoders.Hex.DecodeData(value));
         }
@@ -309,16 +480,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             Wallet wallet = null;
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
-                    "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE id = $id";
-                selectWalletCmd.Parameters.AddWithValue("$id", id);
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT id,Name,EncryptedSeed,ChainCode,Network,CreationTime," +
+                "LastBlockSyncedHash,LastBlockSyncedHeight, CoinType FROM Wallet WHERE id = $id";
+            selectWalletCmd.Parameters.AddWithValue("$id", id);
 
-                wallet = ReadWalletFromDb(wallet, dbTransaction, selectWalletCmd);
-            }
+            wallet = ReadWalletFromDb(wallet, selectWalletCmd);
 
             if (wallet != null)
             {
@@ -337,7 +504,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (var dbTransaction = this.connection.BeginTransaction())
             {
                 var retval = SaveAddress(walletId, dbTransaction, address);
-                //dbTransaction.Commit(); // looks like it's commiting automatically
+                dbTransaction.Commit(); // single batch transactions commiting automatically, attempt to commit thows exceptions
                 return retval;
             }
         }
@@ -379,7 +546,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             foreach (var chainTran in address.Transactions)
             {
-                chainTran.DbId = SaveTranscation(walletId, dbTransaction, address, chainTran);
+                if (!chainTran.IsFinal ||(chainTran.SpendingDetails!=null && !chainTran.SpendingDetails.IsFinal) )
+                {
+                    chainTran.DbId = SaveTranscation(walletId, dbTransaction, address, chainTran);
+                }                
             }
             address.WalletId = walletId;
             return address.Id;
@@ -420,19 +590,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private long SaveTranscation(long walletId, SQLiteTransaction dbTransaction, HdAddress address, TransactionData trx)
         {
+            //one transaction can be saved in multiple addresses. 
             if (trx == null)
             {
                 return 0;
             }
+            if (trx.IsFinal)
+            {
+                return trx.DbId;
+            }
+            trx.DbId = GetTransactionDbId(walletId, dbTransaction, trx, address.Id);
+            bool IsTrxFinal = (trx.BlockHeight > 0);
 
-            trx.DbId = GetTransactionDbId(walletId, dbTransaction, trx);
-
-            if (trx.DbId < 1)
+            if (trx.DbId < 1 )
             {
                 var insertCommand = this.connection.CreateCommand();
                 insertCommand.Transaction = dbTransaction;
-                insertCommand.CommandText = "INSERT INTO [Transaction]  (WalletId, AddressId, TxIndex, Hash, Amount, BlockHeight, BlockHash, CreationTime, MerkleProof, ScriptPubKey , Hex, IsPropagated, IsSpent) " +
-                " VALUES ( $WalletId, $AddressId, $TxIndex, $Hash, $Amount, $BlockHeight, $BlockHash, $CreationTime, $MerkleProof, $ScriptPubKey , $Hex, $IsPropagated, $IsSpent )";
+                insertCommand.CommandText = "INSERT INTO [Transaction]  (WalletId, AddressId, TxIndex, Hash, Amount, BlockHeight, BlockHash, CreationTime, MerkleProof, ScriptPubKey , Hex, IsPropagated, IsSpent, IsFinal) " +
+                " VALUES ( $WalletId, $AddressId, $TxIndex, $Hash, $Amount, $BlockHeight, $BlockHash, $CreationTime, $MerkleProof, $ScriptPubKey , $Hex, $IsPropagated, $IsSpent, $IsFinal )";
                 insertCommand.Parameters.AddWithValue("$WalletId", walletId);
                 insertCommand.Parameters.AddWithValue("$AddressId", address.Id);
                 insertCommand.Parameters.AddWithValue("$TxIndex", trx.Index);
@@ -440,56 +615,61 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 insertCommand.Parameters.AddWithValue("$Amount", trx.Amount.Satoshi);
                 insertCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                 insertCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
-                insertCommand.Parameters.AddWithValue("$CreationTime", trx.CreationTime);
-                insertCommand.Parameters.AddWithValue("$MerkleProof", trx.MerkleProof);
+                insertCommand.Parameters.AddWithValue("$CreationTime", trx.CreationTime.ToUnixTimeSeconds());
+                insertCommand.Parameters.AddWithValue("$MerkleProof", PackPartialMerkleTree(trx.MerkleProof));
                 insertCommand.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(trx.ScriptPubKey));
                 insertCommand.Parameters.AddWithValue("$Hex", trx.Hex);
                 insertCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
                 insertCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
+                insertCommand.Parameters.AddWithValue("$IsFinal", IsTrxFinal);
 
                 insertCommand.ExecuteNonQuery();
 
-                trx.DbId = GetTransactionDbId(walletId, dbTransaction, trx);
+                trx.DbId = GetTransactionDbId(walletId, dbTransaction, trx, address.Id);
 
             }
             else
             {
                 var updateTrxCommand = this.connection.CreateCommand();
                 updateTrxCommand.Transaction = dbTransaction;
-                updateTrxCommand.CommandText = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent WHERE WalletId = $WalletId AND Hash = $Hash ";
+                updateTrxCommand.CommandText = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent, IsFinal = $IsFinal WHERE WalletId = $WalletId AND Hash = $Hash ";
                 updateTrxCommand.Parameters.AddWithValue("$WalletId", walletId);
-                updateTrxCommand.Parameters.AddWithValue("$Hash", trx.Id);                
+                updateTrxCommand.Parameters.AddWithValue("$Hash", trx.Id);
                 updateTrxCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                 updateTrxCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
                 updateTrxCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
                 updateTrxCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
+                updateTrxCommand.Parameters.AddWithValue("$IsFinal", IsTrxFinal);
                 updateTrxCommand.ExecuteNonQuery();
             }
 
-            
 
-            if (trx.SpendingDetails != null)
+
+            if (trx.SpendingDetails != null && !trx.SpendingDetails.IsFinal)
             {
-                trx.SpendingDetails.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails);
+                bool IsSpendTrxFinal = (trx.SpendingDetails.BlockHeight > 0);
+
+                trx.SpendingDetails.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails, address.Id);
                 var spendTrx = trx.SpendingDetails;
                 if (spendTrx.DbId < 1)
                 {
-                    
+                   
                     var insertSpendCommand = this.connection.CreateCommand();
                     insertSpendCommand.Transaction = dbTransaction;
-                    insertSpendCommand.CommandText = "INSERT INTO SpendingDetails  (WalletId, AddressId, TransactionId, TransactionHash, BlockHeight, CreationTime, Hex) " +
-                    " VALUES ( $WalletId, $AddressId, $TransactionId, $TransactionHash, $BlockHeight, $CreationTime, $Hex ) ";
+                    insertSpendCommand.CommandText = "INSERT INTO SpendingDetails  (WalletId, AddressId, TransactionId, TransactionHash, BlockHeight, CreationTime, Hex, IsFinal) " +
+                    " VALUES ( $WalletId, $AddressId, $TransactionId, $TransactionHash, $BlockHeight, $CreationTime, $Hex , $IsFinal) ";
                     insertSpendCommand.Parameters.AddWithValue("$WalletId", walletId);
                     insertSpendCommand.Parameters.AddWithValue("$AddressId", address.Id);
                     insertSpendCommand.Parameters.AddWithValue("$TransactionId", trx.DbId);
                     insertSpendCommand.Parameters.AddWithValue("$TransactionHash", spendTrx.TransactionId);
                     insertSpendCommand.Parameters.AddWithValue("$BlockHeight", spendTrx.BlockHeight);
-                    insertSpendCommand.Parameters.AddWithValue("$CreationTime", spendTrx.CreationTime);
+                    insertSpendCommand.Parameters.AddWithValue("$CreationTime", spendTrx.CreationTime.ToUnixTimeSeconds());
                     insertSpendCommand.Parameters.AddWithValue("$Hex", spendTrx.Hex);
+                    insertSpendCommand.Parameters.AddWithValue("$IsFinal", IsSpendTrxFinal);
 
                     insertSpendCommand.ExecuteNonQuery();
 
-                    spendTrx.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails);
+                    spendTrx.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails, address.Id);
 
                     foreach (var item in trx.SpendingDetails.Payments)
                     {
@@ -512,10 +692,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     var updateTrxCommand = this.connection.CreateCommand();
                     updateTrxCommand.Transaction = dbTransaction;
-                    updateTrxCommand.CommandText = "UPDATE SpendingDetails  set BlockHeight = $BlockHeight  WHERE WalletId = $WalletId AND TransactionHash = $TransactionHash ";
+                    updateTrxCommand.CommandText = "UPDATE SpendingDetails  set BlockHeight = $BlockHeight , IsFinal= $IsFinal WHERE WalletId = $WalletId AND TransactionHash = $TransactionHash ";
                     updateTrxCommand.Parameters.AddWithValue("$WalletId", walletId);
                     updateTrxCommand.Parameters.AddWithValue("$TransactionHash", spendTrx.TransactionId);
-                    updateTrxCommand.Parameters.AddWithValue("$BlockHeight", spendTrx.BlockHeight);                   
+                    updateTrxCommand.Parameters.AddWithValue("$BlockHeight", spendTrx.BlockHeight);
+                    updateTrxCommand.Parameters.AddWithValue("$IsFinal", IsSpendTrxFinal);
                     updateTrxCommand.ExecuteNonQuery();
                 }
             }
@@ -523,14 +704,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return trx.DbId;
         }
 
-        private long GetTransactionSpendingDbId(long walletId, SQLiteTransaction dbTransaction, SpendingDetails spendingDetails)
+        private string PackPartialMerkleTree(PartialMerkleTree value)
         {
-            var selectAccountsCmd = this.connection.CreateCommand();
-            selectAccountsCmd.Transaction = dbTransaction;
-            selectAccountsCmd.CommandText = "SELECT Id FROM SpendingDetails WHERE TransactionHash = $TransactionHash AND WalletId = $WalletId";
-            selectAccountsCmd.Parameters.AddWithValue("$TransactionHash", spendingDetails.TransactionId);
-            selectAccountsCmd.Parameters.AddWithValue("$WalletId", walletId);
-            using (var reader = selectAccountsCmd.ExecuteReader())
+            if (value == null)
+            {
+                return null;
+            }
+            return Encoders.Hex.EncodeData(value.ToBytes());
+        }
+
+        private long GetTransactionSpendingDbId(long walletId, SQLiteTransaction dbTransaction, SpendingDetails spendingDetails, long AddressId)
+        {
+            var selectCmd = this.connection.CreateCommand();
+            selectCmd.Transaction = dbTransaction;
+            selectCmd.CommandText = "SELECT Id FROM SpendingDetails WHERE TransactionHash = $TransactionHash AND WalletId = $WalletId AND AddressId = $AddressId";
+            selectCmd.Parameters.AddWithValue("$TransactionHash", spendingDetails.TransactionId);
+            selectCmd.Parameters.AddWithValue("$WalletId", walletId);
+            selectCmd.Parameters.AddWithValue("$AddressId", AddressId);
+            using (var reader = selectCmd.ExecuteReader())
             {
                 while (reader.Read())
                 {
@@ -540,14 +731,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return spendingDetails.DbId;
         }
 
-        private long GetTransactionDbId(long walletId, SQLiteTransaction dbTransaction, TransactionData trx)
+        private long GetTransactionDbId(long walletId, SQLiteTransaction dbTransaction, TransactionData trx, long AddressId)
         {
-            var selectAccountsCmd = this.connection.CreateCommand();
-            selectAccountsCmd.Transaction = dbTransaction;
-            selectAccountsCmd.CommandText = "SELECT id  FROM [Transaction] WHERE Hash = $Hash AND WalletId = $WalletId";
-            selectAccountsCmd.Parameters.AddWithValue("$Hash", trx.Id);
-            selectAccountsCmd.Parameters.AddWithValue("$WalletId", walletId);
-            using (var reader = selectAccountsCmd.ExecuteReader())
+            var selectCmd = this.connection.CreateCommand();
+            selectCmd.Transaction = dbTransaction;
+            selectCmd.CommandText = "SELECT id  FROM [Transaction] WHERE Hash = $Hash AND WalletId = $WalletId AND AddressId = $AddressId";
+            selectCmd.Parameters.AddWithValue("$Hash", trx.Id);
+            selectCmd.Parameters.AddWithValue("$WalletId", walletId);
+            selectCmd.Parameters.AddWithValue("$AddressId", AddressId);
+            using (var reader = selectCmd.ExecuteReader())
             {
                 while (reader.Read())
                 {
@@ -565,7 +757,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public void SaveLastSyncedBlock(string walletName, ChainedHeader chainedHeader)
         {
             Guard.NotNull(walletName, nameof(walletName));
-       
+
             var insertCommand = connection.CreateCommand();
             insertCommand.CommandText = "UPDATE Wallet set LastBlockSyncedHash = $LastBlockSyncedHash, LastBlockSyncedHeight = $LastBlockSyncedHeight,  LastUpdated = $LastUpdated WHERE Name = $Name";
 
@@ -581,32 +773,28 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public WalletSyncPosition GetLastSyncedBlock()
         {
             WalletSyncPosition syncPosition = null;
-            using (var dbTransaction = this.connection.BeginTransaction())
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet ORDER BY LastUpdated desc LIMIT 1";
+
+            using (var reader = selectWalletCmd.ExecuteReader())
             {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet ORDER BY LastUpdated desc LIMIT 1";
-
-                using (var reader = selectWalletCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
+                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
 
-                        uint256 BlockHashLocal = ExtractNullableLastBlockHash(reader, 1);
-                        syncPosition = new WalletSyncPosition()
-                        {
-                            Height = LastBlockSyncedHeight,
-                            BlockHash = BlockHashLocal
-                        };
-                    }
+                    uint256 BlockHashLocal = ExtractUint256FromNullableDbField(reader, 1);
+                    syncPosition = new WalletSyncPosition()
+                    {
+                        Height = LastBlockSyncedHeight,
+                        BlockHash = BlockHashLocal
+                    };
                 }
             }
 
             return syncPosition;
         }
 
-        private uint256 ExtractNullableLastBlockHash(SQLiteDataReader reader, int index)
+        private uint256 ExtractUint256FromNullableDbField(SQLiteDataReader reader, int index)
         {
             uint256 BlockHashLocal = null;
             string LastBlockSyncedHash = reader[index] as string;
@@ -617,29 +805,31 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return BlockHashLocal;
         }
 
+
+        private string ExtractStringFromNullableDbField(SQLiteDataReader reader, int index)
+        {
+            return reader[index] as string;
+        }
+
         private WalletSyncPosition GetLastSyncedBlock(string walletName)
         {
             WalletSyncPosition syncPosition = null;
-            using (var dbTransaction = this.connection.BeginTransaction())
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet WHERE walletName = $Name ";
+            selectWalletCmd.Parameters.AddWithValue("$Name", walletName);
+
+            using (var reader = selectWalletCmd.ExecuteReader())
             {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight , LastBlockSyncedHash FROM Wallet WHERE walletName = $Name ";
-                selectWalletCmd.Parameters.AddWithValue("$Name", walletName);
-
-                using (var reader = selectWalletCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
+                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
 
-                        uint256 BlockHashLocal = ExtractNullableLastBlockHash(reader, 1);
-                        syncPosition = new WalletSyncPosition()
-                        {
-                            Height = LastBlockSyncedHeight,
-                            BlockHash = BlockHashLocal
-                        };
-                    }
+                    uint256 BlockHashLocal = ExtractUint256FromNullableDbField(reader, 1);
+                    syncPosition = new WalletSyncPosition()
+                    {
+                        Height = LastBlockSyncedHeight,
+                        BlockHash = BlockHashLocal
+                    };
                 }
             }
 
@@ -656,19 +846,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             List<string> result = new List<string>();
 
-            using (var dbTransaction = this.connection.BeginTransaction())
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT Name FROM Wallet";
+            using (var reader = selectWalletCmd.ExecuteReader())
             {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT Name FROM Wallet";
-                using (var reader = selectWalletCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result.Add(reader.GetString(0));
-                    }
+                    result.Add(reader.GetString(0));
                 }
             }
+
             return result;
         }
 
@@ -676,18 +863,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             List<WalletPointer> result = new List<WalletPointer>();
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT id,Name FROM Wallet";
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT id,Name FROM Wallet";
 
-                using (var reader = selectWalletCmd.ExecuteReader())
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result.Add(new WalletPointer(reader.GetInt32(0), reader.GetString(1)));
-                    }
+                    result.Add(new WalletPointer(reader.GetInt32(0), reader.GetString(1)));
                 }
             }
             return result;
@@ -697,7 +880,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (var dbTransaction = this.connection.BeginTransaction())
             {
                 SaveBlockLocator(walletName, dbTransaction, blocks);
-                dbTransaction.Commit();
+                //dbTransaction.Commit();//looks like auto commit is doing a job..  passing the tranaction object only because interface
             }
         }
         /// <summary>
@@ -710,7 +893,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(walletName, nameof(walletName));
             HashSet<uint256> blocksFromDb = new HashSet<uint256>();
             long walletId = 0;
-           
+
             var selectWalletCmd = connection.CreateCommand();
             selectWalletCmd.Transaction = dbTransaction;
             selectWalletCmd.CommandText = "SELECT Wallet.id, Wallet.Name, BlockLocator.BlockHash  FROM Wallet " +
@@ -722,7 +905,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 while (reader.Read())
                 {
                     walletId = reader.GetInt32(0);
-                    blocksFromDb.Add(ExtractNullableLastBlockHash(reader, 2));
+                    blocksFromDb.Add(ExtractUint256FromNullableDbField(reader, 2));
                 }
             }
 
@@ -739,25 +922,21 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     insertCommand.ExecuteNonQuery();
                 }
-            }            
+            }
         }
 
         public ICollection<uint256> GetFirstWalletBlockLocator()
         {
             List<uint256> result = new List<uint256>();
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator INNER JOIN Wallet ON BlockLocator.WalletId = Wallet.Id order by CreationTime asc";
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator INNER JOIN Wallet ON BlockLocator.WalletId = Wallet.Id order by CreationTime asc";
 
-                using (var reader = selectWalletCmd.ExecuteReader())
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result.Add(new uint256(reader.GetString(0)));
-                    }
+                    result.Add(new uint256(reader.GetString(0)));
                 }
             }
 
@@ -768,18 +947,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             int? result = null;
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight FROM Wallet order by CreationTime asc LIMIT 1";
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHeight FROM Wallet order by CreationTime asc LIMIT 1";
 
-                using (var reader = selectWalletCmd.ExecuteReader())
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result = ExtractNullableInt(reader, 0); 
-                    }
+                    result = ExtractNullableInt(reader, 0);
                 }
             }
             return result;
@@ -788,18 +963,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             DateTimeOffset result = DateTimeOffset.MinValue;
 
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT CreationTime FROM Wallet order by CreationTime asc LIMIT 1";
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT CreationTime FROM Wallet order by CreationTime asc LIMIT 1";
 
-                using (var reader = selectWalletCmd.ExecuteReader())
+            using (var reader = selectWalletCmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0));
-                    }
+                    result = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0));
                 }
             }
             return result;
@@ -813,18 +984,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             Wallet wallet = null;
             long walletId = 0;
-            using (var dbTransaction = this.connection.BeginTransaction())
+            var selectAccountsCmd = connection.CreateCommand();
+            selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE Address = $Address";
+            selectAccountsCmd.Parameters.AddWithValue("$Address", address);
+            using (var reader = selectAccountsCmd.ExecuteReader())
             {
-                var selectAccountsCmd = connection.CreateCommand();
-                selectAccountsCmd.Transaction = dbTransaction;
-                selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE Address = $Address";
-                selectAccountsCmd.Parameters.AddWithValue("$Address", address);
-                using (var reader = selectAccountsCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        walletId = reader.GetInt64(1);
-                    }
+                    walletId = reader.GetInt64(1);
                 }
             }
 
@@ -837,22 +1004,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             Wallet wallet = null;
             long walletId = 0;
-            using (var dbTransaction = this.connection.BeginTransaction())
-            {
-                var selectAccountsCmd = connection.CreateCommand();
-                selectAccountsCmd.Transaction = dbTransaction;
-                selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE ScriptPubKey = $ScriptPubKey";
-                selectAccountsCmd.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(hash.ScriptPubKey));
+            var selectAccountsCmd = connection.CreateCommand();
+            selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE ScriptPubKey = $ScriptPubKey";
+            selectAccountsCmd.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(hash.ScriptPubKey));
 
-                using (var reader = selectAccountsCmd.ExecuteReader())
+            using (var reader = selectAccountsCmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        walletId = reader.GetInt64(1);
-                    }
+                    walletId = reader.GetInt64(1);
                 }
             }
-
             wallet = GetWalletById(walletId);
 
             return wallet;
@@ -875,20 +1037,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             uint256 result = null;
 
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHash FROM Wallet order by LastUpdated asc LIMIT 1";
 
-            using (var dbTransaction = this.connection.BeginTransaction())
+            using (var reader = selectWalletCmd.ExecuteReader())
             {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT LastBlockSyncedHash FROM Wallet order by LastUpdated asc LIMIT 1";
-
-                using (var reader = selectWalletCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        uint256 BlockHashLocal = ExtractNullableLastBlockHash(reader, 0);
-                        result = BlockHashLocal;
-                    }
+                    uint256 BlockHashLocal = ExtractUint256FromNullableDbField(reader, 0);
+                    result = BlockHashLocal;
                 }
             }
             return result;
@@ -898,19 +1055,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             string result = null;
 
+            var selectWalletCmd = connection.CreateCommand();
+            selectWalletCmd.CommandText = "SELECT Name FROM Wallet order by LastUpdated asc LIMIT 1";
 
-            using (var dbTransaction = this.connection.BeginTransaction())
+            using (var reader = selectWalletCmd.ExecuteReader())
             {
-                var selectWalletCmd = connection.CreateCommand();
-                selectWalletCmd.Transaction = dbTransaction;
-                selectWalletCmd.CommandText = "SELECT Name FROM Wallet order by LastUpdated asc LIMIT 1";
-
-                using (var reader = selectWalletCmd.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        result = reader.GetString(0);
-                    }
+                    result = reader.GetString(0);
                 }
             }
             return result;

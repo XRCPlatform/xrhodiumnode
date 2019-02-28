@@ -805,15 +805,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             
             int res;
-            lock (this.lockObject)
-            {
+            //lock (this.lockObject)
+            //{
                 res = 0;
                 var rlast = this.repository.GetLastSyncedBlock();
                 if (rlast != null)
                 {
                     res = rlast.Height;
                 }
-            }
+           // }
             
             this.logger.LogTrace("(-):{0}", res);
             return res;
@@ -925,15 +925,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (TransactionData transactionData in makeUnspendable)
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
-                        throw new NotImplementedException();
-                        //this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
                     foreach (TransactionData transactionData in makeSpendable)
                     {
                         transactionData.SpendingDetails = null;
-                        //this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
                     }
                 }
 

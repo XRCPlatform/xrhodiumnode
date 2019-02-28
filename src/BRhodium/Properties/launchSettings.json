@@ -1,8 +1,7 @@
 {
   "profiles": {
     "BRhodium": {
-      "commandName": "Project",
-      "commandLineArgs": "-testnet"
+      "commandName": "Project"
     },
     "BRhodium Test": {
       "commandName": "Project",

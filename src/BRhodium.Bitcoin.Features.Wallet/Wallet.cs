@@ -998,6 +998,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         [JsonIgnore]
         public long DbId { get; set; }
+        [JsonIgnore]
+        public long AddressId { get; set; }
         /// <summary>
         /// Transaction id.
         /// </summary>
@@ -1093,6 +1095,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [ProtoMember(11)]
         [JsonProperty(PropertyName = "spendingDetails", NullValueHandling = NullValueHandling.Ignore)]
         public SpendingDetails SpendingDetails { get; set; }
+        [JsonIgnore]
+        public bool IsFinal { get; internal set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -1137,6 +1141,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         [JsonIgnore]
         public long DbId { get; set; }
+
+        [JsonIgnore]
+        public long DbSpendingTransactionId { get; set; }
+        [JsonIgnore]
+        public long DbTransactionId { get; set; }
+        [JsonIgnore]
+        public long DbAddressId { get; set; }
+        [JsonIgnore]
+        public uint256 TransactionId { get; set; }
         /// <summary>
         /// The script pub key of the destination address.
         /// </summary>
@@ -1166,6 +1179,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         [JsonIgnore]
         public long DbId { get; set; }
+        [JsonIgnore]
+        public uint256 ParentTransactionHash{ get; set; }
+
         private List<PaymentDetails> _payments;
 
         public SpendingDetails()
@@ -1224,6 +1240,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonIgnore]
         public Transaction Transaction => this.Hex == null ? null : Transaction.Parse(this.Hex);
+        [JsonIgnore]
+        public bool IsFinal { get; internal set; }
 
         /// <summary>
         /// Determines whether this transaction being spent is confirmed.
