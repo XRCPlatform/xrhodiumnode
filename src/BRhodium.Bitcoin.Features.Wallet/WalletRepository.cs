@@ -504,7 +504,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             using (var dbTransaction = this.connection.BeginTransaction())
             {
                 var retval = SaveAddress(walletId, dbTransaction, address);
-                dbTransaction.Commit(); // single batch transactions commiting automatically, attempt to commit thows exceptions
+                try
+                {
+                    dbTransaction.Commit();
+                }
+                catch 
+                {
+                    //swallow as transactions can only be commited if there was more than one batch ,  single batch gets commited automaticaly
+                }
+               
                 return retval;
             }
         }
@@ -544,13 +552,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                 }
             }
-            foreach (var chainTran in address.Transactions)
-            {
-                if (!chainTran.IsFinal ||(chainTran.SpendingDetails!=null && !chainTran.SpendingDetails.IsFinal) )
-                {
-                    chainTran.DbId = SaveTranscation(walletId, dbTransaction, address, chainTran);
-                }                
-            }
+            //foreach (var chainTran in address.Transactions)
+            //{
+            //    if (!chainTran.IsFinal ||(chainTran.SpendingDetails!=null && !chainTran.SpendingDetails.IsFinal) )
+            //    {
+            //        chainTran.DbId = SaveTransaction(walletId, dbTransaction, address, chainTran);
+            //    }                
+            //}
             address.WalletId = walletId;
             return address.Id;
         }
@@ -588,17 +596,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return account.Id;
         }
 
-        private long SaveTranscation(long walletId, SQLiteTransaction dbTransaction, HdAddress address, TransactionData trx)
+        public long SaveTransaction(long walletId, HdAddress address, TransactionData trx)
+        {
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                long retval = SaveTransaction(walletId, dbTransaction, address, trx);
+                dbTransaction.Commit();
+                return retval;
+            }
+        }
+
+        private long SaveTransaction(long walletId, SQLiteTransaction dbTransaction, HdAddress address, TransactionData trx)
         {
             //one transaction can be saved in multiple addresses. 
             if (trx == null)
             {
                 return 0;
             }
-            if (trx.IsFinal)
-            {
-                return trx.DbId;
-            }
+            //if (trx.IsFinal)
+            //{
+            //    return trx.DbId;
+            //}
             trx.DbId = GetTransactionDbId(walletId, dbTransaction, trx, address.Id);
             bool IsTrxFinal = (trx.BlockHeight > 0);
 
@@ -767,8 +785,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
 
             insertCommand.ExecuteNonQuery();
+            UpdateLastSychedInMemory(walletName, chainedHeader);
         }
 
+        private void UpdateLastSychedInMemory(string walletName, ChainedHeader chainedHeader)
+        {
+            var acct_cache = GetWalletByName(walletName)?.AccountsRoot?.FirstOrDefault();
+            acct_cache.LastBlockSyncedHash = chainedHeader.HashBlock;
+            acct_cache.LastBlockSyncedHeight = chainedHeader.Height;
+        }
 
         public WalletSyncPosition GetLastSyncedBlock()
         {

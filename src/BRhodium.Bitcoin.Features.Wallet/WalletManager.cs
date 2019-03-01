@@ -233,7 +233,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.logger.LogTrace("()");
 
-            //LoadWalletsFromFiles();
+            //if db has no wallet initialized, load migrate from files if they exist
+            if (this.GetEarliestWalletHeight() < 1)
+            {
+                LoadWalletsFromFiles();
+            }
 
             // Load data in memory for faster lookups.
             this.LoadKeysLookupLock();
@@ -1348,6 +1352,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
 
                 addressTransactions.Add(newTransaction);
+
+                this.repository.SaveTransaction(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress, newTransaction);
                 
                 this.AddInputKeysLookupLock(newTransaction);
             }
@@ -1382,7 +1388,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 
                 if (isPropagated)
+                {
                     foundTransaction.IsPropagated = true;
+                }                    
+
+                this.repository.SaveTransaction(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress, foundTransaction);
             }
             this.repository.SaveAddress(walletLinkedHdAddress.WalletId, walletLinkedHdAddress.HdAddress);
             this.TransactionFoundInternal_New(utxo.ScriptPubKey);
@@ -1497,6 +1507,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 
             }
+            this.repository.SaveTransaction(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress, spentTransaction);
             this.repository.SaveAddress(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress);
             
             this.logger.LogTrace("(-)");
@@ -1612,6 +1623,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (var address in newAddresses)
                     {
                         walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                        this.repository.SaveAddress(wallet.Id, address);
                     }
                     this.UpdateKeysLookupLock(walletLinkerList);
                 }
