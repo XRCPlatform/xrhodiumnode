@@ -663,11 +663,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
 
 
-            if (trx.SpendingDetails != null && !trx.SpendingDetails.IsFinal)
+            if (trx.SpendingDetails != null)//&& !trx.SpendingDetails.IsFinal
             {
                 bool IsSpendTrxFinal = (trx.SpendingDetails.BlockHeight > 0);
 
-                trx.SpendingDetails.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails, address.Id);
+                trx.SpendingDetails.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx, address.Id);
                 var spendTrx = trx.SpendingDetails;
                 if (spendTrx.DbId < 1)
                 {
@@ -687,7 +687,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     insertSpendCommand.ExecuteNonQuery();
 
-                    spendTrx.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx.SpendingDetails, address.Id);
+                    spendTrx.DbId = GetTransactionSpendingDbId(walletId, dbTransaction, trx, address.Id);
+
+                    var deletPaymentDetailCmd = this.connection.CreateCommand();
+                    deletPaymentDetailCmd.Transaction = dbTransaction;
+                    deletPaymentDetailCmd.CommandText = "DELETE FROM PaymentDetails  WHERE SpendingTransactionId = $SpendingTransactionId AND WalletId = $WalletId";
+                    deletPaymentDetailCmd.Parameters.AddWithValue("$WalletId", walletId);
+                    deletPaymentDetailCmd.Parameters.AddWithValue("$SpendingTransactionId", spendTrx.DbId);
+                    deletPaymentDetailCmd.ExecuteNonQuery();
 
                     foreach (var item in trx.SpendingDetails.Payments)
                     {
@@ -731,22 +738,23 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return Encoders.Hex.EncodeData(value.ToBytes());
         }
 
-        private long GetTransactionSpendingDbId(long walletId, SQLiteTransaction dbTransaction, SpendingDetails spendingDetails, long AddressId)
+        private long GetTransactionSpendingDbId(long walletId, SQLiteTransaction dbTransaction, TransactionData trx, long AddressId)
         {
             var selectCmd = this.connection.CreateCommand();
             selectCmd.Transaction = dbTransaction;
-            selectCmd.CommandText = "SELECT Id FROM SpendingDetails WHERE TransactionHash = $TransactionHash AND WalletId = $WalletId AND AddressId = $AddressId";
-            selectCmd.Parameters.AddWithValue("$TransactionHash", spendingDetails.TransactionId);
+            selectCmd.CommandText = "SELECT Id FROM SpendingDetails WHERE TransactionId = $TransactionId AND WalletId = $WalletId AND AddressId = $AddressId AND TransactionHash = $TransactionHash";
+            selectCmd.Parameters.AddWithValue("$TransactionId", trx.DbId);
+            selectCmd.Parameters.AddWithValue("$TransactionHash", trx.SpendingDetails.TransactionId);
             selectCmd.Parameters.AddWithValue("$WalletId", walletId);
             selectCmd.Parameters.AddWithValue("$AddressId", AddressId);
             using (var reader = selectCmd.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    spendingDetails.DbId = reader.GetInt64(0);
+                    trx.SpendingDetails.DbId = reader.GetInt64(0);
                 }
             }
-            return spendingDetails.DbId;
+            return trx.SpendingDetails.DbId;
         }
 
         private long GetTransactionDbId(long walletId, SQLiteTransaction dbTransaction, TransactionData trx, long AddressId)
@@ -955,7 +963,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             List<uint256> result = new List<uint256>();
 
             var selectWalletCmd = connection.CreateCommand();
-            selectWalletCmd.CommandText = "SELECT  BlockHash FROM BlockLocator INNER JOIN Wallet ON BlockLocator.WalletId = Wallet.Id order by CreationTime asc";
+            selectWalletCmd.CommandText = "SELECT  BlockHash  FROM BlockLocator WHERE WalletId in (SELECT id FROM Wallet ORDER BY CreationTime ASC LIMIT 1)";
 
             using (var reader = selectWalletCmd.ExecuteReader())
             {

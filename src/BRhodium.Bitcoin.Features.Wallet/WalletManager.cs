@@ -234,7 +234,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("()");
 
             //if db has no wallet initialized, load migrate from files if they exist
-            if (this.GetEarliestWalletHeight() < 1)
+            if (!this.repository.HasWallets())
             {
                 LoadWalletsFromFiles();
             }
