@@ -1,0 +1,109 @@
+PRAGMA auto_vacuum = 2;
+
+--DROP TABLE "Wallet" ;
+CREATE TABLE "Wallet" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"Name"	TEXT NOT NULL UNIQUE,
+	"EncryptedSeed"	TEXT NOT NULL,
+	"ChainCode"	TEXT NOT NULL,
+	"Network"	TEXT NOT NULL,
+	"CreationTime"	INTEGER NOT NULL,
+	"LastBlockSyncedHash" TEXT NULL,
+	"LastBlockSyncedHeight" INTEGER NULL,
+	"CoinType" INTEGER NOT NULL,
+	"LastUpdated" INTEGER NOT NULL
+);
+--DROP TABLE "BlockLocator" ;
+CREATE TABLE "BlockLocator" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"BlockHash"	TEXT NOT NULL
+);
+--DROP TABLE "Account" ;
+CREATE TABLE "Account" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"HdIndex"	INTEGER  NOT NULL,
+	"Name"	TEXT NOT NULL,
+	"HdPath"	TEXT NOT NULL,
+	"ExtendedPubKey"	TEXT NOT NULL,
+	"CreationTime"	INTEGER  NOT NULL
+);
+
+--DROP TABLE "Address" ;
+CREATE TABLE "Address" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"HdIndex"	INTEGER  NOT NULL,
+	"ScriptPubKey"	TEXT NOT NULL UNIQUE,
+	"Pubkey"	TEXT NOT NULL UNIQUE,
+	"Address"	TEXT NOT NULL UNIQUE,
+	"HdPath"	TEXT NOT NULL	
+);
+
+--DROP TABLE "Transaction";
+CREATE TABLE "Transaction" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"AddressId"	INTEGER  NOT NULL,
+	"TxIndex"	INTEGER  NOT NULL,
+	"Hash"	TEXT NOT NULL ,
+	"Amount"	INTEGER  NOT NULL,
+	"BlockHeight"	INTEGER  NULL,
+	"BlockHash"	TEXT NULL,
+	"CreationTime"	INTEGER  NOT NULL,
+	"MerkleProof"	TEXT NULL,
+	"ScriptPubKey"	TEXT NOT NULL,
+	"Hex"	TEXT NULL,
+	"IsPropagated"	NUMERIC NOT NULL,
+	"IsSpent"	NUMERIC NOT NULL,
+	"IsFinal"	NUMERIC NOT NULL
+);
+
+--DROP TABLE "SpendingDetails" ;
+CREATE TABLE "SpendingDetails" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"AddressId"	INTEGER  NOT NULL,
+	"TransactionId"	INTEGER  NOT NULL,
+	"TransactionHash"	TEXT NOT NULL,
+	"BlockHeight"	INTEGER  NULL,
+	"CreationTime"	INTEGER  NOT NULL,
+	"Hex"	TEXT NULL,
+	"IsFinal"	NUMERIC NOT NULL
+);
+
+--DROP TABLE "PaymentDetails" ;
+CREATE TABLE "PaymentDetails" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"WalletId"	INTEGER  NOT NULL,
+	"AddressId"	INTEGER  NOT NULL,
+	"TransactionId"	INTEGER  NOT NULL,
+	"SpendingTransactionId"	INTEGER  NOT NULL,
+	"Amount"	INTEGER  NOT NULL,
+	"DestinationAddress"	TEXT NOT NULL,
+	"DestinationScriptPubKey"	TEXT NOT NULL
+);
+
+
+CREATE UNIQUE INDEX "ix_Address" ON "Address" (
+	"Address"
+);
+
+CREATE UNIQUE INDEX "ix_Address_ScriptPubKey" ON "Address" (
+	"ScriptPubKey"
+);
+
+
+
+CREATE UNIQUE INDEX "ix_WalletName" ON "Wallet" (
+	"Name"
+);
+
+CREATE INDEX "ix_Transaction_WalletId" ON "Transaction" (
+	"WalletId"
+);
+
+CREATE INDEX "ix_SpendingDetails_WalletId" ON "SpendingDetails" (
+	"WalletId"
+);

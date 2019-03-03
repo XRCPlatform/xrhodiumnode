@@ -7,9 +7,10 @@ using DBreeze.Objects;
 using DBreeze.Utils;
 using NBitcoin;
 using System.Linq;
-//using DBreeze.Transactions;
 using System.Data.SQLite;
 using NBitcoin.DataEncoders;
+using System.Collections.Concurrent;
+using System.IO;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -17,10 +18,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         private readonly string walletPath;
         private readonly CoinType coinType;
-        /// <summary>Access to DBreeze database.</summary>
-        //protected readonly DBreezeEngine dBreeze;
+
         private readonly Network network;
-        private Dictionary<string, Wallet> walletCache = new Dictionary<string, Wallet>();
+        private ConcurrentDictionary<string, Wallet> walletCache = new ConcurrentDictionary<string, Wallet>();
         protected readonly SQLiteConnection connection;
 
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
@@ -28,7 +28,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
-            //this.dBreeze = new DBreezeEngine(walletPath);
+            EnsureSQLiteDbExists();
             this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
             {
                 DataSource = $"{walletPath}\\Wallet.db"
@@ -37,14 +37,26 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.connection.Open();
         }
 
-        public void SaveWallet(string walletName, Wallet wallet)
+        private void EnsureSQLiteDbExists()
+        {
+            string filePath = $"{walletPath}\\Wallet.db";
+            FileInfo fi = new FileInfo(filePath);
+            if (!fi.Exists)
+            {
+                var current = new DirectoryInfo(Environment.CurrentDirectory);
+                current.Parent.Parent.Parent.GetDirectories("Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(walletPath);
+            }
+        }
+
+        public void SaveWallet(string walletName, Wallet wallet, bool saveTransactionsHere = false)
         {
             Guard.NotNull(walletName, nameof(walletName));
             Guard.NotNull(wallet, nameof(wallet));
 
+            Wallet placeholder;
             //reset cache so that get all the references from db rebuilt
-            walletCache.Remove(wallet.Name);
-            walletCache.Remove("wallet_" + wallet.Id);
+            walletCache.TryRemove(wallet.Name,out placeholder);
+            walletCache.TryRemove("wallet_" + wallet.Id, out placeholder);
 
             //Task task = Task.Run(() =>
             // {
@@ -93,11 +105,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     foreach (var address in account.ExternalAddresses)
                     {
-                        SaveAddress(wallet.Id, dbTransaction, address);
+                        SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
                     }
                     foreach (var address in account.InternalAddresses)
                     {
-                        SaveAddress(wallet.Id, dbTransaction, address);
+                        SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
                     }
                 }
 
@@ -113,8 +125,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 if (wallet != null)
                 {
-                    walletCache[wallet.Name] = wallet;
-                    walletCache["wallet_" + wallet.Id] = wallet;
+                    walletCache.AddOrUpdate(wallet.Name,wallet,null);
+                    walletCache.AddOrUpdate("wallet_" + wallet.Id,wallet,null);
                 }
 
             }
@@ -141,8 +153,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             if (wallet != null)
             {
-                walletCache[name] = wallet;
-                walletCache["wallet_" + wallet.Id] = wallet;
+                walletCache.AddOrUpdate(wallet.Name, wallet, null);
+                walletCache.AddOrUpdate("wallet_" + wallet.Id, wallet, null);
             }
 
             return wallet;
@@ -499,11 +511,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
 
 
-        public long SaveAddress(long walletId, HdAddress address)
+        public long SaveAddress(long walletId, HdAddress address, bool saveTransactionsHere = false)
         {
             using (var dbTransaction = this.connection.BeginTransaction())
             {
-                var retval = SaveAddress(walletId, dbTransaction, address);
+                var retval = SaveAddress(walletId, dbTransaction, address, saveTransactionsHere);
                 try
                 {
                     dbTransaction.Commit();
@@ -523,7 +535,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="wallet"></param>
         /// <param name="dbTransaction"></param>
         /// <param name="address"></param>
-        private long SaveAddress(long walletId, SQLiteTransaction dbTransaction, HdAddress address)
+        private long SaveAddress(long walletId, SQLiteTransaction dbTransaction, HdAddress address, bool saveTransactionsHere = false)
         {
             if (address.Id < 1)
             {
@@ -552,13 +564,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                 }
             }
-            //foreach (var chainTran in address.Transactions)
-            //{
-            //    if (!chainTran.IsFinal ||(chainTran.SpendingDetails!=null && !chainTran.SpendingDetails.IsFinal) )
-            //    {
-            //        chainTran.DbId = SaveTransaction(walletId, dbTransaction, address, chainTran);
-            //    }                
-            //}
+            if (saveTransactionsHere)
+            {
+                foreach (var chainTran in address.Transactions)
+                {
+                    if (!chainTran.IsFinal || (chainTran.SpendingDetails != null && !chainTran.SpendingDetails.IsFinal))
+                    {
+                        chainTran.DbId = SaveTransaction(walletId, dbTransaction, address, chainTran);
+                    }
+                }
+            }
+
             address.WalletId = walletId;
             return address.Id;
         }

@@ -172,7 +172,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var walletResult = this.repository.GetWalletByName(wallet.Name);
                 EnsureAddress(walletResult, false);
                 EnsureAddress(walletResult, true);
-                this.repository.SaveWallet(wallet.Name, walletResult);
+                this.repository.SaveWallet(wallet.Name, walletResult, true);
                 sw.Stop();                
                 this.logger.LogInformation($"Migrated wallet to db: {wallet.Name} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100,2) }% complete");
                 sw.Reset();
@@ -957,7 +957,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(block), block.GetHash(), nameof(chainedHeader), chainedHeader);
 
             // If there is no wallet yet, update the wallet tip hash and do nothing else.
-            if (!this.repository.GetAllWalletPointers().Any())
+            if (!this.repository.GetFirstWalletBlockLocator().Any())
             {
                 this.WalletTipHash = chainedHeader.HashBlock;
                 this.logger.LogTrace("(-)[NO_WALLET]");
