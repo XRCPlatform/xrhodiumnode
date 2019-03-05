@@ -26,12 +26,12 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             MinerScriptPubKey = new Key().ScriptPubKey;
         }
 
-        private async Task<(TestChainContext context, IPEndPoint peerEndPoint)> InitialiseContextAndPeerEndpointAsync()
+        private async Task<(TestChainContext context, IPEndPoint peerEndPoint)> InitialiseContextAndPeerEndpointAsync(string dirPrefix, string ip = "1.2.3.4")
         {
-            string dataDir = GetTestDirectoryPath(this);
+            string dataDir = GetTestDirectoryPath(this) + dirPrefix;
 
             TestChainContext context = await TestChainFactory.CreateAsync(Network.RegTest, dataDir);
-            var peerEndPoint = new IPEndPoint(IPAddress.Parse("1.2.3.4"), context.Network.DefaultPort);
+            var peerEndPoint = new IPEndPoint(IPAddress.Parse(ip), context.Network.DefaultPort);
             context.PeerAddressManager.AddPeer(peerEndPoint, peerEndPoint.Address.MapToIPv6());
 
             return (context, peerEndPoint);
@@ -41,20 +41,20 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public async Task NodeIsSynced_PeerSendsABlockWithBadPrevHashAndPeerDisconnected_ThePeerGetsBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerDisconnected_ThePeerGetsBanned_Async(
-                Mine2BlocksAndCreateABlockWithBadPrevHashAsync);
+                Mine2BlocksAndCreateABlockWithBadPrevHashAsync, "PeerSendsABlockWithBadPrevHashAndPeerDisconnected", "1.2.4.2");
         }
 
         [Fact]
         public async Task NodeIsSynced_PeerSendsAMutatedBlockAndPeerDisconnected_ThePeerGetsBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerDisconnected_ThePeerGetsBanned_Async(
-                MineAMutatedBlockAsync);
+                MineAMutatedBlockAsync, "PeerSendsAMutatedBlockAndPeerDisconnected", "1.2.4.1");
         }
 
         private async Task NodeIsSynced_PeerSendsABadBlockAndPeerDisconnected_ThePeerGetsBanned_Async(
-            Func<TestChainContext, Task<Block>> createBadBlock)
+            Func<TestChainContext, Task<Block>> createBadBlock, string dirPrefix, string ip)
         {
-            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync();
+            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync(dirPrefix, ip);
             context.MockReadOnlyNodesCollection.Setup(s => s.FindByEndpoint(It.IsAny<IPEndPoint>()))
                 .Returns((INetworkPeer)null);
 
@@ -68,20 +68,20 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public async Task NodeIsSynced_PeerSendsABlockWithBadPrevHashAndPeerIsConnected_ThePeerGetsBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsConnected_ThePeerGetsBanned_Async(
-                Mine2BlocksAndCreateABlockWithBadPrevHashAsync);
+                Mine2BlocksAndCreateABlockWithBadPrevHashAsync, "PeerSendsABlockWithBadPrevHashAndPeerIsConnected");
         }
 
         [Fact]
         public async Task NodeIsSynced_PeerSendsAMutatedBlockAndPeerIsConnected_ThePeerGetsBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsConnected_ThePeerGetsBanned_Async(
-                MineAMutatedBlockAsync);
+                MineAMutatedBlockAsync, "PeerSendsAMutatedBlockAndPeerIsConnected");
         }
 
         private async Task NodeIsSynced_PeerSendsABadBlockAndPeerIsConnected_ThePeerGetsBanned_Async(
-            Func<TestChainContext, Task<Block>> createBadBlock)
+            Func<TestChainContext, Task<Block>> createBadBlock, string dirPrefix)
         {
-            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync();
+            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync(dirPrefix);
 
             MockPeerConnection(context, false);
 
@@ -105,20 +105,20 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public async Task NodeIsSynced_PeerSendsABlockWithBadPrevHashAndPeerIsWhitelisted_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsWhitelisted_ThePeerIsNotBanned_Async(
-                Mine2BlocksAndCreateABlockWithBadPrevHashAsync);
+                Mine2BlocksAndCreateABlockWithBadPrevHashAsync, "PeerSendsABlockWithBadPrevHashAndPeerIsWhitelisted");
         }
 
         [Fact]
         public async Task NodeIsSynced_PeerSendsAMutatedBlockAndPeerIsWhitelisted_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsWhitelisted_ThePeerIsNotBanned_Async(
-                MineAMutatedBlockAsync);
+                MineAMutatedBlockAsync, "PeerSendsAMutatedBlockAndPeerIsWhitelisted");
         }
 
         private async Task NodeIsSynced_PeerSendsABadBlockAndPeerIsWhitelisted_ThePeerIsNotBanned_Async(
-            Func<TestChainContext, Task<Block>> createBadBlock)
+            Func<TestChainContext, Task<Block>> createBadBlock, string dirPrefix)
         {
-            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync();
+            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync(dirPrefix);
 
             MockPeerConnection(context, true);
             var badBlock = await createBadBlock(context);
@@ -131,19 +131,20 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public async Task NodeIsSynced_PeerSendsABlockWithBadPrevHashAndErrorIsNotBanError_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndErrorIsNotBanError_ThePeerIsNotBanned_Async(
-                Mine2BlocksAndCreateABlockWithBadPrevHashAsync);
+                Mine2BlocksAndCreateABlockWithBadPrevHashAsync, "PeerSendsABadBlockAndErrorIsNotBanError");
         }
 
         [Fact]
         public async Task NodeIsSynced_PeerSendsAMutatedBlockAndErrorIsNotBanError_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndErrorIsNotBanError_ThePeerIsNotBanned_Async(
-                MineAMutatedBlockAsync);
+                MineAMutatedBlockAsync, "PeerSendsAMutatedBlockAndErrorIsNotBanError");
         }
 
-        private async Task NodeIsSynced_PeerSendsABadBlockAndErrorIsNotBanError_ThePeerIsNotBanned_Async(Func<TestChainContext, Task<Block>> createBadBlock)
+        private async Task NodeIsSynced_PeerSendsABadBlockAndErrorIsNotBanError_ThePeerIsNotBanned_Async(
+            Func<TestChainContext, Task<Block>> createBadBlock, string dirPrefix)
         {
-            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync();
+            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync(dirPrefix);
 
             MockPeerConnection(context, false);
             var badBlock = await createBadBlock(context);
@@ -164,19 +165,20 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         public async Task NodeIsSynced_PeerSendsABlockWithBadPrevHashAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async(
-                Mine2BlocksAndCreateABlockWithBadPrevHashAsync);
+                Mine2BlocksAndCreateABlockWithBadPrevHashAsync, "PeerSendsABlockWithBadPrevHashAndPeerIsBannedAndBanIsExpired");
         }
 
         [Fact]
         public async Task NodeIsSynced_PeerSendsAMutatedBlockAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async()
         {
             await this.NodeIsSynced_PeerSendsABadBlockAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async(
-                MineAMutatedBlockAsync);
+                MineAMutatedBlockAsync, "PeerSendsAMutatedBlockAndPeerIsBannedAndBanIsExpired");
         }
 
-        private async Task NodeIsSynced_PeerSendsABadBlockAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async(Func<TestChainContext, Task<Block>> createBadBlock)
+        private async Task NodeIsSynced_PeerSendsABadBlockAndPeerIsBannedAndBanIsExpired_ThePeerIsNotBanned_Async(
+            Func<TestChainContext, Task<Block>> createBadBlock, string dirPrefix)
         {
-            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync();
+            var (context, peerEndPoint) = await this.InitialiseContextAndPeerEndpointAsync(dirPrefix);
 
             MockPeerConnection(context, false);
             var badBlock = await createBadBlock(context);

@@ -10,7 +10,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
     public class CalculateWorkRule : ConsensusRule
     {
         /// <inheritdoc />
-        /// <exception cref="ConsensusErrors.HighHash"> Thrown if block doesn't have a valid PoS header.</exception>
+        /// <exception cref="ConsensusErrors.HighHash"> Thrown if block doesn't have a valid PoW header.</exception>
         public override Task RunAsync(RuleContext context)
         {
             if (context.CheckPow && !context.BlockValidationContext.Block.Header.CheckProofOfWork(context.Consensus, context.BlockValidationContext.ChainedHeader.Height))
