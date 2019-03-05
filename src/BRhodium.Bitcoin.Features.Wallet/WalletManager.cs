@@ -957,7 +957,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(block), block.GetHash(), nameof(chainedHeader), chainedHeader);
 
             // If there is no wallet yet, update the wallet tip hash and do nothing else.
-            if (!this.repository.GetFirstWalletBlockLocator().Any())
+            if (!this.repository.HasWallets())
             {
                 this.WalletTipHash = chainedHeader.HashBlock;
                 this.logger.LogTrace("(-)[NO_WALLET]");
@@ -1659,19 +1659,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void UpdateLastBlockSyncedHeight(ChainedHeader chainedHeader)
         {
+
             Guard.NotNull(chainedHeader, nameof(chainedHeader));
-            this.logger.LogTrace("({0}:'{1}')", nameof(chainedHeader), chainedHeader);
+            this.logger.LogTrace("({0}:'{1}'')", nameof(chainedHeader), chainedHeader);
 
-            // Update the wallets with the last processed block height.
-            foreach (string walletName in this.GetWalletNames())
-            {
-                this.UpdateLastBlockSyncedHeight(walletName, chainedHeader);                
-            }
-
+            // The block locator will help when the wallet
+            // needs to rewind this will be used to find the fork.
+            //repository.SaveBlockLocator(chainedHeader.GetLocator());
+            repository.SaveLastSyncedBlock(chainedHeader);
             this.WalletTipHash = chainedHeader.HashBlock;
             this.logger.LogTrace("(-)");
         }
-
+       
         /// <inheritdoc />
         public void UpdateLastBlockSyncedHeight(string walletName, ChainedHeader chainedHeader)
         {
@@ -1681,9 +1680,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // The block locator will help when the wallet
             // needs to rewind this will be used to find the fork.
-            repository.SaveBlockLocator(walletName, chainedHeader.GetLocator());
             repository.SaveLastSyncedBlock(walletName, chainedHeader);
-           
+            this.WalletTipHash = chainedHeader.HashBlock;
+
             this.logger.LogTrace("(-)");
         }
 
@@ -1739,10 +1738,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         public void LoadKeysLookupLock()
         {
+            int count = 0;
+            Stopwatch sw = new Stopwatch();
             lock (this.lockObject)
             {
-                foreach (WalletPointer pointer in this.repository.GetAllWalletPointers())
+                var col = this.repository.GetAllWalletPointers();
+                int length = col.Count();
+                foreach (WalletPointer pointer in col)
                 {
+                    sw.Start();
+                    count++;
                     IEnumerable<HdAddress> addresses = repository.GetAllWalletAddressesByCoinType(pointer.WalletName, this.coinType);
                     foreach (HdAddress address in addresses)
                     {
@@ -1752,13 +1757,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         if (address.Pubkey != null)
                         {
                             this.addressByScriptLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(address.Pubkey.Hash, walletLinkedHdAddress);
-                        }                        
+                        }
                         foreach (var transaction in address.Transactions)
                         {
                             this.outpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
                         }
                         this.addressLookup.TryAdd<string, WalletLinkedHdAddress>(address.Address, walletLinkedHdAddress);
                     }
+                    sw.Stop();
+                    this.logger.LogInformation($"Loading wallet from db: {pointer.WalletName} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100, 2) }% complete");
+                    sw.Reset();                    
                 }
             }
         }

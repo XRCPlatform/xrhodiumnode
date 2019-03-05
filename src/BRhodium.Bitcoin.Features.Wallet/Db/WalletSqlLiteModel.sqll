@@ -11,14 +11,15 @@ CREATE TABLE "Wallet" (
 	"LastBlockSyncedHash" TEXT NULL,
 	"LastBlockSyncedHeight" INTEGER NULL,
 	"CoinType" INTEGER NOT NULL,
-	"LastUpdated" INTEGER NOT NULL
+	"LastUpdated" INTEGER NOT NULL,
+	"Blocks"	BLOB 
 );
 --DROP TABLE "BlockLocator" ;
-CREATE TABLE "BlockLocator" (
-	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	"WalletId"	INTEGER  NOT NULL,
-	"BlockHash"	TEXT NOT NULL
-);
+/*CREATE TABLE "BlockLocator" (
+	"WalletId"	INTEGER  NOT NULL PRIMARY KEY,
+	"Blocks"	BLOB NOT NULL
+);*/
+
 --DROP TABLE "Account" ;
 CREATE TABLE "Account" (
 	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

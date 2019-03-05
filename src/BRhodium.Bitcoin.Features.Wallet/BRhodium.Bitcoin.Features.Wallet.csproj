@@ -44,6 +44,12 @@
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.RPC\BRhodium.Bitcoin.Features.RPC.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Db\Wallet.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
   </PropertyGroup>
