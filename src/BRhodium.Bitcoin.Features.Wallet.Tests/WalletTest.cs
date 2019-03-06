@@ -11,7 +11,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var wallet = new Wallet();
             wallet.AccountsRoot.Add(CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount", CoinType.BRhodium));
-            wallet.AccountsRoot.Add(CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.BRhodium));
+            wallet.AccountsRoot.Add(CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Testnet));
             wallet.AccountsRoot.Add(CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount2", CoinType.BRhodium));
 
             var result = wallet.GetAccountsByCoinType(CoinType.BRhodium);
@@ -36,7 +36,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var wallet = new Wallet();
             var BRhodiumAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount", CoinType.BRhodium);
-            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.BRhodium);
+            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Testnet);
             var BRhodiumAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount2", CoinType.BRhodium);
 
             var transaction1 = CreateTransaction(new uint256(1), new Money(15000), 1);
@@ -70,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void GetAllTransactionsByCoinTypeWithoutMatchingAccountReturnsEmptyList()
         {
             var wallet = new Wallet();
-            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.BRhodium);
+            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Testnet);
 
             var transaction1 = CreateTransaction(new uint256(3), new Money(32145), 1);
             var transaction2 = CreateTransaction(new uint256(4), new Money(654789), 1);
@@ -100,7 +100,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var wallet = new Wallet();
             var BRhodiumAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount", CoinType.BRhodium);
-            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.BRhodium);
+            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Testnet);
             var BRhodiumAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("BRhodiumAccount2", CoinType.BRhodium);
             wallet.AccountsRoot.Add(BRhodiumAccountRoot);
             wallet.AccountsRoot.Add(bitcoinAccountRoot);
@@ -119,7 +119,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void GetAllPubKeysByCoinTypeWithoutMatchingCoinTypeReturnsEmptyList()
         {
             var wallet = new Wallet();
-            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.BRhodium);
+            var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Testnet);
             wallet.AccountsRoot.Add(bitcoinAccountRoot);
 
             var result = wallet.GetAllPubKeysByCoinType(CoinType.BRhodium).ToList();
