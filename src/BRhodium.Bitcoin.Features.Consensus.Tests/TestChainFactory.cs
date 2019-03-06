@@ -211,7 +211,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         private static void TryFindNonceForProofOfWork(TestChainContext testChainContext, BlockTemplate newBlock)
         {
             var maxTries = int.MaxValue;
-            while (maxTries > 0 && !newBlock.Block.CheckProofOfWork(testChainContext.Network.Consensus, testChainContext.Chain.Height))
+            while (maxTries > 0 && !newBlock.Block.CheckProofOfWork(testChainContext.Network.Consensus, 1))
             {
                 ++newBlock.Block.Header.Nonce;
                 --maxTries;
