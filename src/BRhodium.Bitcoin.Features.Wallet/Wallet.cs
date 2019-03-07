@@ -1180,6 +1180,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonIgnore]
         public long DbId { get; set; }
         [JsonIgnore]
+        public long ParentTransactionDbId { get; set; }
+        [JsonIgnore]
+        public long AddressDbId { get; set; }
+        [JsonIgnore]
         public uint256 ParentTransactionHash{ get; set; }
 
         private List<PaymentDetails> _payments;

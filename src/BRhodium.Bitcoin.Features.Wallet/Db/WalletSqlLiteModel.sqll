@@ -36,8 +36,9 @@ CREATE TABLE "Address" (
 	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"WalletId"	INTEGER  NOT NULL,
 	"HdIndex"	INTEGER  NOT NULL,
-	"ScriptPubKey"	TEXT NOT NULL UNIQUE,
-	"Pubkey"	TEXT NOT NULL UNIQUE,
+	"ScriptPubKey"	TEXT NOT NULL,
+	"Pubkey"	TEXT NOT NULL,
+	"ScriptPubKeyHash" TEXT NOT NULL UNIQUE,
 	"Address"	TEXT NOT NULL UNIQUE,
 	"HdPath"	TEXT NOT NULL	
 );
@@ -57,29 +58,30 @@ CREATE TABLE "Transaction" (
 	"ScriptPubKey"	TEXT NOT NULL,
 	"Hex"	TEXT NULL,
 	"IsPropagated"	NUMERIC NOT NULL,
-	"IsSpent"	NUMERIC NOT NULL,
-	"IsFinal"	NUMERIC NOT NULL
+	"IsSpent"	NUMERIC NOT NULL
+);
+
+CREATE TABLE "TransactionSpendingLinks" (
+	"WalletId"	INTEGER  NOT NULL,
+	"TransactionId"	INTEGER  NOT NULL ,
+	"SpendingTransactionId"	INTEGER  NOT NULL,
+	PRIMARY KEY (WalletId, TransactionId, SpendingTransactionId)
 );
 
 --DROP TABLE "SpendingDetails" ;
 CREATE TABLE "SpendingDetails" (
 	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"WalletId"	INTEGER  NOT NULL,
-	"AddressId"	INTEGER  NOT NULL,
-	"TransactionId"	INTEGER  NOT NULL,
 	"TransactionHash"	TEXT NOT NULL,
 	"BlockHeight"	INTEGER  NULL,
 	"CreationTime"	INTEGER  NOT NULL,
-	"Hex"	TEXT NULL,
-	"IsFinal"	NUMERIC NOT NULL
+	"Hex"	TEXT NULL
 );
 
 --DROP TABLE "PaymentDetails" ;
 CREATE TABLE "PaymentDetails" (
 	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"WalletId"	INTEGER  NOT NULL,
-	"AddressId"	INTEGER  NOT NULL,
-	"TransactionId"	INTEGER  NOT NULL,
 	"SpendingTransactionId"	INTEGER  NOT NULL,
 	"Amount"	INTEGER  NOT NULL,
 	"DestinationAddress"	TEXT NOT NULL,

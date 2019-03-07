@@ -168,11 +168,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 sw.Start();
                 count++;
-                this.repository.SaveWallet(wallet.Name, wallet);
+                EnsureAddress(wallet, false);
+                EnsureAddress(wallet, true);
+                this.repository.SaveWallet(wallet.Name, wallet, true);
                 var walletResult = this.repository.GetWalletByName(wallet.Name);
-                EnsureAddress(walletResult, false);
-                EnsureAddress(walletResult, true);
-                this.repository.SaveWallet(wallet.Name, walletResult, true);
                 sw.Stop();                
                 this.logger.LogInformation($"Migrated wallet to db: {wallet.Name} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100,2) }% complete");
                 sw.Reset();
@@ -1583,7 +1582,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Wallet wallet = null;
 
 
-            wallet = this.repository.GetWalletByScriptHash(script.Hash);
+            wallet = this.repository.GetWalletByScriptHash(script.Hash.ToString());
             if (wallet != null)
             {
                 foreach (HdAccount account in wallet.GetAccountsByCoinType(this.coinType))
