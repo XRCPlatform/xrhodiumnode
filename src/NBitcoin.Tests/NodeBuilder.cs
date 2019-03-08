@@ -15,6 +15,10 @@ using System.Threading.Tasks;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
+// Code is modified to rely on separate server that is not managed by the test suite.
+// Most code is maintained for reference when there is an appropriate impelementation
+// that includes a download of BRhodiumNode, or some check to see if it is running
+// with the node software itself.
 namespace NBitcoin.Tests
 {
     public enum CoreNodeState
@@ -88,7 +92,7 @@ namespace NBitcoin.Tests
         public static NodeBuilder Create([CallerMemberName]string caller = null, string version = "0.15.1")
         {
             CleanupTestFolder(caller);
-            Directory.CreateDirectory(caller);    
+            Directory.CreateDirectory(caller);
             return new NodeBuilder(caller, EnsureDownloaded(version));
         }
 
@@ -125,6 +129,12 @@ namespace NBitcoin.Tests
         int last = 0;
         private string _Root;
         private string _Bitcoind;
+
+        public NodeBuilder()
+        {
+
+        }
+
         public NodeBuilder(string root, string bitcoindPath)
         {
             this._Root = root;
@@ -159,6 +169,11 @@ namespace NBitcoin.Tests
             }
         }
 
+        public CoreNode CreateNode()
+        {
+            return new CoreNode();
+        }
+
         public CoreNode CreateNode(bool start = false)
         {
             var child = Path.Combine(_Root, last.ToString());
@@ -172,14 +187,14 @@ namespace NBitcoin.Tests
             }
             var node = new CoreNode(child, this);
             Nodes.Add(node);
-            if(start)
-                node.Start();
+            //if(start)
+            //    node.Start();
             return node;
         }
 
         public void StartAll()
         {
-            Task.WaitAll(Nodes.Where(n => n.State == CoreNodeState.Stopped).Select(n => n.StartAsync()).ToArray());
+//            Task.WaitAll(Nodes.Where(n => n.State == CoreNodeState.Stopped).Select(n => n.StartAsync()).ToArray());
         }
 
         public void Dispose()
@@ -235,6 +250,11 @@ namespace NBitcoin.Tests
             }
         }
 
+        public CoreNode()
+        {
+
+        }
+
         public CoreNode(string folder, NodeBuilder builder)
         {
             this._Builder = builder;
@@ -246,7 +266,7 @@ namespace NBitcoin.Tests
             Directory.CreateDirectory(dataDir);
             var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
             creds = new NetworkCredential(pass, pass);
-            _Config = Path.Combine(dataDir, "bitcoin.conf");
+            _Config = Path.Combine(dataDir, "BRhodium.conf");
             ConfigParameters.Import(builder.ConfigParameters);
             ports = new int[2];
             FindPorts(ports);
@@ -294,13 +314,14 @@ namespace NBitcoin.Tests
         }
         public void Start()
         {
-            StartAsync().Wait();
+            //StartAsync().Wait();
         }
 
         readonly NetworkCredential creds;
         public RPCClient CreateRPCClient()
         {
-            return new RPCClient(GetRPCAuth(), new Uri("http://127.0.0.1:" + ports[1].ToString() + "/"), Network.RegTest);
+            var port = Network.RegTest.RPCPort;
+            return new RPCClient(GetRPCAuth(), new Uri("http://127.0.0.1:" + port.ToString() + "/"), Network.RegTest);
         }
 
         public RestClient CreateRESTClient()
@@ -323,10 +344,7 @@ namespace NBitcoin.Tests
 
         string GetRPCAuth()
         {
-            if(!CookieAuth)
-                return creds.UserName + ":" + creds.Password;
-            else
-                return "cookiefile=" + Path.Combine(dataDir, "regtest", ".cookie");
+            return "test:test";
         }
 
         public async Task StartAsync()
@@ -667,4 +685,3 @@ namespace NBitcoin.Tests
     }
 }
 #endif
-      

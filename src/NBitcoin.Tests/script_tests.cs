@@ -374,7 +374,7 @@ namespace NBitcoin.Tests
             var spendingTransaction = CreateSpendingTransaction(wit, scriptSig, creditingTransaction);
             ScriptError actual;
             Script.VerifyScript(Network.Main, scriptSig, scriptPubKey, spendingTransaction, 0, amount, flags, SigHash.Undefined, out actual);
-            Assert.True(expectedError == actual, "Test : " + testIndex + " " + comment);            
+            Assert.True(expectedError == actual, "Test : " + testIndex + " " + comment);
 #if !NOCONSENSUSLIB
             var ok = Script.VerifyScriptConsensus(scriptPubKey, spendingTransaction, 0, amount, flags);
             Assert.True(ok == (expectedError == ScriptError.OK), "[ConsensusLib] Test : " + testIndex + " " + comment);

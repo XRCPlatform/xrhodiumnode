@@ -1,6 +1,6 @@
 [
     [
-        "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+        "th1qw508d6qejxtdg4y5r3zarvary0c5xw7k39qegj",
         "751e76e8199196d454941c45d1b3a323f1433bd6",
         {
             "addrType": "p2wpkh",
@@ -9,7 +9,7 @@
         }
     ],
     [
-        "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+        "th1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q9hvcnz",
         "1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262",
         {
             "addrType": "p2wsh",
@@ -18,7 +18,7 @@
         }
     ],
     [
-        "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+        "rh1qw508d6qejxtdg4y5r3zarvary0c5xw7kxrmwg8",
         "751e76e8199196d454941c45d1b3a323f1433bd6",
         {
             "addrType": "p2wpkh",
@@ -27,7 +27,7 @@
         }
     ],
     [
-        "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3",
+        "rh1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qrwt7u4",
         "1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262",
         {
             "addrType": "p2wsh",
