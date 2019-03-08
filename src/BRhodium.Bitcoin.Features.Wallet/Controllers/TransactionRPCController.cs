@@ -53,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             ConcurrentChain chain,
             IConnectionManager connectionManager,
             IBroadcasterManager broadcasterManager,
-            IPooledTransaction pooledTransaction, 
+            IPooledTransaction pooledTransaction,
             IChainState chainState = null,
             IConsensusLoop consensusLoop = null) : base(fullNode, nodeSettings, network, chain, chainState, connectionManager)
         {
@@ -174,8 +174,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var tx = Transaction.Load(hex, this.Network);
-
-                return this.Json(ResultHelper.BuildResultResponse(tx));
+                return this.Json(ResultHelper.BuildResultResponse(JsonConvert.DeserializeObject(tx.ToString(RawFormat.Satoshi))));
             }
             catch (Exception e)
             {
