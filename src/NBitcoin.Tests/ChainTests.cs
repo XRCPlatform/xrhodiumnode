@@ -248,19 +248,19 @@ namespace NBitcoin.Tests
 
             BlockHeader adjustmentHeader = chain.GetBlock(2016).Header;
             var expectedTarget = new Target(
-                new uint256("00000000000ffff0000000000000000000000000000000000000000000000000"));
+                new uint256("0000000000024922000000000000000000000000000000000000000000000000"));
             var actualTarget = chain.GetWorkRequired(Network.Main, 2016);
             Assert.Equal(expectedTarget, actualTarget);
         }
 
 
 #if !NOFILEIO
-        [Fact]
+        [Fact(Skip="Must redo for BRhodium")]
         [Trait("UnitTest", "UnitTest")]
         public void CanCalculateDifficulty()
         {
             var main = new ConcurrentChain(LoadMainChain());
-            var histories = File.ReadAllText("data/targethistory.csv").Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var histories = File.ReadAllText("data/targethistory.csv").Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var history in histories)
             {
@@ -275,7 +275,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="Must redo for BRhodium")]
         [Trait("UnitTest", "UnitTest")]
         public void CanValidateChain()
         {

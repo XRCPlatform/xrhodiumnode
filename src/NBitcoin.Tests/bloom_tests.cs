@@ -73,7 +73,7 @@ namespace NBitcoin.Tests
         [Trait("Core", "Core")]
         public void bloom_create_insert_key()
         {
-            string strSecret = "5Kg1gnAjaLfKiwhhPpGS3QfRg2m6awQvaj98JCZBZQ5SuS2F15C";
+            string strSecret = "4Ndqek8oF55KgtzwMYfYCjGoMkNbF3GqmMyoxbtruDB2pvh3htp";
             BitcoinSecret vchSecret = Network.Main.CreateBitcoinSecret(strSecret);
             var pubkey = vchSecret.PrivateKey.PubKey;
 
@@ -85,8 +85,7 @@ namespace NBitcoin.Tests
             BitcoinStream bitcoinStream = new BitcoinStream(ms, true);
             bitcoinStream.ReadWrite(filter);
 
-            var expected = ParseHex("038fc16b080000000000000001");
-
+            var expected = ParseHex("03A1112F080000000000000001");
             AssertEx.CollectionEquals(expected, ms.ToArray());
         }
 
