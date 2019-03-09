@@ -314,6 +314,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Save the changes to the file and add addresses to be tracked.
             this.SaveWallet(wallet);
+            wallet = this.repository.GetWalletByName(wallet.Name);
             this.logger.LogTrace("(-)");
             return mnemonic;
         }
@@ -585,6 +586,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (var address in newAddresses)
                     {
                         walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                        this.repository.SaveAddress(wallet.Id, address);
                     }                   
                     this.UpdateKeysLookupLock(walletLinkerList);
                     generated = true;
@@ -632,6 +634,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 foreach (var address in newAddresses)
                 {
                     walletLinkerList.Add(new WalletLinkedHdAddress(address, wallet.Id));
+                    this.repository.SaveAddress(wallet.Id, address);
                 }
 
                 this.UpdateKeysLookupLock(walletLinkerList);
@@ -808,15 +811,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             
             int res;
-            //lock (this.lockObject)
-            //{
+            lock (this.lockObject)
+            {
                 res = 0;
                 var rlast = this.repository.GetLastSyncedBlock();
                 if (rlast != null)
                 {
                     res = rlast.Height;
                 }
-           // }
+            }
             
             this.logger.LogTrace("(-):{0}", res);
             return res;
@@ -928,14 +931,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foreach (TransactionData transactionData in makeUnspendable)
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
-                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress,true);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
                     foreach (TransactionData transactionData in makeSpendable)
                     {
                         transactionData.SpendingDetails = null;
-                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress);
+                        this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress,true);
                     }
                 }
 
@@ -1639,12 +1642,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
        
 
         /// <inheritdoc />
-        public void SaveWallet(Wallet wallet)
+        public void SaveWallet(Wallet wallet,bool saveTransactions=false)
         {
             Guard.NotNull(wallet, nameof(wallet));
             this.logger.LogTrace("({0}:'{1}')", nameof(wallet), wallet.Name);
 
-            this.repository.SaveWallet(wallet.Name, wallet);
+            this.repository.SaveWallet(wallet.Name, wallet, saveTransactions);
             wallet.Saved();
 
             this.logger.LogTrace("(-)");
@@ -1894,7 +1897,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             if (result.Any())
             {
-                this.SaveWallet(wallet);
+                this.SaveWallet(wallet,true);
             }
 
             return result;
@@ -1923,7 +1926,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             if (removedTransactions.Any())
             {
-                this.SaveWallet(wallet);
+                this.SaveWallet(wallet,true);
             }
 
             return removedTransactions;

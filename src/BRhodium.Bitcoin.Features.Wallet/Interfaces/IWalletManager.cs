@@ -258,7 +258,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// Saves the wallet into the file system.
         /// </summary>
         /// <param name="wallet">The wallet to save.</param>
-        void SaveWallet(Wallet wallet);
+        void SaveWallet(Wallet wallet, bool saveTransactions=false);
 
         string GetWalletFileExtension();
  
