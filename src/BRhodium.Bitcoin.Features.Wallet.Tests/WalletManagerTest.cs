@@ -85,10 +85,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                     var actualAccount = accountRoot.Accounts.ElementAt(j);
                     Assert.Equal($"account {j}", actualAccount.Name);
                     Assert.Equal(j, actualAccount.Index);
-                    Assert.Equal($"m/44'/105'/{j}'", actualAccount.HdPath);
+                    Assert.Equal($"m/44'/10291'/{j}'", actualAccount.HdPath);
 
                     var extKey = new ExtKey(Key.Parse(expectedWallet.EncryptedSeed, "test", expectedWallet.Network), expectedWallet.ChainCode);
-                    var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/105'/{j}'")).Neuter().ToString(expectedWallet.Network);
+                    var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/10291'/{j}'")).Neuter().ToString(expectedWallet.Network);
                     Assert.Equal(expectedExtendedPubKey, actualAccount.ExtendedPubKey);
 
                     Assert.Equal(20, actualAccount.InternalAddresses.Count);
@@ -102,7 +102,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                         Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
                         Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
                         Assert.Equal(expectedAddressPubKey.ScriptPubKey, actualAddress.Pubkey);
-                        Assert.Equal($"m/44'/105'/{j}'/1/{k}", actualAddress.HdPath);
+                        Assert.Equal($"m/44'/10291'/{j}'/1/{k}", actualAddress.HdPath);
                         Assert.Equal(0, actualAddress.Transactions.Count);
                     }
 
@@ -116,7 +116,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                         Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
                         Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
                         Assert.Equal(expectedAddressPubKey.ScriptPubKey, actualAddress.Pubkey);
-                        Assert.Equal($"m/44'/105'/{j}'/0/{l}", actualAddress.HdPath);
+                        Assert.Equal($"m/44'/10291'/{j}'/0/{l}", actualAddress.HdPath);
                         Assert.Equal(0, actualAddress.Transactions.Count);
                     }
                 }
@@ -165,7 +165,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var mnemonic = walletManager.CreateWallet(password, "mywallet", passphrase);
 
             // assert it has saved it to disk and has been created correctly.
-            var expectedWallet = JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(dataFolder.WalletPath + "/mywallet.wallet.json"));
+            var expectedWallet = walletManager.GetWallet("mywallet");
             var actualWallet = walletManager.Wallets.ElementAt(0);
 
             Assert.Equal("mywallet", expectedWallet.Name);
@@ -197,10 +197,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                     var actualAccount = accountRoot.Accounts.ElementAt(j);
                     Assert.Equal($"account {j}", actualAccount.Name);
                     Assert.Equal(j, actualAccount.Index);
-                    Assert.Equal($"m/44'/105'/{j}'", actualAccount.HdPath);
+                    Assert.Equal($"m/44'/10291'/{j}'", actualAccount.HdPath);
 
                     var extKey = new ExtKey(Key.Parse(expectedWallet.EncryptedSeed, "test", expectedWallet.Network), expectedWallet.ChainCode);
-                    var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/105'/{j}'")).Neuter().ToString(expectedWallet.Network);
+                    var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/10291'/{j}'")).Neuter().ToString(expectedWallet.Network);
                     Assert.Equal(expectedExtendedPubKey, actualAccount.ExtendedPubKey);
 
                     Assert.Equal(20, actualAccount.InternalAddresses.Count);
@@ -214,7 +214,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                         Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
                         Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
                         Assert.Equal(expectedAddressPubKey.ScriptPubKey, actualAddress.Pubkey);
-                        Assert.Equal($"m/44'/105'/{j}'/1/{k}", actualAddress.HdPath);
+                        Assert.Equal($"m/44'/10291'/{j}'/1/{k}", actualAddress.HdPath);
                         Assert.Equal(0, actualAddress.Transactions.Count);
                     }
 
@@ -228,7 +228,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                         Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
                         Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
                         Assert.Equal(expectedAddressPubKey.ScriptPubKey, actualAddress.Pubkey);
-                        Assert.Equal($"m/44'/105'/{j}'/0/{l}", actualAddress.HdPath);
+                        Assert.Equal($"m/44'/10291'/{j}'/0/{l}", actualAddress.HdPath);
                         Assert.Equal(0, actualAddress.Transactions.Count);
                     }
                 }
@@ -643,10 +643,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             Assert.Equal(1, wallet.AccountsRoot.ElementAt(0).Accounts.Count);
             var extKey = new ExtKey(Key.Parse(wallet.EncryptedSeed, "password", wallet.Network), wallet.ChainCode);
-            var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/0'/0'")).Neuter().ToString(wallet.Network);
+            var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/10291'/0'")).Neuter().ToString(wallet.Network);
             Assert.Equal($"account 0", result.Name);
             Assert.Equal(0, result.Index);
-            Assert.Equal($"m/44'/0'/0'", result.HdPath);
+            Assert.Equal($"m/44'/10291'/0'", result.HdPath);
             Assert.Equal(expectedExtendedPubKey, result.ExtendedPubKey);
             Assert.Equal(0, result.InternalAddresses.Count);
             Assert.Equal(0, result.ExternalAddresses.Count);
@@ -667,10 +667,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             Assert.Equal(2, wallet.AccountsRoot.ElementAt(0).Accounts.Count);
             var extKey = new ExtKey(Key.Parse(wallet.EncryptedSeed, "password", wallet.Network), wallet.ChainCode);
-            var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/0'/1'")).Neuter().ToString(wallet.Network);
+            var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/10291'/1'")).Neuter().ToString(wallet.Network);
             Assert.Equal($"account 1", result.Name);
             Assert.Equal(1, result.Index);
-            Assert.Equal($"m/44'/0'/1'", result.HdPath);
+            Assert.Equal($"m/44'/10291'/1'", result.HdPath);
             Assert.Equal(expectedExtendedPubKey, result.ExtendedPubKey);
             Assert.Equal(0, result.InternalAddresses.Count);
             Assert.Equal(0, result.ExternalAddresses.Count);
@@ -1077,7 +1077,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
+            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.Testnet;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
             wallet2.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
@@ -1104,7 +1104,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = CoinType.BRhodium,
+                CoinType = CoinType.Testnet,
                 LastBlockSyncedHeight = 12
             });
 
@@ -1120,7 +1120,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var result = walletManager.LastBlockHeight();
 
-            Assert.Equal(12, result);
+            Assert.Equal(15, result);
         }
 
         [Fact]
@@ -1163,7 +1163,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
+            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.Testnet;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(15);
             var wallet2 = this.walletFixture.GenerateBlankWallet("myWallet", "password");
@@ -1189,7 +1189,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.BRhodium;
+            wallet.AccountsRoot.ElementAt(0).CoinType = CoinType.Testnet;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight = 15;
             wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHash = new uint256(15);
             wallet.AccountsRoot.Add(new AccountRoot()
@@ -2842,7 +2842,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var result = HdOperations.CreateHdPath((int)CoinType.BRhodium, 4, 3, true);
 
-            Assert.Equal("m/44'/105'/4'/1/3", result);
+            Assert.Equal("m/44'/10291'/4'/1/3", result);
         }
 
         [Fact]
@@ -2850,7 +2850,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var result = HdOperations.CreateHdPath((int)CoinType.BRhodium, 4, 3, false);
 
-            Assert.Equal("m/44'/105'/4'/0/3", result);
+            Assert.Equal("m/44'/10291'/4'/0/3", result);
         }
 
         [Fact]
