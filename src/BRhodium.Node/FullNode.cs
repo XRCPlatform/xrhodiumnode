@@ -230,6 +230,15 @@ namespace BRhodium.Node
         /// </summary>
         private void StartPeriodicOptimalization()
         {
+            TextFileConfiguration config = this.Settings.ConfigReader;
+            var repeatTimeSpan = TimeSpan.FromHours(12);
+
+            if (config != null)
+            {
+                var minutes = config.GetOrDefault("nodeoptimmin", 60 * 12);
+                repeatTimeSpan = TimeSpan.FromMinutes(minutes);
+            }
+
             IAsyncLoop periodicOptimalizationLoop = this.AsyncLoopFactory.Run("OptimalizationLog", (cancellation) =>
             {
                 StringBuilder optimalizationLog = new StringBuilder();
@@ -246,8 +255,8 @@ namespace BRhodium.Node
                 return Task.CompletedTask;
             },
                 this.nodeLifetime.ApplicationStopping,
-                repeatEvery: TimeSpan.FromHours(12),
-                startAfter: TimeSpan.FromHours(12));
+                repeatEvery: repeatTimeSpan,
+                startAfter: repeatTimeSpan);
 
             this.Resources.Add(periodicOptimalizationLoop);
         }
