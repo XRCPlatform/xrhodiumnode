@@ -16,7 +16,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests.LoopTests
             using (var fluent = new FluentBlockStoreLoop(CreateDataFolder(this)))
             {
                 // Push 15 blocks to the repository
-                fluent.BlockRepository.PutAsync(blocks.Last().GetHash(), blocks).GetAwaiter().GetResult();
+                fluent.BlockRepository.PutAsync(blocks.Last().GetHash(), blocks.Cast<Block>().ToList()).GetAwaiter().GetResult();
 
                 // The chain has 10 blocks appended
                 var chain = new ConcurrentChain(blocks[0].Header);

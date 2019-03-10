@@ -34,8 +34,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
             this.consensusLoop = new Mock<IConsensusLoop>();
             this.txMempool = new Mock<ITxMempool>();
             this.dateTimeProvider = new Mock<IDateTimeProvider>();
-            this.powReward = Money.Coins(50);
-            this.network = Network.BRhodiumTest;
+            this.powReward = Money.Coins((decimal)2.5);
+            this.network = Network.TestNet;
             this.key = new Key();
 
             SetupConsensusLoop();
@@ -157,7 +157,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
                 this.network.Consensus.Options = newOptions;
                 this.network.Consensus.BIP9Deployments[0] = new BIP9DeploymentsParameters(19,
                     new DateTimeOffset(new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc)),
-                    new DateTimeOffset(new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+                    new DateTimeOffset(new DateTime(3000, 1, 1, 0, 0, 0, DateTimeKind.Utc))); // TODO: Update in year 3000 or test will fail.
                 this.network.Consensus.MinerConfirmationWindow = 2;
                 this.network.Consensus.RuleChangeActivationThreshold = 2;
 

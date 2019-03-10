@@ -103,71 +103,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sends some amount to specified address.
-        /// </summary>
-        /// <param name="walletName">The wallet name.</param>
-        /// <param name="passwordBase64">Password base64 for your wallet.</param>
-        /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in XRC.</param>
-        /// <returns>(string) The transaction id.</returns>
-        [ActionName("sendtoaddressbase64")]
-        [ActionDescription("Sends some amount to specified address.")]
-        public IActionResult SendToAddressBase64(string walletName, string passwordBase64, string address, decimal amount)
-        {
-            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
-            return SendToAddress(walletName, password, address, amount);
-        }
-
-        /// <summary>
-        /// Sends some amount to specified address.
-        /// </summary>
-        /// <param name="walletName">The wallet name.</param>
-        /// <param name="password">Password for your wallet.</param>
-        /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in XRC.</param>
-        /// <returns>(string) The transaction id.</returns>
-        [ActionName("sendtoaddress")]
-        [ActionDescription("Sends some amount to specified address.")]
-        public IActionResult SendToAddress(string walletName, string password, string address, decimal amount)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    throw new ArgumentNullException("walletName");
-                }
-                if (string.IsNullOrEmpty(address))
-                {
-                    throw new ArgumentNullException("address");
-                }
-                if (string.IsNullOrEmpty(password))
-                {
-                    throw new ArgumentNullException("password");
-                }
-                if (amount <= 0)
-                {
-                    throw new ArgumentNullException("amount");
-                }
-
-                var mywallet = this.walletManager.GetWallet(walletName);
-
-                var money = new Money(amount, MoneyUnit.XRC);
-                var hdaccount = mywallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
-                var transaction = SendMoney(hdaccount.Name, walletName, address, password, money.Satoshi);
-
-                return this.Json(ResultHelper.BuildResultResponse(transaction.ToString()));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-
-        /// <summary>
         /// Wallets the password with unicode support.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -190,7 +127,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Wallets the password.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -237,7 +174,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Dumps the priv key.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -314,7 +251,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     try
                     {
                         var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, password, this.Network);
- 
+
                         var secret = new BitcoinSecret(privateKey, this.Network);
                         var stringPrivateKey = secret.ToString();
                         return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
@@ -336,7 +273,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Lock the wallets.
-        /// 
+        ///
         /// <p>Example: <br/>
         /// Set the password for 2 minutes to perform a transaction<br/>
         /// walletpassword "my pass phrase" 120</p>
@@ -377,7 +314,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Gets account balance.
-        /// 
+        ///
         /// <p>If [walletName] is not specified, returns the server's total available balance.<br/>
         /// If [walletName] is specified, returns the balance in the account.<br/>
         /// If [walletName] is "*", get the balance of all accounts.</p>
@@ -401,7 +338,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         {
                             accounts.Add(account);
                         }
-                        
+
                     }
                 }
                 else
@@ -619,37 +556,228 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sends the money.
+        /// Send manies the specified hd acccount name.
         /// </summary>
         /// <param name="hdAcccountName">Name of the hd acccount.</param>
-        /// <param name="walletName">Name of the wallet.</param>
-        /// <param name="targetAddress">The target address.</param>
-        /// <param name="passwordBase64">The password in Base64.</param>
-        /// <param name="satoshi">The satoshi.</param>
-        /// <returns>(Transaction) Object with information.</returns>
-        [ActionName("sendmoneybase64")]
-        [ActionDescription("Sends the money.")]
-        public IActionResult SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
+        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
+        /// <param name="minconf">(int) The minconf.</param>
+        /// <param name="password">(string) The password.</param>
+        /// <returns>(uint256) Transaction hash.</returns>
+        [ActionName("sendmany")]
+        [ActionDescription("Send manies the specified hd acccount name.")]
+        public uint256 Sendmany(string hdAcccountName, string toBitcoinAddresses, int minconf, string password)
+        {
+            return SendmanyProcessing(hdAcccountName, toBitcoinAddresses, minconf, password, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Send manies the specified hd acccount name.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
+        /// <param name="minconf">(int) The minconf.</param>
+        /// <param name="passwordBase64">(string) The password in Base64.</param>
+        /// <returns>(uint256) Transaction hash.</returns>
+        [ActionName("sendmanybase64")]
+        [ActionDescription("Send manies the specified hd acccount name.")]
+        public uint256 SendmanyBase64(string hdAcccountName, string toBitcoinAddresses, int minconf, string passwordBase64)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendmanyProcessing(hdAcccountName, toBitcoinAddresses, minconf, password, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Send manies the specified hd acccount name.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
+        /// <param name="minconf">(int) The minconf.</param>
+        /// <param name="password">(string) The password.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(uint256) Transaction hash.</returns>
+        [ActionName("sendmanyfee")]
+        [ActionDescription("Send manies the specified hd acccount name.")]
+        public uint256 SendmanyFee(string hdAcccountName, string toBitcoinAddresses, int minconf, string password, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse<FeeType>(feeType, true, out convFeeType);
+            return SendmanyProcessing(hdAcccountName, toBitcoinAddresses, minconf, password, convFeeType);
+        }
+
+        /// <summary>
+        /// Send manies the specified hd acccount name.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
+        /// <param name="minconf">(int) The minconf.</param>
+        /// <param name="passwordBase64">(string) The password in Base64.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(uint256) Transaction hash.</returns>
+        [ActionName("sendmanyfeebase64")]
+        [ActionDescription("Send manies the specified hd acccount name.")]
+        public uint256 SendmanyFeeBase64(string hdAcccountName, string toBitcoinAddresses, int minconf, string passwordBase64, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse(feeType, true, out convFeeType);
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendmanyProcessing(hdAcccountName, toBitcoinAddresses, minconf, password, convFeeType);
+        }
+
+        /// <summary>
+        /// Private function to process SendMany function.
+        /// </summary>
+        private uint256 SendmanyProcessing(string hdAcccountName, string toBitcoinAddresses, int minconf, string password, FeeType feeType)
+        {
+            string acccountName = "";
+            string walletName = "";
+            if (string.IsNullOrEmpty(hdAcccountName))
+            {
+                throw new ArgumentNullException("hdAcccountName");
+            }
+            if (string.IsNullOrEmpty(toBitcoinAddresses))
+            {
+                throw new ArgumentNullException("toBitcoinAddresses");
+            }
+            if (hdAcccountName.Contains("/"))
+            {
+                acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
+                walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/") + 1);
+            }
+
+            var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+            var w = this.walletManager as WalletManager;
+            var walletReference = new WalletAccountReference(walletName, acccountName);
+            Dictionary<string, decimal> toBitcoinAddress = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(toBitcoinAddresses);
+
+            List<Recipient> recipients = new List<Recipient>();
+            foreach (var item in toBitcoinAddress)
+            {
+                recipients.Add(new Recipient
+                {
+                    Amount = new Money(item.Value, MoneyUnit.XRC),
+                    ScriptPubKey = BitcoinAddress.Create(item.Key, this.Network).ScriptPubKey
+                });
+            };
+
+            var context = new TransactionBuildContext(walletReference, recipients, password)
+            {
+                MinConfirmations = minconf,
+                FeeType = feeType,
+                Sign = true
+            };
+
+            var controller = this.FullNode.NodeService<WalletController>();
+
+            var fundTransaction = transaction.BuildTransaction(context);
+            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+
+            return fundTransaction.GetHash();
+        }
+
+        /// <summary>
+        /// Sends some amount to specified address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="password">Password for your wallet.</param>
+        /// <param name="address">Target address.</param>
+        /// <param name="amount">The amount in XRC.</param>
+        /// <returns>(string) The transaction id.</returns>
+        [ActionName("sendtoaddress")]
+        [ActionDescription("Sends some amount to specified address.")]
+        public IActionResult SendToAddress(string walletName, string password, string address, decimal amount)
+        {
+            return SendToAddressResponse(walletName, password, address, amount, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Sends some amount to specified address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="passwordBase64">Password base64 for your wallet.</param>
+        /// <param name="address">Target address.</param>
+        /// <param name="amount">The amount in XRC.</param>
+        /// <returns>(string) The transaction id.</returns>
+        [ActionName("sendtoaddressbase64")]
+        [ActionDescription("Sends some amount to specified address.")]
+        public IActionResult SendToAddressBase64(string walletName, string passwordBase64, string address, decimal amount)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendToAddressResponse(walletName, password, address, amount, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Sends some amount to specified address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="password">Password for your wallet.</param>
+        /// <param name="address">Target address.</param>
+        /// <param name="amount">The amount in XRC.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(string) The transaction id.</returns>
+        [ActionName("sendtoaddressfee")]
+        [ActionDescription("Sends some amount to specified address.")]
+        public IActionResult SendToAddressFee(string walletName, string password, string address, decimal amount, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse(feeType, true, out convFeeType);
+            return SendToAddressResponse(walletName, password, address, amount, convFeeType);
+        }
+
+        /// <summary>
+        /// Sends some amount to specified address.
+        /// </summary>
+        /// <param name="walletName">The wallet name.</param>
+        /// <param name="passwordBase64">Password base64 for your wallet.</param>
+        /// <param name="address">Target address.</param>
+        /// <param name="amount">The amount in XRC.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(string) The transaction id.</returns>
+        [ActionName("sendtoaddressfeebase64")]
+        [ActionDescription("Sends some amount to specified address.")]
+        public IActionResult SendToAddressFeeBase64(string walletName, string passwordBase64, string address, decimal amount, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse(feeType, true, out convFeeType);
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendToAddressResponse(walletName, password, address, amount, convFeeType);
+        }
+
+        /// <summary>
+        /// Private function with response for SendToAddress function.
+        /// </summary>
+        private IActionResult SendToAddressResponse(string walletName, string password, string address, decimal amount, FeeType feeType)
         {
             try
             {
-                var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
-                var tx = SendMoney(hdAcccountName, walletName, targetAddress, password, satoshi);
+                if (string.IsNullOrEmpty(walletName))
+                {
+                    throw new ArgumentNullException("walletName");
+                }
+                if (string.IsNullOrEmpty(address))
+                {
+                    throw new ArgumentNullException("address");
+                }
+                if (string.IsNullOrEmpty(password))
+                {
+                    throw new ArgumentNullException("password");
+                }
+                if (amount <= 0)
+                {
+                    throw new ArgumentNullException("amount");
+                }
 
-                return this.Json(ResultHelper.BuildResultResponse(tx));
-            }
-            catch (SecurityException e)
-            {
-                return this.Json(ResultHelper.BuildResultResponse(-1));
-            }
-            catch (FormatException e)
-            {
-                return this.Json(ResultHelper.BuildResultResponse(-2));
+                var mywallet = this.walletManager.GetWallet(walletName);
+
+                var money = new Money(amount, MoneyUnit.XRC);
+                var hdaccount = mywallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
+                var transaction = SendMoneyProcessing(hdaccount.Name, walletName, address, password, money.Satoshi, feeType);
+
+                return this.Json(ResultHelper.BuildResultResponse(transaction.GetHash().ToString()));
             }
             catch (Exception e)
             {
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return this.Json(ResultHelper.BuildResultResponse(0));
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
 
@@ -664,7 +792,100 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(Transaction) Object with information.</returns>
         [ActionName("sendmoney")]
         [ActionDescription("Sends the money.")]
-        public uint256 SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
+        public Transaction SendMoney(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi)
+        {
+            return SendMoneyProcessing(hdAcccountName, walletName, targetAddress, password, satoshi, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Sends the money.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="targetAddress">The target address.</param>
+        /// <param name="passwordBase64">The password in Base64.</param>
+        /// <param name="satoshi">The satoshi.</param>
+        /// <returns>(Transaction) Object with information.</returns>
+        [ActionName("sendmoneybase64")]
+        [ActionDescription("Sends the money.")]
+        public IActionResult SendMoneyBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi)
+        {
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendMoneyResponse(hdAcccountName, walletName, targetAddress, password, satoshi, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Sends the money.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="targetAddress">The target address.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="satoshi">The satoshi.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(Transaction) Object with information.</returns>
+        [ActionName("sendmoneyfee")]
+        [ActionDescription("Sends the money.")]
+        public Transaction SendMoneyFee(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse(feeType, true, out convFeeType);
+            return SendMoneyProcessing(hdAcccountName, walletName, targetAddress, password, satoshi, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Sends the money.
+        /// </summary>
+        /// <param name="hdAcccountName">Name of the hd acccount.</param>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="targetAddress">The target address.</param>
+        /// <param name="passwordBase64">The password in Base64.</param>
+        /// <param name="satoshi">The satoshi.</param>
+        /// <param name="feeType">Fee type VERYLOW, LOW, MEDIUM, HIGH, VERYHIGH.</param>
+        /// <returns>(Transaction) Object with information.</returns>
+        [ActionName("sendmoneyfeebase64")]
+        [ActionDescription("Sends the money.")]
+        public IActionResult SendMoneyFeeBase64(string hdAcccountName, string walletName, string targetAddress, string passwordBase64, decimal satoshi, string feeType)
+        {
+            var convFeeType = FeeType.Low;
+            Enum.TryParse(feeType, true, out convFeeType);
+            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
+            return SendMoneyResponse(hdAcccountName, walletName, targetAddress, password, satoshi, FeeType.Low);
+        }
+
+        /// <summary>
+        /// Private function with response for SendMoney function.
+        /// </summary>
+        private IActionResult SendMoneyResponse(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi, FeeType feeType)
+        {
+            try
+            {
+                var tx = SendMoneyProcessing(hdAcccountName, walletName, targetAddress, password, satoshi, feeType);
+                return this.Json(ResultHelper.BuildResultResponse(tx));
+            }
+            catch (SecurityException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-1, e.Message, 0));
+            }
+            catch (FormatException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-2, e.Message, 0));
+            }
+            catch (WalletException e)
+            {
+                return this.Json(ResultHelper.BuildResultResponse(-3, e.Message, 0));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return this.Json(ResultHelper.BuildResultResponse(0, e.Message, 0));
+            }
+        }
+
+        /// <summary>
+        /// Private function to process SendMoney function.
+        /// </summary>
+        private Transaction SendMoneyProcessing(string hdAcccountName, string walletName, string targetAddress, string password, decimal satoshi, FeeType feeType)
         {
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
@@ -691,14 +912,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 List<Recipient> recipients = new List<Recipient>();
                 recipients.Add(new Recipient
                 {
-                    Amount = new Money(satoshi, MoneyUnit.Satoshi),
-                    ScriptPubKey = BitcoinAddress.Create(targetAddress, this.Network).ScriptPubKey
-                });
-
-                var context = new TransactionBuildContext(walletReference, recipients, password)
-                {
                     MinConfirmations = 1,
-                    FeeType = FeeType.Medium,
+                    FeeType = feeType,
                     Sign = true
                 };
 
@@ -711,80 +926,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Send manies the specified hd acccount name.
-        /// </summary>
-        /// <param name="hdAcccountName">Name of the hd acccount.</param>
-        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
-        /// <param name="minconf">(int) The minconf.</param>
-        /// <param name="passwordBase64">(string) The password in Base64.</param>
-        /// <returns>(uint256) Transaction hash.</returns>
-        [ActionName("sendmanybase64")]
-        [ActionDescription("Send manies the specified hd acccount name.")]
-        public uint256 SendmanyBase64(string hdAcccountName, string toBitcoinAddresses, int minconf, string passwordBase64)
-        {
-            var password = Encoding.UTF8.GetString(Convert.FromBase64String(passwordBase64));
-            return Sendmany(hdAcccountName, toBitcoinAddresses, minconf, password);
-        }
-
-        /// <summary>
-        /// Send manies the specified hd acccount name.
-        /// </summary>
-        /// <param name="hdAcccountName">Name of the hd acccount.</param>
-        /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
-        /// <param name="minconf">(int) The minconf.</param>
-        /// <param name="password">(string) The password.</param>
-        /// <returns>(uint256) Transaction hash.</returns>
-        [ActionName("sendmany")]
-        [ActionDescription("Send manies the specified hd acccount name.")]
-        public uint256 Sendmany(string hdAcccountName, string toBitcoinAddresses, int minconf, string password)
-        {
-            string acccountName = "";
-            string walletName = "";
-            if (string.IsNullOrEmpty(hdAcccountName))
-            {
-                throw new ArgumentNullException("hdAcccountName");
-            }
-            if (string.IsNullOrEmpty(toBitcoinAddresses))
-            {
-                throw new ArgumentNullException("toBitcoinAddresses");
-            }
-            if (hdAcccountName.Contains("/"))
-            {
-                acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
-                walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/")+1);//, hdAcccountName.Length - hdAcccountName.IndexOf("/")
-            }
-
-            var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-            var w = this.walletManager as WalletManager;
-            var walletReference = new WalletAccountReference(walletName, acccountName);
-            Dictionary<string, decimal> toBitcoinAddress = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(toBitcoinAddresses);
-
-            List<Recipient> recipients = new List<Recipient>();
-            foreach (var item in toBitcoinAddress)
-            {
-                recipients.Add(new Recipient
-                {
-                    Amount = new Money(item.Value, MoneyUnit.XRC),
-                    ScriptPubKey = BitcoinAddress.Create(item.Key, this.Network).ScriptPubKey
-                });
-            };
-
-            var context = new TransactionBuildContext(walletReference, recipients, password)
-            {
-                MinConfirmations = minconf,
-                FeeType = FeeType.Medium,
-                Sign = true
-            };
-
-            var controller = this.FullNode.NodeService<WalletController>();
-
-            var fundTransaction = transaction.BuildTransaction(context);
-            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
-
-            return fundTransaction.GetHash();
         }
 
         /// <summary>
@@ -996,6 +1137,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 lock (this.walletManager.GetLock())
                 {
+                    var walletUpdated = false;
+
                     for (int i = startHeight.Value; i <= stopHeight; i++)
                     {
                         if (!inRescan) break;
@@ -1004,7 +1147,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                         var chainedHeader = chainRepository.GetBlock(i);
                         var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-                        if (chainedHeader != null)
+
+                        foreach (Transaction transaction in block.Transactions)
                         {
                             foreach (Transaction transaction in block.Transactions)
                             {
@@ -1019,7 +1163,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 this.walletManager.UpdateLastBlockSyncedHeight(walletName, chainedHeader);
                             }
                         }
+
                         result.StopHeight = i;
+                    }
+
+                    if (walletUpdated)
+                    {
+                        this.walletManager.SaveWallets();
                     }
                 }
 
@@ -1105,7 +1255,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var chainedHeader = chainRepository.GetBlock(chainRepository.Height);
 
                 var fileContent = new StringBuilder();
-                fileContent.AppendLine("# Wallet dump created by BitCoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
+                fileContent.AppendLine("# Wallet dump created by Bitcoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
                 fileContent.AppendLine("# * Created on " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK"));
                 fileContent.AppendLine("# * Best block at time of backup was " + chainRepository.Height + " ," + chainedHeader.HashBlock);
                 fileContent.AppendLine("# * mined on" + Utils.UnixTimeToDateTime(chainedHeader.Header.Time).DateTime.ToString("yyyy-MM-ddTHH:mm:ssK"));
@@ -1426,7 +1576,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         if (rescan) this.RescanBlockChain();
                     }
                 }
-               
+
                 return this.Json(ResultHelper.BuildResultResponse(hdAddress));
             }
             catch (Exception e)
@@ -1853,7 +2003,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Updates list of temporarily unspendable outputs. 
+        /// Updates list of temporarily unspendable outputs.
         /// <p>Temporarily lock (unlock=false) or unlock(unlock=true) specified transaction outputs.<br/>
         /// If no transaction outputs are specified when unlocking then all current locked transaction outputs are unlocked.<br/>
         /// A locked transaction output will not be chosen by automatic coin selection, when spending bitcoins.<br/>
@@ -1954,5 +2104,53 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.walletSyncManager.SyncFromDate(date);
             return this.Json(ResultHelper.BuildResultResponse(wallet));
         }
+
+        /// <summary>
+        /// Remove transaction from wallet and sync it again.
+        /// </summary>
+        /// <param name="walletName">Wallet name.</param>
+        /// <param name="tx">Transaction id.</param>
+        /// <returns>(bool) Whether the command was successful or not.</returns>
+        [ActionName("removetransaction")]
+        [ActionDescription("Remove transaction from wallet.")]
+        public IActionResult RemoveTransaction(string walletName, string tx)
+        {
+            try
+            {
+                var wallet = this.walletManager.GetWalletByName(walletName);
+                var result = this.walletManager.RemoveTransactionsByIds(walletName, new uint256[] { new uint256(tx) });
+
+                if (result.Any())
+                {
+                    DateTimeOffset earliestDate = result.Min(r => r.Item2);
+                    ChainedHeader chainedHeader = this.chain.GetBlock(this.chain.GetHeightAtTime(earliestDate.DateTime));
+
+                    // Update the wallet and save it to the file system.
+                    wallet.SetLastBlockDetailsByCoinType((CoinType)this.Network.Consensus.CoinType, chainedHeader);
+                    this.walletManager.SaveWallet(wallet);
+
+                    // Start the syncing process from the block before the earliest transaction was seen.
+                    this.walletSyncManager.SyncFromHeight(chainedHeader.Height - 1);
+
+                    IEnumerable<RemovedTransactionModel> model = result.Select(r => new RemovedTransactionModel
+                    {
+                        TransactionId = r.Item1,
+                        CreationTime = r.Item2
+                    });
+
+                    return this.Json(ResultHelper.BuildResultResponse(true));
+                }
+                else
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(false));
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
     }
 }

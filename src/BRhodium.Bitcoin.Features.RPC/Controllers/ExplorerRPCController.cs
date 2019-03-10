@@ -174,7 +174,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var chainedHeader = this.Chain.GetBlock(height - i);
                         var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
-                        if (block == null) block = new PowBlock(chainedHeader.Header);
+                        if (block == null) block = new Block(chainedHeader.Header);
                         var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
 
                         chainedNextHeader = chainedHeader;
@@ -213,7 +213,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (chainedHeader != null)
                 {
-                    if (block == null) block = new PowBlock(chainedHeader.Header);
+                    if (block == null) block = new Block(chainedHeader.Header);
                     result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
                 }
 
@@ -355,7 +355,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                     try
                     {
-                        if (block == null) block = new PowBlock(chainedHeader.Header);
+                        if (block == null) block = new Block(chainedHeader.Header);
 
                         var newBlock = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
 

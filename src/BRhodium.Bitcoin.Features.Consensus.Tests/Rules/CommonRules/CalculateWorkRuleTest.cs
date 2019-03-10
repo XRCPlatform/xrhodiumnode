@@ -26,22 +26,24 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             await this.consensusRules.RegisterRule<CalculateWorkRule>().RunAsync(this.ruleContext);
 
-            Assert.Equal(0.465, this.ruleContext.NextWorkRequired.Difficulty);
+            Assert.Equal(0.000000000465, this.ruleContext.NextWorkRequired.Difficulty);
         }
 
         [Fact]
         public async Task RunAsync_ProofOfWorkBlock_CheckPow_InValidPow_ThrowsHighHashConsensusErrorExceptionAsync()
         {
+            this.network = Network.RegTest;
+            this.concurrentChain = MineChainWithHeight(2, this.network);
             this.ruleContext.BlockValidationContext = new BlockValidationContext()
             {
-                Block = new Block()
+                Block = new Block(new BlockHeader())
                 {
                     Transactions = new List<Transaction>()
                         {
                             new NBitcoin.Transaction()
                         }
                 },
-                ChainedHeader = this.concurrentChain.GetBlock(4)
+                ChainedHeader = this.concurrentChain.GetBlock(2)
             };
             this.ruleContext.CheckPow = true;
 

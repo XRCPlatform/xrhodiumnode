@@ -138,6 +138,7 @@ namespace BRhodium.Bitcoin.Features.RPC
                 service.AddSingleton<RPCController>();
                 service.AddSingleton<ExplorerRPCController>();
                 service.AddSingleton<NetworkRPCController>();
+                service.AddSingleton<BlockChainRPCController>();
             });
 
             return fullNodeBuilder;

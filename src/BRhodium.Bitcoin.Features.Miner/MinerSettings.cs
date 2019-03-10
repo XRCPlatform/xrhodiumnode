@@ -59,6 +59,8 @@ namespace BRhodium.Bitcoin.Features.Miner
             this.Mine = config.GetOrDefault<bool>("mine", false);
             if (this.Mine)
                 this.MineAddress = config.GetOrDefault<string>("mineaddress", null);
+                this.WalletName = config.GetOrDefault<string>("walletname", null);
+                this.WalletPassword = config.GetOrDefault<string>("walletpassword", null);
 
             this.callback?.Invoke(this);
         }

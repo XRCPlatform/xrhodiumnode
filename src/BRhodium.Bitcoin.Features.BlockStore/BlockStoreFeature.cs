@@ -197,7 +197,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                         services.AddSingleton<BlockStoreSignaled>();
                         services.AddSingleton<StoreSettings>(new StoreSettings(setup));
                         services.AddSingleton<BlockStoreController>();
-                        services.AddSingleton<BlockChainRPCController>();
                     });
             });
 

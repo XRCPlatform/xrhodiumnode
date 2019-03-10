@@ -11,15 +11,7 @@ namespace BRhodium.Node.Tests.Utilities
         public void GetMainNetworkReturnsNetworkMain()
         {
             Network main = Network.Main;
-            Network network = NetworkHelpers.GetNetwork("main");
-            Assert.Equal(Network.Main, network);
-        }
-
-        [Fact]
-        public void GetMainNetNetworkReturnsNetworkMain()
-        {
-            Network main = Network.Main;
-            Network network = NetworkHelpers.GetNetwork("mainnet");
+            Network network = NetworkHelpers.GetNetwork("BRhodiumMain");
             Assert.Equal(Network.Main, network);
         }
 
@@ -27,29 +19,8 @@ namespace BRhodium.Node.Tests.Utilities
         public void GetTestNetworkReturnsNetworkTest()
         {
             Network test = Network.TestNet;
-            Network network = NetworkHelpers.GetNetwork("test");
+            Network network = NetworkHelpers.GetNetwork("BRhodiumTest");
             Assert.Equal(Network.TestNet, network);
-        }
-
-        [Fact]
-        public void GetTestNetNetworkReturnsNetworkTest()
-        {
-            Network test = Network.TestNet;
-            Network network = NetworkHelpers.GetNetwork("testnet");
-            Assert.Equal(Network.TestNet, network);
-        }
-
-        [Fact]
-        public void GetNetworkIsCaseInsensitive()
-        {
-            Network test = Network.TestNet;
-            Network main = Network.Main;
-
-            Network testNetwork = NetworkHelpers.GetNetwork("Test");
-            Assert.Equal(Network.TestNet, testNetwork);
-
-            Network mainNetwork = NetworkHelpers.GetNetwork("MainNet");
-            Assert.Equal(Network.Main, mainNetwork);
         }
 
         [Fact]

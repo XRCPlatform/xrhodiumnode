@@ -36,8 +36,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{ApiSettings.DefaultApiHost}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace BRhodium.Node.Api.Tests
         public void GivenNoApiSettingsAreProvided_AndOnBRhodiumNetwork_ThenDefaultSettingAreUsed()
         {
             // Arrange.
-            Network network = Network.BRhodiumMain;
+            Network network = Network.Main;
             NodeSettings nodeSettings = new NodeSettings(network, loadConfiguration:false);
 
             // Act.
@@ -106,8 +106,8 @@ namespace BRhodium.Node.Api.Tests
             settings.Load(nodeSettings);
 
             // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBitcoinApiPort}"), settings.ApiUri);
+            Assert.Equal(ApiSettings.DefaultBRhodiumApiPort, settings.ApiPort);
+            Assert.Equal(new Uri($"{customApiUri}:{ApiSettings.DefaultBRhodiumApiPort}"), settings.ApiUri);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace BRhodium.Node.Api.Tests
         {
             // Arrange.
             string customApiUri = "http://0.0.0.0";
-            Network network = Network.BRhodiumMain;
+            Network network = Network.Main;
             NodeSettings nodeSettings = new NodeSettings(network, args:new[] { $"-apiuri={customApiUri}" }, loadConfiguration:false);
 
             // Act.
@@ -185,55 +185,13 @@ namespace BRhodium.Node.Api.Tests
         }
 
         /// <summary>
-        /// Tests that if we're on the Bitcoin main network, the port used in the API is the right one.
-        /// </summary>
-        [Fact]
-        public void GivenBitcoinMain_ThenUseTheCorrectPort()
-        {
-            // Arrange.
-            NodeSettings nodeSettings = NodeSettings.Default(Network.Main);
-
-            // Act.
-            ApiSettings settings = new FullNodeBuilder()
-                .UseNodeSettings(nodeSettings)
-                .UseApi()
-                .Build()
-                .NodeService<ApiSettings>();
-            settings.Load(nodeSettings);
-
-            // Assert.
-            Assert.Equal(ApiSettings.DefaultBitcoinApiPort, settings.ApiPort);
-        }
-
-        /// <summary>
-        /// Tests that if we're on the Bitcoin test network, the port used in the API is the right one.
-        /// </summary>
-        [Fact]
-        public void GivenBitcoinTestnet_ThenUseTheCorrectPort()
-        {
-            // Arrange.
-            NodeSettings nodeSettings = NodeSettings.Default(Network.TestNet);
-
-            // Act.
-            ApiSettings settings = new FullNodeBuilder()
-                .UseNodeSettings(nodeSettings)
-                .UseApi()
-                .Build()
-                .NodeService<ApiSettings>();
-            settings.Load(nodeSettings);
-
-            // Assert.
-            Assert.Equal(ApiSettings.TestBitcoinApiPort, settings.ApiPort);
-        }
-
-        /// <summary>
-        /// Tests that if we're on the BRhodium main network, the port used in the API is the right one.
+        /// Tests that if we're on the Brhodium main network, the port used in the API is the right one.
         /// </summary>
         [Fact]
         public void GivenBRhodiumMainnet_ThenUseTheCorrectPort()
         {
             // Arrange.
-            NodeSettings nodeSettings = NodeSettings.Default(Network.BRhodiumMain);
+            NodeSettings nodeSettings = NodeSettings.Default(Network.Main);
 
             // Act.
             ApiSettings settings = new FullNodeBuilder()
@@ -248,13 +206,13 @@ namespace BRhodium.Node.Api.Tests
         }
 
         /// <summary>
-        /// Tests that if we're on the BRhodium test network, the port used in the API is the right one.
+        /// Tests that if we're on the Brhodium test network, the port used in the API is the right one.
         /// </summary>
         [Fact]
-        public void GivenBRhodiumTestnet_ThenUseTheCorrectPort()
+        public void GivenBrhodiumTestnet_ThenUseTheCorrectPort()
         {
             // Arrange.
-            NodeSettings nodeSettings = NodeSettings.Default(Network.BRhodiumTest);
+            NodeSettings nodeSettings = NodeSettings.Default(Network.TestNet);
 
             // Act.
             ApiSettings settings = new FullNodeBuilder()

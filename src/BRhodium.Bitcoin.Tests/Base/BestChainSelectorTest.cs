@@ -20,7 +20,7 @@ namespace BRhodium.Node.Tests.Base
         public BestChainSelectorTest()
         {
             this.chainedHeaders = new List<ChainedHeader>();
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(Network.Main);
 
             for (int i = 0; i < 20; ++i)
             {
@@ -48,7 +48,7 @@ namespace BRhodium.Node.Tests.Base
         [Fact]
         public async Task NewTipIsSelectedWhenBestTipProviderDisconnectsAsync()
         {
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(Network.Main);
             var chainSelector = new BestChainSelector(chain, this.chainState.Object, new LoggerFactory());
 
             chain.SetTip(this.chainedHeaders[10]);
@@ -82,7 +82,7 @@ namespace BRhodium.Node.Tests.Base
         [Fact]
         public async Task CantSwitchToTipBelowConsensusAsync()
         {
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(Network.Main);
             var chainSelector = new BestChainSelector(chain, this.chainState.Object, new LoggerFactory());
 
             chain.SetTip(this.chainedHeaders[10]);
@@ -109,7 +109,7 @@ namespace BRhodium.Node.Tests.Base
         [Fact]
         public async Task OneOfManyBestChainProvidersDisconnectsAsync()
         {
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(Network.Main);
             var chainSelector = new BestChainSelector(chain, this.chainState.Object, new LoggerFactory());
 
             chain.SetTip(this.chainedHeaders[10]);

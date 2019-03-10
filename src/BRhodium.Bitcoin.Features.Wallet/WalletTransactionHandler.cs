@@ -355,7 +355,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // If the fee hasn't been set manually, calculate it based on the fee type that was chosen.
             if (context.TransactionFee == null)
             {
-                FeeRate feeRate = context.OverrideFeeRate ?? this.walletFeePolicy.GetFeeRate(context.FeeType.ToConfirmations());
+                FeeRate feeRate = context.OverrideFeeRate ?? this.walletFeePolicy.GetFeeRate(context.FeeType);
                 fee = context.TransactionBuilder.EstimateFees(feeRate);
             }
             else

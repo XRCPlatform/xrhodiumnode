@@ -5,6 +5,7 @@ using System.Linq;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 
@@ -107,25 +108,27 @@ namespace NBitcoin
 
         public virtual uint256 GetHash()
         {
-            uint256 hash = null;
-            uint256[] hashes = this.hashes;
+            return this.GetHash(null);
+        }
 
-            if (hashes != null)
-                hash = hashes[0];
+        /// <inheritdoc />
+        public uint256 GetHash(Network network = null)
+        {
+            uint256 hash = null;
+            uint256[] innerHashes = this.hashes;
+
+            if (innerHashes != null)
+                hash = innerHashes[0];
 
             if (hash != null)
                 return hash;
 
-            using (HashStream hs = new HashStream())
-            {
-                this.ReadWrite(new BitcoinStream(hs, true));
-                hash = hs.GetHash();
-            }
+            hash = Hashes.Hash256(this.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, network));
 
-            hashes = this.hashes;
-            if (hashes != null)
+            innerHashes = this.hashes;
+            if (innerHashes != null)
             {
-                hashes[0] = hash;
+                innerHashes[0] = hash;
             }
 
             return hash;
@@ -133,7 +136,14 @@ namespace NBitcoin
 
         public virtual uint256 GetPoWHash(int height, int powLimit2Height)
         {
-            return this.GetHash();
+            if (height > powLimit2Height)
+            {             
+                return HashX13.Instance.Hash(this.ToBytes(), 2);
+            }
+            else
+            {
+                return HashX13.Instance.Hash(this.ToBytes(), 1);
+            }            
         }
 
         /// <summary>
@@ -208,6 +218,7 @@ namespace NBitcoin
 
     public partial class Block : IBitcoinSerializable
     {
+        public const uint MaxBlockSize = 4 * 1000 * 1000;
         private BlockHeader header;
 
         // network and disk
@@ -219,22 +230,19 @@ namespace NBitcoin
             return MerkleNode.GetRoot(this.Transactions.Select(t => t.GetHash()));
         }
 
-        [Obsolete("Should use Block.Load outside of ConsensusFactories")]
         public Block()
         {
             this.header = new BlockHeader();
             this.SetNull();
         }
 
-        [Obsolete("Should use Block.Load outside of ConsensusFactories")]
-        internal Block(BlockHeader blockHeader)
+        public Block(BlockHeader blockHeader)
         {
             this.header = new BlockHeader();
             this.SetNull();
             this.header = blockHeader;
         }
 
-        [Obsolete("Should use Block.Load outside of ConsensusFactories")]
         internal Block(byte[] bytes, ConsensusFactory consensusFactory)
         {
             BitcoinStream stream = new BitcoinStream(bytes)
@@ -245,7 +253,6 @@ namespace NBitcoin
             this.ReadWrite(stream);
         }
 
-        [Obsolete("Should use Block.Load outside of ConsensusFactories")]
         internal Block(byte[] bytes) : this(bytes, Network.Main.Consensus.ConsensusFactory)
         {
         }
@@ -275,7 +282,7 @@ namespace NBitcoin
         public uint256 GetHash(Network network = null)
         {
             // Block's hash is his header's hash.
-            return ((PowBlockHeader)this.header).GetHash(network);
+            return this.header.GetHash(network);
         }
 
         public Transaction AddTransaction(Transaction tx)

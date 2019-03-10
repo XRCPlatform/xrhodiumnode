@@ -367,7 +367,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 }
 
                 var hexBytes = Encoders.Hex.DecodeData(hex);
-                var pblock = PowBlock.Load(hexBytes, this.Network);
+                var pblock = Block.Load(hexBytes, this.Network);
 
                 if (pblock == null)
                 {
@@ -401,15 +401,50 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <summary>
         /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).
         /// </summary>
-        /// <param name="nblocks">The nblocks.</param>
+        /// <param name="nblocks">Confirmation target in blocks.</param>
         /// <returns>Estimated fee-per-kilobyte</returns>
         [ActionName("estimatefee")]
         [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within nblocks blocks.Uses virtual transaction size of transaction as defined in BIP 141 (witness data is discounted).")]
-        public IActionResult EstimateFee(string nblocks)
+        public IActionResult EstimateFee(int nblocks)
         {
-            var estimation = txMempool.EstimateFee(Int32.Parse(nblocks));
+            //we have to add height here because mempool know about height after first processed block
+            var height = this.consensusLoop.Chain.Tip.Height;
+            var estimation = this.txMempool.EstimateFee(nblocks, height);
             var json = this.Json(ResultHelper.BuildResultResponse(estimation.FeePerK));
             return json;
+        }
+
+        /// <summary>
+        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).
+        /// </summary>
+        /// <param name="nblocks">Confirmation target in blocks</param>
+        /// <param name="estimate_mode">The fee estimate mode. Whether to return a more conservative estimate which also satisfies a longer history.A conservative estimate potentially returns a higher feerate and is more likely to be sufficient for the desired target, but is not as responsive to short term drops in the prevailing fee market.  Must be one of: "UNSET" (defaults to CONSERVATIVE), "ECONOMICAL", "CONSERVATIVE".</param>
+        /// <returns>(EstimateSmartFeeModel) Return model with information about estimate.</returns>
+        [ActionName("estimatesmartfee")]
+        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).")]
+        public IActionResult EstimateSmartFee(int nblocks, string estimate_mode)
+        {
+            try
+            {
+                var result = new EstimateSmartFeeModel();
+                int foundAtBlock = 0;
+
+                var isConservative = true;
+                //we have to add height here because mempool know about height after first processed block
+                var height = this.consensusLoop.Chain.Tip.Height;
+                if ((!string.IsNullOrEmpty(estimate_mode)) && (estimate_mode.ToUpper() == "ECONOMICAL")) isConservative = false;
+                var estimation = this.txMempool.EstimateSmartFee(nblocks, out foundAtBlock, height, isConservative);
+
+                result.Blocks = foundAtBlock;
+                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.XRC);
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         /// <summary>
@@ -504,37 +539,6 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
             var json = this.Json(ResultHelper.BuildResultResponse(true));
             return json;
-        }
-
-        /// <summary>
-        /// Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).
-        /// </summary>
-        /// <param name="nblocks">Confirmation target in blocks</param>
-        /// <param name="estimate_mode">The fee estimate mode. Whether to return a more conservative estimate which also satisfies a longer history.A conservative estimate potentially returns a higher feerate and is more likely to be sufficient for the desired target, but is not as responsive to short term drops in the prevailing fee market.  Must be one of: "UNSET" (defaults to CONSERVATIVE), "ECONOMICAL", "CONSERVATIVE".</param>
-        /// <returns>(EstimateSmartFeeModel) Return model with information about estimate.</returns>
-        [ActionName("estimatesmartfee")]
-        [ActionDescription("Estimates the approximate fee per kilobyte needed for a transaction to begin confirmation within conf_target blocks if possible and return the number of blocks for which the estimate is valid.Uses virtual transaction size as defined in BIP 141 (witness data is discounted).")]
-        public IActionResult EstimateSmartFee(int nblocks, string estimate_mode)
-        {
-            try
-            {
-                var result = new EstimateSmartFeeModel();
-                int foundAtBlock = 0;
-
-                var isConservative = true;
-                if ((!string.IsNullOrEmpty(estimate_mode)) && (estimate_mode.ToUpper() == "ECONOMICAL")) isConservative = false;
-                var estimation = this.txMempool.EstimateSmartFee(nblocks, out foundAtBlock, isConservative);
-
-                result.Blocks = foundAtBlock;
-                result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.XRC);
-
-                return this.Json(ResultHelper.BuildResultResponse(result));
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
         }
     }
 }

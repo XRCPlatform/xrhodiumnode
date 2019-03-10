@@ -12,7 +12,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void GetCoinTypeHavingHdPathReturnsCointType()
         {
             var account = new HdAccount();
-            account.HdPath = "1/2/105";
+            account.HdPath = "1/2/10291";
 
             CoinType result = account.GetCoinType();
 

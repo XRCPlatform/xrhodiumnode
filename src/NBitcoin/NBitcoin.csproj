@@ -63,13 +63,4 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-
-<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
-  <Exec Command="copy /Y &quot;$(ProjectDir)..\Native\libmultihash-x64\libmultihash.dll&quot; &quot;$(OutDir)libmultihash.dll&quot;" />
-</Target>
-  
-  <!-- Build library binaries from source on Linux -->
-  <Target Name="BuildNativeLibsLinux" AfterTargets="AfterBuild" Condition="'$(IsLinux)' == 'true'">
-    <Exec Command="(cd $(ProjectDir)../Native/libmultihash &amp;&amp; make &amp;&amp; make) &amp;&amp; cp $(ProjectDir)../Native/libmultihash/libmultihash.so $(OutDir)" />
-  </Target>
 </Project>

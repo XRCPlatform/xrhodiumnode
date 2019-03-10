@@ -278,15 +278,16 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// Return a feerate estimate
         /// </summary>
         /// <param name="confTarget">The desired number of confirmations to be included in a block.</param>
-        public FeeRate EstimateFee(int confTarget)
+        /// <param name="currentHeight">Current height which can override actual processed block height.</param>
+        public FeeRate EstimateFee(int confTarget, int? currentHeight = null)
         {
             // Return failure if trying to analyze a target we're not tracking
             // It's not possible to get reasonable estimates for confTarget of 1
-            if (confTarget <= 1 || confTarget > this.FeeStats.GetMaxConfirms())
+            if (confTarget <= 0 || confTarget > this.FeeStats.GetMaxConfirms())
                 return new FeeRate(0);
 
             double median = this.FeeStats.EstimateMedianVal(confTarget, SufficientFeeTxs, MinSuccessPct, true,
-                this.nBestSeenHeight);
+                (currentHeight.HasValue ? currentHeight.Value : this.nBestSeenHeight));
 
             if (median < 0)
                 return new FeeRate(0);
@@ -299,7 +300,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
         /// confTarget blocks. If no answer can be given at confTarget, return an
         /// estimate at the lowest target where one can be given.
         /// </summary>
-        public FeeRate EstimateSmartFee(int confTarget, ITxMempool pool, out int answerFoundAtTarget, bool requireGreater = true)
+        public FeeRate EstimateSmartFee(int confTarget, ITxMempool pool, out int answerFoundAtTarget, int? currentHeight = null, bool requireGreater = true)
         {
             answerFoundAtTarget = confTarget;
 
@@ -314,7 +315,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             double median = -1;
             while (median < 0 && confTarget <= this.FeeStats.GetMaxConfirms())
                 median = this.FeeStats.EstimateMedianVal(confTarget++, SufficientFeeTxs, MinSuccessPct, requireGreater,
-                    this.nBestSeenHeight);
+                    (currentHeight.HasValue ? currentHeight.Value : this.nBestSeenHeight));
 
             answerFoundAtTarget = confTarget - 1;
 

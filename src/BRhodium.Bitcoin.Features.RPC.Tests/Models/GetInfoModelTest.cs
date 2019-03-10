@@ -11,7 +11,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         private static readonly string[] AllPropertyNames = new string[] {
                 "version",
                 "protocolversion",
-                "walletversion",
                 "balance",
                 "blocks",
                 "timeoffset",
