@@ -29,7 +29,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     /// <seealso cref="BRhodium.Node.Builder.Feature.FullNodeFeature" />
     /// <seealso cref="BRhodium.Node.Interfaces.INodeStats" />
-    public class WalletFeature : FullNodeFeature, INodeStats, IFeatureStats, IOptimalization
+    public class WalletFeature : FullNodeFeature, INodeStats, IFeatureStats
     {
         private readonly IWalletSyncManager walletSyncManager;
 
@@ -109,22 +109,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public static void BuildDefaultConfigurationFile(StringBuilder builder, Network network)
         {
             WalletSettings.BuildDefaultConfigurationFile(builder, network);
-        }
-
-        /// <inheritdoc />
-        public void OptimizeIt(StringBuilder optimalizationLog)
-        {
-            WalletManager walletManager = this.walletManager as WalletManager;
-
-            if (walletManager != null)
-            {
-                optimalizationLog.AppendLine("DBreeze VACUUM:");
-                optimalizationLog.AppendLine("Start : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
-
-                walletManager.DBreezeStorage.OptimizeStorage();
-
-                optimalizationLog.AppendLine("End : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
-            }
         }
 
         /// <inheritdoc />
