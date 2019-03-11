@@ -27,12 +27,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         uint256 WalletTipHash { get; set; }
 
-        /// <summary>
-        /// Gets the list of wallets.
-        /// </summary>
-        ConcurrentBag<Wallet> Wallets { get; }
-
-        /// <summary>
+            /// <summary>
         /// Memory locked unspendable transaction parts (tx hash, index vount)
         /// </summary>
         ConcurrentDictionary<string, int> LockedTxOut { get; set; }
@@ -81,7 +76,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Deletes a wallet.
         /// </summary>
-        void DeleteWallet();
+        void DeleteWallet(string walletName);
 
         /// <summary>
         /// Gets an account that contains no transactions.

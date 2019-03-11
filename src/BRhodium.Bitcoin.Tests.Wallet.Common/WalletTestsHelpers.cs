@@ -198,8 +198,9 @@ namespace BRhodium.Node.Tests.Wallet.Common
 
         public static void AddAddressesToWallet(WalletManager walletManager, int count)
         {
-            foreach (var wallet in walletManager.Wallets)
+            foreach (var walletName in walletManager.GetWalletNames())
             {
+                var wallet = walletManager.GetWalletByName(walletName);
                 wallet.AccountsRoot.Add(new AccountRoot()
                 {
                     CoinType = CoinType.BRhodium,

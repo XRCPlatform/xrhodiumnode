@@ -84,7 +84,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>The settings for the wallet feature.</summary>
         private readonly WalletSettings walletSettings;
         /// <summary>Gets the list of wallets.</summary>
-        public ConcurrentBag<Wallet> Wallets { get; }
+        //public ConcurrentBag<Wallet> Wallets { get; }
 
         public uint256 WalletTipHash { get; set; }
 
@@ -154,7 +154,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.addressByScriptLookup = new ConcurrentDictionary<ScriptId, WalletLinkedHdAddress>();
             this.addressLookup = new ConcurrentDictionary<string, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
-
+            //this.Wallets = new ConcurrentBag<Wallet>();
         }
 
        
@@ -1635,7 +1635,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public void DeleteWallet()
+        public void DeleteWallet(string walletName)
         {
             throw new NotImplementedException();
         }

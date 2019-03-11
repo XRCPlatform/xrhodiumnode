@@ -51,8 +51,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 var current = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
                 try
                 {
-                    Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
-                    current.GetDirectories(@"Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath);
+                    if (!Directory.Exists(fi.DirectoryName))
+                    {
+                        Directory.CreateDirectory(fi.DirectoryName);
+                    }
+                    current.GetDirectories(@"Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath,true);
                     //current.Parent.GetDirectories(@"\Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath);
                 }
                 catch (DirectoryNotFoundException)
