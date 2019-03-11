@@ -7,7 +7,7 @@ namespace NBitcoin.Tests
 {
     public class pow_tests
     {
-        [Fact]
+        [Fact(Skip="Must rewrite for BRhodium")]
         [Trait("UnitTest", "UnitTest")]
         public void CanCalculatePowCorrectly()
         {

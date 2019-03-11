@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.DataEncoders;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace NBitcoin.Tests
@@ -72,7 +73,7 @@ namespace NBitcoin.Tests
         [Trait("Core", "Core")]
         public void base58_keys_valid_parse()
         {
-            var tests = TestCase.read_json("Data\\base58_keys_valid.json");
+            var tests = TestCase.read_json("data/base58_keys_valid.json");
             Network network;
             foreach(var test in tests)
             {

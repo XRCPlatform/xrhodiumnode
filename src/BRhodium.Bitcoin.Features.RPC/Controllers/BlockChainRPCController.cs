@@ -398,7 +398,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(string or GetBlockModel) Object with informations.</returns>
         [ActionName("getblockheader")]
         [ActionDescription("If verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'. If verbose is true, returns an Object with information about blockheader 'hash'.")]
-        public IActionResult GetBlockHeader(string hash, bool verbose)
+        public IActionResult GetBlockHeader(string hash, bool verbose = true)
         {
             try
             {
@@ -415,13 +415,21 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 switch (verbose)
                 {
+                    case false:
+                        var hex = block.ToHex(this.Network);
+                        return this.Json(ResultHelper.BuildResultResponse(hex));
                     case true:
+                    default:
                         var blockTemplate = new GetBlockModel();
 
                         blockTemplate.Hash = chainedHeader.HashBlock.ToString();
                         blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
                         blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
-                        blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+
+                        if (block.Header.HashPrevBlock != 0)
+                        {
+                            blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
+                        }
 
                         if (this.Chain.Tip.Height > chainedHeader.Height)
                         {
@@ -440,10 +448,6 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         blockTemplate.TransactionsCount = block.Transactions != null ? block.Transactions.Count() : 0;
 
                         return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
-
-                    default:
-                        var hex = block.ToHex(this.Network);
-                        return this.Json(ResultHelper.BuildResultResponse(hex));
                 }
             }
             catch (Exception e)

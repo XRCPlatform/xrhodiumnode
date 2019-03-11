@@ -135,15 +135,15 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             BitcoinSecret satoshi = new BitcoinSecret(new Key(), Network.RegTest);
 
             // Fund Alice, Bob, Satoshi
-            // 50 Coins come from first tx on chain - send satoshi 1, bob 2, Alice 1.5 and change back to miner
+            // 2.5 Coins come from first tx on chain - send satoshi 0.0008, bob 0.016, Alice 0.075 and change back to miner
             Coin coin = new Coin(context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.ScriptPubKey);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction multiOutputTx = txBuilder
                 .AddCoins(new List<Coin> { coin })
                 .AddKeys(miner)
-                .Send(satoshi.GetAddress(), "1.00")
-                .Send(bob.GetAddress(), "2.00")
-                .Send(alice.GetAddress(), "1.50")
+                .Send(satoshi.GetAddress(), "0.0008")
+                .Send(bob.GetAddress(), "0.016")
+                .Send(alice.GetAddress(), "0.075")
                 .SendFees("0.001")
                 .SetChange(miner.GetAddress())
                 .BuildTransaction(true);
@@ -165,13 +165,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Transaction multiInputTx = txBuilder
                 .AddCoins(aliceCoins)
                 .AddKeys(alice)
-                .Send(satoshi.GetAddress(), "0.8")
+                .Send(satoshi.GetAddress(), "0.0008")
                 .SetChange(alice.GetAddress())
                 .SendFees("0.0005")
                 .Then()
                 .AddCoins(bobCoins)
                 .AddKeys(bob)
-                .Send(satoshi.GetAddress(), "0.2")
+                .Send(satoshi.GetAddress(), "0.002")
                 .SetChange(bob.GetAddress())
                 .SendFees("0.0005")
                 .BuildTransaction(true);
@@ -205,13 +205,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                         .GenerateScriptPubKey(2, new[] { alice.PubKey, bob.PubKey, nico.PubKey });
 
             // Fund corp
-            // 50 Coins come from first tx on chain - send corp 42 and change back to miner
+            // 2.5 Coins come from first tx on chain - send corp 2.1 and change back to miner
             Coin coin = new Coin(context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.ScriptPubKey);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction sendToMultiSigTx = txBuilder
                 .AddCoins(new List<Coin> { coin })
                 .AddKeys(miner)
-                .Send(corpMultiSig, "42.00")
+                .Send(corpMultiSig, "2.1")
                 .SendFees("0.001")
                 .SetChange(miner.GetAddress())
                 .BuildTransaction(true);
@@ -230,7 +230,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Transaction multiSigTx = txBuilder
                     .AddCoins(corpCoins)
                     .AddKeys(alice)
-                    .Send(satoshi.GetAddress(), "4.5")
+                    .Send(satoshi.GetAddress(), "0.036")
                     .SendFees("0.001")
                     .SetChange(corpMultiSig)
                     .BuildTransaction(true);
@@ -276,13 +276,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             BitcoinScriptAddress corpRedeemAddress = corpMultiSig.GetScriptAddress(Network.RegTest);
 
             // Fund corp
-            // 50 Coins come from first tx on chain - send corp 42 and change back to miner
+            // 2.5 Coins come from first tx on chain - send corp 2.1 and change back to miner
             Coin coin = new Coin(context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.ScriptPubKey);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction fundP2shTx = txBuilder
                 .AddCoins(new List<Coin> { coin })
                 .AddKeys(miner)
-                .Send(corpRedeemAddress, "42.00")
+                .Send(corpRedeemAddress, "2.1")
                 .SendFees("0.001")
                 .SetChange(miner.GetAddress())
                 .BuildTransaction(true);
@@ -290,7 +290,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             MempoolValidationState state = new MempoolValidationState(false);
             Assert.True(await validator.AcceptToMemoryPool(state, fundP2shTx), $"Transaction: {nameof(fundP2shTx)} failed mempool validation.");
 
-            // AliceBobNico corp. send 20 to Satoshi
+            // AliceBobNico corp. send 1 to Satoshi
             Coin[] corpCoins = fundP2shTx.Outputs
                         .Where(o => o.ScriptPubKey == corpRedeemAddress.ScriptPubKey)
                         .Select(o => ScriptCoin.Create(Network.RegTest, new OutPoint(fundP2shTx.GetHash(), fundP2shTx.Outputs.IndexOf(o)), o, corpMultiSig))
@@ -300,7 +300,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             Transaction p2shSpendTx = txBuilder
                     .AddCoins(corpCoins)
                     .AddKeys(alice, bob)
-                    .Send(satoshi.GetAddress(), "20")
+                    .Send(satoshi.GetAddress(), "1")
                     .SendFees("0.001")
                     .SetChange(corpRedeemAddress)
                     .BuildTransaction(true);
@@ -325,13 +325,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             BitcoinSecret bob = new BitcoinSecret(new Key(), Network.RegTest);
 
             // Fund Bob
-            // 50 Coins come from first tx on chain - send bob 42 and change back to miner
+            // 2.5 Coins come from first tx on chain - send bob 2.1 and change back to miner
             Coin witnessCoin = new Coin(context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.PubKey.WitHash.ScriptPubKey);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction p2wpkhTx = txBuilder
                 .AddCoins(witnessCoin)
                 .AddKeys(miner)
-                .Send(bob, "42.00")
+                .Send(bob, "2.1")
                 .SendFees("0.001")
                 .SetChange(miner)
                 .BuildTransaction(true);
@@ -356,13 +356,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             BitcoinSecret bob = new BitcoinSecret(new Key(), Network.RegTest);
 
             // Fund Bob
-            // 50 Coins come from first tx on chain - send bob 42 and change back to miner
+            // 2.5 Coins come from first tx on chain - send bob 2.1 and change back to miner
             ScriptCoin witnessCoin = ScriptCoin.Create(Network.RegTest, context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.PubKey.ScriptPubKey.WitHash.ScriptPubKey, miner.PubKey.ScriptPubKey).AssertCoherent(Network.RegTest);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction p2wshTx = txBuilder
                 .AddCoins(witnessCoin)
                 .AddKeys(miner)
-                .Send(bob, "42.00")
+                .Send(bob, "2.1")
                 .SendFees("0.001")
                 .SetChange(miner)
                 .BuildTransaction(true);
@@ -387,13 +387,13 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             BitcoinSecret bob = new BitcoinSecret(new Key(), Network.RegTest);
 
             // Fund Bob
-            // 50 Coins come from first tx on chain - send bob 42 and change back to miner
+            // 2.5 Coins come from first tx on chain - send bob  and change back to miner
             ScriptCoin witnessCoin =  ScriptCoin.Create(Network.RegTest, context.SrcTxs[0].GetHash(), 0, context.SrcTxs[0].TotalOut, miner.PubKey.ScriptPubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey, miner.PubKey.ScriptPubKey);
             TransactionBuilder txBuilder = new TransactionBuilder(Network.RegTest);
             Transaction p2shOverp2wpkh = txBuilder
                 .AddCoins(witnessCoin)
                 .AddKeys(miner)
-                .Send(bob, "42.00")
+                .Send(bob, "2.1")
                 .SendFees("0.001")
                 .SetChange(miner)
                 .BuildTransaction(true);

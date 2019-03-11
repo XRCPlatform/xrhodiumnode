@@ -16,7 +16,7 @@ namespace NBitcoin.Tests
         {
             public ColoredCoinTester([CallerMemberName]string test = null)
             {
-                var testcase = JsonConvert.DeserializeObject<TestCase[]>(File.ReadAllText("Data/openasset-known-tx.json"))
+                var testcase = JsonConvert.DeserializeObject<TestCase[]>(File.ReadAllText("data/openasset-known-tx.json"))
                     .First(t => t.test == test);
                 NoSqlTransactionRepository repository = new NoSqlTransactionRepository();
                 foreach(var tx in testcase.txs)
@@ -89,9 +89,9 @@ namespace NBitcoin.Tests
         [Trait("UnitTest", "UnitTest")]
         public void CanParseColoredAddress()
         {
-            var address = new BitcoinPubKeyAddress("16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM", Network.Main);
+            var address = new BitcoinPubKeyAddress("RrndA8AZQ3wiBqNAtwH54teqB4ihs3bTGF", Network.Main);
             var colored = address.ToColoredAddress();
-            Assert.Equal("akB4NBW9UuCmHuepksob6yfZs6naHtRCPNy", colored.ToWif());
+            Assert.Equal("bB2kWQHytsXqQ45XXwZPFikZQWftsqUVAzR", colored.ToWif());
             Assert.Equal(address.ScriptPubKey, colored.ScriptPubKey);
 
             var testAddress = address.ToNetwork(Network.TestNet);
@@ -105,7 +105,7 @@ namespace NBitcoin.Tests
             Assert.Equal(testAddress.ScriptPubKey, testColored.ScriptPubKey);
 
             Assert.Equal(Network.TestNet, testColored.Network);
-            testColored = new BitcoinColoredAddress("bWqaKUZETiECYgmJNbNZUoanBxnAzoVjCNx");
+            testColored = new BitcoinColoredAddress("bCe6vLjB3iFguKp5t3EiXfFeZ2gvebopRXv");
             Assert.Equal(Network.TestNet, testColored.Network);
             Assert.Equal(colored.ToNetwork(Network.TestNet), testColored);
         }
@@ -466,7 +466,7 @@ namespace NBitcoin.Tests
             var key = new Key(TestUtils.ParseHex("18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725"));
             //He calculates the corresponding address: 16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM.
             var address = key.PubKey.Decompress().GetAddress(Network.Main);
-            Assert.Equal("16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM", address.ToString());
+            Assert.Equal("RYiGzxWijj93vrAgKmoMuTGH9x7fFYJVDy", address.ToString());
 
             //Next, he builds the Pay-to-PubKey-Hash script associated to that address: OP_DUP OP_HASH160 010966776006953D5567439E5E39F86A0D273BEE OP_EQUALVERIFY OP_CHECKSIG
             Script script = address.ScriptPubKey;

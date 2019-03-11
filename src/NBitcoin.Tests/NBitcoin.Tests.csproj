@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>    
+  <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NOHTTPSERVER;NOWEBCLIENT;NETCOREAPP1_1;NETCOREAPP1_1;NETCORE;NETCOREAPP1_1</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NOHTTPSERVER;NOCONSENSUSLIB;NOWEBCLIENT;NETCOREAPP1_1;NETCOREAPP1_1;NETCORE;NETCOREAPP1_1</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

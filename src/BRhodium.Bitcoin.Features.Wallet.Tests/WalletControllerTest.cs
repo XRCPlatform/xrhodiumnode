@@ -198,13 +198,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             IActionResult result = controller.GenerateMnemonic("invalidlanguage");
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.FormatException", error.Description);
-            Assert.Equal("Invalid language 'invalidlanguage'. Choices are: English, French, Spanish, Japanese, ChineseSimplified and ChineseTraditional.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.FormatException", errorResponse.Description);
+            Assert.Equal("Invalid language 'invalidlanguage'. Choices are: English, French, Spanish, Japanese, ChineseSimplified and ChineseTraditional.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -248,12 +246,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("Name cannot be empty.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("Name cannot be empty.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -277,12 +273,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletCreate.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(409, error.Status);
-            Assert.Equal(errorMessage, error.ErrorCode);
+            Assert.Equal(409, errorResponse.Status);
+            Assert.Equal(errorMessage, errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -305,12 +299,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletCreate.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("There was a problem creating a wallet.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("There was a problem creating a wallet.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -319,7 +311,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = new Wallet
             {
                 Name = "myWallet",
-                Network = NetworkHelpers.GetNetwork("mainnet")
+                Network = NetworkHelpers.GetNetwork("BRhodiumMain")
             };
 
             var mockWalletWrapper = new Mock<IWalletManager>();
@@ -359,12 +351,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A password is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -388,12 +378,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(409, error.Status);
-            Assert.Equal(errorMessage, error.ErrorCode);
+            Assert.Equal(409, errorResponse.Status);
+            Assert.Equal(errorMessage, errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -416,13 +404,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(404, error.Status);
-            Assert.StartsWith("System.IO.FileNotFoundException", error.Description);
-            Assert.Equal("Wallet not found.", error.ErrorCode);
+            Assert.Equal(404, errorResponse.Status);
+            Assert.StartsWith("System.IO.FileNotFoundException", errorResponse.Description);
+            Assert.Equal("Wallet not found.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -445,13 +431,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.FormatException", error.Description);
-            Assert.Equal("Formatting failed.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.FormatException", errorResponse.Description);
+            Assert.Equal("Formatting failed.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -460,7 +444,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = new Wallet
             {
                 Name = "myWallet",
-                Network = NetworkHelpers.GetNetwork("mainnet")
+                Network = NetworkHelpers.GetNetwork("BRhodiumMain")
             };
             var mockWalletWrapper = new Mock<IWalletManager>();
             mockWalletWrapper.Setup(w => w.LoadWallet(It.IsAny<string>(), It.IsAny<string>())).Returns(wallet);
@@ -495,12 +479,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A password is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -520,13 +502,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(404, error.Status);
-            Assert.StartsWith("System.IO.FileNotFoundException", error.Description);
-            Assert.Equal("This wallet was not found at the specified location.", error.ErrorCode);
+            Assert.Equal(404, errorResponse.Status);
+            Assert.StartsWith("System.IO.FileNotFoundException", errorResponse.Description);
+            Assert.Equal("This wallet was not found at the specified location.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -546,13 +526,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(403, error.Status);
-            Assert.StartsWith("System.Security.SecurityException", error.Description);
-            Assert.Equal("Wrong password, please try again.", error.ErrorCode);
+            Assert.Equal(403, errorResponse.Status);
+            Assert.StartsWith("System.Security.SecurityException", errorResponse.Description);
+            Assert.Equal("Wrong password, please try again.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -572,12 +550,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.FormatException", error.Description);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.FormatException", errorResponse.Description);
         }
 
         [Fact]
@@ -586,7 +562,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = new Wallet
             {
                 Name = "myWallet",
-                Network = NetworkHelpers.GetNetwork("mainnet"),
+                Network = NetworkHelpers.GetNetwork("BRhodiumMain"),
                 CreationTime = new DateTime(2017, 6, 19, 1, 1, 1),
                 AccountsRoot = new List<AccountRoot> {
                     new AccountRoot()
@@ -655,12 +631,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("Invalid name.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("Invalid name.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -678,12 +652,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             mockWalletWrapper.VerifyAll();
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.FormatException", error.Description);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.FormatException", errorResponse.Description);
         }
 
         [Fact]
@@ -1010,13 +982,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving wallets.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.Equal("Issue retrieving wallets.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1220,12 +1190,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A walletname is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A walletname is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1242,13 +1210,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving accounts.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.Equal("Issue retrieving accounts.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1293,13 +1259,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue retrieving address balance.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.Equal("Issue retrieving address balance.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1315,12 +1279,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("An address is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("An address is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1456,12 +1418,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A walletname is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A walletname is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1487,13 +1447,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.Equal("Issue building transaction.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.Equal("Issue building transaction.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1515,9 +1473,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var model = viewResult.Value as WalletSendTransactionModel;
             Assert.NotNull(model);
             Assert.Equal(new uint256("96b4f0c2f0aa2cecd43fa66b5e3227c56afd8791e18fcc572d9625ee05d6741c"), model.TransactionId);
-            Assert.Equal("1GkjeiT7Y6RdPPL3p3nUME9DLJchhLNCsJ", model.Outputs.First().Address);
+            Assert.Equal("RpNXiLdgr6h5GpqLJe6uvskCj5LF6mLUt9", model.Outputs.First().Address);
             Assert.Equal(new Money(671990), model.Outputs.First().Amount);
-            Assert.Equal("1ASQW3EkkQ1zCpq3HAVfrGyVrSwVz4cbzU", model.Outputs.ElementAt(1).Address);
+            Assert.Equal("Ri4CZfRL4QHS6GLKmkp7RvaVFDf3HP1LyB", model.Outputs.ElementAt(1).Address);
             Assert.Equal(new Money(1570364), model.Outputs.ElementAt(1).Amount);
         }
 
@@ -1557,12 +1515,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             IActionResult result = controller.SendTransaction(new SendTransactionRequest(""));
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("Hex required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("Hex required.", errorResponse.ErrorCode);
         }
 
         //[Fact]
@@ -1621,12 +1577,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         //    IActionResult result = controller.ListWalletsFiles();
 
         //    ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-        //    ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-        //    Assert.Single(errorResponse.Errors);
+        //    ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-        //    ErrorModel error = errorResponse.Errors[0];
-        //    Assert.Equal(400, error.Status);
-        //    Assert.Equal("something happened.", error.ErrorCode);
+        //    Assert.Equal(400, errorResponse.Status);
+        //    Assert.Equal("something happened.", errorResponse.ErrorCode);
         //}
 
         [Fact]
@@ -1662,12 +1616,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A password is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A password is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1685,13 +1637,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.StartsWith("Wallet not found.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1747,12 +1697,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("A wallet name is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("A wallet name is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1769,13 +1717,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.StartsWith("Wallet not found.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1812,12 +1758,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.Equal("An account name is required.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.Equal("An account name is required.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1835,13 +1779,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
-            Assert.Equal(400, error.Status);
-            Assert.StartsWith("System.InvalidOperationException", error.Description);
-            Assert.StartsWith("Wallet not found.", error.ErrorCode);
+            Assert.Equal(400, errorResponse.Status);
+            Assert.StartsWith("System.InvalidOperationException", errorResponse.Description);
+            Assert.StartsWith("Wallet not found.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1874,8 +1816,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 {
                     ExternalAddresses = receiveAddresses,
                     InternalAddresses = changeAddresses,
-                    Name = "Account 0"
-                } }
+                    Name = "Account 0",
+                } },
+                CoinType = CoinType.BRhodium
             });
 
             var mockWalletWrapper = new Mock<IWalletManager>();
@@ -1925,13 +1868,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            ErrorModel error = errorResponse.Errors[0];
             Assert.NotNull(errorResult.StatusCode);
             Assert.Equal((int)HttpStatusCode.BadRequest, errorResult.StatusCode.Value);
-            Assert.Equal("There was an error in the model.", error.ErrorCode);
+            Assert.Equal("There was an error in the model.", errorResponse.ErrorCode);
         }
 
         [Fact]
@@ -1973,8 +1914,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             });
 
             ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorResponse errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
-            Assert.Single(errorResponse.Errors);
+            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
+
             Assert.NotNull(errorResult.StatusCode);
             Assert.Equal((int)HttpStatusCode.BadRequest, errorResult.StatusCode.Value);
         }
