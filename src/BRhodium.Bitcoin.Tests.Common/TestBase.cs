@@ -42,6 +42,10 @@ namespace BRhodium.Node.Tests.Common
         public static DataFolder CreateDataFolder(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
         {
             string directoryPath = GetTestDirectoryPath(caller, callingMethod);
+            if (directoryPath.Length > 80)//windows has 260 chars path limit
+            {
+               directoryPath = GetTestDirectoryPath(caller, callingMethod.GetHashCode().ToString("X2"));
+            }
             var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
             return dataFolder;
         }

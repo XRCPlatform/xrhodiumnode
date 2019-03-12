@@ -291,6 +291,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void FundTransaction_Given__a_wallet_has_enough_inputs__When__adding_inputs_to_an_existing_transaction__Then__the_transaction_is_funded_successfully()
         {
             DataFolder dataFolder = CreateDataFolder(this);
+            var chain = new ConcurrentChain(Network.Main);
+            var walletFeePolicy = new Mock<IWalletFeePolicy>();
+            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
+            var overrideFeeRate = new FeeRate(20000);
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+               dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
 
             var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet1", "password");
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
@@ -299,53 +306,29 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var destinationKeys2 = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/2");
             var destinationKeys3 = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/3");
 
-            var address = new HdAddress
-            {
-                Index = 0,
-                HdPath = $"m/44'/0'/0'/0/0",
-                Address = spendingKeys.Address.ToString(),
-                Pubkey = spendingKeys.PubKey.ScriptPubKey,
-                ScriptPubKey = spendingKeys.Address.ScriptPubKey,
-                Transactions = new List<TransactionData>()
-            };
-
-            // wallet with 4 coinbase outputs of 50 = 200 Bitcoin
-            var chain = new ConcurrentChain(wallet.Network);
-            WalletTestsHelpers.AddBlocksWithCoinbaseToChain(wallet.Network, chain, address, 4);
-
-            wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount
-            {
-                Index = 0,
-                Name = "account1",
-                HdPath = "m/44'/0'/0'",
-                ExtendedPubKey = accountKeys.ExtPubKey,
-                ExternalAddresses = new List<HdAddress> { address },
-                InternalAddresses = new List<HdAddress>()
-            });
-
-            var walletFeePolicy = new Mock<IWalletFeePolicy>();
-            walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
-            var overrideFeeRate = new FeeRate(20000);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object, 
-                dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
-
             walletManager.SaveWallet(wallet);
+
+            var account = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
+            var address = account.ExternalAddresses.ElementAt(0);
+
+            // wallet with 4 coinbase outputs of 1050000 + 2.5 x3 = 1050007.5 Bitcoin            
+            WalletTestsHelpers.AddBlocksWithCoinbaseToChain(wallet.Network, chain, address, 4);
+           
+            walletManager.SaveWallet(wallet,true);
 
             var walletReference = new WalletAccountReference
             {
-                AccountName = "account1",
+                AccountName = "account 0",
                 WalletName = "myWallet1"
             };
 
-            // create a trx with 3 outputs 50 + 50 + 49 = 149 BTC
+            // create a trx with 3 outputs 1050000 + 2.5 + 2.2 = 1050004.7 BTC
             var context = new TransactionBuildContext(walletReference,
                 new[]
                 {
-                    new Recipient { Amount = new Money(50, MoneyUnit.XRC), ScriptPubKey = destinationKeys1.PubKey.ScriptPubKey },
-                    new Recipient { Amount = new Money(50, MoneyUnit.XRC), ScriptPubKey = destinationKeys2.PubKey.ScriptPubKey },
-                    new Recipient { Amount = new Money(49, MoneyUnit.XRC), ScriptPubKey = destinationKeys3.PubKey.ScriptPubKey }
+                    new Recipient { Amount = new Money(1050000, MoneyUnit.XRC), ScriptPubKey = destinationKeys1.PubKey.ScriptPubKey },
+                    new Recipient { Amount = new Money((decimal)2.5, MoneyUnit.XRC), ScriptPubKey = destinationKeys2.PubKey.ScriptPubKey },
+                    new Recipient { Amount = new Money((decimal)2.2, MoneyUnit.XRC), ScriptPubKey = destinationKeys3.PubKey.ScriptPubKey }
                 }
                 .ToList(), "password")
             {
@@ -354,15 +337,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             };
 
             var fundTransaction = walletTransactionHandler.BuildTransaction(context);
-            Assert.Equal(3, fundTransaction.Inputs.Count); // 3 inputs
+            Assert.Equal(4, fundTransaction.Inputs.Count); // 4 inputs
             Assert.Equal(4, fundTransaction.Outputs.Count); // 3 outputs with change
 
             // remove the change output
             fundTransaction.Outputs.Remove(fundTransaction.Outputs.First(f => f.ScriptPubKey == context.ChangeAddress.ScriptPubKey));
-            // remove 2 inputs they will be added back by fund transaction
+            // remove 3 inputs they will be added back by fund transaction
+            fundTransaction.Inputs.RemoveAt(3);
             fundTransaction.Inputs.RemoveAt(2);
             fundTransaction.Inputs.RemoveAt(1);
-            Assert.Single(fundTransaction.Inputs); // 3 inputs
+            Assert.Single(fundTransaction.Inputs); // 4 inputs
 
             var fundTransactionClone = fundTransaction.Clone();
             var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), "password")
@@ -377,9 +361,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             foreach (var input in fundTransactionClone.Inputs) // all original inputs are still in the trx
                 Assert.Contains(fundTransaction.Inputs, a => a.PrevOut == input.PrevOut);
 
-            Assert.Equal(3, fundTransaction.Inputs.Count); // we expect 3 inputs
+            Assert.Equal(4, fundTransaction.Inputs.Count); // we expect 4 inputs
             Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs
-            Assert.Equal(new Money(150, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
+            Assert.Equal(new Money((decimal)1050007.5, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
 
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys1.PubKey.ScriptPubKey);
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys2.PubKey.ScriptPubKey);

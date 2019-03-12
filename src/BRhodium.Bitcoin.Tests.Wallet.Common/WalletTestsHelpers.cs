@@ -126,12 +126,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
 
         public static Bitcoin.Features.Wallet.Wallet CreateWallet(string name)
         {
-            return new Bitcoin.Features.Wallet.Wallet
-            {
-                Name = name,
-                AccountsRoot = new List<AccountRoot>(),
-                BlockLocator = null
-            };
+            return GenerateBlankWallet(name, "not a random password");
         }
 
         public static Bitcoin.Features.Wallet.Wallet GenerateBlankWallet(string name, string password)
@@ -139,12 +134,12 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return GenerateBlankWalletWithExtKey(name, password).wallet;
         }
 
-        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password)
+        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password, int numberOfAccounts=1)
         {
             Mnemonic mnemonic = new Mnemonic("grass industry beef stereo soap employ million leader frequent salmon crumble banana");
-            ExtKey extendedKey = mnemonic.DeriveExtKey(password);
+            ExtKey extendedKey = HdOperations.GetHdPrivateKey(mnemonic, password);
 
-            Bitcoin.Features.Wallet.Wallet walletFile = new Bitcoin.Features.Wallet.Wallet
+            Bitcoin.Features.Wallet.Wallet wallet = new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
                 EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main).ToWif(),
@@ -154,7 +149,16 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.Main.Consensus.CoinType } },
             };
 
-            return (walletFile, extendedKey);
+            // Generate multiple accounts and addresses from the get-go.
+            for (int i = 0; i < numberOfAccounts; i++)
+            {
+                HdAccount account = wallet.AddNewAccount(password, (CoinType)Network.Main.Consensus.CoinType, DateTimeOffset.Now);
+                string path = account.HdPath;
+                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(Network.Main, 20);
+                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(Network.Main, 20, true);                
+            }
+
+            return (wallet, extendedKey);
         }
 
         public static Block AppendTransactionInNewBlockToChain(ConcurrentChain chain, Transaction transaction)
@@ -196,28 +200,27 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return tx;
         }
 
-        public static void AddAddressesToWallet(WalletManager walletManager, int count)
+        public static Bitcoin.Features.Wallet.Wallet AddAddressesToWallet(Bitcoin.Features.Wallet.Wallet wallet, int count, ExtKey extendedKey)
         {
-            foreach (var walletName in walletManager.GetWalletNames())
+            wallet.AccountsRoot.Add(new AccountRoot()
             {
-                var wallet = walletManager.GetWalletByName(walletName);
-                wallet.AccountsRoot.Add(new AccountRoot()
-                {
-                    CoinType = CoinType.BRhodium,
-                    Accounts = new List<HdAccount>
+                CoinType = CoinType.BRhodium,
+                Accounts = new List<HdAccount>
                     {
                         new HdAccount
                         {
-                            ExternalAddresses = GenerateAddresses(count),
-                            InternalAddresses = GenerateAddresses(count)
+                            ExtendedPubKey = extendedKey.ToString(wallet.Network),
+                            ExternalAddresses = GenerateAddresses(count,0,false,wallet,extendedKey.ToString(wallet.Network)),
+                            InternalAddresses = GenerateAddresses(count,0,true,wallet,extendedKey.ToString(wallet.Network))
                         },
                         new HdAccount
                         {
-                            ExternalAddresses = GenerateAddresses(count),
-                            InternalAddresses = GenerateAddresses(count)
+                            ExtendedPubKey = extendedKey.ToString(wallet.Network),
+                            ExternalAddresses = GenerateAddresses(count,1,true,wallet,extendedKey.ToString(wallet.Network)),
+                            InternalAddresses = GenerateAddresses(count,1,true,wallet,extendedKey.ToString(wallet.Network))
                         } }
-                });
-            }
+            });
+            return wallet;
         }
 
         public static HdAddress CreateAddressWithoutTransaction(int index, string addressName)
@@ -227,6 +230,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 Index = index,
                 Address = addressName,
                 ScriptPubKey = new Script(),
+                Pubkey = new Script(),
                 Transactions = new List<TransactionData>()
             };
         }
@@ -238,21 +242,30 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 Index = index,
                 Address = addressName,
                 ScriptPubKey = new Script(),
+                Pubkey = new Script(),
                 Transactions = new List<TransactionData> { new TransactionData() }
             };
         }
 
-        public static List<HdAddress> GenerateAddresses(int count)
+        public static List<HdAddress> GenerateAddresses(int count, int accountIndex, bool isChange, Bitcoin.Features.Wallet.Wallet wallet, string extendedPubKey)
         {
             List<HdAddress> addresses = new List<HdAddress>();
             for (int i = 0; i < count; i++)
             {
+                PubKey pubkey = HdOperations.GeneratePublicKey(extendedPubKey, i, isChange);
+                BitcoinPubKeyAddress bitcoinAddress = pubkey.GetAddress(wallet.Network);
                 HdAddress address = new HdAddress
                 {
-                    ScriptPubKey = new Key().ScriptPubKey
+                    Index = i,
+                    HdPath = HdOperations.CreateHdPath((int)CoinType.BRhodium, accountIndex, i, isChange),
+                    ScriptPubKey = new Key().ScriptPubKey,
+                    Pubkey = pubkey.ScriptPubKey,
+                    Address = bitcoinAddress.ToString(),
+                    Transactions = new List<TransactionData>()
                 };
                 addresses.Add(address);
             }
+
             return addresses;
         }
 
@@ -389,58 +402,38 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return chain;
         }
 
-        public static ICollection<HdAddress> CreateSpentTransactionsOfBlockHeights(Network network, params int[] blockHeights)
+        public static ICollection<TransactionData> CreateSpentTransactionsOfBlockHeights(params int[] blockHeights)
         {
-            var addresses = new List<HdAddress>();
+            var transactions = new List<TransactionData>();
 
             foreach (int height in blockHeights)
             {
-                var key = new Key();
-                var address = new HdAddress
+                transactions.Add(new TransactionData
                 {
-                    Address = key.PubKey.GetAddress(network).ToString(),
-                    ScriptPubKey = key.ScriptPubKey,
-                    Transactions = new List<TransactionData> {
-                        new TransactionData
-                        {
-                            BlockHeight = height,
-                            Amount = new Money(new Random().Next(500000, 1000000)),
-                            SpendingDetails = new SpendingDetails(),
-                            Id = new uint256()
-                        }
-                    }
-                };
-
-                addresses.Add(address);
+                    BlockHeight = height,
+                    Amount = new Money(new Random().Next(500000, 1000000)),
+                    SpendingDetails = new SpendingDetails(),
+                    Id = new uint256()
+                });
             }
 
-            return addresses;
+            return transactions;
         }
 
-        public static ICollection<HdAddress> CreateUnspentTransactionsOfBlockHeights(Network network, params int[] blockHeights)
+        public static ICollection<TransactionData> CreateUnspentTransactionsOfBlockHeights(params int[] blockHeights)
         {
-            var addresses = new List<HdAddress>();
+            List<TransactionData> transactions = new List<TransactionData>();
 
             foreach (int height in blockHeights)
             {
-                var key = new Key();
-                var address = new HdAddress
+                transactions.Add(new TransactionData
                 {
-                    Address = key.PubKey.GetAddress(network).ToString(),
-                    ScriptPubKey = key.ScriptPubKey,
-                    Transactions = new List<TransactionData> {
-                        new TransactionData
-                        {
-                            BlockHeight = height,
-                            Amount = new Money(new Random().Next(500000, 1000000))
-                        }
-                    }
-                };
-
-                addresses.Add(address);
+                    BlockHeight = height,
+                    Amount = new Money(new Random().Next(500000, 1000000))
+                });
             }
 
-            return addresses;
+            return transactions;
         }
 
         public static TransactionData CreateTransactionDataFromFirstBlock((ConcurrentChain chain, uint256 blockHash, Block block) chainInfo)

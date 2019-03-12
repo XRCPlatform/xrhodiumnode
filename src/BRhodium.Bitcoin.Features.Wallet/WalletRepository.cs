@@ -89,7 +89,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     insertCommand.Parameters.AddWithValue("$Name", wallet.Name);
                     insertCommand.Parameters.AddWithValue("$EncryptedSeed", wallet.EncryptedSeed);
-                    insertCommand.Parameters.AddWithValue("$ChainCode", wallet.ChainCode.ToBase64String());
+                    insertCommand.Parameters.AddWithValue("$ChainCode", wallet.ChainCode?.ToBase64String());
                     insertCommand.Parameters.AddWithValue("$Network", wallet.Network.Name);
                     insertCommand.Parameters.AddWithValue("$CreationTime", wallet.CreationTime.ToUnixTimeSeconds());
                     insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
@@ -691,9 +691,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             var deletPaymentDetailCmd = this.connection.CreateCommand();
             deletPaymentDetailCmd.Transaction = dbTransaction;
-            deletPaymentDetailCmd.CommandText = "DELETE FROM TransactionSpendingLinks tsl " +
-                "INNER JOIN [Transaction] trx ON tsl.TransactionId = trx.Id " +
-                "WHERE trx.AddressId = $AddressId AND trx.WalletId = $WalletId";
+            deletPaymentDetailCmd.CommandText = "DELETE FROM TransactionSpendingLinks WHERE TransactionId in ( " +
+                "SELECT DISTINCT Id FROM [Transaction] " +
+                "WHERE AddressId = $AddressId AND WalletId = $WalletId )";
             deletPaymentDetailCmd.Parameters.AddWithValue("$WalletId", walletId);
             deletPaymentDetailCmd.Parameters.AddWithValue("$AddressId", address.Id);
             deletPaymentDetailCmd.ExecuteNonQuery();
@@ -1136,7 +1136,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             DateTimeOffset result = DateTimeOffset.MinValue;
 
             var selectWalletCmd = connection.CreateCommand();
-            selectWalletCmd.CommandText = "SELECT CreationTime FROM Wallet order by CreationTime DESC LIMIT 1";
+            selectWalletCmd.CommandText = "SELECT CreationTime FROM Wallet order by CreationTime ASC LIMIT 1";
 
             using (var reader = selectWalletCmd.ExecuteReader())
             {
