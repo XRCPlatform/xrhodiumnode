@@ -93,7 +93,8 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
                             ScriptPubKey = sendtoAddress.ScriptPubKey
                         }
                     },
-                    FeeType.Medium, 101);
+                    FeeType.Medium, (int)this.sendingBRhodiumBitcoinNode.FullNode
+                .Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity);
 
                 this.lastTransaction = this.sendingBRhodiumBitcoinNode.FullNode.WalletTransactionHandler()
                     .BuildTransaction(transactionBuildContext);
