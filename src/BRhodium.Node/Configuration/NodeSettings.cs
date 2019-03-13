@@ -36,7 +36,7 @@ namespace BRhodium.Node.Configuration
     public class NodeSettings
     {
         /// <summary>Version of the protocol the current implementation supports.</summary>
-        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.SENDHEADERS_VERSION;
+        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION;
 
         /// <summary>
         /// Initializes a new instance of the object.
