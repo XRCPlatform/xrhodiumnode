@@ -11,6 +11,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         private static readonly string[] AllPropertyNames = new string[] {
                 "version",
                 "protocolversion",
+                "walletversion",
                 "balance",
                 "blocks",
                 "timeoffset",
@@ -125,6 +126,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
             Assert.Equal(expectedSortedPropertyNames, actualSortedPropertyNames);
             Assert.Equal(1010000u, model.Version);
             Assert.Equal(70012u, model.ProtocolVersion);
+            Assert.Equal(60000u, model.WalletVersion);
             Assert.Equal(Money.Satoshis(2).ToUnit(MoneyUnit.XRC), model.Balance);
             Assert.Equal(460828, model.Blocks);
             Assert.Equal(0, model.TimeOffset);
