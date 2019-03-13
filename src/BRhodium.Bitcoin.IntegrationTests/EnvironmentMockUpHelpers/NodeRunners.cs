@@ -115,7 +115,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         public override void BuildNode()
         {
             var settings = new NodeSettings(Network.BRhodiumRegTest, ProtocolVersion.BTR_PROTOCOL_VERSION, args: new string[] { "-conf=BRhodium.conf", "-datadir=" + this.DataFolder }, loadConfiguration: false);
-
+           
             this.FullNode = (FullNode)new FullNodeBuilder()
                             .UseNodeSettings(settings)
                             .UsePowConsensus()
@@ -127,6 +127,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
                             .MockIBD()
                             .SubstituteDateTimeProviderFor<MiningFeature>()
                             .Build();
+            //this.FullNode.Signals.SubscribeForBlocks()??
         }
 
         public override void OnStart()

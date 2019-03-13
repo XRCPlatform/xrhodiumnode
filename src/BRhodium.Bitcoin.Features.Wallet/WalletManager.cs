@@ -282,6 +282,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
             Wallet wallet = this.GenerateWallet(name, encryptedSeed, extendedKey.ChainCode);
 
+            //Need wallet id set correctly for address linkers.
+            //Save at this stage will only save skeleton and not addresses or accounts
+            this.SaveWallet(wallet);
+            wallet = this.repository.GetWalletByName(wallet.Name);
+
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < WalletCreationAccountsCount; i++)
             {
@@ -392,6 +397,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
             Wallet wallet = this.GenerateWallet(name, encryptedSeed, extendedKey.ChainCode, creationTime);
+
+            //Need wallet id set correctly for address linkers.
+            //Save at this stage will only save skeleton and not addresses or accounts
+            this.SaveWallet(wallet);
+            wallet = this.repository.GetWalletByName(wallet.Name);
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < WalletRecoveryAccountsCount; i++)

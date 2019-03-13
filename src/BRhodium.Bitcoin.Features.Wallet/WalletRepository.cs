@@ -71,9 +71,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(wallet, nameof(wallet));
 
             Wallet placeholder;
-            //reset cache so that get all the references from db rebuilt
-            walletCache.TryRemove(wallet.Name, out placeholder);
-            walletCache.TryRemove("wallet_" + wallet.Id, out placeholder);
+
+            FlushWalletCache(wallet.Id);
 
             //Task task = Task.Run(() =>
             // {
@@ -166,9 +165,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return bytes;
         }
 
-        public Wallet GetWalletByName(string name)
+        public Wallet GetWalletByName(string name, bool flushcache = false)
         {
-            if (walletCache.ContainsKey(name))
+            if (walletCache.ContainsKey(name) && !flushcache)
             {
                 return walletCache[name];
             }
@@ -572,18 +571,34 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return null;
         }
 
-        public Wallet GetWalletById(long id)
+        private void FlushWalletCache(long id)
+        {
+            string cacheKey = "wallet_" + id;
+            if (walletCache.ContainsKey(cacheKey))
+            {
+               Wallet x = walletCache[cacheKey];
+               string name = x.Name;
+               walletCache.TryRemove(name, out x);
+               walletCache.TryRemove(cacheKey, out x);
+            }
+        }
+
+        public Wallet GetWalletById(long id, bool flushcache = false)
         {
             if (id < 1)
             {
                 return null;
             }
             string cacheKey = "wallet_" + id;
+            if (flushcache)
+            {
+                FlushWalletCache(id); 
+            }
             if (walletCache.ContainsKey(cacheKey))
             {
                 return walletCache[cacheKey];
             }
-
+            //TODO implement wallet specific locking to ensure single thread per wallet id re-entry
             Wallet wallet = null;
 
             var selectWalletCmd = connection.CreateCommand();
@@ -741,6 +756,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public long SaveTransaction(long walletId, HdAddress address, TransactionData trx)
         {
+            if (walletId < 1)
+            {
+                walletId = GetWalletIdByAddress(address.Address);
+            }
+            if (walletId < 1)
+            {
+                throw new Exception("Atempting to add transaction to wallet that was not saved.");
+            }
             using (var dbTransaction = this.connection.BeginTransaction())
             {
                 long retval = SaveTransaction(walletId, dbTransaction, address, trx);
@@ -868,6 +891,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 insertCommand.ExecuteNonQuery();
             }
 
+            FlushWalletCache(walletId);
+            //rebuild cache async
+            Task task = Task.Run(() =>
+                {
+                    GetWalletById(walletId);
+                }
+            );
+            
             return trx.DbId;
         }
 
@@ -1170,6 +1201,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
             wallet = GetWalletById(walletId);
 
             return wallet;
+        }
+
+        internal long GetWalletIdByAddress(string address)
+        {
+            long walletId = 0;
+            var selectAccountsCmd = connection.CreateCommand();
+            selectAccountsCmd.CommandText = "SELECT WalletId FROM Address WHERE Address = $Address";
+            selectAccountsCmd.Parameters.AddWithValue("$Address", address);
+            using (var reader = selectAccountsCmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    walletId = reader.GetInt64(0);
+                }
+            }
+            return walletId;
         }
 
         internal Wallet GetWalletByScriptHash(string ScriptPubKeyHash)
