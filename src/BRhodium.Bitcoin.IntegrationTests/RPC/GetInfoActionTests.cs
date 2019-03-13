@@ -5,6 +5,8 @@ using BRhodium.Bitcoin.Features.RPC.Controllers;
 using BRhodium.Bitcoin.Features.RPC.Models;
 using BRhodium.Node.Interfaces;
 using Xunit;
+using BRhodium.Node.Utilities.JsonContract;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BRhodium.Node.IntegrationTests.RPC
 {
@@ -19,7 +21,10 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
             Assert.NotNull(fullNode.NodeService<INetworkDifficulty>(true));
 
-            var info = (GetInfoModel)controller.GetInfo();
+            JsonResult jsonResult = (JsonResult)controller.GetInfo();
+            ResultModel resultModel  = (ResultModel)jsonResult.Value;
+            GetInfoModel info = (GetInfoModel)resultModel.Result;
+
 
             NodeSettings nodeSettings = NodeSettings.Default();
             uint expectedProtocolVersion = (uint)nodeSettings.ProtocolVersion;
