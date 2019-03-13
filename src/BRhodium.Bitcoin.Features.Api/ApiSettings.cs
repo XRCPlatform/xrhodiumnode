@@ -14,10 +14,10 @@ namespace BRhodium.Bitcoin.Features.Api
     public class ApiSettings
     {
         /// <summary>The default port used by the API when the node runs on the BRhodium network.</summary>
-        public const int DefaultBRhodiumApiPort = 37270;
+        public const int DefaultBRhodiumApiPort = 19669;
 
         /// <summary>The default port used by the API when the node runs on the BRhodium testnet network.</summary>
-        public const int TestBRhodiumApiPort = 16665;
+        public const int TestBRhodiumApiPort = 16669;
 
         /// <summary>The default port used by the API when the node runs on the BRhodium network.</summary>
         public const string DefaultApiHost = "http://localhost";
