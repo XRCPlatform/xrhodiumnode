@@ -43,7 +43,7 @@ namespace BRhodium.Node.IntegrationTests
 
             var rpc = node.CreateRPCClient();
             int minedBlocks = 0;
-            int blocksBeforeStart = minedBlocks = rpc.GetBlockCount();
+            int blocksBeforeStart = rpc.GetBlockCount();
             while (minedBlocks < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
             {
                 node.GenerateBRhodiumWithMiner(1);
