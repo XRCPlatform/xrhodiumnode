@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -85,20 +85,34 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                CoreNode BRhodiumNodeSync = builder.CreateBRhodiumPowNode();
+                CoreNode BRhodiumSender = builder.CreateBRhodiumPowNode();
+                CoreNode BRhodiumReceiver = builder.CreateBRhodiumPowNode();
+                
                 builder.StartAll();
 
-                // Move a wallet file to the right folder and restart the wallet manager to take it into account.
-                this.InitializeTestWallet(BRhodiumNodeSync.FullNode.DataFolder.WalletPath);
-                var walletManager = BRhodiumNodeSync.FullNode.NodeService<IWalletManager>() as WalletManager;
-                walletManager.Start();
 
-                var rpc = BRhodiumNodeSync.CreateRPCClient();
-                rpc.SendCommand(NBitcoin.RPC.RPCOperations.generate, 10);
-                Assert.Equal(10, rpc.GetBlockCount());
+                // Move a wallet file to the right folder and restart the wallet manager to take it into account.
+                this.InitializeTestWallet(BRhodiumSender.FullNode.DataFolder.WalletPath);
+                var walletManager = BRhodiumSender.FullNode.NodeService<IWalletManager>() as WalletManager;
+                walletManager.Start();
+                var wallet = walletManager.Wallets.FirstOrDefault();
+                var account  = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault();
+                var rpc = BRhodiumSender.CreateRPCClient();
+                var addressToMine = account.ExternalAddresses.FirstOrDefault();
+                for (int i = 0; i < 10; i++)//handle situations where mining does not return blocs
+                {
+                    rpc.SendCommand(NBitcoin.RPC.RPCOperations.generate, 1, addressToMine.Address, 100000000000000);
+                }
+               
+                int mined = rpc.GetBlockCount();
+                Assert.True(mined > 2);
+
+                // sync both nodes
+                rpc.AddNode(BRhodiumReceiver.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(BRhodiumReceiver, BRhodiumSender));
 
                 var address = new Key().PubKey.GetAddress(rpc.Network);
-                var tx = rpc.SendToAddress(address, Money.Coins(1.0m));
+                var tx = rpc.SendToAddress(wallet.Name,"password", address.ToString(), Money.Coins(1.0m).ToDecimal(MoneyUnit.XRC));
                 Assert.NotNull(tx);
             }
         }

@@ -36,7 +36,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Models
         [JsonProperty(Order = 15, PropertyName = "errors")]
         public string Errors { get; set; }
 
-        [JsonProperty(Order = 2, PropertyName = "walletversion", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 2, PropertyName = "walletversion")]
         public uint WalletVersion { get; set; }
 
         [JsonProperty(Order = 3, PropertyName = "balance", DefaultValueHandling = DefaultValueHandling.Ignore)]
