@@ -723,6 +723,7 @@ namespace NBitcoin.RPC
             webRequest.Headers[HttpRequestHeader.Authorization] = "Basic " + Encoders.Base64.EncodeData(Encoders.ASCII.DecodeData(this.authentication));
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
+            webRequest.Timeout = 60000;//1 minute
             return webRequest;
         }
 
@@ -1310,6 +1311,24 @@ namespace NBitcoin.RPC
 
             txid = SendToAddressAsync(address, amount, commentTx, commentDest).GetAwaiter().GetResult();
             return txid;
+        }
+
+      
+        public uint256 SendToAddress(string walletName, string password, string address, decimal amount)
+        {
+            return SendToAddressAsync(walletName, password, address, amount).GetAwaiter().GetResult();
+        }
+
+        public async Task<uint256> SendToAddressAsync(string walletName, string password, string address, decimal amount)
+        {
+            List<object> parameters = new List<object>();
+            parameters.Add(walletName);
+            parameters.Add(password);
+            parameters.Add(address);
+            parameters.Add(amount.ToString());
+
+            RPCResponse resp = await SendCommandAsync(RPCOperations.sendtoaddress, parameters.ToArray()).ConfigureAwait(false);
+            return uint256.Parse(resp.Result.ToString());
         }
 
         /// <summary>
