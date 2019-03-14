@@ -30,6 +30,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         private static readonly string[] RequiredPropertyNames = new string[] {
                 "version",
                 "protocolversion",
+                "walletversion",
                 "blocks",
                 "timeoffset",
                 "proxy",
@@ -69,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
 
             JObject obj = ModelToJObject(info);
             Assert.True(obj.HasValues);
-            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name);
+            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
 
             Assert.Equal(expectedOrderedPropertyNames, actualOrderedPropertyNames);
         }

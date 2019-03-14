@@ -25,7 +25,7 @@ namespace BRhodium.Node.IntegrationTests
             };
         }
 
-        public void MineBlocks(int blockCount, CoreNode node, string accountName, string toWalletName, string withPassword, long expectedFees = 0)
+        public void MineBlocks(int numberOfBlocksToMine, CoreNode node, string accountName, string toWalletName, string withPassword, long expectedFees = 0)
         {
             this.WaitForNodeToSync(node);
 
@@ -41,7 +41,17 @@ namespace BRhodium.Node.IntegrationTests
 
             node.SetDummyMinerSecret(new BitcoinSecret(extendedPrivateKey, node.FullNode.Network));
 
-            node.GenerateBRhodiumWithMiner(blockCount);
+            var rpc = node.CreateRPCClient();
+            int minedBlocks = 0;
+            int blocksBeforeStart = minedBlocks = rpc.GetBlockCount();
+            while (minedBlocks < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
+            {
+                node.GenerateBRhodiumWithMiner(1);
+                this.WaitForNodeToSync(node);
+                minedBlocks = rpc.GetBlockCount() - blocksBeforeStart;
+            }
+
+            this.WaitForNodeToSync(node);
 
             var balanceAfterMining = node.FullNode.WalletManager()
                 .GetSpendableTransactionsInWallet(toWalletName)
@@ -52,7 +62,7 @@ namespace BRhodium.Node.IntegrationTests
 
             this.WaitForNodeToSync(node);
 
-            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(blockCount) + expectedFees);
+            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine) + expectedFees);
         }
 
         public void MinePremineBlocks(CoreNode node, string walletName, string walletAccount, string walletPassword)
@@ -64,7 +74,14 @@ namespace BRhodium.Node.IntegrationTests
             var extendedPrivateKey = wallet.GetExtendedPrivateKeyForAddress(walletPassword, unusedAddress).PrivateKey;
 
             node.SetDummyMinerSecret(new BitcoinSecret(extendedPrivateKey, node.FullNode.Network));
-            node.GenerateBRhodiumWithMiner(2);
+            int numberOfBlocksToMine = 2; // node.GenerateBRhodiumWithMiner(2);
+            var rpc = node.CreateRPCClient();
+            int minedBlocks = 0;
+            while (minedBlocks < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
+            {
+                node.GenerateBRhodiumWithMiner(1);
+                minedBlocks = rpc.GetBlockCount();
+            }
 
             this.WaitForNodeToSync(node);
 

@@ -378,7 +378,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Assert.Contains(fundTransaction.Inputs, a => a.PrevOut == input.PrevOut);
 
             Assert.Equal(4, fundTransaction.Inputs.Count); // we expect 4 inputs
-            Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs
+            Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs (2.99984640 = change)
             Assert.Equal(new Money((decimal)1050007.5, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
 
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys1.PubKey.ScriptPubKey);
