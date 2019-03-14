@@ -286,6 +286,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
             if (confTarget <= 0 || confTarget > this.FeeStats.GetMaxConfirms())
                 return new FeeRate(0);
 
+            // It's not possible to get reasonable estimates for confTarget of 1
+            if (confTarget == 1)
+                confTarget = 2;
+
             double median = this.FeeStats.EstimateMedianVal(confTarget, SufficientFeeTxs, MinSuccessPct, true,
                 (currentHeight.HasValue ? currentHeight.Value : this.nBestSeenHeight));
 
