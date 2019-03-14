@@ -339,13 +339,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 WalletName = "myWallet1"
             };
 
-            // create a trx with 3 outputs 50 + 50 + 49 = 149 BTC
+            // create a trx with 3 outputs 1050000 + 2.5 + 2 = 1050004.5 XRC
             var context = new TransactionBuildContext(walletReference,
                 new[]
                 {
-                    new Recipient { Amount = new Money(50, MoneyUnit.XRC), ScriptPubKey = destinationKeys1.PubKey.ScriptPubKey },
-                    new Recipient { Amount = new Money(50, MoneyUnit.XRC), ScriptPubKey = destinationKeys2.PubKey.ScriptPubKey },
-                    new Recipient { Amount = new Money(49, MoneyUnit.XRC), ScriptPubKey = destinationKeys3.PubKey.ScriptPubKey }
+                    new Recipient { Amount = new Money(1050000, MoneyUnit.XRC), ScriptPubKey = destinationKeys1.PubKey.ScriptPubKey },
+                    new Recipient { Amount = new Money((decimal)2.5, MoneyUnit.XRC), ScriptPubKey = destinationKeys2.PubKey.ScriptPubKey },
+                    new Recipient { Amount = new Money(2, MoneyUnit.XRC), ScriptPubKey = destinationKeys3.PubKey.ScriptPubKey }
                 }
                 .ToList(), "password")
             {
@@ -354,7 +354,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             };
 
             var fundTransaction = walletTransactionHandler.BuildTransaction(context);
-            Assert.Equal(3, fundTransaction.Inputs.Count); // 3 inputs
+            Assert.Equal(4, fundTransaction.Inputs.Count); // 4 inputs
             Assert.Equal(4, fundTransaction.Outputs.Count); // 3 outputs with change
 
             // remove the change output
@@ -362,7 +362,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // remove 2 inputs they will be added back by fund transaction
             fundTransaction.Inputs.RemoveAt(2);
             fundTransaction.Inputs.RemoveAt(1);
-            Assert.Single(fundTransaction.Inputs); // 3 inputs
+            Assert.Equal(2, fundTransaction.Inputs.Count); // 2 inputs
 
             var fundTransactionClone = fundTransaction.Clone();
             var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), "password")
@@ -377,9 +377,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             foreach (var input in fundTransactionClone.Inputs) // all original inputs are still in the trx
                 Assert.Contains(fundTransaction.Inputs, a => a.PrevOut == input.PrevOut);
 
-            Assert.Equal(3, fundTransaction.Inputs.Count); // we expect 3 inputs
+            Assert.Equal(4, fundTransaction.Inputs.Count); // we expect 4 inputs
             Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs
-            Assert.Equal(new Money(150, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
+            Assert.Equal(new Money((decimal)1050007.5, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
 
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys1.PubKey.ScriptPubKey);
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys2.PubKey.ScriptPubKey);
@@ -399,6 +399,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
+                CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { WalletTestsHelpers.CreateAccount("account 1") }
             });
             walletManager.Wallets.Add(wallet);
@@ -436,6 +437,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
+                CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -472,6 +474,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
+                CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -511,6 +514,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
+                CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -538,6 +542,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
+                CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
