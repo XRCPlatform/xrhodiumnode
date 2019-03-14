@@ -92,9 +92,6 @@ namespace BRhodium.Bitcoin.Features.Api
         /// <returns>The default API port.</returns>
         private static int GetDefaultPort(Network network)
         {
-            if (network.IsBRhodium())
-                return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
-
             return network.IsTest() ? TestBRhodiumApiPort : DefaultBRhodiumApiPort;
         }
 

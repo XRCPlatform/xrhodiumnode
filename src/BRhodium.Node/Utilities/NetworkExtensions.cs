@@ -19,15 +19,5 @@ namespace BRhodium.Node.Utilities
         {
             return network.Name.ToLowerInvariant().Contains("test");
         }
-
-        /// <summary>
-        /// Determines whether this network is a bitcoin network.
-        /// </summary>
-        /// <param name="network">The network.</param>
-        /// <returns><c>true</c> if the specified network is bitcoin, <c>false</c> otherwise.</returns>
-        public static bool IsBRhodium(this Network network)
-        {
-            return !network.Name.ToLowerInvariant().Contains("BRhodium");
-        }
     }
 }
