@@ -88,7 +88,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
                          "     \"difficulty\": 499635929816.6675,\n" +
                          "     \"testnet\": false,\n" +
                          "     \"relayfee\": 0.00001000,\n" +
-                         "     \"errors\": \"URGENT: Alert key compromised, upgrade required\"\n" +
+                         "     \"errors\": \"URGENT: Alert key compromised, upgrade required\",\n" +
+                         "     \"walletversion\": \"1.0\"\n" +
                          "   }\n";
 
             JObject obj = JObject.Parse(json);
