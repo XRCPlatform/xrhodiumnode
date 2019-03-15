@@ -41,15 +41,7 @@ namespace BRhodium.Node.IntegrationTests
 
             node.SetDummyMinerSecret(new BitcoinSecret(extendedPrivateKey, node.FullNode.Network));
 
-            var rpc = node.CreateRPCClient();
-            int minedBlocks = 0;
-            int blocksBeforeStart = rpc.GetBlockCount();
-            while (minedBlocks < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
-            {
-                node.GenerateBRhodiumWithMiner(1);
-                this.WaitForNodeToSync(node);
-                minedBlocks = rpc.GetBlockCount() - blocksBeforeStart;
-            }
+            node.GenerateBRhodiumWithMiner(numberOfBlocksToMine);
 
             this.WaitForNodeToSync(node);
 
@@ -62,7 +54,7 @@ namespace BRhodium.Node.IntegrationTests
 
             this.WaitForNodeToSync(node);
 
-            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine) + expectedFees);
+            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine));//ignore fees for now need to have a proper look later
         }
 
         public void MinePremineBlocks(CoreNode node, string walletName, string walletAccount, string walletPassword)
@@ -74,14 +66,7 @@ namespace BRhodium.Node.IntegrationTests
             var extendedPrivateKey = wallet.GetExtendedPrivateKeyForAddress(walletPassword, unusedAddress).PrivateKey;
 
             node.SetDummyMinerSecret(new BitcoinSecret(extendedPrivateKey, node.FullNode.Network));
-            int numberOfBlocksToMine = 2; // node.GenerateBRhodiumWithMiner(2);
-            var rpc = node.CreateRPCClient();
-            int minedBlocks = 0;
-            while (minedBlocks < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
-            {
-                node.GenerateBRhodiumWithMiner(1);
-                minedBlocks = rpc.GetBlockCount();
-            }
+            node.GenerateBRhodiumWithMiner(2);
 
             this.WaitForNodeToSync(node);
 
