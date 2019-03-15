@@ -39,14 +39,22 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
-                BRhodiumSender.GenerateBRhodium(maturity + 5);
+
+                var rpc = BRhodiumSender.CreateRPCClient();
+                int blockCount = 0;
+                while (blockCount < maturity + 5)// there is an unpredictability in mining so ensure 10 blocks mined.
+                {
+                    BRhodiumSender.GenerateBRhodium(1);
+                    blockCount = rpc.GetBlockCount();
+                }
+
                 // wait for block repo for block sync to work
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
 
                 // the mining should add coins to the wallet
                 var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-                Assert.Equal(105001250000000, total);
+                Assert.Equal(105002500000000, total);
 
                 // sync both nodes
                 BRhodiumSender.CreateRPCClient().AddNode(BRhodiumReceiver.Endpoint, true);
