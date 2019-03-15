@@ -359,6 +359,8 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 Assert.Equal(20, BRhodiumReceiver.FullNode.Chain.Tip.Height);
 
                 BRhodiumSender.GenerateBRhodiumWithMiner(5);
+               
+
 
                 TestHelper.TriggerSync(BRhodiumReceiver);
                 TestHelper.TriggerSync(BRhodiumSender);
@@ -383,14 +385,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumSender.FullNode.Network));
                 BRhodiumReorg.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumReorg.FullNode.Network));
-                var rpc = BRhodiumSender.CreateRPCClient();
-                int blockCount = 0;
-                while (blockCount < 10)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumSender.GenerateBRhodiumWithMiner(1);
-                    blockCount = rpc.GetBlockCount();
-                }
-                
+                BRhodiumSender.GenerateBRhodiumWithMiner(10);
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
@@ -410,8 +405,9 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // create a reorg by mining on two different chains
                 // ================================================
                 // advance both chains, one chin is longer
-                BRhodiumSender.GenerateBRhodiumWithMiner(2);
-                BRhodiumReorg.GenerateBRhodiumWithMiner(10);
+                BRhodiumSender.GenerateBRhodiumWithMiner(2);             
+                BRhodiumReorg.GenerateBRhodiumWithMiner(10);               
+
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumReorg));
 
@@ -426,7 +422,8 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // rewind the wallet in the BRhodiumReceiver node
                 (BRhodiumReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(10);
 
-                BRhodiumSender.GenerateBRhodiumWithMiner(5);
+                BRhodiumSender.GenerateBRhodiumWithMiner(5);                
+
 
                 TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(BRhodiumReceiver, BRhodiumSender));
                 Assert.Equal(25, BRhodiumReceiver.FullNode.Chain.Tip.Height);
@@ -467,7 +464,14 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // push the wallet back
                 BRhodiumminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
 
-                BRhodiumminer.GenerateBRhodium(5);
+                
+                blockCount = 0;
+                int blockCountBeforeMining = rpc.GetBlockCount();
+                while (blockCount < 5)// there is an unpredictability in mining so ensure 10 blocks mined.
+                {
+                    BRhodiumminer.GenerateBRhodium(1);
+                    blockCount = rpc.GetBlockCount() - blockCountBeforeMining;
+                }
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
             }
@@ -490,7 +494,17 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
                 BRhodiumNodeSync.SetDummyMinerSecret(key.GetBitcoinSecret(BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodium(10);
+
+                var rpc = BRhodiumNodeSync.CreateRPCClient();
+                int blockCount = 0;
+                int blockCountBeforeMining = rpc.GetBlockCount();
+                while (blockCount < 10)// there is an unpredictability in mining so ensure 10 blocks mined.
+                {
+                    BRhodiumNodeSync.GenerateBRhodium(1);
+                    blockCount = rpc.GetBlockCount() - blockCountBeforeMining;
+                }
+
+
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumNodeSync));
 
                 // set the tip of best chain some blocks in the apst
