@@ -40,13 +40,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
-                var rpc = BRhodiumSender.CreateRPCClient();
-                int blockCount = 0;
-                while (blockCount < maturity + 5)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumSender.GenerateBRhodium(1);
-                    blockCount = rpc.GetBlockCount();
-                }
+                BRhodiumSender.GenerateBRhodium(maturity + 5);                
 
                 // wait for block repo for block sync to work
 
@@ -158,15 +152,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 BRhodiumReorg.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
 
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
-                //BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 15);
-
-                var rpc = BRhodiumSender.CreateRPCClient();
-                int blockCount = 0;
-                while (blockCount < maturity + 15)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumSender.GenerateBRhodium(1);
-                    blockCount = rpc.GetBlockCount();
-                }
+                BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 15);
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
@@ -449,29 +435,16 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumminer.SetDummyMinerSecret(key.GetBitcoinSecret(BRhodiumminer.FullNode.Network));
 
-                var rpc = BRhodiumminer.CreateRPCClient();
-                int blockCount = 0;
-                while (blockCount < 10)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumminer.GenerateBRhodium(1);
-                    blockCount = rpc.GetBlockCount();
-                }
-                
+                BRhodiumminer.GenerateBRhodium(10);
+
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
                 
 
                 // push the wallet back
                 BRhodiumminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
-
                 
-                blockCount = 0;
-                int blockCountBeforeMining = rpc.GetBlockCount();
-                while (blockCount < 5)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumminer.GenerateBRhodium(1);
-                    blockCount = rpc.GetBlockCount() - blockCountBeforeMining;
-                }
+                BRhodiumminer.GenerateBRhodium(5);
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
             }
@@ -495,15 +468,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumNodeSync.SetDummyMinerSecret(key.GetBitcoinSecret(BRhodiumNodeSync.FullNode.Network));
 
-                var rpc = BRhodiumNodeSync.CreateRPCClient();
-                int blockCount = 0;
-                int blockCountBeforeMining = rpc.GetBlockCount();
-                while (blockCount < 10)// there is an unpredictability in mining so ensure 10 blocks mined.
-                {
-                    BRhodiumNodeSync.GenerateBRhodium(1);
-                    blockCount = rpc.GetBlockCount() - blockCountBeforeMining;
-                }
-
+                BRhodiumNodeSync.GenerateBRhodium(10);
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumNodeSync));
 
