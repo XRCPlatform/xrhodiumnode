@@ -1786,7 +1786,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.OrderByDescending(t => t.BlockHeight).ToList();
+                    txList = txList.OrderBy(t => t.BlockHeight).ToList();
                     foreach (var txItem in txList)
                     {
                         if (uintBlockHash != null)
