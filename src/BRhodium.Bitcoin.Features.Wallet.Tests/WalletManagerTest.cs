@@ -14,6 +14,7 @@ using BRhodium.Node.Tests.Wallet.Common;
 using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
 using Xunit;
+using System.Text;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests
 {
@@ -53,7 +54,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var mnemonic = walletManager.CreateWallet(password, "mywallet");
 
             // assert it has saved it to disk and has been created correctly.
-            var expectedWallet = JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(dataFolder.WalletPath + "/mywallet.wallet.json"));
+            var expectedWallet = walletManager.GetWalletByName("mywallet");
             var actualWallet = walletManager.Wallets.ElementAt(0);
 
             Assert.Equal("mywallet", expectedWallet.Name);
@@ -133,8 +134,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(expectedBlockHash, expectedWallet.BlockLocator.ElementAt(1));
             Assert.Equal(expectedWallet.BlockLocator.ElementAt(1), actualWallet.BlockLocator.ElementAt(1));
 
-            Assert.Equal(actualWallet.EncryptedSeed, mnemonic.DeriveExtKey(password).PrivateKey.GetEncryptedBitcoinSecret(password, Network.BRhodiumMain).ToWif());
-            Assert.Equal(expectedWallet.EncryptedSeed, mnemonic.DeriveExtKey(password).PrivateKey.GetEncryptedBitcoinSecret(password, Network.BRhodiumMain).ToWif());
+            string fakePassphrase = Convert.ToBase64String(Encoding.UTF8.GetBytes(password));
+            Assert.Equal(actualWallet.EncryptedSeed, mnemonic.DeriveExtKey(fakePassphrase).PrivateKey.GetEncryptedBitcoinSecret(password, Network.BRhodiumMain).ToWif());
+            Assert.Equal(expectedWallet.EncryptedSeed, mnemonic.DeriveExtKey(fakePassphrase).PrivateKey.GetEncryptedBitcoinSecret(password, Network.BRhodiumMain).ToWif());
         }
 
         /// <summary>
@@ -163,9 +165,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             // create the wallet
             var mnemonic = walletManager.CreateWallet(password, "mywallet", passphrase);
+            passphrase = Convert.ToBase64String(Encoding.UTF8.GetBytes(passphrase));//wallet passphrases are base64 encoded inside CreateWallet method
 
             // assert it has saved it to disk and has been created correctly.
             var expectedWallet = walletManager.GetWallet("mywallet");
+
             var actualWallet = walletManager.Wallets.ElementAt(0);
 
             Assert.Equal("mywallet", expectedWallet.Name);
