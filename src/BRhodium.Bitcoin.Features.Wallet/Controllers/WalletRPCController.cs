@@ -1777,9 +1777,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                uint256 uintBlockHash = null;
+                ChainedHeader startChainedHeader = null;
                 if (!string.IsNullOrEmpty(blockhash)) {
-                    uintBlockHash = new uint256(blockhash);
+
+                    var uintBlockHash = new uint256(blockhash);
+                    startChainedHeader = this.ConsensusLoop.Chain.GetBlock(uintBlockHash);
                 }
 
                 var chainedTip = chainRepository.Tip;
@@ -1789,15 +1791,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     txList = txList.OrderBy(t => t.BlockHeight).ToList();
                     foreach (var txItem in txList)
                     {
-                        if (uintBlockHash != null)
+                        if (startChainedHeader != null)
                         {
-                            if (txItem.BlockHash != uintBlockHash)
+                            if (txItem.BlockHeight < startChainedHeader.Height)
                             {
                                 continue;
                             }
                             else
                             {
-                                uintBlockHash = null; //remove block
+                                startChainedHeader = null; //remove block
                             }
                         }
 
