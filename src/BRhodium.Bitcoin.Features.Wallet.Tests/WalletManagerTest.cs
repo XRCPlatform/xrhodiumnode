@@ -2533,6 +2533,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
+            
             HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
             accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), null));
             accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1));
@@ -2559,7 +2560,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var accounts = new List<HdAccount> { account, account2 };
 
             Wallet wallet = WalletTestsHelpers.CreateWallet("myWallet");
-            wallet.AccountsRoot.Add(new AccountRoot());
+            wallet.AccountsRoot.Add(new AccountRoot()
+            {
+                CoinType = CoinType.BRhodium
+            }
+            );
             wallet.AccountsRoot.First().Accounts = accounts;
 
             walletManager.Wallets.Add(wallet);
