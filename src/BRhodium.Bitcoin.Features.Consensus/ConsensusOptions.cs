@@ -77,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         {
             var production = this;
             production.CoinbaseMaturity = 6;//one is unsuitible as precludes maturity based tests
-            this.MaxBlockSigopsCost = 100;
+            this.MaxBlockSigopsCost = 3000;
             return production;
         }
     }

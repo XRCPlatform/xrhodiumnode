@@ -157,11 +157,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
 
-
-                var currentBestHeight = maturity + 15;
-
-                // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
+                var currentBestHeight = maturity + 15;               
 
                 // the mining should add coins to the wallet
                 var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
@@ -195,11 +191,10 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 Assert.Equal(Money.COIN * 100, receivetotal);
                 Assert.Null(BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
 
-                // generate two new blocks so the trx is confirmed
-                BRhodiumSender.GenerateBRhodiumWithMiner(1);
+                // generate 10 new blocks so the trx is confirmed
+                var blocks = BRhodiumSender.GenerateBRhodiumWithMiner(10);
                 var transaction1MinedHeight = currentBestHeight + 1;
-                BRhodiumSender.GenerateBRhodiumWithMiner(1);
-                currentBestHeight = currentBestHeight + 2;
+                currentBestHeight = currentBestHeight + blocks.Count();
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
