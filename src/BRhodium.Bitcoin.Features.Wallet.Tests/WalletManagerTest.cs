@@ -1023,10 +1023,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var result = walletManager.GetAccounts("myWallet");
 
-            Assert.Equal(3, result.Count());
+            Assert.Equal(4, result.Count());
             Assert.Equal("Account 0", result.ElementAt(0).Name);
             Assert.Equal("Account 1", result.ElementAt(1).Name);
-            Assert.Equal("Account 3", result.ElementAt(2).Name);
+            Assert.Equal("Account 2", result.ElementAt(2).Name);
+            Assert.Equal("Account 3", result.ElementAt(3).Name);
         }
 
         [Fact]
