@@ -313,12 +313,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             DataFolder dataFolder = CreateDataFolder(this);
 
-            var wallet = this.walletFixture.GenerateBlankWallet("testWallet", "password");
-
-            File.WriteAllText(Path.Combine(dataFolder.WalletPath, "testWallet.wallet.json"), JsonConvert.SerializeObject(wallet, Formatting.Indented, new ByteArrayConverter()));
+            var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey("testWallet", "password"); //this.walletFixture.GenerateBlankWallet("testWallet", "password");
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                                                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+            walletManager.SaveWallet(wallet.wallet);
 
             var result = walletManager.LoadWallet("password", "testWallet");
 
@@ -832,9 +831,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                         Index = 0,
                         Address = "myUsedAddress",
                         ScriptPubKey = new Script(),
+                        Pubkey = new Script(),
+                        HdPath = "m/44'/0'/0'/1",
                         Transactions = new List<TransactionData>
                         {
-                            new TransactionData()
+                            new TransactionData(){
+                               Id = new uint256(),
+                               Amount = new Money(1000000000),
+                               CreationTime = DateTimeOffset.Now,
+                               ScriptPubKey = new Script()
+                            },
                         },
                     }
                 },
@@ -855,7 +861,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(pubKey.ScriptPubKey, result.Pubkey);
             Assert.Equal(address.ScriptPubKey, result.ScriptPubKey);
             Assert.Equal(0, result.Transactions.Count);
-            Assert.True(File.Exists(Path.Combine(dataFolder.WalletPath + $"/myWallet.wallet.json")));
+            Assert.True(walletManager.GetWalletByName("myWallet") != null);
         }
 
         [Fact]
