@@ -332,7 +332,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void LoadWalletWithNonExistingWalletThrowsFileNotFoundException()
         {
-            Assert.Throws<FileNotFoundException>(() =>
+            Assert.Throws<WalletDoesNotExistException>(() =>
            {
                DataFolder dataFolder = CreateDataFolder(this);
 

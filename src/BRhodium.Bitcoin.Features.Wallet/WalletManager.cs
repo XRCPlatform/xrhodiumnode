@@ -279,7 +279,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Load the file from the local system.
             Wallet wallet = this.DBreezeStorage.LoadByKey(name, this.network);
-
+            if (wallet == null)
+            {
+                this.logger.LogTrace("Wallet does not exist in breeze db: {0}",name);
+                this.logger.LogTrace("(-)[EXCEPTION]");
+                throw new WalletDoesNotExistException($"Wallet {name} does not exist.");
+            }
             // Check the password.
             try
             {
