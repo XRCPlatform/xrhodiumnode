@@ -161,5 +161,14 @@ namespace BRhodium.Node.Utilities
 
             return objects;
         }
+
+        public void DeleteWallet(string name)
+        {
+            using (var transaction = this.dbreeze.GetTransaction())
+            {
+                transaction.RemoveKey<string>(this.DatabaseName, name);
+                transaction.Commit();
+            }
+        }
     }
 }

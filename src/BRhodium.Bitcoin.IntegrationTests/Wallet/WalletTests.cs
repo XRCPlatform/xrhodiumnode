@@ -97,7 +97,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 this.InitializeTestWallet(BRhodiumSender.FullNode.DataFolder.WalletPath);
                 var walletManager = BRhodiumSender.FullNode.NodeService<IWalletManager>() as WalletManager;
                 walletManager.Start();
-                var wallet = walletManager.Wallets.FirstOrDefault();
+                var wallet = walletManager.Wallets.Values.FirstOrDefault();
                 var account  = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault();
                 var rpc = BRhodiumSender.CreateRPCClient();
                 var addressToMine = account.ExternalAddresses.FirstOrDefault();
