@@ -30,7 +30,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Gets the list of wallets.
         /// </summary>
-        ConcurrentBag<Wallet> Wallets { get; }
+        ConcurrentDictionary<string,Wallet> Wallets { get; }
 
         /// <summary>
         /// Memory locked unspendable transaction parts (tx hash, index vount)
@@ -81,7 +81,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Deletes a wallet.
         /// </summary>
-        void DeleteWallet();
+        void DeleteWallet(string name);
 
         /// <summary>
         /// Gets an account that contains no transactions.

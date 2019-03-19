@@ -111,12 +111,12 @@ namespace BRhodium.Node.IntegrationTests
                 BRhodiumNodeSync.NotInIBD();
 
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodiumWithMiner(201); // coinbase maturity = 100
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(10); // coinbase maturity = 6
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
 
                 var trxs = new List<Transaction>();
-                foreach (var index in Enumerable.Range(1, 100))
+                foreach (var index in Enumerable.Range(1, 10))
                 {
                     var block = BRhodiumNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(BRhodiumNodeSync.FullNode.Chain.GetBlock(index).HashBlock).Result;
                     var prevTrx = block.Transactions.First();
@@ -124,8 +124,8 @@ namespace BRhodium.Node.IntegrationTests
 
                     Transaction tx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                     tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(BRhodiumNodeSync.MinerSecret.PubKey)));
-                    tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
-                    tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
+                    tx.AddOutput(new TxOut("2.5", dest.PubKey.Hash));
+                    tx.AddOutput(new TxOut("2.4", new Key().PubKey.Hash)); // 0.1 xrc fee
                     tx.Sign(BRhodiumNodeSync.FullNode.Network, BRhodiumNodeSync.MinerSecret, false);
                     trxs.Add(tx);
                 }
@@ -135,7 +135,7 @@ namespace BRhodium.Node.IntegrationTests
                     BRhodiumNodeSync.Broadcast(transaction);
                 });
 
-                TestHelper.WaitLoop(() => BRhodiumNodeSync.CreateRPCClient().GetRawMempool().Length == 100);
+                TestHelper.WaitLoop(() => BRhodiumNodeSync.CreateRPCClient().GetRawMempool().Length == 10);
             }
         }
 
