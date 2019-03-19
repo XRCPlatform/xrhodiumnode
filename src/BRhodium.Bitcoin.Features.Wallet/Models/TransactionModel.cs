@@ -85,9 +85,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                         }
                     }
 
-                    var totalInputs = prevTrxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
-                    var fee = totalInputs - trx.TotalOut.ToUnit(MoneyUnit.Satoshi);
-                    this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
+                    decimal fee = 0;
+                    if (!trx.IsCoinBase)
+                    {
+                        var totalInputs = prevTrxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+                        fee = totalInputs - trx.TotalOut.ToUnit(MoneyUnit.Satoshi);
+                        this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
+                    }
 
                     var isSendTx = false;
                     decimal clearOutAmount = 0;
@@ -121,7 +125,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                                     {
                                         this.Address = address.Address;
                                         this.Category = "receive";
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
+                                        if ((trx.IsCoinBase) || (!isSendTx)) clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
                                     }
                                     else
                                     {
