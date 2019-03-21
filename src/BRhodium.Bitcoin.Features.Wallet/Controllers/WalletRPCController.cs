@@ -334,9 +334,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var accounts = new List<HdAccount>();
                 if (walletName == "*")
                 {
-                    foreach (var name in this.walletManager.Wallets.Keys)
+                    foreach (var wallet in this.walletManager.Wallets)
                     {
-                        foreach (var account in this.walletManager.GetAccounts(name))
+                        foreach (var account in this.walletManager.GetAccounts(wallet.Name))
                         {
                             accounts.Add(account);
                         }
@@ -1160,7 +1160,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         // Update the wallets with the last processed block height.
                         // It's important that updating the height happens after the block processing is complete,
                         // as if the node is stopped, on re-opening it will start updating from the previous height.
-                        foreach (var wallet in this.walletManager.Wallets.Values)
+                        foreach (var wallet in this.walletManager.Wallets)
                         {
                             wallet.BlockLocator = chainedHeader.GetLocator().Blocks;
 
@@ -1388,9 +1388,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 long unspendAmountSatoshi = 0;
 
-                foreach (var name in this.walletManager.Wallets.Keys)
+                foreach (var itemWallet in this.walletManager.Wallets)
                 {
-                    var balances = this.walletManager.GetBalances(name);
+                    var balances = this.walletManager.GetBalances(itemWallet.Name);
                     var accountBalances = balances.Where(a => a.Account.GetCoinType() == (CoinType)this.Network.Consensus.CoinType).ToList();
 
                     foreach (var itemAccount in accountBalances)

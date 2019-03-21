@@ -61,7 +61,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                     new DataFolder(new NodeSettings(args:new string[] { $"-datadir={dataDir}" }).DataDir), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
                 var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, new Mock<IWalletFeePolicy>().Object, Network.Main);
 
-                walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+                walletManager.Wallets.Add(wallet);
 
                 var walletReference = new WalletAccountReference
                 {
@@ -126,7 +126,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                     new DataFolder(new NodeSettings(args:new string[] { $"-datadir={dataDir}" }).DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
                 var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
 
-                walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+                walletManager.Wallets.Add(wallet);
 
                 var walletReference = new WalletAccountReference
                 {
@@ -277,8 +277,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletTransactionHandler =
                 new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
 
-            walletManager.Wallets.AddOrReplace("myWallet1", wallet);
-            
+            walletManager.Wallets.Add(wallet);
 
             var walletReference = new WalletAccountReference
             {
@@ -332,7 +331,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
 
-            walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             var walletReference = new WalletAccountReference
             {
@@ -379,7 +378,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Assert.Contains(fundTransaction.Inputs, a => a.PrevOut == input.PrevOut);
 
             Assert.Equal(4, fundTransaction.Inputs.Count); // we expect 4 inputs
-            Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs (2.99984640 = change)
+            Assert.Equal(4, fundTransaction.Outputs.Count); // we expect 4 outputs
             Assert.Equal(new Money((decimal)1050007.5, MoneyUnit.XRC) - fundContext.TransactionFee, fundTransaction.TotalOut);
 
             Assert.Contains(fundTransaction.Outputs, a => a.ScriptPubKey == destinationKeys1.PubKey.ScriptPubKey);
@@ -403,7 +402,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 CoinType = (CoinType)Network.Main.Consensus.CoinType,
                 Accounts = new List<HdAccount> { WalletTestsHelpers.CreateAccount("account 1") }
             });
-            walletManager.Wallets.AddOrReplace("wallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             Exception ex = Assert.Throws<WalletException>(() => walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "noaccount"), FeeType.Low, true));
             Assert.NotNull(ex);
@@ -442,7 +441,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Accounts = new List<HdAccount> { account }
             });
 
-            walletManager.Wallets.AddOrReplace("wallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, true);
             Assert.Equal(Money.Zero, result.max);
@@ -479,7 +478,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Accounts = new List<HdAccount> { account }
             });
 
-            walletManager.Wallets.AddOrReplace("wallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, false);
             Assert.Equal(Money.Zero, result.max);
@@ -519,7 +518,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Accounts = new List<HdAccount> { account }
             });
 
-            walletManager.Wallets.AddOrReplace("wallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, true);
             Assert.Equal(new Money(165000), result.max + result.fee);
@@ -547,7 +546,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Accounts = new List<HdAccount> { account }
             });
 
-            walletManager.Wallets.AddOrReplace("wallet1", wallet);
+            walletManager.Wallets.Add(wallet);
 
             (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, true);
             Assert.Equal(Money.Zero, result.max);

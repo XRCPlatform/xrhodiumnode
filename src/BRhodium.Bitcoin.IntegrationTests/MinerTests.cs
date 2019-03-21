@@ -90,24 +90,18 @@ namespace BRhodium.Node.IntegrationTests
             return index;
         }
 
+        public bool TestSequenceLocks(TestContext testContext, ChainedHeader chainedHeader, Transaction tx, Transaction.LockTimeFlags flags, LockPoints uselock = null)
+        {
+            var context = new MempoolValidationContext(tx, new MempoolValidationState(false));
+            context.View = new MempoolCoinView(testContext.cachedCoinView, testContext.mempool, testContext.mempoolLock, null);
+            context.View.LoadViewAsync(tx).GetAwaiter().GetResult();
+            return MempoolValidator.CheckSequenceLocks(testContext.network, chainedHeader, context, flags, uselock, false);
+        }
 
         // TODO: There may be an opportunity to share the logic for populating the chain (TestContext) using TestChainFactory in the mempool unit tests.
         //       Most of the logic for mempool's TestChainFactory was taken directly from the "TestContext" class that is embedded below.
         public class TestContext
         {
-
-            /// <summary>Provider of binary (de)serialization for data stored in the database.</summary>
-            private readonly DBreezeSerializer dbreezeSerializer;
-
-            /// <summary>
-            /// Initializes logger factory for tests in this class.
-            /// </summary>
-            public TestContext()
-            {
-                this.dbreezeSerializer = new DBreezeSerializer();
-                this.dbreezeSerializer.Initialize(Network.BRhodiumRegTest);
-            }
-
             public List<Blockinfo> blockinfo;
             public Network network;
             public Script scriptPubKey;
@@ -122,8 +116,8 @@ namespace BRhodium.Node.IntegrationTests
             public TxMempool mempool;
             public MempoolSchedulerLock mempoolLock;
             public List<Transaction> txFirst;
-            public Money BLOCKSUBSIDY = new Money((decimal)2.5, MoneyUnit.XRC);
-            public Money LOWFEE = new Money(100, MoneyUnit.Satoshi);
+            public Money BLOCKSUBSIDY = 50 * Money.COIN;
+            public Money LOWFEE = Money.CENT;
             public Money HIGHFEE = Money.COIN;
             public Money HIGHERFEE = 4 * Money.COIN;
             public int baseheight;
@@ -139,14 +133,14 @@ namespace BRhodium.Node.IntegrationTests
                     this.blockinfo.Add(new Blockinfo { extranonce = (int)lst[i], nonce = (uint)lst[i + 1] });
 
                 // Note that by default, these tests run with size accounting enabled.
-                this.network = Network.BRhodiumRegTest;
+                this.network = Network.Main;
                 var hex = Encoders.Hex.DecodeData("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
                 this.scriptPubKey = new Script(new[] { Op.GetPushOp(hex), OpcodeType.OP_CHECKSIG });
                 this.newBlock = new BlockTemplate(this.network);
 
                 this.entry = new TestMemPoolEntryHelper();
                 this.chain = new ConcurrentChain(this.network);
-                this.network.Consensus.Options = new PowConsensusOptions();//.TestPowConsensusOptions()
+                this.network.Consensus.Options = new PowConsensusOptions();
                 IDateTimeProvider dateTimeProvider = DateTimeProvider.Default;
 
                 this.cachedCoinView = new CachedCoinView(new InMemoryCoinView(this.chain.Tip.HashBlock), dateTimeProvider, new LoggerFactory());
@@ -202,8 +196,7 @@ namespace BRhodium.Node.IntegrationTests
                     Transaction txCoinbase = pblock.Transactions[0].Clone();
                     txCoinbase.Inputs.Clear();
                     txCoinbase.Version = 1;
-                    txCoinbase.Outputs.First().Value = new Money((decimal)2.5, MoneyUnit.XRC);
-                    txCoinbase.AddInput(new TxIn(new Script(new[] { Op.GetPushOp(this.chain.Height + 1), OpcodeType.OP_0 })));
+                    txCoinbase.AddInput(new TxIn(new Script(new[] { Op.GetPushOp(this.blockinfo[i].extranonce), Op.GetPushOp(this.chain.Height) })));
                     // Ignore the (optional) segwit commitment added by CreateNewBlock (as the hardcoded nonces don't account for this)
                     txCoinbase.AddOutput(new TxOut(Money.Zero, new Script()));
                     pblock.Transactions[0] = txCoinbase;
@@ -231,352 +224,123 @@ namespace BRhodium.Node.IntegrationTests
                 this.useCheckpoints = false;
                 return this;
             }
-
-          
         }
-        [Collection("Simple breeze db context")]
-        public class MinerTestsWithSharedContext
+
+        // Test suite for ancestor feerate transaction selection.
+        // Implemented as an additional function, rather than a separate test case,
+        // to allow reusing the blockchain created in CreateNewBlock_validity.
+        [Fact]
+        public async Task MinerTestPackageSelectionAsync()
         {
-            public bool TestSequenceLocks(TestContext testContext, ChainedHeader chainedHeader, Transaction tx, Transaction.LockTimeFlags flags, LockPoints uselock = null)
+            var context = new TestContext();
+            await context.InitializeAsync();
+
+            // Test the ancestor feerate transaction selection.
+            TestMemPoolEntryHelper entry = new TestMemPoolEntryHelper();
+
+            // Test that a medium fee transaction will be selected after a higher fee
+            // rate package with a low fee rate parent.
+            Transaction tx = new Transaction();
+            tx.AddInput(new TxIn(new OutPoint(context.txFirst[0].GetHash(), 0), new Script(OpcodeType.OP_1)));
+            tx.AddOutput(new TxOut(new Money(5000000000L - 1000), new Script()));
+
+            // This tx has a low fee: 1000 satoshis
+            uint256 hashParentTx = tx.GetHash(); // save this txid for later use
+            context.mempool.AddUnchecked(hashParentTx, entry.Fee(1000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
+
+            // This tx has a medium fee: 10000 satoshis
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
+            tx.Outputs[0].Value = 5000000000L - 10000;
+            uint256 hashMediumFeeTx = tx.GetHash();
+            context.mempool.AddUnchecked(hashMediumFeeTx, entry.Fee(10000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
+
+            // This tx has a high fee, but depends on the first transaction
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = hashParentTx;
+            tx.Outputs[0].Value = 5000000000L - 1000 - 50000; // 50k satoshi fee
+            uint256 hashHighFeeTx = tx.GetHash();
+            context.mempool.AddUnchecked(hashHighFeeTx, entry.Fee(50000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(false).FromTx(tx));
+
+            var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            Assert.True(pblocktemplate.Block.Transactions[1].GetHash() == hashParentTx);
+            Assert.True(pblocktemplate.Block.Transactions[2].GetHash() == hashHighFeeTx);
+            Assert.True(pblocktemplate.Block.Transactions[3].GetHash() == hashMediumFeeTx);
+
+            // Test that a package below the block min tx fee doesn't get included
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = hashHighFeeTx;
+            tx.Outputs[0].Value = 5000000000L - 1000 - 50000; // 0 fee
+            uint256 hashFreeTx = tx.GetHash();
+            context.mempool.AddUnchecked(hashFreeTx, entry.Fee(0).FromTx(tx));
+            var freeTxSize = tx.GetSerializedSize();
+
+            // Calculate a fee on child transaction that will put the package just
+            // below the block min tx fee (assuming 1 child tx of the same size).
+            var feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - 1;
+
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = hashFreeTx;
+            tx.Outputs[0].Value = 5000000000L - 1000 - 50000 - feeToUse;
+            uint256 hashLowFeeTx = tx.GetHash();
+            context.mempool.AddUnchecked(hashLowFeeTx, entry.Fee(feeToUse).FromTx(tx));
+            pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            // Verify that the free tx and the low fee tx didn't get selected
+            for (var i = 0; i < pblocktemplate.Block.Transactions.Count; ++i)
             {
-                var context = new MempoolValidationContext(tx, new MempoolValidationState(false));
-                context.View = new MempoolCoinView(testContext.cachedCoinView, testContext.mempool, testContext.mempoolLock, null);
-                context.View.LoadViewAsync(tx).GetAwaiter().GetResult();
-                return MempoolValidator.CheckSequenceLocks(testContext.network, chainedHeader, context, flags, uselock, false);
+                Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashFreeTx);
+                Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashLowFeeTx);
             }
 
-            static TestContext context = null;
-            static MinerTestsWithSharedContext()
+            // Test that packages above the min relay fee do get included, even if one
+            // of the transactions is below the min relay fee
+            // Remove the low fee transaction and replace with a higher fee transaction
+            context.mempool.RemoveRecursive(tx);
+            tx = tx.Clone();
+            tx.Outputs[0].Value -= 2; // Now we should be just over the min relay fee
+            hashLowFeeTx = tx.GetHash();
+            context.mempool.AddUnchecked(hashLowFeeTx, entry.Fee(feeToUse + 2).FromTx(tx));
+            pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            Assert.True(pblocktemplate.Block.Transactions[4].GetHash() == hashFreeTx);
+            Assert.True(pblocktemplate.Block.Transactions[5].GetHash() == hashLowFeeTx);
+
+            // Test that transaction selection properly updates ancestor fee
+            // calculations as ancestor transactions get included in a block.
+            // Add a 0-fee transaction that has 2 outputs.
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[2].GetHash();
+            tx.AddOutput(Money.Zero, new Script());
+            tx.Outputs[0].Value = 5000000000L - 100000000;
+            tx.Outputs[1].Value = 100000000; // 1BTC output
+            uint256 hashFreeTx2 = tx.GetHash();
+            context.mempool.AddUnchecked(hashFreeTx2, entry.Fee(0).SpendsCoinbase(true).FromTx(tx));
+
+            // This tx can't be mined by itself
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = hashFreeTx2;
+            tx.Outputs.RemoveAt(1);
+            feeToUse = blockMinFeeRate.GetFee(freeTxSize);
+            tx.Outputs[0].Value = 5000000000L - 100000000 - feeToUse;
+            uint256 hashLowFeeTx2 = tx.GetHash();
+            context.mempool.AddUnchecked(hashLowFeeTx2, entry.Fee(feeToUse).SpendsCoinbase(false).FromTx(tx));
+            pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+
+            // Verify that this tx isn't selected.
+            for (var i = 0; i < pblocktemplate.Block.Transactions.Count; ++i)
             {
-                context = new TestContext();
-                context.InitializeAsync().GetAwaiter().GetResult();
-            }
-            // Test suite for ancestor feerate transaction selection.
-            // Implemented as an additional function, rather than a separate test case,
-            // to allow reusing the blockchain created in CreateNewBlock_validity.
-            [Fact]
-            public async Task MinerTestPackageSelectionAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-
-                // Test the ancestor feerate transaction selection.
-                TestMemPoolEntryHelper entry = new TestMemPoolEntryHelper();
-
-                // Test that a medium fee transaction will be selected after a higher fee
-                // rate package with a low fee rate parent.
-                Transaction tx = new Transaction();
-                tx.AddInput(new TxIn(new OutPoint(context.txFirst[0].GetHash(), 0), new Script(OpcodeType.OP_1)));
-                tx.AddOutput(new TxOut(new Money(5000000000L - 1000), new Script()));
-
-                // This tx has a low fee: 1000 satoshis
-                uint256 hashParentTx = tx.GetHash(); // save this txid for later use
-                context.mempool.AddUnchecked(hashParentTx, entry.Fee(1000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
-
-                // This tx has a medium fee: 10000 satoshis
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
-                tx.Outputs[0].Value = 5000000000L - 10000;
-                uint256 hashMediumFeeTx = tx.GetHash();
-                context.mempool.AddUnchecked(hashMediumFeeTx, entry.Fee(10000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
-
-                // This tx has a high fee, but depends on the first transaction
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = hashParentTx;
-                tx.Outputs[0].Value = 5000000000L - 1000 - 50000; // 50k satoshi fee
-                uint256 hashHighFeeTx = tx.GetHash();
-                context.mempool.AddUnchecked(hashHighFeeTx, entry.Fee(50000).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(false).FromTx(tx));
-
-                var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                Assert.True(pblocktemplate.Block.Transactions[1].GetHash() == hashParentTx);
-                Assert.True(pblocktemplate.Block.Transactions[2].GetHash() == hashHighFeeTx);
-                Assert.True(pblocktemplate.Block.Transactions[3].GetHash() == hashMediumFeeTx);
-
-                // Test that a package below the block min tx fee doesn't get included
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = hashHighFeeTx;
-                tx.Outputs[0].Value = 5000000000L - 1000 - 50000; // 0 fee
-                uint256 hashFreeTx = tx.GetHash();
-                context.mempool.AddUnchecked(hashFreeTx, entry.Fee(0).FromTx(tx));
-                var freeTxSize = tx.GetSerializedSize();
-
-                // Calculate a fee on child transaction that will put the package just
-                // below the block min tx fee (assuming 1 child tx of the same size).
-                var feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - 1;
-
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = hashFreeTx;
-                tx.Outputs[0].Value = 5000000000L - 1000 - 50000 - feeToUse;
-                uint256 hashLowFeeTx = tx.GetHash();
-                context.mempool.AddUnchecked(hashLowFeeTx, entry.Fee(feeToUse).FromTx(tx));
-                pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                // Verify that the free tx and the low fee tx didn't get selected
-                for (var i = 0; i < pblocktemplate.Block.Transactions.Count; ++i)
-                {
-                    Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashFreeTx);
-                    Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashLowFeeTx);
-                }
-
-                // Test that packages above the min relay fee do get included, even if one
-                // of the transactions is below the min relay fee
-                // Remove the low fee transaction and replace with a higher fee transaction
-                context.mempool.RemoveRecursive(tx);
-                tx = tx.Clone();
-                tx.Outputs[0].Value -= 2; // Now we should be just over the min relay fee
-                hashLowFeeTx = tx.GetHash();
-                context.mempool.AddUnchecked(hashLowFeeTx, entry.Fee(feeToUse + 2).FromTx(tx));
-                pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                Assert.True(pblocktemplate.Block.Transactions[4].GetHash() == hashFreeTx);
-                Assert.True(pblocktemplate.Block.Transactions[5].GetHash() == hashLowFeeTx);
-
-                // Test that transaction selection properly updates ancestor fee
-                // calculations as ancestor transactions get included in a block.
-                // Add a 0-fee transaction that has 2 outputs.
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[2].GetHash();
-                tx.AddOutput(Money.Zero, new Script());
-                tx.Outputs[0].Value = 5000000000L - 100000000;
-                tx.Outputs[1].Value = 100000000; // 1BTC output
-                uint256 hashFreeTx2 = tx.GetHash();
-                context.mempool.AddUnchecked(hashFreeTx2, entry.Fee(0).SpendsCoinbase(true).FromTx(tx));
-
-                // This tx can't be mined by itself
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = hashFreeTx2;
-                tx.Outputs.RemoveAt(1);
-                feeToUse = blockMinFeeRate.GetFee(freeTxSize);
-                tx.Outputs[0].Value = 5000000000L - 100000000 - feeToUse;
-                uint256 hashLowFeeTx2 = tx.GetHash();
-                context.mempool.AddUnchecked(hashLowFeeTx2, entry.Fee(feeToUse).SpendsCoinbase(false).FromTx(tx));
-                pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-
-                // Verify that this tx isn't selected.
-                for (var i = 0; i < pblocktemplate.Block.Transactions.Count; ++i)
-                {
-                    Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashFreeTx2);
-                    Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashLowFeeTx2);
-                }
-
-                // This tx will be mineable, and should cause hashLowFeeTx2 to be selected
-                // as well.
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.N = 1;
-                tx.Outputs[0].Value = 100000000 - 10000; // 10k satoshi fee
-                context.mempool.AddUnchecked(tx.GetHash(), entry.Fee(10000).FromTx(tx));
-                pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                Assert.True(pblocktemplate.Block.Transactions[8].GetHash() == hashLowFeeTx2);
-            }
- 
-            [Fact]
-            public async Task MinerCreateBlockSizeGreaterThenLimitAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-
-                // block size > limit
-                tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-                tx.Inputs[0].ScriptSig = new Script();
-                // 18 * (520char + DROP) + OP_1 = 9433 bytes
-                var vchData = new byte[520];
-                for (int i = 0; i < 18; ++i)
-                    tx.Inputs[0].ScriptSig = new Script(tx.Inputs[0].ScriptSig.ToBytes().Concat(vchData.Concat(new[] { (byte)OpcodeType.OP_DROP })));
-                tx.Inputs[0].ScriptSig = new Script(tx.Inputs[0].ScriptSig.ToBytes().Concat(new[] { (byte)OpcodeType.OP_1 }));
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[0].GetHash();
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY;
-                for (int i = 0; i < 128; ++i)
-                {
-                    tx.Outputs[0].Value -= context.LOWFEE;
-                    context.hash = tx.GetHash();
-                    bool spendsCoinbase = (i == 0); // only first tx spends coinbase
-                    context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.LOWFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(spendsCoinbase).FromTx(tx));
-                    tx = tx.Clone();
-                    tx.Inputs[0].PrevOut.Hash = context.hash;
-                }
-                var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                Assert.NotNull(pblocktemplate);
-                context.mempool.Clear();
-            }
-            [Fact]
-            public async Task MinerCreateBlockChildWithHigherFeerateThanParentAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-
-                // child with higher feerate than parent
-                tx = tx.Clone();
-                tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
-                context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
-                tx = tx.Clone();
-                tx.Inputs[0].PrevOut.Hash = context.hash;
-                tx.Inputs.Add(new TxIn());
-                tx.Inputs[1].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[1].PrevOut.Hash = context.txFirst[0].GetHash();
-                tx.Inputs[1].PrevOut.N = 0;
-                tx.Outputs[0].Value = tx.Outputs[0].Value + context.BLOCKSUBSIDY - context.HIGHERFEE; //First txn output + fresh coinbase - new txn fee
-                context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHERFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
-                var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
-                Assert.NotNull(pblocktemplate);
-                context.mempool.Clear();
-            }
-            [Fact]
-            public async Task MinerCreateBlockNonFinalTxsInMempoolAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-
-                // non - final txs in mempool
-                (context.DateTimeProvider as MemoryPoolTests.DateTimeProviderSet).time = context.chain.Tip.Header.Time + 1;
-                //SetMockTime(chainActive.Tip().GetMedianTimePast() + 1);
-                var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
-                // height map
-                List<int> prevheights = new List<int>();
-
-                // relative height locked
-                tx.Version = 2;
-                prevheights.Add(1);
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[0].GetHash(); // only 1 transaction
-                tx.Inputs[0].PrevOut.N = 0;
-                tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[0].Sequence = new Sequence(context.chain.Tip.Height + 1); // txFirst[0] is the 2nd block
-                prevheights[0] = context.baseheight + 1;
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
-                tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
-                tx.LockTime = 0;
-                //context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
-                Assert.True(MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime passes
-                Assert.True(!this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks fail
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
-                var locks = tx.CalculateSequenceLocks(prevheights.ToArray(), context.chain.Tip, flags);
-                Assert.True(locks.Evaluate(context.chain.Tip)); // Sequence locks pass on 2nd block
+                Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashFreeTx2);
+                Assert.True(pblocktemplate.Block.Transactions[i].GetHash() != hashLowFeeTx2);
             }
 
-            [Fact]
-            public async Task MinerCreateBlockRelativeTimeLockedAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-
-                var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
-
-                // height map
-                List<int> prevheights = new List<int>();
-                prevheights.Add(1);
-                // relative time locked
-                tx.Version = 2;
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
-                tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[0].PrevOut.N = 0;
-                tx.Inputs[0].Sequence = new Sequence(TimeSpan.FromMinutes(10)); // txFirst[1] is the 3rd block
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
-                tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
-                tx.LockTime = 0;
-                prevheights[0] = context.baseheight + 2;
-                context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
-                Assert.True(MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime passes
-                Assert.True(!this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks fail
-            }
-
-            [Fact]
-            public async Task MinerCreateBlockAbsoluteHeightLockedAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-                var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
-
-                int MedianTimeSpan = 11;
-                List<int> prevheights = new List<int>();
-                prevheights.Add(1);
-                tx.Version = 2;
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
-                tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[0].PrevOut.N = 0;
-                tx.Inputs[0].Sequence = new Sequence(TimeSpan.FromMinutes(10)); // txFirst[1] is the 3rd block
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
-                tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
-                tx.LockTime = 0;
-                prevheights[0] = context.baseheight + 2;
-
-                for (int i = 0; i < MedianTimeSpan; i++)
-                    context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
-                var locks = (tx.CalculateSequenceLocks(prevheights.ToArray(), context.chain.Tip, flags));
-                Assert.True(locks.Evaluate(context.chain.Tip));
-
-                //context = new TestContext();
-                //await context.InitializeAsync();
-
-                // absolute height locked
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[2].GetHash();
-                tx.Inputs[0].Sequence = Sequence.Final - 1;
-                prevheights[0] = context.baseheight + 3;
-                tx.LockTime = context.chain.Tip.Height + 1;
-                context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
-                Assert.True(!MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime fails
-                Assert.True(this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks pass
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
-                Assert.True(tx.IsFinal(context.chain.Tip.GetMedianTimePast(), context.chain.Tip.Height + 2)); // Locktime passes on 2nd block
-            }
-
-            [Fact]
-            public async Task MinerCreateBlockAbsoluteTimeLockedAsync()
-            {
-                //var context = new TestContext();
-                //await context.InitializeAsync();
-                var tx = new Transaction();
-                tx.AddInput(new TxIn());
-                tx.AddOutput(new TxOut());
-                var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
-
-                List<int> prevheights = new List<int>();
-                prevheights.Add(1);
-                tx.Version = 2;
-                tx.Inputs[0].PrevOut.Hash = context.txFirst[3].GetHash();
-                tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
-                tx.Inputs[0].PrevOut.N = 0;
-                tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
-                tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
-
-                // absolute time locked
-                tx.LockTime = context.chain.Tip.GetMedianTimePast().AddMinutes(1);
-                tx.Inputs[0].Sequence = Sequence.Final - 1;
-                prevheights[0] = context.baseheight + 4;
-                context.hash = tx.GetHash();
-                context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
-                Assert.True(!MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime fails
-                Assert.True(this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks pass
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
-                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
-                Assert.True(tx.IsFinal(context.chain.Tip.GetMedianTimePast().AddMinutes(2), context.chain.Tip.Height + 2)); // Locktime passes 2 min later
-            }
-
+            // This tx will be mineable, and should cause hashLowFeeTx2 to be selected
+            // as well.
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.N = 1;
+            tx.Outputs[0].Value = 100000000 - 10000; // 10k satoshi fee
+            context.mempool.AddUnchecked(tx.GetHash(), entry.Fee(10000).FromTx(tx));
+            pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            Assert.True(pblocktemplate.Block.Transactions[8].GetHash() == hashLowFeeTx2);
         }
-
 
         [Fact]
         public async Task MinerCreateBlockSigopsLimit1000Async()
@@ -620,9 +384,71 @@ namespace BRhodium.Node.IntegrationTests
             context.mempool.Clear();
         }
 
-       
+        [Fact]
+        public async Task MinerCreateBlockSizeGreaterThenLimitAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
 
-     
+            // block size > limit
+            tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+            tx.Inputs[0].ScriptSig = new Script();
+            // 18 * (520char + DROP) + OP_1 = 9433 bytes
+            var vchData = new byte[520];
+            for (int i = 0; i < 18; ++i)
+                tx.Inputs[0].ScriptSig = new Script(tx.Inputs[0].ScriptSig.ToBytes().Concat(vchData.Concat(new[] { (byte)OpcodeType.OP_DROP })));
+            tx.Inputs[0].ScriptSig = new Script(tx.Inputs[0].ScriptSig.ToBytes().Concat(new[] { (byte)OpcodeType.OP_1 }));
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[0].GetHash();
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY;
+            for (int i = 0; i < 128; ++i)
+            {
+                tx.Outputs[0].Value -= context.LOWFEE;
+                context.hash = tx.GetHash();
+                bool spendsCoinbase = (i == 0); // only first tx spends coinbase
+                context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.LOWFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(spendsCoinbase).FromTx(tx));
+                tx = tx.Clone();
+                tx.Inputs[0].PrevOut.Hash = context.hash;
+            }
+            var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            Assert.NotNull(pblocktemplate);
+            context.mempool.Clear();
+        }
+
+        [Fact]
+        public async Task MinerCreateBlockChildWithHigherFeerateThanParentAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+
+            // child with higher feerate than parent
+            tx = tx.Clone();
+            tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
+            tx = tx.Clone();
+            tx.Inputs[0].PrevOut.Hash = context.hash;
+            tx.Inputs.Add(new TxIn());
+            tx.Inputs[1].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[1].PrevOut.Hash = context.txFirst[0].GetHash();
+            tx.Inputs[1].PrevOut.N = 0;
+            tx.Outputs[0].Value = tx.Outputs[0].Value + context.BLOCKSUBSIDY - context.HIGHERFEE; //First txn output + fresh coinbase - new txn fee
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHERFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
+            var pblocktemplate = AssemblerForTest(context).Build(context.chain.Tip, context.scriptPubKey);
+            Assert.NotNull(pblocktemplate);
+            context.mempool.Clear();
+        }
+
         [Fact]
         public async Task MinerCreateBlockCoinbaseMempoolTemplateCreationFailsAsync()
         {
@@ -644,7 +470,150 @@ namespace BRhodium.Node.IntegrationTests
             context.mempool.Clear();
         }
 
-        
+        [Fact]
+        public async Task MinerCreateBlockNonFinalTxsInMempoolAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+
+            // non - final txs in mempool
+            (context.DateTimeProvider as MemoryPoolTests.DateTimeProviderSet).time = context.chain.Tip.Header.Time + 1;
+            //SetMockTime(chainActive.Tip().GetMedianTimePast() + 1);
+            var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
+            // height map
+            List<int> prevheights = new List<int>();
+
+            // relative height locked
+            tx.Version = 2;
+            prevheights.Add(1);
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[0].GetHash(); // only 1 transaction
+            tx.Inputs[0].PrevOut.N = 0;
+            tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[0].Sequence = new Sequence(context.chain.Tip.Height + 1); // txFirst[0] is the 2nd block
+            prevheights[0] = context.baseheight + 1;
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
+            tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
+            tx.LockTime = 0;
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Fee(context.HIGHFEE).Time(context.DateTimeProvider.GetTime()).SpendsCoinbase(true).FromTx(tx));
+            Assert.True(MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime passes
+            Assert.True(!this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks fail
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 1 });
+            var locks = tx.CalculateSequenceLocks(prevheights.ToArray(), context.chain.Tip, flags);
+            Assert.True(locks.Evaluate(context.chain.Tip)); // Sequence locks pass on 2nd block
+        }
+
+        [Fact]
+        public async Task MinerCreateBlockRelativeTimeLockedAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+
+            var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
+
+            // height map
+            List<int> prevheights = new List<int>();
+            prevheights.Add(1);
+            // relative time locked
+            tx.Version = 2;
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
+            tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[0].PrevOut.N = 0;
+            tx.Inputs[0].Sequence = new Sequence(TimeSpan.FromMinutes(10)); // txFirst[1] is the 3rd block
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
+            tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
+            tx.LockTime = 0;
+            prevheights[0] = context.baseheight + 2;
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
+            Assert.True(MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime passes
+            Assert.True(!this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks fail
+        }
+
+        [Fact]
+        public async Task MinerCreateBlockAbsoluteHeightLockedAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+            var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
+
+            int MedianTimeSpan = 11;
+            List<int> prevheights = new List<int>();
+            prevheights.Add(1);
+            tx.Version = 2;
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[1].GetHash();
+            tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[0].PrevOut.N = 0;
+            tx.Inputs[0].Sequence = new Sequence(TimeSpan.FromMinutes(10)); // txFirst[1] is the 3rd block
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
+            tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
+            tx.LockTime = 0;
+            prevheights[0] = context.baseheight + 2;
+
+            for (int i = 0; i < MedianTimeSpan; i++)
+                context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
+            var locks = (tx.CalculateSequenceLocks(prevheights.ToArray(), context.chain.Tip, flags));
+            Assert.True(locks.Evaluate(context.chain.Tip));
+
+            context = new TestContext();
+            await context.InitializeAsync();
+
+            // absolute height locked
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[2].GetHash();
+            tx.Inputs[0].Sequence = Sequence.Final - 1;
+            prevheights[0] = context.baseheight + 3;
+            tx.LockTime = context.chain.Tip.Height + 1;
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
+            Assert.True(!MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime fails
+            Assert.True(this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks pass
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
+            Assert.True(tx.IsFinal(context.chain.Tip.GetMedianTimePast(), context.chain.Tip.Height + 2)); // Locktime passes on 2nd block
+        }
+
+        [Fact]
+        public async Task MinerCreateBlockAbsoluteTimeLockedAsync()
+        {
+            var context = new TestContext();
+            await context.InitializeAsync();
+            var tx = new Transaction();
+            tx.AddInput(new TxIn());
+            tx.AddOutput(new TxOut());
+            var flags = Transaction.LockTimeFlags.VerifySequence | Transaction.LockTimeFlags.MedianTimePast;
+
+            List<int> prevheights = new List<int>();
+            prevheights.Add(1);
+            tx.Version = 2;
+            tx.Inputs[0].PrevOut.Hash = context.txFirst[3].GetHash();
+            tx.Inputs[0].ScriptSig = new Script(OpcodeType.OP_1);
+            tx.Inputs[0].PrevOut.N = 0;
+            tx.Outputs[0].Value = context.BLOCKSUBSIDY - context.HIGHFEE;
+            tx.Outputs[0].ScriptPubKey = new Script(OpcodeType.OP_1);
+
+            // absolute time locked
+            tx.LockTime = context.chain.Tip.GetMedianTimePast().AddMinutes(1);
+            tx.Inputs[0].Sequence = Sequence.Final - 1;
+            prevheights[0] = context.baseheight + 4;
+            context.hash = tx.GetHash();
+            context.mempool.AddUnchecked(context.hash, context.entry.Time(context.DateTimeProvider.GetTime()).FromTx(tx));
+            Assert.True(!MempoolValidator.CheckFinalTransaction(context.chain, context.DateTimeProvider, tx, flags)); // Locktime fails
+            Assert.True(this.TestSequenceLocks(context, context.chain.Tip, tx, flags)); // Sequence locks pass
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
+            context.chain.SetTip(new BlockHeader { HashPrevBlock = context.chain.Tip.HashBlock, Time = Utils.DateTimeToUnixTime(context.chain.Tip.GetMedianTimePast()) + 512 });
+            Assert.True(tx.IsFinal(context.chain.Tip.GetMedianTimePast().AddMinutes(2), context.chain.Tip.Height + 2)); // Locktime passes 2 min later
+        }
 
         [Fact]
         public void GetProofOfWorkRewardForMinedBlocksTest()
@@ -657,19 +626,17 @@ namespace BRhodium.Node.IntegrationTests
 
                 node.SetDummyMinerSecret(new BitcoinSecret(new Key(), node.FullNode.Network));
 
-                node.GenerateBRhodiumWithMiner(1);// advance premine block 1 to normal state
-
                 node.GenerateBRhodiumWithMiner(10);
-                node.GetProofOfWorkRewardForMinedBlocks(10).Should().Be(Money.Coins(25));
+                node.GetProofOfWorkRewardForMinedBlocks(10).Should().Be(Money.Coins(500));
 
                 node.GenerateBRhodiumWithMiner(90);
-                node.GetProofOfWorkRewardForMinedBlocks(100).Should().Be(Money.Coins(250));
+                node.GetProofOfWorkRewardForMinedBlocks(100).Should().Be(Money.Coins(5000));
 
                 node.GenerateBRhodiumWithMiner(100);
-                node.GetProofOfWorkRewardForMinedBlocks(200).Should().Be(Money.Coins(500));
+                node.GetProofOfWorkRewardForMinedBlocks(200).Should().Be(Money.Coins(8725));
 
                 node.GenerateBRhodiumWithMiner(200);
-                node.GetProofOfWorkRewardForMinedBlocks(400).Should().Be(Money.Coins((decimal)1000));
+                node.GetProofOfWorkRewardForMinedBlocks(400).Should().Be(Money.Coins((decimal)12462.50));
             }
         }
 

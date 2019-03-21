@@ -489,14 +489,9 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             return fullNode.MempoolManager().Validator.AcceptToMemoryPool(state, trx).Result;
         }
 
-        public List<uint256> GenerateBRhodiumWithMiner(int numberOfBlocksToMine)
+        public List<uint256> GenerateBRhodiumWithMiner(int blockCount)
         {
-            List<uint256> blocks = new List<uint256>();
-            while (blocks.Count < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
-            {
-                blocks.AddRange(this.FullNode.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = this.MinerSecret.ScriptPubKey }, (ulong)1, uint.MaxValue));
-            }
-            return blocks;
+            return this.FullNode.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = this.MinerSecret.ScriptPubKey }, (ulong)blockCount, uint.MaxValue);
         }
 
         [Obsolete("Please use GenerateBRhodiumWithMiner instead.")]

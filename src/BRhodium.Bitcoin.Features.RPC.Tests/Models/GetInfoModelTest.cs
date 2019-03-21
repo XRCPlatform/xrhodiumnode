@@ -70,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
 
             JObject obj = ModelToJObject(info);
             Assert.True(obj.HasValues);
-            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
+            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name);
 
             Assert.Equal(expectedOrderedPropertyNames, actualOrderedPropertyNames);
         }
