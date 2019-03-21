@@ -25,7 +25,7 @@ namespace BRhodium.Node.IntegrationTests
             };
         }
 
-        public void MineBlocks(int numberOfBlocksToMine, CoreNode node, string accountName, string toWalletName, string withPassword, long expectedFees = 0)
+        public void MineBlocks(int blockCount, CoreNode node, string accountName, string toWalletName, string withPassword, long expectedFees = 0)
         {
             this.WaitForNodeToSync(node);
 
@@ -41,9 +41,7 @@ namespace BRhodium.Node.IntegrationTests
 
             node.SetDummyMinerSecret(new BitcoinSecret(extendedPrivateKey, node.FullNode.Network));
 
-            node.GenerateBRhodiumWithMiner(numberOfBlocksToMine);
-
-            this.WaitForNodeToSync(node);
+            node.GenerateBRhodiumWithMiner(blockCount);
 
             var balanceAfterMining = node.FullNode.WalletManager()
                 .GetSpendableTransactionsInWallet(toWalletName)
@@ -54,7 +52,7 @@ namespace BRhodium.Node.IntegrationTests
 
             this.WaitForNodeToSync(node);
 
-            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine));//ignore fees for now need to have a proper look later
+            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(blockCount) + expectedFees);
         }
 
         public void MinePremineBlocks(CoreNode node, string walletName, string walletAccount, string walletPassword)

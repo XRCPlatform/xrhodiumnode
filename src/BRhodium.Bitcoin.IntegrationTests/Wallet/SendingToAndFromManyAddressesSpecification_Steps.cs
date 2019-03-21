@@ -60,7 +60,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         {
             this.CoinBaseMaturity = (int)this.nodes[NodeOne].FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
-            this.MineMatureCoins(this.nodes[NodeOne]);
+            this.Mine100Coins(this.nodes[NodeOne]);
 
             var nodeTwoAddresses = this.nodes[NodeTwo].FullNode.WalletManager().GetUnusedAddresses(new WalletAccountReference(WalletName, WalletAccountName), 50);
 
@@ -70,7 +70,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 Amount = Money.COIN
             }).ToList();
 
-            this.transactionBuildContext = SharedSteps.CreateTransactionBuildContext(WalletName, WalletAccountName, WalletPassword, nodeTwoRecipients, FeeType.Medium, this.CoinBaseMaturity);
+            this.transactionBuildContext = SharedSteps.CreateTransactionBuildContext(WalletName, WalletAccountName, WalletPassword, nodeTwoRecipients, FeeType.Medium, 101);
 
             var transaction = this.nodes[NodeOne].FullNode.WalletTransactionHandler().BuildTransaction(this.transactionBuildContext);
 
@@ -82,7 +82,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
             this.nodes[NodeOne].FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction.ToHex()));
         }
 
-        private void MineMatureCoins(CoreNode node)
+        private void Mine100Coins(CoreNode node)
         {
             this.sharedSteps.MineBlocks(this.CoinBaseMaturity + 2, node, WalletAccountName, WalletName, WalletPassword);
         }
