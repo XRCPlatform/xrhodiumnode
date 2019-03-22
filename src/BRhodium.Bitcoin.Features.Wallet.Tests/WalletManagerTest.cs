@@ -315,14 +315,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey("testWallet", "password"); //this.walletFixture.GenerateBlankWallet("testWallet", "password");
 
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            Network network = Network.BRhodiumRegTest;
+            var walletManager = new WalletManager(this.LoggerFactory.Object, network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(network), new Mock<WalletSettings>().Object,
                                                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             walletManager.SaveWallet(wallet.wallet);
 
             var result = walletManager.LoadWallet("password", "testWallet");
 
             Assert.Equal("testWallet", result.Name);
-            Assert.Equal(Network.Main, result.Network);
+            Assert.Equal(network, result.Network);
 
             Assert.Single(walletManager.Wallets);
             Assert.Equal("testWallet", walletManager.Wallets.Values.ElementAt(0).Name);
@@ -335,8 +336,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Throws<WalletDoesNotExistException>(() =>
            {
                DataFolder dataFolder = CreateDataFolder(this);
-
-               var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+               Network network = Network.BRhodiumRegTest;
+               var walletManager = new WalletManager(this.LoggerFactory.Object, network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(network), new Mock<WalletSettings>().Object,
                                                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
                walletManager.LoadWallet("password", "testWallet");
@@ -352,10 +353,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var passphrase = "this is my magic passphrase";
             var walletName = "mywallet";
 
-            ConcurrentChain chain = WalletTestsHelpers.PrepareChainWithBlock();
-
+            Network network = Network.BRhodiumRegTest;
+            ConcurrentChain chain = WalletTestsHelpers.PrepareChainWithBlock(network);
+            
             // create a fresh manager.
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var walletManager = new WalletManager(this.LoggerFactory.Object, network, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
 

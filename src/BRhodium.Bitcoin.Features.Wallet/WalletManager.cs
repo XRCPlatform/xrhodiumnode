@@ -1323,7 +1323,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_SCRIPTHASH:
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
-                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network)?.ToString();
                             break;
                     }
 

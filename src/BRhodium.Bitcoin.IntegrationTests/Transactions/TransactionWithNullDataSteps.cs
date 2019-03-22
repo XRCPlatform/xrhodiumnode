@@ -74,7 +74,7 @@ namespace BRhodium.Node.IntegrationTests.Transactions
 
             this.senderNode.FullNode.WalletManager().GetSpendableTransactionsInWallet("sender")
                 .Sum(utxo => utxo.Transaction.Amount)
-                .Should().Be(Money.COIN * 105 * 50);
+                .Should().Be(105002500000000);
         }
 
         private void no_fund_in_the_receiving_wallet()

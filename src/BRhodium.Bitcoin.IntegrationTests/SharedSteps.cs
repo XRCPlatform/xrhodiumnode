@@ -54,7 +54,7 @@ namespace BRhodium.Node.IntegrationTests
 
             this.WaitForNodeToSync(node);
 
-            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine));//ignore fees for now need to have a proper look later
+            balanceIncrease.Should().Be(node.GetProofOfWorkRewardForMinedBlocks(numberOfBlocksToMine) + expectedFees);
         }
 
         public void MinePremineBlocks(CoreNode node, string walletName, string walletAccount, string walletPassword)

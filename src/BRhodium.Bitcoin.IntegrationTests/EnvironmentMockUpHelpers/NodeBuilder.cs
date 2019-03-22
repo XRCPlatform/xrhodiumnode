@@ -89,7 +89,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
     public class NodeBuilder : IDisposable
     {
         public string BitcoinD { get; }
-
+        private Network network = Network.BRhodiumRegTest;
         public List<CoreNode> Nodes { get; }
 
         public NodeConfigParameters ConfigParameters { get; }
@@ -175,22 +175,22 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public CoreNode CreateBitcoinCoreNode(bool start = false)
         {
-            return CreateNode(new BitcoinCoreRunner(this.GetNextDataFolderName(), this.BitcoinD), Network.RegTest, start);
+            return CreateNode(new BitcoinCoreRunner(this.GetNextDataFolderName(), this.BitcoinD), network, start);
         }
 
         public CoreNode CreateBRhodiumPowNode(bool start = false)
         {
-            return CreateNode(new BRhodiumBitcoinPowRunner(this.GetNextDataFolderName()), Network.RegTest, start);
+            return CreateNode(new BRhodiumBitcoinPowRunner(this.GetNextDataFolderName()), network, start);
         }
 
         public CoreNode CreateBRhodiumPowMiningNode(bool start = false)
         {
-            return CreateNode(new BRhodiumProofOfWorkMiningNode(this.GetNextDataFolderName()), Network.RegTest, start, "BRhodium.conf");
+            return CreateNode(new BRhodiumProofOfWorkMiningNode(this.GetNextDataFolderName()), network, start, "BRhodium.conf");
         }
 
         public CoreNode CloneBRhodiumNode(CoreNode cloneNode)
         {
-            var node = new CoreNode(new BRhodiumBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, Network.RegTest, "bitcoin.conf");
+            var node = new CoreNode(new BRhodiumBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, network, "bitcoin.conf");
             this.Nodes.Add(node);
             this.Nodes.Remove(cloneNode);
             return node;

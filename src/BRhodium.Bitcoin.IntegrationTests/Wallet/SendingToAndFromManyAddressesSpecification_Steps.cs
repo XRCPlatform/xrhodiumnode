@@ -133,7 +133,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         {
             var nodeOneBeforeBalance = this.nodes[NodeOne].WalletBalance(WalletName);
 
-            this.sharedSteps.MineBlocks(1, this.nodes[NodeTwo], WalletAccountName, WalletName, WalletPassword, this.transactionFee.Satoshi);
+            this.sharedSteps.MineBlocks(1, this.nodes[NodeTwo], WalletAccountName, WalletName, WalletPassword, 0);//this.transactionFee.Satoshi? not sure why mining need a transaction fee
 
             this.nodes[NodeOne].WalletBalance(WalletName).Should().Be(nodeOneBeforeBalance + Money.Coins(49));
 

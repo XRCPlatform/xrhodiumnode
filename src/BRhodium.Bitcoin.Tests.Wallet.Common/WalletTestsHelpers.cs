@@ -375,9 +375,9 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return (chain, blocks);
         }
 
-        public static ConcurrentChain PrepareChainWithBlock()
+        public static ConcurrentChain PrepareChainWithBlock(Network network)
         {
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(network);
             var nonce = RandomUtils.GetUInt32();
             var block = new Block();
             block.AddTransaction(new Transaction());

@@ -430,7 +430,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumminer.SetDummyMinerSecret(key.GetBitcoinSecret(BRhodiumminer.FullNode.Network));
 
-                BRhodiumminer.GenerateBRhodium(10);
+                BRhodiumminer.GenerateBRhodiumWithMiner(10);
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
