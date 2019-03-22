@@ -39,7 +39,7 @@ namespace BRhodium.Node.IntegrationTests
         {
             this.loggerFactory = new LoggerFactory();
             this.dbreezeSerializer = new DBreezeSerializer();
-            this.dbreezeSerializer.Initialize(Network.Main);
+            this.dbreezeSerializer.Initialize(Network.BRhodiumRegTest);
         }
 
         [Fact]

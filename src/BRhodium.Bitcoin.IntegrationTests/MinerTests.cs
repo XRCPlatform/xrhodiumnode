@@ -154,7 +154,7 @@ namespace BRhodium.Node.IntegrationTests
                 var loggerFactory = new ExtendedLoggerFactory();
                 loggerFactory.AddConsoleWithFilters();
 
-                NodeSettings nodeSettings = new NodeSettings(args: new string[] { "-checkpoints" });
+                NodeSettings nodeSettings = new NodeSettings(args: new string[] { "-checkpoints","-regtest" });
                 var consensusSettings = new ConsensusSettings().Load(nodeSettings);
 
                 NetworkPeerFactory networkPeerFactory = new NetworkPeerFactory(this.network, dateTimeProvider, loggerFactory, new PayloadProvider().DiscoverPayloads(), new SelfEndpointTracker());

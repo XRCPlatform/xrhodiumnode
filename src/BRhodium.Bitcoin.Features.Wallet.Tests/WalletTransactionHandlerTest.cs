@@ -18,13 +18,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
     public class WalletTransactionHandlerTest : LogsTestBase
     {
         public readonly string CostlyOpReturnData;
-
+        private Network network;
         public WalletTransactionHandlerTest()
         {
             // adding this data to the transaction output should increase the fee
             // 83 is the max size for the OP_RETURN script => 80 is the max for the content of the script
             byte[] maxQuantityOfBytes = Enumerable.Range(0, 80).Select(Convert.ToByte).ToArray();
             this.CostlyOpReturnData = Encoding.UTF8.GetString(maxQuantityOfBytes);
+            this.network = Network.BRhodiumRegTest;
         }
 
         [Fact]
@@ -57,9 +58,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 chain.Setup(c => c.Tip).Returns(new ChainedHeader(block, block.GetHash(), 1));
 
                 var dataDir = "TestData/WalletTransactionHandlerTest/BuildTransactionNoSpendableTransactionsThrowsWalletException";
-                var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain.Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
-                    new DataFolder(new NodeSettings(args:new string[] { $"-datadir={dataDir}" }).DataDir), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-                var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, new Mock<IWalletFeePolicy>().Object, Network.Main);
+                var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataDir}", "-regtest" });
+                var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, chain.Object, nodeSettings, new Mock<WalletSettings>().Object,
+                    new DataFolder(nodeSettings.DataDir), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, new Mock<IWalletFeePolicy>().Object, this.network);
 
                 walletManager.Wallets.AddOrReplace("myWallet1", wallet);
 
@@ -122,9 +124,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 });
 
                 var dataDir = "TestData/WalletTransactionHandlerTest/BuildTransactionFeeTooLowThrowsWalletException";
-                var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
-                    new DataFolder(new NodeSettings(args:new string[] { $"-datadir={dataDir}" }).DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-                var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
+                var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataDir}", "-regtest" });
+                var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, chain, nodeSettings, new Mock<WalletSettings>().Object,
+                    new DataFolder(nodeSettings.DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.network);
 
                 walletManager.Wallets.AddOrReplace("myWallet1", wallet);
 
@@ -141,7 +144,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void BuildTransactionNoChangeAdressesLeftCreatesNewChangeAddress()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             var context = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0);
             var transactionResult = walletTransactionHandler.BuildTransaction(context);
@@ -169,7 +174,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void BuildTransaction_When_OpReturnData_Is_Empty_Should_Not_Add_Extra_Output()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             var opReturnData = "";
 
@@ -183,7 +190,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void BuildTransaction_When_OpReturnData_Is_Null_Should_Not_Add_Extra_Output()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             string opReturnData = null;
 
@@ -198,7 +207,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void BuildTransaction_When_OpReturnData_Is_Neither_Null_Nor_Empty_Should_Add_Extra_Output_With_Data()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             var opReturnData = "some extra transaction info";
             var expectedBytes = Encoding.UTF8.GetBytes(opReturnData);
@@ -220,7 +231,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void BuildTransaction_When_OpReturnData_Is_Too_Long_Should_Fail_With_Helpful_Message()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             var eightyOneBytes = Encoding.UTF8.GetBytes(this.CostlyOpReturnData).Concat(Convert.ToByte(1));
             var tooLongOpReturnString = Encoding.UTF8.GetString(eightyOneBytes);
@@ -234,9 +247,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
         private (Wallet wallet, (ExtKey ExtKey, string ExtPubKey) accountKeys, (PubKey PubKey, BitcoinPubKeyAddress Address)
             destinationKeys, TransactionData addressTransaction, WalletTransactionHandler walletTransactionHandler,
-            WalletAccountReference walletReference) SetupWallet()
+            WalletAccountReference walletReference) SetupWallet(DataFolder dataFolder)
         {
-            DataFolder dataFolder = CreateDataFolder(this);
 
             var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet1", "password");
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
@@ -270,12 +282,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
             walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low))
                 .Returns(new FeeRate(20000));
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(),
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumRegTest, chain, nodeSettings,
                 new Mock<WalletSettings>().Object, dataFolder,
                 walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var walletTransactionHandler =
-                new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
+                new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.network);
 
             walletManager.Wallets.AddOrReplace("myWallet1", wallet);
             
@@ -327,10 +339,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
             walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
             var overrideFeeRate = new FeeRate(20000);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object, 
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, chain, nodeSettings, new Mock<WalletSettings>().Object, 
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.network);
 
             walletManager.Wallets.AddOrReplace("myWallet1", wallet);
 
@@ -391,16 +403,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void Given_AnInvalidAccountIsUsed_When_GetMaximumSpendableAmountIsCalled_Then_AnExceptionIsThrown()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumRegTest, new Mock<ConcurrentChain>().Object, nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.network);
 
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = (CoinType)Network.Main.Consensus.CoinType,
+                CoinType = (CoinType)this.network.Consensus.CoinType,
                 Accounts = new List<HdAccount> { WalletTestsHelpers.CreateAccount("account 1") }
             });
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
@@ -417,10 +429,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             DataFolder dataFolder = CreateDataFolder(this);
 
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new ConcurrentChain(Network.Main), NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, new ConcurrentChain(this.network), nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.network);
 
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
 
@@ -438,7 +451,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = (CoinType)Network.Main.Consensus.CoinType,
+                CoinType = (CoinType)this.network.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -453,11 +466,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void Given_GetMaximumSpendableAmountIsCalledForConfirmedTransactions_When_ThereAreNoConfirmedSpendableFound_Then_MaxAmountReturnsAsZero()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new ConcurrentChain(Network.Main), NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, new ConcurrentChain(this.network), nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.network);
 
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
 
@@ -475,7 +488,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = (CoinType)Network.Main.Consensus.CoinType,
+                CoinType = (CoinType)this.network.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -490,14 +503,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void Given_GetMaximumSpendableAmountIsCalled_When_ThereAreNoConfirmedSpendableFound_Then_MaxAmountReturnsAsTheSumOfUnconfirmedTxs()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
             var walletFeePolicy = new Mock<IWalletFeePolicy>();
             walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
 
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new ConcurrentChain(Network.Main), NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, new ConcurrentChain(this.network), nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.network);
 
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
 
@@ -515,7 +528,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = (CoinType)Network.Main.Consensus.CoinType,
+                CoinType = (CoinType)this.network.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -529,11 +542,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void Given_GetMaximumSpendableAmountIsCalled_When_ThereAreNoTransactions_Then_MaxAmountReturnsAsZero()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.Main, new ConcurrentChain(Network.Main), NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataFolder}", "-regtest" });
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.network, new ConcurrentChain(this.network), nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), Network.Main);
+            var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.network);
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
             HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
             HdAddress accountAddress2 = WalletTestsHelpers.CreateAddress();
@@ -543,7 +556,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet("wallet1");
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                CoinType = (CoinType)Network.Main.Consensus.CoinType,
+                CoinType = (CoinType)this.network.Consensus.CoinType,
                 Accounts = new List<HdAccount> { account }
             });
 
@@ -562,7 +575,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void EstimateFeeWithLowFeeMatchesBuildTxLowFee()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             // Context to build requires password in order to sign transaction.
             TransactionBuildContext buildContext = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0);
@@ -583,7 +598,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void EstimateFee_WithLowFee_Matches_BuildTransaction_WithLowFee_With_Long_OpReturnData_added()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
+                = this.SetupWallet(dataFolder);
 
             // Context to build requires password in order to sign transaction.
             TransactionBuildContext buildContext = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, this.CostlyOpReturnData);
@@ -602,7 +619,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void EstimateFee_Without_OpReturnData_Should_Be_Less_Than_Estimate_Fee_With_Costly_OpReturnData()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+                = this.SetupWallet(dataFolder);
 
             // Context with OpReturnData
             var estimateContextWithOpReturn = CreateContext(walletReference, null, destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, this.CostlyOpReturnData);
@@ -622,7 +641,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void Actual_Fee_Without_OpReturnData_Should_Be_Less_Than_Actual_Fee_With_Costly_OpReturnData()
         {
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) = this.SetupWallet();
+            DataFolder dataFolder = CreateDataFolder(this);
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
+                = this.SetupWallet(dataFolder);
 
             // Context with OpReturnData
             var contextWithOpReturn = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, this.CostlyOpReturnData);
