@@ -124,23 +124,23 @@ namespace BRhodium.Node.Tests.Wallet.Common
             };
         }
 
-        public static Bitcoin.Features.Wallet.Wallet CreateWallet(string name)
+        public static Bitcoin.Features.Wallet.Wallet CreateWallet(string name, Network network)
         {
             return new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
                 AccountsRoot = new List<AccountRoot>(),
                 BlockLocator = null,
-                Network = Network.BRhodiumRegTest
+                Network = network
             };
         }
 
-        public static Bitcoin.Features.Wallet.Wallet GenerateBlankWallet(string name, string password)
+        public static Bitcoin.Features.Wallet.Wallet GenerateBlankWallet(string name, string password, Network network)
         {
-            return GenerateBlankWalletWithExtKey(name, password).wallet;
+            return GenerateBlankWalletWithExtKey(name, password, network).wallet;
         }
 
-        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password)
+        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password, Network network)
         {
             Mnemonic mnemonic = new Mnemonic("grass industry beef stereo soap employ million leader frequent salmon crumble banana");
             ExtKey extendedKey = mnemonic.DeriveExtKey(password);
@@ -148,10 +148,10 @@ namespace BRhodium.Node.Tests.Wallet.Common
             Bitcoin.Features.Wallet.Wallet walletFile = new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
-                EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.BRhodiumRegTest).ToWif(),
+                EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif(),
                 ChainCode = extendedKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
-                Network = Network.BRhodiumRegTest,
+                Network = network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.BRhodiumRegTest.Consensus.CoinType } },
             };
 
@@ -203,7 +203,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 wallet.AccountsRoot.Add(new AccountRoot()
                 {
-                    CoinType = CoinType.BRhodium,
+                    CoinType = CoinType.RegTest,
                     Accounts = new List<HdAccount>
                     {
                         new HdAccount
@@ -249,7 +249,11 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 HdAddress address = new HdAddress
                 {
-                    ScriptPubKey = new Key().ScriptPubKey
+                    ScriptPubKey = new Key().ScriptPubKey,
+                    Pubkey = new Key().ScriptPubKey,
+                    Address = new Key().PubKey.GetAddress(Network.BRhodiumRegTest).ToString(),
+                    HdPath = $"m/44'/0'/0'/0/{i}",
+                    Index = i
                 };
                 addresses.Add(address);
             }

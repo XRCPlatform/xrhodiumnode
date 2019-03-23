@@ -10,7 +10,7 @@ namespace BRhodium.Node.Tests.Base
 {
     public class ChainRepositoryTest : TestBase
     {
-        public ChainRepositoryTest() : base(Network.RegTest)
+        public ChainRepositoryTest() : base(Network.BRhodiumRegTest)
         {
         }
 
