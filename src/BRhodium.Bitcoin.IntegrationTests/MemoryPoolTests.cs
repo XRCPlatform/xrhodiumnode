@@ -38,18 +38,18 @@ namespace BRhodium.Node.IntegrationTests
                 builder.StartAll();
 
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodiumWithMiner(105); // coinbase maturity = 100
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(11); // coinbase maturity = 6
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
 
-                var block = BRhodiumNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(BRhodiumNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;
+                var block = BRhodiumNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(BRhodiumNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;//2.5 xrc block reward
                 var prevTrx = block.Transactions.First();
                 var dest = new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network);
 
                 Transaction tx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                 tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(BRhodiumNodeSync.MinerSecret.PubKey)));
-                tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
-                tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
+                tx.AddOutput(new TxOut("1.5", dest.PubKey.Hash));
+                tx.AddOutput(new TxOut("0.9", new Key().PubKey.Hash)); // 0.1 xrc fee
                 tx.Sign(BRhodiumNodeSync.FullNode.Network, BRhodiumNodeSync.MinerSecret, false);
 
                 BRhodiumNodeSync.Broadcast(tx);
@@ -68,7 +68,7 @@ namespace BRhodium.Node.IntegrationTests
                 BRhodiumNodeSync.NotInIBD();
 
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodium(105); // coinbase maturity = 100
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(11); // coinbase maturity = 6
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
 
@@ -79,8 +79,8 @@ namespace BRhodium.Node.IntegrationTests
 
                 Transaction parentTx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                 parentTx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(BRhodiumNodeSync.MinerSecret.PubKey)));
-                parentTx.AddOutput(new TxOut("25", dest1.PubKey.Hash));
-                parentTx.AddOutput(new TxOut("24", dest2.PubKey.Hash)); // 1 btc fee
+                parentTx.AddOutput(new TxOut("0.4", dest1.PubKey.Hash));
+                parentTx.AddOutput(new TxOut("0.9", dest2.PubKey.Hash)); // 0.1 xrc fee
                 parentTx.Sign(BRhodiumNodeSync.FullNode.Network, BRhodiumNodeSync.MinerSecret, false);
                 BRhodiumNodeSync.Broadcast(parentTx);
                 // wiat for the trx to enter the pool
@@ -93,7 +93,7 @@ namespace BRhodium.Node.IntegrationTests
                 Transaction tx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                 tx.AddInput(new TxIn(new OutPoint(parentTx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(dest1.PubKey)));
                 tx.AddInput(new TxIn(new OutPoint(parentTx.GetHash(), 1), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(dest2.PubKey)));
-                tx.AddOutput(new TxOut("48", new Key().PubKey.Hash)); // 1 btc fee
+                tx.AddOutput(new TxOut("1.09", new Key().PubKey.Hash)); // 0.01 XRC fee
                 var signed = new TransactionBuilder(BRhodiumNodeSync.FullNode.Network).AddKeys(dest1, dest2).AddCoins(parentTx.Outputs.AsCoins()).SignTransaction(tx);
 
                 BRhodiumNodeSync.Broadcast(signed);
@@ -111,7 +111,7 @@ namespace BRhodium.Node.IntegrationTests
                 BRhodiumNodeSync.NotInIBD();
 
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodiumWithMiner(10); // coinbase maturity = 6
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(17); // coinbase maturity = 6
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
 
@@ -124,8 +124,8 @@ namespace BRhodium.Node.IntegrationTests
 
                     Transaction tx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                     tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(BRhodiumNodeSync.MinerSecret.PubKey)));
-                    tx.AddOutput(new TxOut("2.5", dest.PubKey.Hash));
-                    tx.AddOutput(new TxOut("2.4", new Key().PubKey.Hash)); // 0.1 xrc fee
+                    tx.AddOutput(new TxOut("1", dest.PubKey.Hash));
+                    tx.AddOutput(new TxOut("1.4", new Key().PubKey.Hash)); // 0.1 xrc fee
                     tx.Sign(BRhodiumNodeSync.FullNode.Network, BRhodiumNodeSync.MinerSecret, false);
                     trxs.Add(tx);
                 }
