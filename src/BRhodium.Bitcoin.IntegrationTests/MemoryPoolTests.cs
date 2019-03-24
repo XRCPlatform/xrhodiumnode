@@ -255,7 +255,7 @@ namespace BRhodium.Node.IntegrationTests
                     var txPrev = BRhodiumNode.FullNode.MempoolManager().Orphans.OrphansList().ElementAt(rand.Next(BRhodiumNode.FullNode.MempoolManager().Orphans.OrphansList().Count));
                     Transaction tx = BRhodiumNode.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                     tx.AddOutput(new TxOut(new Money(1 * Money.CENT), BRhodiumNode.MinerSecret.ScriptPubKey));
-                    foreach (var index in Enumerable.Range(0, 2777))
+                    foreach (var index in Enumerable.Range(0, 12777))
                         tx.AddInput(new TxIn(new OutPoint(txPrev.Tx.GetHash(), index), new Script(OpcodeType.OP_1)));
 
                     Assert.False(BRhodiumNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Result);
@@ -339,7 +339,7 @@ namespace BRhodium.Node.IntegrationTests
 
                 // generate blocks and wait for the downloader to pickup
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodiumWithMiner(105); // coinbase maturity = 100
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(11); // coinbase maturity = 6
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumNodeSync));
 
@@ -359,8 +359,8 @@ namespace BRhodium.Node.IntegrationTests
 
                     Transaction tx = BRhodiumNodeSync.FullNode.Network.Consensus.ConsensusFactory.CreateTransaction();
                     tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(BRhodiumNodeSync.MinerSecret.PubKey)));
-                    tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
-                    tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
+                    tx.AddOutput(new TxOut("2", dest.PubKey.Hash));
+                    tx.AddOutput(new TxOut("0.4", new Key().PubKey.Hash)); // 0.1 XRC fee
                     tx.Sign(BRhodiumNodeSync.FullNode.Network, BRhodiumNodeSync.MinerSecret, false);
                     trxs.Add(tx);
                 }
