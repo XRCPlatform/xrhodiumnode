@@ -39,8 +39,8 @@ namespace BRhodium.Bitcoin.Features.Consensus
             
             TextFileConfiguration config = nodeSettings.ConfigReader;
             this.UseCheckpoints = config.GetOrDefault<bool>("checkpoints", true);
-
-            if (config.GetAll("assumevalid").Any(i => i.Equals("0"))) // 0 means validate all blocks.
+            string[] assumeValid = config.GetAll("assumevalid");
+            if (assumeValid.Any(i => i.Equals("0")) && assumeValid.Length == 1) // 0 means validate all blocks.
             {
                 this.BlockAssumedValid = null;
             }

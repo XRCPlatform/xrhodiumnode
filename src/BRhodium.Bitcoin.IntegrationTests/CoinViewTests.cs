@@ -176,37 +176,47 @@ namespace BRhodium.Node.IntegrationTests
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 var BRhodiumNode = builder.CreateBRhodiumPowNode();
-                var coreNode1 = builder.CreateBitcoinCoreNode();
-                var coreNode2 = builder.CreateBitcoinCoreNode();
+                var coreNode1 = builder.CreateBRhodiumPowNode();
+                var coreNode2 = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
 
+                BRhodiumNode.NotInIBD();
+                coreNode1.NotInIBD();
+                coreNode2.NotInIBD();
+
+                BRhodiumNode.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNode.FullNode.Network));
+                coreNode1.SetDummyMinerSecret(new BitcoinSecret(new Key(), coreNode1.FullNode.Network));
+                coreNode2.SetDummyMinerSecret(new BitcoinSecret(new Key(), coreNode2.FullNode.Network));
+
+
                 //Core1 discovers 10 blocks, sends to BRhodium
-                var tip = coreNode1.FindBlock(10).Last();
+                var blocks = coreNode1.GenerateBRhodiumWithMiner(10);
                 BRhodiumNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
                 BRhodiumNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
 
                 //Core2 discovers 20 blocks, sends to BRhodium
-                tip = coreNode2.FindBlock(20).Last();
+                blocks = coreNode2.GenerateBRhodiumWithMiner(20); //coreNode2.FindBlock(20).Last();
                 BRhodiumNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
                 BRhodiumNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
                 ((CachedCoinView)BRhodiumNode.FullNode.CoinView()).FlushAsync().Wait();
 
                 //Core1 discovers 30 blocks, sends to BRhodium
-                tip = coreNode1.FindBlock(30).Last();
+                blocks = coreNode1.GenerateBRhodiumWithMiner(30);
                 BRhodiumNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
                 BRhodiumNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
 
                 //Core2 discovers 50 blocks, sends to BRhodium
-                tip = coreNode2.FindBlock(50).Last();
+                blocks = coreNode2.GenerateBRhodiumWithMiner(50);
                 BRhodiumNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
                 BRhodiumNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
                 ((CachedCoinView)BRhodiumNode.FullNode.CoinView()).FlushAsync().Wait();
 
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
+                Assert.Equal(BRhodiumNode.CreateRPCClient().GetBestBlockHash(), coreNode2.CreateRPCClient().GetBestBlockHash());
             }
         }
 

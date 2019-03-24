@@ -112,8 +112,8 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         {
             KillAnyBitcoinInstances();
             caller = Path.Combine("TestData", caller);
-            CreateTestFolder(caller);
-            return new NodeBuilder(caller, DownloadBitcoinCore(version));
+            string path = CreateTestFolder(caller);
+            return new NodeBuilder(path, DownloadBitcoinCore(version));
         }
 
         private static string DownloadBitcoinCore(string version)
@@ -165,7 +165,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             }
         }
 
-        private CoreNode CreateNode(NodeRunner runner, Network network, bool start, string configFile = "bitcoin.conf")
+        private CoreNode CreateNode(NodeRunner runner, Network network, bool start, string configFile = "BRhodium.conf")
         {
             var node = new CoreNode(runner, this, network, configFile);
             this.Nodes.Add(node);
@@ -236,32 +236,24 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             }
         }
 
-        internal static void CreateTestFolder(string folderName)
+        internal static string CreateTestFolder(string folderName)
         {
-            var deleteAttempts = 0;
-            while (deleteAttempts < 50)
+            if (Directory.Exists(folderName))
             {
-                if (Directory.Exists(folderName))
+                try
                 {
-                    try
-                    {
-                        Directory.Delete(folderName, true);
-                        break;
-                    }
-                    catch
-                    {
-                        deleteAttempts++;
-                        Thread.Sleep(200);
-                    }
+                    Directory.Delete(folderName, true);
                 }
-                else
-                    break;
+                catch
+                {
+                    folderName = folderName + "_" + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                    Directory.CreateDirectory(folderName);
+                    return folderName;
+                }
             }
 
-            if (deleteAttempts >= 50)
-                throw new Exception(string.Format("The test folder: {0} could not be created.", folderName));
-
             Directory.CreateDirectory(folderName);
+            return folderName;
         }
 
         internal static void CreateDataFolder(string dataFolder)
