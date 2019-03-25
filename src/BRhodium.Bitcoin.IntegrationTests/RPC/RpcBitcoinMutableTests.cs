@@ -2,6 +2,7 @@
 using NBitcoin.RPC;
 using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
+using System.Linq;
 
 namespace BRhodium.Node.IntegrationTests.RPC
 {
@@ -19,15 +20,23 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                CoreNode node = builder.CreateBitcoinCoreNode();
+                CoreNode node = builder.CreateBRhodiumPowNode();
+                CoreNode nodeB = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
 
+                var walletManager = node.FullNode.WalletManager();
+                walletManager.CreateWallet("test", "wallet1");
                 RPCClient rpcClient = node.CreateRPCClient();
+                rpcClient.AddNode(nodeB.Endpoint);
 
-                // generate 101 blocks
-                node.GenerateAsync(101).GetAwaiter().GetResult();
+                var wallet = walletManager.GetWalletByName("wallet1");
+                var hdAddress = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
 
-                uint256 txid = rpcClient.SendToAddress(new Key().PubKey.GetAddress(rpcClient.Network), Money.Coins(1.0m), "hello", "world");
+                var key = wallet.GetExtendedPrivateKeyForAddress("test", hdAddress).PrivateKey;
+                node.SetDummyMinerSecret(new BitcoinSecret(key, node.FullNode.Network));
+                node.GenerateBRhodiumWithMiner(7);
+
+                uint256 txid = rpcClient.SendToAddress("wallet1","test",new Key().PubKey.GetAddress(rpcClient.Network).ToString(), Money.Coins(1.0m).ToDecimal(MoneyUnit.XRC));
                 uint256[] ids = rpcClient.GetRawMempool();
                 Assert.Single(ids);
                 Assert.Equal(txid, ids[0]);
@@ -42,8 +51,8 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                CoreNode nodeA = builder.CreateBitcoinCoreNode();
-                CoreNode nodeB = builder.CreateBitcoinCoreNode();
+                CoreNode nodeA = builder.CreateBRhodiumPowNode();
+                CoreNode nodeB = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
                 RPCClient rpc = nodeA.CreateRPCClient();
                 rpc.RemoveNode(nodeA.Endpoint);
@@ -52,7 +61,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
                 AddedNodeInfo[] info = null;
                 TestHelper.WaitLoop(() =>
                 {
-                    info = rpc.GetAddedNodeInfo(true);
+                    info = rpc.GetAddedNodeInfo();
                     return info != null && info.Length > 0;
                 });
                 Assert.NotNull(info);
@@ -60,16 +69,16 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
                 //For some reason this one does not pass anymore in 0.13.1
                 //Assert.Equal(nodeB.Endpoint, info.First().Addresses.First().Address);
-                AddedNodeInfo oneInfo = rpc.GetAddedNodeInfo(true, nodeB.Endpoint);
+                AddedNodeInfo oneInfo = rpc.GetAddedNodeInfo(nodeB.Endpoint);
                 Assert.NotNull(oneInfo);
                 Assert.Equal(nodeB.Endpoint.ToString(), oneInfo.AddedNode.ToString());
-                oneInfo = rpc.GetAddedNodeInfo(true, nodeA.Endpoint);
+                oneInfo = rpc.GetAddedNodeInfo(nodeA.Endpoint);
                 Assert.Null(oneInfo);
                 rpc.RemoveNode(nodeB.Endpoint);
 
                 TestHelper.WaitLoop(() =>
                 {
-                    info = rpc.GetAddedNodeInfo(true);
+                    info = rpc.GetAddedNodeInfo();
                     return info.Length == 0;
                 });
 

@@ -88,7 +88,6 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
     public class NodeBuilder : IDisposable
     {
-        public string BitcoinD { get; }
         private Network network = Network.BRhodiumRegTest;
         public List<CoreNode> Nodes { get; }
 
@@ -98,71 +97,19 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         private string rootFolder;
 
-        public NodeBuilder(string rootFolder, string bitcoindPath)
+        public NodeBuilder(string rootFolder)
         {
             this.lastDataFolderIndex = 0;
             this.Nodes = new List<CoreNode>();
             this.ConfigParameters = new NodeConfigParameters();
-
             this.rootFolder = rootFolder;
-            this.BitcoinD = bitcoindPath;
         }
 
         public static NodeBuilder Create([CallerMemberName] string caller = null, string version = "0.13.1")
         {
-            KillAnyBitcoinInstances();
             caller = Path.Combine("TestData", caller);
             string path = CreateTestFolder(caller);
-            return new NodeBuilder(path, DownloadBitcoinCore(version));
-        }
-
-        private static string DownloadBitcoinCore(string version)
-        {
-            //is a file
-            if (version.Length >= 2 && version[1] == ':')
-            {
-                return version;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var bitcoind = string.Format("TestData/bitcoin-{0}/bin/bitcoind.exe", version);
-                if (File.Exists(bitcoind))
-                    return bitcoind;
-                var zip = string.Format("TestData/bitcoin-{0}-win32.zip", version);
-                string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-                var client = new HttpClient
-                {
-                    Timeout = TimeSpan.FromMinutes(10.0)
-                };
-
-                var data = client.GetByteArrayAsync(url).GetAwaiter().GetResult();
-                File.WriteAllBytes(zip, data);
-                ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
-                return bitcoind;
-            }
-            else
-            {
-                string bitcoind = string.Format("TestData/bitcoin-{0}/bin/bitcoind", version);
-                if (File.Exists(bitcoind))
-                    return bitcoind;
-
-                var zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                    ? string.Format("TestData/bitcoin-{0}-x86_64-linux-gnu.tar.gz", version)
-                    : string.Format("TestData/bitcoin-{0}-osx64.tar.gz", version);
-
-                string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-
-                var client = new HttpClient
-                {
-                    Timeout = TimeSpan.FromMinutes(10.0)
-                };
-
-                var data = client.GetByteArrayAsync(url).GetAwaiter().GetResult();
-                File.WriteAllBytes(zip, data);
-                Process.Start("tar", "-zxvf " + zip + " -C TestData");
-                return bitcoind;
-            }
+            return new NodeBuilder(path);
         }
 
         private CoreNode CreateNode(NodeRunner runner, Network network, bool start, string configFile = "BRhodium.conf")
@@ -171,11 +118,6 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             this.Nodes.Add(node);
             if (start) node.Start();
             return node;
-        }
-
-        public CoreNode CreateBitcoinCoreNode(bool start = false)
-        {
-            return CreateNode(new BitcoinCoreRunner(this.GetNextDataFolderName(), this.BitcoinD), network, start);
         }
 
         public CoreNode CreateBRhodiumPowNode(bool start = false)
@@ -215,25 +157,6 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         {
             foreach (var node in this.Nodes)
                 node.Kill();
-
-            KillAnyBitcoinInstances();
-        }
-
-        internal static void KillAnyBitcoinInstances()
-        {
-            while (true)
-            {
-                var bitcoinDProcesses = Process.GetProcessesByName("bitcoind");
-                var applicableBitcoinDProcesses = bitcoinDProcesses.Where(b => b.MainModule.FileName.Contains("BRhodium.Node.IntegrationTests"));
-                if (!applicableBitcoinDProcesses.Any())
-                    break;
-
-                foreach (var process in applicableBitcoinDProcesses)
-                {
-                    process.Kill();
-                    Thread.Sleep(1000);
-                }
-            }
         }
 
         internal static string CreateTestFolder(string folderName)

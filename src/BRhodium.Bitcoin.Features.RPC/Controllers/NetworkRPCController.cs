@@ -448,15 +448,16 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 {
                     var result = new NetworkNodeModel();
                     var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address == IPAddress.Parse(node));
-
-                    result.AddedNode = peerNode.PeerEndPoint.ToString();
-                    result.Connected = peerNode.State == NetworkPeerState.Connected ? true : false;
-                    result.Addresses = new List<AddressConnection>();
-                    var address = new AddressConnection();
-                    address.Connected = peerNode.Inbound ? "inbound" : "outbound";
-                    address.Address = peerNode.PeerEndPoint.ToString();
-                    result.Addresses.Add(address);
-
+                    if (peerNode != null)
+                    {
+                        result.AddedNode = peerNode.PeerEndPoint.ToString();
+                        result.Connected = peerNode.State == NetworkPeerState.Connected ? true : false;
+                        result.Addresses = new List<AddressConnection>();
+                        var address = new AddressConnection();
+                        address.Connected = peerNode.Inbound ? "inbound" : "outbound";
+                        address.Address = peerNode.PeerEndPoint.ToString();
+                        result.Addresses.Add(address);
+                    }                  
                     return this.Json(ResultHelper.BuildResultResponse(result));
                 }
                 else

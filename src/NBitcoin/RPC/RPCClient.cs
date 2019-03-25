@@ -865,9 +865,9 @@ namespace NBitcoin.RPC
             await SendCommandAsync(RPCOperations.addnode, nodeEndPoint.ToString(), "remove").ConfigureAwait(false);
         }
 
-        public async Task<AddedNodeInfo[]> GetAddedNodeInfoAsync(bool detailed)
+        public async Task<AddedNodeInfo[]> GetAddedNodeInfoAsync()
         {
-            RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, detailed).ConfigureAwait(false);
+            RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo).ConfigureAwait(false);
             JToken obj = result.Result;
             return obj.Select(entry => new AddedNodeInfo
             {
@@ -881,32 +881,33 @@ namespace NBitcoin.RPC
             }).ToArray();
         }
 
-        public AddedNodeInfo[] GetAddedNodeInfo(bool detailed)
+        public AddedNodeInfo[] GetAddedNodeInfo()
         {
             AddedNodeInfo[] addedNodesInfo = null;
 
-            addedNodesInfo = GetAddedNodeInfoAsync(detailed).GetAwaiter().GetResult();
+            addedNodesInfo = GetAddedNodeInfoAsync().GetAwaiter().GetResult();
 
             return addedNodesInfo;
         }
 
-        public AddedNodeInfo GetAddedNodeInfo(bool detailed, EndPoint nodeEndPoint)
+        public AddedNodeInfo GetAddedNodeInfo(EndPoint nodeEndPoint)
         {
             AddedNodeInfo addedNodeInfo = null;
 
-            addedNodeInfo = GetAddedNodeInfoAsync(detailed, nodeEndPoint).GetAwaiter().GetResult();
+            addedNodeInfo = GetAddedNodeInfoAsync(nodeEndPoint).GetAwaiter().GetResult();
 
             return addedNodeInfo;
         }
 
-        public async Task<AddedNodeInfo> GetAddedNodeInfoAsync(bool detailed, EndPoint nodeEndPoint)
+        public async Task<AddedNodeInfo> GetAddedNodeInfoAsync(EndPoint nodeEndPoint)
         {
             if (nodeEndPoint == null)
                 throw new ArgumentNullException("nodeEndPoint");
 
             try
             {
-                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, detailed, nodeEndPoint.ToString()).ConfigureAwait(false);
+                var ip = Utils.ParseIpEndpoint(nodeEndPoint.ToString(), 0);
+                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, ip.Address.ToString()).ConfigureAwait(false);
                 JToken e = result.Result;
                 return e.Select(entry => new AddedNodeInfo
                 {

@@ -259,7 +259,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             var rpc = this.CreateRPCClient();
             TransactionBuilder builder = new TransactionBuilder(this.FullNode.Network);
             builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
-            builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));
+            //builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));rpc changed maybe we need a backward comp rpc
             var secret = this.GetFirstSecret(rpc);
             foreach (var part in (amount - this.fee).Split(parts))
             {

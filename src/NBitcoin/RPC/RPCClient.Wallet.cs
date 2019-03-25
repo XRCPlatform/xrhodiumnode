@@ -462,9 +462,9 @@ namespace NBitcoin.RPC
         /// see the spendable field in the results.
         /// </para>
         /// </remarks>
-        public UnspentCoin[] ListUnspent()
+        public UnspentCoin[] ListUnspent(string walletName, int minconf)
         {
-            RPCResponse response = SendCommand(RPCOperations.listunspent);
+            RPCResponse response = SendCommand(RPCOperations.listunspent, walletName, minconf);
             return response.Result.Select(i => new UnspentCoin((JObject)i, this.Network)).ToArray();
         }
 

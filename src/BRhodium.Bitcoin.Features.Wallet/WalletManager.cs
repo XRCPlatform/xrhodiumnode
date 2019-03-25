@@ -1536,12 +1536,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(wallet, nameof(wallet));
             this.logger.LogTrace("({0}:'{1}')", nameof(wallet), wallet.Name);
 
-            if (this.Wallets.ContainsKey(wallet.Name))
-            {
-                this.logger.LogTrace("(-)[NOT_FOUND]");
-                return;
-            }
-
             this.Wallets.AddOrReplace(wallet.Name,wallet);
             this.logger.LogTrace("(-)");
         }

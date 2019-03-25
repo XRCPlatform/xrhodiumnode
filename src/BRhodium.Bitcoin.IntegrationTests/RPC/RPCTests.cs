@@ -25,10 +25,8 @@ namespace BRhodium.Node.IntegrationTests.RPC
             this.NetworkPeerClient = this.Node.CreateNetworkPeerClient();
             this.NetworkPeerClient.VersionHandshakeAsync().GetAwaiter().GetResult();
 
-            // Move a wallet file to the right folder and restart the wallet manager to take it into account.
-            this.InitializeTestWallet(this.Node.FullNode.DataFolder.WalletPath);
-            var walletManager = this.Node.FullNode.NodeService<IWalletManager>() as WalletManager; ;
-            walletManager.Start();
+            var walletManager = this.Node.FullNode.WalletManager();
+            walletManager.CreateWallet("test", "wallet1");
         }
     }
 
