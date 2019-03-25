@@ -446,6 +446,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (!string.IsNullOrEmpty(node))
                 {
+                    var resultList = new List<NetworkNodeModel>();
                     var result = new NetworkNodeModel();
                     var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address == IPAddress.Parse(node));
                     if (peerNode != null)
@@ -457,8 +458,9 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         address.Connected = peerNode.Inbound ? "inbound" : "outbound";
                         address.Address = peerNode.PeerEndPoint.ToString();
                         result.Addresses.Add(address);
+                        resultList.Add(result);
                     }                  
-                    return this.Json(ResultHelper.BuildResultResponse(result));
+                    return this.Json(ResultHelper.BuildResultResponse(resultList.ToArray()));
                 }
                 else
                 {
@@ -478,7 +480,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         result.Add(nodePeer);
                     }
 
-                    return this.Json(ResultHelper.BuildResultResponse(result));
+                    return this.Json(ResultHelper.BuildResultResponse(result.ToArray()));
                 }
             }
             catch (Exception e)

@@ -723,7 +723,7 @@ namespace NBitcoin.RPC
             webRequest.Headers[HttpRequestHeader.Authorization] = "Basic " + Encoders.Base64.EncodeData(Encoders.ASCII.DecodeData(this.authentication));
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
-            webRequest.Timeout = 60000;//1 minute
+            webRequest.Timeout = 1800000;//1 minute
             return webRequest;
         }
 

@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 using System.Linq;
+using System.Threading;
 
 namespace BRhodium.Node.IntegrationTests.RPC
 {
@@ -55,8 +56,10 @@ namespace BRhodium.Node.IntegrationTests.RPC
                 CoreNode nodeB = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
                 RPCClient rpc = nodeA.CreateRPCClient();
-                rpc.RemoveNode(nodeA.Endpoint);
+                //rpc.RemoveNode(nodeA.Endpoint);
                 rpc.AddNode(nodeB.Endpoint);
+
+                Thread.Sleep(1000);//give enough time for node to negotiate
 
                 AddedNodeInfo[] info = null;
                 TestHelper.WaitLoop(() =>
@@ -67,8 +70,6 @@ namespace BRhodium.Node.IntegrationTests.RPC
                 Assert.NotNull(info);
                 Assert.NotEmpty(info);
 
-                //For some reason this one does not pass anymore in 0.13.1
-                //Assert.Equal(nodeB.Endpoint, info.First().Addresses.First().Address);
                 AddedNodeInfo oneInfo = rpc.GetAddedNodeInfo(nodeB.Endpoint);
                 Assert.NotNull(oneInfo);
                 Assert.Equal(nodeB.Endpoint.ToString(), oneInfo.AddedNode.ToString());
