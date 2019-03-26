@@ -4,6 +4,7 @@ using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 using System.Linq;
 using System.Threading;
+using System.Net;
 
 namespace BRhodium.Node.IntegrationTests.RPC
 {
@@ -72,7 +73,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
                 AddedNodeInfo oneInfo = rpc.GetAddedNodeInfo(nodeB.Endpoint);
                 Assert.NotNull(oneInfo);
-                Assert.Equal(nodeB.Endpoint.ToString(), oneInfo.AddedNode.ToString());
+                Assert.Equal(nodeB.Endpoint.Address.EnsureIPv6().ToString(), IPAddress.Parse(oneInfo.AddedNode.ToString()).EnsureIPv6().ToString());
                 oneInfo = rpc.GetAddedNodeInfo(nodeA.Endpoint);
                 Assert.Null(oneInfo);
                 rpc.RemoveNode(nodeB.Endpoint);

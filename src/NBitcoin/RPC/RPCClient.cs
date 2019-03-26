@@ -876,7 +876,7 @@ namespace NBitcoin.RPC
                 Addresses = entry["addresses"].Select(x => new NodeAddressInfo
                 {
                     Address = Utils.ParseIpEndpoint((string)x["address"], 8333),
-                    Connected = (bool)x["connected"]
+                    Connected = x["connected"].ToString()
                 })
             }).ToArray();
         }
@@ -906,8 +906,7 @@ namespace NBitcoin.RPC
 
             try
             {
-                var ip = Utils.ParseIpEndpoint(nodeEndPoint.ToString(), 0);
-                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, ip.Address.ToString()).ConfigureAwait(false);
+                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, nodeEndPoint.ToString()).ConfigureAwait(false);
                 JToken e = result.Result;
                 return e.Select(entry => new AddedNodeInfo
                 {
@@ -916,7 +915,7 @@ namespace NBitcoin.RPC
                     Addresses = entry["addresses"].Select(x => new NodeAddressInfo
                     {
                         Address = Utils.ParseIpEndpoint((string)x["address"], 8333),
-                        Connected = (bool)x["connected"]
+                        Connected = x["connected"].ToString()
                     })
                 }).FirstOrDefault();
             }
@@ -1416,7 +1415,7 @@ namespace NBitcoin.RPC
     public class NodeAddressInfo
     {
         public IPEndPoint Address { get; internal set; }
-        public bool Connected { get; internal set; }
+        public string Connected { get; internal set; }
     }
 #endif
 

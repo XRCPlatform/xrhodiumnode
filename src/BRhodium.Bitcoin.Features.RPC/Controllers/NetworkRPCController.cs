@@ -448,7 +448,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 {
                     var resultList = new List<NetworkNodeModel>();
                     var result = new NetworkNodeModel();
-                    var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address == IPAddress.Parse(node));
+                    var nodeIpEndpoint = Utils.ParseIpEndpoint(node, 0);
+                    var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address.Equals(nodeIpEndpoint.Address.EnsureIPv6())  && a.PeerEndPoint.Port.Equals(nodeIpEndpoint.Port));
                     if (peerNode != null)
                     {
                         result.AddedNode = peerNode.PeerEndPoint.ToString();
