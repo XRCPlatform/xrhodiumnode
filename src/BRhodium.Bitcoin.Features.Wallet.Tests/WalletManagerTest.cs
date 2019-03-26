@@ -549,7 +549,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             walletManager.Wallets.AddOrReplace("wallet1",WalletTestsHelpers.CreateWallet("wallet1", this.Network));
             walletManager.Wallets.AddOrReplace("wallet2", WalletTestsHelpers.CreateWallet("wallet2", this.Network));
             walletManager.Wallets.AddOrReplace("wallet3", WalletTestsHelpers.CreateWallet("wallet3", this.Network));
-            //WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
+            WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
 
             Parallel.For(0, 5000, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (int iteration) =>
             {
@@ -558,7 +558,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 walletManager.LoadKeysLookupLock();
             });
 
-            Assert.Equal(240, walletManager.keysLookup.Count);
+            Assert.Equal(480, walletManager.keysLookup.Count);
         }
 
         [Fact]
