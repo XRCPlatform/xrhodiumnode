@@ -90,8 +90,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 {
                     throw new ArgumentNullException("node");
                 }
-
-                var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                var endPoint =  Utils.ParseIpEndpoint(node, 0);
+                //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
 
                 switch (command)
                 {
@@ -226,13 +226,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (!string.IsNullOrEmpty(address))
                 {
-                    var nodeParam = address.Split(':');
-                    if (nodeParam.Length < 2)
-                    {
-                        throw new ArgumentNullException("node");
-                    }
-
-                    var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                    //var nodeParam = address.Split(':');
+                    //if (nodeParam.Length < 2)
+                    //{
+                    //    throw new ArgumentNullException("node");
+                    //}
+                    var endPoint = Utils.ParseIpEndpoint(address, 0);
+                    //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
 
                     var node = this.ConnectionManager.FindNodeByEndpoint(endPoint);
 
@@ -315,13 +315,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     throw new ArgumentNullException("bantime");
                 }  
 
-                var nodeParam = address.Split(':');
-                if (nodeParam.Length < 2)
-                {
-                    throw new ArgumentNullException("address");
-                }
-
-                var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                //var nodeParam = address.Split(':');
+                //if (nodeParam.Length < 2)
+                //{
+                //    throw new ArgumentNullException("address");
+                //}
+                var endPoint = Utils.ParseIpEndpoint(address, 0);
+                //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
                 var peer = this.peerAddressManager.Peers.FirstOrDefault(a => a.Endpoint == endPoint);
                 switch (command)
                 {

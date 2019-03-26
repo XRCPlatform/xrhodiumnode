@@ -1005,7 +1005,7 @@ namespace NBitcoin.RPC
             header.Nonce = (uint)resp.Result["nonce"];
             header.Bits = new Target(Encoders.Hex.DecodeData((string)resp.Result["bits"]));
 
-            if (resp.Result["previousblockhash"] != null)
+            if (!String.IsNullOrEmpty((string)resp.Result["previousblockhash"]))
                 header.HashPrevBlock = uint256.Parse((string)resp.Result["previousblockhash"]);
 
             if (resp.Result["time"] != null)

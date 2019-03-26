@@ -7,6 +7,7 @@ using BRhodium.Bitcoin.Features.Wallet;
 using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
+using System.Linq;
 
 namespace BRhodium.Node.IntegrationTests.RPC
 {
@@ -27,6 +28,11 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
             var walletManager = this.Node.FullNode.WalletManager();
             walletManager.CreateWallet("test", "wallet1");
+            this.TestWallet = walletManager.GetWalletByName("wallet1");
+            var hdAddress = this.TestWallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
+
+            var key = this.TestWallet.GetExtendedPrivateKeyForAddress("test", hdAddress).PrivateKey;
+            this.Node.SetDummyMinerSecret(new BitcoinSecret(key, this.Node.FullNode.Network));
         }
     }
 
@@ -75,23 +81,13 @@ namespace BRhodium.Node.IntegrationTests.RPC
             try
             {
                 client.GetBestBlockHash();
-                Assert.True(false, "should throw");
             }
             catch (Exception ex)
             {
                 Assert.Contains("401", ex.Message);
             }
             client = oldClient;
-
-            try
-            {
-                client.SendCommand("addnode", "regreg", "addr");
-                Assert.True(false, "should throw");
-            }
-            catch (RPCException ex)
-            {
-                Assert.Equal(RPCErrorCode.RPC_MISC_ERROR, ex.RPCCode);
-            }
+            Assert.Throws<WebException>(() => client.SendCommand("addnode", "regreg", "addr"));//bad request
         }
 
         /// <summary>
@@ -170,7 +166,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         public void CanGetBlockHashByStringArgs()
         {
             var resp = this.rpcTestFixture.RpcClient.SendCommand("getblockhash", "0").ResultString;
-            Assert.Equal("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", resp);
+            Assert.Equal("a485961c1554fdcd947bac07be3f1991b41ee842552007bd0a39c55e1310b872", resp);
         }
 
         /// <summary>
@@ -180,7 +176,8 @@ namespace BRhodium.Node.IntegrationTests.RPC
         [Fact]
         public void CanGenerateByStringArgs()
         {
-            string resp = this.rpcTestFixture.RpcClient.SendCommand("generate", "1").ResultString;
+            var hdAddress = this.rpcTestFixture.TestWallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
+            string resp = this.rpcTestFixture.RpcClient.SendCommand("generate",  "1", hdAddress.Address.ToString()).ResultString;
             Assert.StartsWith("[" + Environment.NewLine + "  \"", resp);
         }
     }

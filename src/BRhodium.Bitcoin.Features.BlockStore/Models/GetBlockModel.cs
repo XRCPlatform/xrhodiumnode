@@ -83,7 +83,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
         ///   The block time in seconds since epoch (Jan 1 1970 GMT)
         /// </summary>
         [JsonProperty(PropertyName = "time")]
-        public int Time { get; set; }
+        public long Time { get; set; }
 
         /// <summary>
         ///

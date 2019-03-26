@@ -46,7 +46,11 @@ namespace BRhodium.Bitcoin.Features.Consensus
             }
             else
             {
-                this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                uint256 stub = new uint256();
+                if (uint256.TryParse(config.GetOrDefault<string>("assumevalid", "0"), out stub))
+                {
+                    this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                }                
             }
 
             ILogger logger = nodeSettings.LoggerFactory.CreateLogger(typeof(ConsensusSettings).FullName);
