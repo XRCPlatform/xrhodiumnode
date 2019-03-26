@@ -122,7 +122,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public CoreNode CreateBRhodiumPowNode(bool start = false)
         {
-            return CreateNode(new BRhodiumBitcoinPowRunner(this.GetNextDataFolderName()), network, start);
+            return CreateNode(new BRhodiumNodePowRunner(this.GetNextDataFolderName()), network, start);
         }
 
         public CoreNode CreateBRhodiumPowMiningNode(bool start = false)
@@ -132,7 +132,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public CoreNode CloneBRhodiumNode(CoreNode cloneNode)
         {
-            var node = new CoreNode(new BRhodiumBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, network, "bitcoin.conf");
+            var node = new CoreNode(new BRhodiumNodePowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, network, "BRhodium.conf");
             this.Nodes.Add(node);
             this.Nodes.Remove(cloneNode);
             return node;

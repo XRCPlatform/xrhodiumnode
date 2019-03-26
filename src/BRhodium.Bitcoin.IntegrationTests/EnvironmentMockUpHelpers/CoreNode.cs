@@ -483,7 +483,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public bool AddToBRhodiumMempool(Transaction trx)
         {
-            var fullNode = (this.runner as BRhodiumBitcoinPowRunner).FullNode;
+            var fullNode = (this.runner as BRhodiumNodePowRunner).FullNode;
             var state = new MempoolValidationState(true);
 
             return fullNode.MempoolManager().Validator.AcceptToMemoryPool(state, trx).Result;
@@ -502,7 +502,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         [Obsolete("Please use GenerateBRhodiumWithMiner instead.")]
         public Block[] GenerateBRhodium(int blockCount, List<Transaction> passedTransactions = null, bool broadcast = true)
         {
-            var fullNode = (this.runner as BRhodiumBitcoinPowRunner).FullNode;
+            var fullNode = (this.runner as BRhodiumNodePowRunner).FullNode;
             BitcoinSecret dest = this.MinerSecret;
             List<Block> blocks = new List<Block>();
             DateTimeOffset now = this.MockTime == null ? DateTimeOffset.UtcNow : this.MockTime.Value;

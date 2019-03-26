@@ -76,9 +76,9 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         }
     }
 
-    public sealed class BRhodiumBitcoinPowRunner : NodeRunner
+    public sealed class BRhodiumNodePowRunner : NodeRunner
     {
-        public BRhodiumBitcoinPowRunner(string dataDir)
+        public BRhodiumNodePowRunner(string dataDir)
             : base(dataDir)
         {
         }
