@@ -40,7 +40,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
-                BRhodiumSender.GenerateBRhodium(maturity + 5);                
+                BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 5);                
 
                 // wait for block repo for block sync to work
 
@@ -72,7 +72,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 // generate two new blocks do the trx is confirmed
                 BRhodiumSender.GenerateBRhodium(1, new List<Transaction>(new[] { trx.Clone() }));
-                BRhodiumSender.GenerateBRhodium(1);
+                BRhodiumSender.GenerateBRhodiumWithMiner(1);
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
@@ -301,7 +301,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 int blockCount = 0;
                 while (blockCount < 10)// there is an unpredictability in mining so ensure 10 blocks mined.
                 {
-                    BRhodiumSender.GenerateBRhodium(1);
+                    BRhodiumSender.GenerateBRhodiumWithMiner(1);
                     blockCount = rpc.GetBlockCount();
                 }
 
@@ -439,7 +439,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // push the wallet back
                 BRhodiumminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
                 
-                BRhodiumminer.GenerateBRhodium(5);
+                BRhodiumminer.GenerateBRhodiumWithMiner(5);
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
             }
@@ -463,7 +463,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 BRhodiumNodeSync.SetDummyMinerSecret(key.GetBitcoinSecret(BRhodiumNodeSync.FullNode.Network));
 
-                BRhodiumNodeSync.GenerateBRhodium(10);
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(10);
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumNodeSync));
 

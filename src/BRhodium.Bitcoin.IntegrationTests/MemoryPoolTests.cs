@@ -291,7 +291,7 @@ namespace BRhodium.Node.IntegrationTests
                 BRhodiumNodeSync.NotInIBD();
 
                 BRhodiumNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), BRhodiumNodeSync.FullNode.Network));
-                BRhodiumNodeSync.GenerateBRhodium(101); // coinbase maturity = 100
+                BRhodiumNodeSync.GenerateBRhodiumWithMiner(101); // coinbase maturity = 100
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.ChainBehaviorState.ConsensusTip.HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);
                 TestHelper.WaitLoop(() => BRhodiumNodeSync.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNodeSync.FullNode.Chain.Tip.HashBlock);

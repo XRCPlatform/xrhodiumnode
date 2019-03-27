@@ -279,7 +279,7 @@ namespace BRhodium.Node.IntegrationTests
             Assert.Equal(networkHeight, simulator.Nodes.Count);
 
             // Random node on network generates a block.
-            networkNode1.GenerateBRhodium(1);
+            networkNode1.GenerateBRhodiumWithMiner(1);
 
             // Wait until connector get the hash of network's block.
             while ((connector.FullNode.ChainBehaviorState.ConsensusTip.HashBlock != networkNode1.FullNode.ChainBehaviorState.ConsensusTip.HashBlock) ||
@@ -293,7 +293,7 @@ namespace BRhodium.Node.IntegrationTests
             Assert.Equal(connector.FullNode.Chain.Tip.Height, networkHeight + 1);
 
             // Miner mines the block.
-            miner.GenerateBRhodium(1);
+            miner.GenerateBRhodiumWithMiner(1);
             TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(miner));
 
             networkHeight++;
@@ -304,7 +304,7 @@ namespace BRhodium.Node.IntegrationTests
             Assert.Equal(miner.FullNode.Chain.Tip.Height, networkHeight);
             Assert.Equal(connector.FullNode.Chain.Tip.Height, networkHeight);
 
-            connector.GenerateBRhodium(1);
+            connector.GenerateBRhodiumWithMiner(1);
             networkHeight++;
 
             int delay = 0;
