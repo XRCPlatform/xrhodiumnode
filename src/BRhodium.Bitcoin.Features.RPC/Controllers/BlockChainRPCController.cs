@@ -446,6 +446,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         blockTemplate.Height = chainedHeader.Height;
                         blockTemplate.Chainwork = chainedHeader.ChainWork.ToString();
                         blockTemplate.TransactionsCount = block.Transactions != null ? block.Transactions.Count() : 0;
+                        blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
 
                         return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
                 }

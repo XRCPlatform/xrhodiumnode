@@ -75,7 +75,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <returns>(List, GetMemPoolEntry or List, string) Object with informations.</returns>
         [ActionName("getrawmempool")]
         [ActionDescription("Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.")]
-        public IActionResult GetRawMempool(string verbose)
+        public IActionResult GetRawMempool(bool verbose)
         {
             try
             {
@@ -83,9 +83,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
 
                 switch (verbose)
                 {
-                    case "true":
+                    case true:
 
-                        var result = new List<GetMemPoolEntry>();
+                        var result = new Dictionary<string, GetMemPoolEntry>();
 
                         foreach (var itemTxId in memPoolTransactions)
                         {
@@ -115,7 +115,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                                 }
                             }
                             
-                            result.Add(resultEntry);
+                            result.Add(itemTxId.ToString(), resultEntry);
                         }
 
                         return this.Json(ResultHelper.BuildResultResponse(result));
