@@ -77,3 +77,10 @@ RPC commands can be executed using the `rpc` option, along with the RPC name and
 ## Further Information
 
 Documentation is available at http://wiki.bitcoinrh.org/.
+
+## Legal
+
+See LICENSE for details.
+
+Portions Copyright (c) Stratis Platform and Contributors
+Portions Copyright (c) 2014 Metaco SA

@@ -113,7 +113,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <returns>(List, GetMemPoolEntry or List, string) Object with informations.</returns>
         [ActionName("getrawmempool")]
         [ActionDescription("Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.")]
-        public IActionResult GetRawMempool(string verbose)
+        public IActionResult GetRawMempool(bool verbose)
         {
             try
             {
