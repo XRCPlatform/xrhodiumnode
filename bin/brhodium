@@ -54,7 +54,7 @@ fi
 
 if [[ $CMD == "run" ]]; then
     pushd src/BRhodium
-    dotnet run
+    dotnet run $@
     popd
 fi
 
