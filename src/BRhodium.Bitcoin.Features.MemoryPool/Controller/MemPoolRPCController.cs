@@ -37,8 +37,14 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <summary>An interface implementation used to retrieve unspent transactions.</summary>
         private readonly IGetUnspentTransaction getUnspentTransaction;
 
+        /// <summary>
+        /// The mempool manager.
+        /// </summary>
         public MempoolManager MempoolManager { get; private set; }
 
+        /// <summary>
+        ///  Actual mempool.
+        /// </summary>
         public ITxMempool MemPool { get; private set; }
 
         public MemPoolRPCController(
@@ -68,6 +74,38 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             this.MemPool = mempool;
         }
 
+        private GetMemPoolEntry GetMemPoolEntryFromTx(TxMempoolEntry entry)
+        {
+            var resultEntry = new GetMemPoolEntry
+            {
+                Fee = entry.Fee.ToUnit(MoneyUnit.XRC),
+                ModifiedFee = entry.ModifiedFee,
+                Size = entry.GetTxSize(),
+                Time = entry.Time,
+                Height = entry.EntryHeight,
+                WtxId = entry.TransactionHash.ToString(),
+                DescendantCount = entry.CountWithDescendants,
+                DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.XRC),
+                DescendantSize = entry.SizeWithDescendants,
+                AncestorCount = entry.CountWithAncestors,
+                AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.XRC),
+                AncestorSize = entry.SizeWithAncestors
+            };
+
+            var parents = this.MemPool.GetMemPoolParents(entry);
+
+            if (parents != null)
+            {
+                resultEntry.Depends = new List<string>();
+                foreach (var item in parents)
+                {
+                    resultEntry.Depends.Add(item.TransactionHash.ToString());
+                }
+            }
+
+            return resultEntry;
+        }
+
         /// <summary>
         /// Returns all transaction ids in memory pool as a json array of string transaction ids. Hint: use getmempoolentry to fetch a specific transaction from the mempool.
         /// </summary>
@@ -81,49 +119,20 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             {
                 var memPoolTransactions = this.MempoolManager.GetMempoolAsync().Result;
 
-                switch (verbose)
+                if (verbose)
                 {
-                    case "true":
+                    var result = new Dictionary<string, GetMemPoolEntry>();
 
-                        var result = new List<GetMemPoolEntry>();
+                    foreach (var itemTxId in memPoolTransactions)
+                    {
+                        var entry = this.MemPool.GetEntry(itemTxId);
+                        result.Add(itemTxId.ToString(), GetMemPoolEntryFromTx(entry));
+                    }
 
-                        foreach (var itemTxId in memPoolTransactions)
-                        {
-                            var entry = this.MemPool.GetEntry(itemTxId);
-                            var resultEntry = new GetMemPoolEntry();
-                            resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.XRC);
-                            resultEntry.ModifiedFee = entry.ModifiedFee;
-                            resultEntry.Size = entry.GetTxSize();
-                            resultEntry.Time = entry.Time;
-                            resultEntry.Height = entry.EntryHeight;
-                            resultEntry.WtxId = entry.TransactionHash.ToString();
-                            resultEntry.DescendantCount = entry.CountWithDescendants;
-                            resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.XRC);
-                            resultEntry.DescendantSize = entry.SizeWithDescendants;
-                            resultEntry.AncestorCount = entry.CountWithAncestors;
-                            resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.XRC);
-                            resultEntry.AncestorSize = entry.SizeWithAncestors;
-
-                            var parents = this.MemPool.GetMemPoolParents(entry);
-
-                            if (parents != null)
-                            {
-                                resultEntry.Depends = new List<string>();
-                                foreach (var item in parents)
-                                {
-                                    resultEntry.Depends.Add(item.TransactionHash.ToString());
-                                }
-                            }
-                            
-                            result.Add(resultEntry);
-                        }
-
-                        return this.Json(ResultHelper.BuildResultResponse(result));
-
-                    default:
-                        return this.Json(ResultHelper.BuildResultResponse(memPoolTransactions));
+                    return this.Json(ResultHelper.BuildResultResponse(result));
                 }
-                
+
+                return this.Json(ResultHelper.BuildResultResponse(memPoolTransactions));
             }
             catch (Exception e)
             {
@@ -143,37 +152,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         {
             try
             {
-                if (string.IsNullOrEmpty(txid))
-                {
-                    throw new ArgumentNullException("txid");
-                }
-
+                Guard.NotEmpty(txid, "txid");
                 var entry = this.MemPool.GetEntry(new uint256(txid));
-                var resultEntry = new GetMemPoolEntry();
-                resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.XRC);
-                resultEntry.ModifiedFee = entry.ModifiedFee;
-                resultEntry.Size = entry.GetTxSize();
-                resultEntry.Time = entry.Time;
-                resultEntry.Height = entry.EntryHeight;
-                resultEntry.WtxId = entry.TransactionHash.ToString();
-                resultEntry.DescendantCount = entry.CountWithDescendants;
-                resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.XRC);
-                resultEntry.DescendantSize = entry.SizeWithDescendants;
-                resultEntry.AncestorCount = entry.CountWithAncestors;
-                resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.XRC);
-                resultEntry.AncestorSize = entry.SizeWithAncestors;
-
-                var parents = this.MemPool.GetMemPoolParents(entry);
-
-                if (parents != null)
-                {
-                    foreach (var item in parents)
-                    {
-                        resultEntry.Depends.Add(item.TransactionHash.ToString());
-                    }
-                }
-                
-                return this.Json(ResultHelper.BuildResultResponse(resultEntry));
+                return this.Json(ResultHelper.BuildResultResponse(GetMemPoolEntryFromTx(entry)));
             }
             catch (Exception e)
             {
@@ -197,7 +178,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             {
                 uint256 trxid;
                 if (!uint256.TryParse(txid, out trxid))
+                {
                     throw new ArgumentException(nameof(txid));
+                }
 
                 UnspentOutputs unspentOutputs = null;
                 if (includeMemPool.HasValue && includeMemPool.Value)
@@ -256,11 +239,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                 var shiftHash = chainRepository.Tip.HashBlock << (0);
                 result.Hash_serialized_2 = shiftHash.AsBitcoinSerializable().ToHex(this.Network, SerializationType.Hash);
 
-                for (int i = 0; i <= this.Chain.Height; i++)
+                for (int height = 0; height <= this.Chain.Height; height++)
                 {
-                    var chainedHeader = chainRepository.GetBlock(i);
-                    var block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
-
+                    var chainedHeader = chainRepository.GetBlock(height);
+                    var block = height == 0 ? this.Network.GetGenesis() : blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
                     result.DiskSize += block.GetSerializedSize();
                 }
 
@@ -300,10 +282,10 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                 }
                 else
                 {
-                    for (int i = this.Chain.Height; i >= 0; i--)
+                    for (int height = this.Chain.Height; height >= 0; height--)
                     {
-                        var chainedHeader = chainRepository.GetBlock(i);
-                        block = blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                        var chainedHeader = chainRepository.GetBlock(height);
+                        block = height == 0 ? this.Network.GetGenesis() : blockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
 
                         if ((block != null) && (block.Transactions != null) && (block.Transactions.Count() > 0))
                         {
@@ -343,10 +325,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         {
             try
             {
-                if (string.IsNullOrEmpty(proof))
-                {
-                    throw new ArgumentNullException("proof");
-                }
+                Guard.NotEmpty(proof, nameof(proof));
 
                 var bytesProof = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(proof);
 
@@ -379,76 +358,44 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <returns>(List, GetMemPoolEntry or List, string) Return object with informations.</returns>
         [ActionName("getmempoolancestors")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool ancestors.")]
-        public IActionResult GetMempoolAncestors(string txid, string verbose)
+        public IActionResult GetMempoolAncestors(string txid, bool verbose)
         {
             try
             {
-                if (string.IsNullOrEmpty(txid))
-                {
-                    throw new ArgumentNullException("txid");
-                }
+                Guard.NotEmpty(txid, nameof(txid));
 
                 var entryTx = this.MemPool.GetEntry(new uint256(txid));
+                Guard.NotNull(entryTx, "entryTx does not exist.");
 
                 var setAncestors = new SetEntries();
                 string dummy = string.Empty;
                 long nNoLimit = long.MaxValue;
                 this.MemPool.CalculateMemPoolAncestors(entryTx, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, out dummy, false);
 
-                switch (verbose)
+                if (verbose)
                 {
-                    case "true":
+                    var result = new List<GetMemPoolEntry>();
 
-                        var result = new List<GetMemPoolEntry>();
-
-                        if (setAncestors != null)
+                    if (setAncestors != null)
+                    {
+                        foreach (var entry in setAncestors)
                         {
-                            foreach (var entry in setAncestors)
-                            {
-                                var resultEntry = new GetMemPoolEntry();
-                                resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.XRC);
-                                resultEntry.ModifiedFee = entry.ModifiedFee;
-                                resultEntry.Size = entry.GetTxSize();
-                                resultEntry.Time = entry.Time;
-                                resultEntry.Height = entry.EntryHeight;
-                                resultEntry.WtxId = entry.TransactionHash.ToString();
-                                resultEntry.DescendantCount = entry.CountWithDescendants;
-                                resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.XRC);
-                                resultEntry.DescendantSize = entry.SizeWithDescendants;
-                                resultEntry.AncestorCount = entry.CountWithAncestors;
-                                resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.XRC);
-                                resultEntry.AncestorSize = entry.SizeWithAncestors;
-
-                                var parents = this.MemPool.GetMemPoolParents(entry);
-
-                                if (parents != null)
-                                {
-                                    foreach (var item in parents)
-                                    {
-                                        resultEntry.Depends.Add(item.TransactionHash.ToString());
-                                    }
-                                }
-
-                                result.Add(resultEntry);
-                            }
+                            result.Add(GetMemPoolEntryFromTx(entry));
                         }
-
-                        return this.Json(ResultHelper.BuildResultResponse(result));
-
-                    default:
-
-                        var listTxHash = new List<string>();
-
-                        if (setAncestors != null)
-                        {
-                            foreach (var entry in setAncestors)
-                            {
-                                listTxHash.Add(entry.TransactionHash.ToString());
-                            }
-                        }
-
-                        return this.Json(ResultHelper.BuildResultResponse(listTxHash));
+                    }
+                    return this.Json(ResultHelper.BuildResultResponse(result));
                 }
+
+                var listTxHash = new List<string>();
+                if (setAncestors != null)
+                {
+                    foreach (var entry in setAncestors)
+                    {
+                        listTxHash.Add(entry.TransactionHash.ToString());
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(listTxHash));
             }
             catch (Exception e)
             {
@@ -465,74 +412,41 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         /// <returns>(List, GetMemPoolEntry or List, string) Return object with informations.</returns>
         [ActionName("getmempooldescendants")]
         [ActionDescription("If txid is in the mempool, returns all in-mempool descendants.")]
-        public IActionResult GetMempoolDescendants(string txid, string verbose)
+        public IActionResult GetMempoolDescendants(string txid, bool verbose)
         {
             try
             {
-                if (string.IsNullOrEmpty(txid))
-                {
-                    throw new ArgumentNullException("txid");
-                }
-
+                Guard.NotEmpty(txid, nameof(txid));
                 var entryTx = this.MemPool.GetEntry(new uint256(txid));
-                
                 var setDescendants = new SetEntries();
                 this.MemPool.CalculateDescendants(entryTx, setDescendants);
 
-                switch (verbose)
+                if (verbose)
                 {
-                    case "true":
+                    var result = new List<GetMemPoolEntry>();
 
-                        var result = new List<GetMemPoolEntry>();
-
-                        if (setDescendants != null)
+                    if (setDescendants != null)
+                    {
+                        foreach (var entry in setDescendants)
                         {
-                            foreach (var entry in setDescendants)
-                            {
-                                var resultEntry = new GetMemPoolEntry();
-                                resultEntry.Fee = entry.Fee.ToUnit(MoneyUnit.XRC);
-                                resultEntry.ModifiedFee = entry.ModifiedFee;
-                                resultEntry.Size = entry.GetTxSize();
-                                resultEntry.Time = entry.Time;
-                                resultEntry.Height = entry.EntryHeight;
-                                resultEntry.WtxId = entry.TransactionHash.ToString();
-                                resultEntry.DescendantCount = entry.CountWithDescendants;
-                                resultEntry.DescendantFees = entry.ModFeesWithDescendants.ToUnit(MoneyUnit.XRC);
-                                resultEntry.DescendantSize = entry.SizeWithDescendants;
-                                resultEntry.AncestorCount = entry.CountWithAncestors;
-                                resultEntry.AncestorFees = entry.ModFeesWithAncestors.ToUnit(MoneyUnit.XRC);
-                                resultEntry.AncestorSize = entry.SizeWithAncestors;
-
-                                var parents = this.MemPool.GetMemPoolParents(entry);
-
-                                if (parents != null)
-                                {
-                                    foreach (var item in parents)
-                                    {
-                                        resultEntry.Depends.Add(item.TransactionHash.ToString());
-                                    }
-                                }
-
-                                result.Add(resultEntry);
-                            }
+                            result.Add(GetMemPoolEntryFromTx(entry));
                         }
+                    }
 
-                        return this.Json(ResultHelper.BuildResultResponse(result));
-
-                    default:
-
-                        var listTxHash = new List<string>();
-
-                        if (setDescendants != null)
-                        {
-                            foreach (var entry in setDescendants)
-                            {
-                                listTxHash.Add(entry.TransactionHash.ToString());
-                            }
-                        }
-
-                        return this.Json(ResultHelper.BuildResultResponse(listTxHash));
+                    return this.Json(ResultHelper.BuildResultResponse(result));
                 }
+
+                var listTxHash = new List<string>();
+
+                if (setDescendants != null)
+                {
+                    foreach (var entry in setDescendants)
+                    {
+                        listTxHash.Add(entry.TransactionHash.ToString());
+                    }
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(listTxHash));
             }
             catch (Exception e)
             {
@@ -551,16 +465,16 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         {
             try
             {
-                var result = new GetMemPoolInfo();
-
-                result.Size = this.MemPool.Size;
-                result.Usage = this.MemPool.DynamicMemoryUsage();
-                result.Bytes = this.MempoolManager.MempoolSize().Result;
-
                 var maxmem = this.MempoolManager.mempoolSettings.MaxMempool * 1000000;
-                result.Maxmempool = maxmem;
-                result.MempoolMinFee = this.MemPool.GetMinFee(maxmem).FeePerK.ToUnit(MoneyUnit.XRC);
-                result.MinRelayTxFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.XRC);
+                var result = new GetMemPoolInfo
+                {
+                    Size = this.MemPool.Size,
+                    Usage = this.MemPool.DynamicMemoryUsage(),
+                    Bytes = this.MempoolManager.MempoolSize().Result,
+                    Maxmempool = maxmem,
+                    MempoolMinFee = this.MemPool.GetMinFee(maxmem).FeePerK.ToUnit(MoneyUnit.XRC),
+                    MinRelayTxFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.XRC)
+                };
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }
@@ -582,7 +496,6 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
             try
             {
                 this.MempoolManager.SavePool();
-
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -603,11 +516,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
         {
             try
             {
-                if (string.IsNullOrEmpty(txid))
-                {
-                    throw new ArgumentNullException("txid");
-                }
-
+                Guard.NotEmpty(txid, nameof(txid));
                 var task = this.MempoolManager.RemoveTransactionFromMempool(new uint256(txid));
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
