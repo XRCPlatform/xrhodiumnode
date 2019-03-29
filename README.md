@@ -9,8 +9,7 @@ Bitcoin Rhodium is a unique crypto commodity with limited supply and strong use 
 
 ## About BRhodiumNode
 
-BRhodiumNode is the full node for BitCoin Rhodium. It is developed in C#, using the [.NET Core] platform.
-Code is based on [NBitcoin](https://github.com/MetacoSA/NBitcoin) and [Stratis](https://github.com/stratisproject/StratisBitcoinFullNode) projects.
+BRhodiumNode is the full node for Bitcoin Rhodium. It is developed in C#, using the .NET Core platform.
 
 [.NET Core](https://dotnet.github.io/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
 
@@ -81,6 +80,3 @@ Documentation is available at http://wiki.bitcoinrh.org/.
 ## Legal
 
 See LICENSE for details.
-
-Portions Copyright (c) Stratis Platform and Contributors
-Portions Copyright (c) 2014 Metaco SA
