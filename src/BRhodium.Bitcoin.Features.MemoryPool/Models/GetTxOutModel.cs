@@ -23,24 +23,39 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Models
                 this.Confirmations = NetworkExtensions.MempoolHeight == unspentOutputs.Height ? 0 : tip.Height - (int)unspentOutputs.Height + 1;
                 if (output != null)
                 {
-                    this.Value = output.Value;
+                    this.Value = output.Value.ToDecimal(MoneyUnit.XRC);
                     this.ScriptPubKey = output.ScriptPubKey.ToString();
                 }
             }
         }
 
+        /// <summary>
+        /// The best block in relation to the transaction.
+        /// </summary>
         [JsonProperty(Order = 0, PropertyName = "bestblock")]
         public uint256 BestBlock { get; set; }
 
+        /// <summary>
+        /// Number of confirmations from the block.
+        /// </summary>
         [JsonProperty(Order = 1, PropertyName = "confirmations")]
         public int Confirmations { get; set; }
 
+        /// <summary>
+        /// Value of UTXO in XRC
+        /// </summary>
         [JsonProperty(Order = 2, PropertyName = "value")]
-        public Money Value { get; set; }
+        public decimal Value { get; set; }
 
+        /// <summary>
+        /// The script pub key unserialized.
+        /// </summary>
         [JsonProperty(Order = 3, PropertyName = "scriptPubKey")]
         public string ScriptPubKey { get; set; }
 
+        /// <summary>
+        /// Is tx a coinbase tx?
+        /// </summary>
         [JsonProperty(Order = 4, PropertyName = "coinbase")]
         public bool Coinbase { get; set; }
     }
