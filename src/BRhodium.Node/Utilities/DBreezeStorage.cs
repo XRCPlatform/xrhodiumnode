@@ -54,15 +54,15 @@ namespace BRhodium.Node.Utilities
             bf.Serialize(memorystream, toSave);
             byte[] byteObject = memorystream.ToArray();
 
-           // lock (this.optimizeLock)
-           // {
+            lock (this.optimizeLock)
+            {
                 using (var transaction = this.dbreeze.GetTransaction())
                 {
                     transaction.Technical_SetTable_OverwriteIsNotAllowed(this.DatabaseName);
                     transaction.Insert<string, byte[]>(this.DatabaseName, idKey, byteObject);
                     transaction.Commit();
                 }
-           // }
+            }
         }
 
         /// <summary>
