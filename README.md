@@ -17,7 +17,7 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
 
 ## Installation and setup
 
-.NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. W convenience wrapper around most processes is provided to make setup quick.
+.NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. There is a convenience wrapper around most processes is provided to make setup quick.
 
  1. Clone the repository:
 
