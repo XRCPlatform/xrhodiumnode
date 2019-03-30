@@ -3,8 +3,8 @@ Description=BitcoinRhodium Node
 After=network.target
 
 [Service]
-User=mining
-Group=mining
+User=
+Group=
 
 Type=simple
 PIDFile=/var/lib/brhodiumd/brhodiumd.pid
