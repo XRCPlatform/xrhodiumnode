@@ -191,9 +191,14 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 {
                     
                     fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions();
-                    if (fullNodeBuilder.Network.Name != Network.BRhodiumBaseName)
+                    if (fullNodeBuilder.Network.Name == "BRhodiumRegTest")
+                    {
+                        fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions().RegTestPowConsensusOptions();
+                    }
+                    else if (fullNodeBuilder.Network.Name != Network.BRhodiumBaseName)
+                    {
                         fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions().TestPowConsensusOptions();
-
+                    }
                     services.AddSingleton<ICheckpoints, Checkpoints>();
                     services.AddSingleton<NBitcoin.Consensus.ConsensusOptions, PowConsensusOptions>();
                     services.AddSingleton<DBreezeCoinView>();
