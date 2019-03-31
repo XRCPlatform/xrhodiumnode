@@ -1,4 +1,4 @@
-Bitcoin Rhodium (BTR) - BRhodium, BitcoinRh
+Bitcoin Rhodium (XRC) - BRhodium, BitcoinRh
 ===========================================
 
 Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
