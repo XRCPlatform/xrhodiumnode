@@ -178,7 +178,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             var hdAddress = this.rpcTestFixture.TestWallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
             string resp = this.rpcTestFixture.RpcClient.SendCommand("generate",  "1", hdAddress.Address.ToString()).ResultString;
-            Assert.StartsWith("[]", resp);
+            Assert.StartsWith("[" + Environment.NewLine + "  \"", resp);
         }
     }
 }
