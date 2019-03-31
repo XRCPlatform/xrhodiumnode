@@ -42,7 +42,7 @@ namespace BRhodium.Node.Tests.Common
         public static DataFolder CreateDataFolder(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
         {
             string directoryPath = GetTestDirectoryPath(caller, callingMethod);
-            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
+            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}", "-regtest" }).DataDir);
             return dataFolder;
         }
 

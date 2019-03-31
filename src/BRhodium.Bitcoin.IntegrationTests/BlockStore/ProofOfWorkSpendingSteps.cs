@@ -67,7 +67,7 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
 
         private void more_blocks_mined_to_just_BEFORE_maturity_of_original_block()
         {
-            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 1, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
+            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 2, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
         }
 
         private void more_blocks_mined_to_just_AFTER_maturity_of_original_block()

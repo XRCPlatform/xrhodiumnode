@@ -321,7 +321,7 @@ namespace NBitcoin.Tests
         public RPCClient CreateRPCClient()
         {
             var port = Network.RegTest.RPCPort;
-            return new RPCClient(GetRPCAuth(), new Uri("http://127.0.0.1:" + port.ToString() + "/"), Network.RegTest);
+            return new RPCClient(GetRPCAuth(), new Uri("http://127.0.0.1:" + port.ToString() + "/"), Network.BRhodiumRegTest);
         }
 
         public RestClient CreateRESTClient()
@@ -429,7 +429,7 @@ namespace NBitcoin.Tests
             var rpc = CreateRPCClient();
             TransactionBuilder builder = new TransactionBuilder();
             builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
-            builder.AddCoins(rpc.ListUnspent().Where(c => !locked.Contains(c.OutPoint)).Select(c => c.AsCoin()));
+            //builder.AddCoins(rpc.ListUnspent().Where(c => !locked.Contains(c.OutPoint)).Select(c => c.AsCoin()));//rpc changed
             builder.Send(destination, amount);
             builder.SendFees(fee);
             builder.SetChange(GetFirstSecret(rpc));
@@ -491,7 +491,7 @@ namespace NBitcoin.Tests
             var rpc = CreateRPCClient();
             TransactionBuilder builder = new TransactionBuilder();
             builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
-            builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));
+            //builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));//rpc changed
             var secret = GetFirstSecret(rpc);
             foreach(var part in (amount - fee).Split(parts))
             {

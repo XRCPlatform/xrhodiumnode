@@ -39,14 +39,26 @@ namespace BRhodium.Bitcoin.Features.Consensus
             
             TextFileConfiguration config = nodeSettings.ConfigReader;
             this.UseCheckpoints = config.GetOrDefault<bool>("checkpoints", true);
-
-            if (config.GetAll("assumevalid").Any(i => i.Equals("0"))) // 0 means validate all blocks.
+            string[] assumeValid = config.GetAll("assumevalid");
+            if (assumeValid.Any(i => i.Equals("0")) && assumeValid.Length == 1) // 0 means validate all blocks.
             {
                 this.BlockAssumedValid = null;
             }
             else
             {
-                this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                uint256 stub = new uint256();
+                string val = config.GetOrDefault<string>("assumevalid", "0");
+                if (val != "0")
+                {
+                    if (uint256.TryParse(val, out stub))
+                    {
+                        this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                    }
+                    else
+                    {
+                        throw new ConfigurationException($"{val} is unsuitible value for assumevalid setting.");
+                    }
+                }                
             }
 
             ILogger logger = nodeSettings.LoggerFactory.CreateLogger(typeof(ConsensusSettings).FullName);

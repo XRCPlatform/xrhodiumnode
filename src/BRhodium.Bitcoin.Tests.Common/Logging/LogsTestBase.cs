@@ -12,7 +12,7 @@ namespace BRhodium.Node.Tests.Common.Logging
         /// This class is not able to work concurrently because logs is a static class.
         /// The logs class needs to be refactored first before tests can run in parallel.
         /// </remarks>
-        public LogsTestBase() : base(Network.Main)
+        public LogsTestBase() : base(Network.BRhodiumRegTest)
         {
             this.FullNodeLogger = new Mock<ILogger>();
             this.RPCLogger = new Mock<ILogger>();

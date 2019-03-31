@@ -79,6 +79,13 @@ namespace BRhodium.Bitcoin.Features.Consensus
             production.CoinbaseMaturity = 1;
             return production;
         }
+        public PowConsensusOptions RegTestPowConsensusOptions()
+        {
+            var production = this;
+            production.CoinbaseMaturity = 6;//one is unsuitible as precludes maturity based tests
+            this.MaxBlockSigopsCost = 3000;
+            return production;
+        }
     }
 
     public static class ConsensusExtentions

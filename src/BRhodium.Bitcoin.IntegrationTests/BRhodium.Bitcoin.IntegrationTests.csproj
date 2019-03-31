@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Bitcoin.Tests.Wallet.Common\BRhodium.Bitcoin.Tests.Wallet.Common.csproj" />
     <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\BRhodium.Bitcoin.Features.Api\BRhodium.Bitcoin.Features.Api.csproj" />

@@ -54,15 +54,15 @@ namespace BRhodium.Node.Utilities
             bf.Serialize(memorystream, toSave);
             byte[] byteObject = memorystream.ToArray();
 
-           // lock (this.optimizeLock)
-           // {
+            lock (this.optimizeLock)
+            {
                 using (var transaction = this.dbreeze.GetTransaction())
                 {
                     transaction.Technical_SetTable_OverwriteIsNotAllowed(this.DatabaseName);
                     transaction.Insert<string, byte[]>(this.DatabaseName, idKey, byteObject);
                     transaction.Commit();
                 }
-           // }
+            }
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace BRhodium.Node.Utilities
             using (var transaction = this.dbreeze.GetTransaction())
             {
                 var row = transaction.Select<string, byte[]>(this.DatabaseName, idKey);
-                if (row.Exists)
+                if (!row.Exists)
                 {
                     return default(T);
                 } else
@@ -160,6 +160,15 @@ namespace BRhodium.Node.Utilities
             }
 
             return objects;
+        }
+
+        public void DeleteWallet(string name)
+        {
+            using (var transaction = this.dbreeze.GetTransaction())
+            {
+                transaction.RemoveKey<string>(this.DatabaseName, name);
+                transaction.Commit();
+            }
         }
     }
 }

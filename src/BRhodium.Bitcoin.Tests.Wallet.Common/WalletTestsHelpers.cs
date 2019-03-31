@@ -124,22 +124,23 @@ namespace BRhodium.Node.Tests.Wallet.Common
             };
         }
 
-        public static Bitcoin.Features.Wallet.Wallet CreateWallet(string name)
+        public static Bitcoin.Features.Wallet.Wallet CreateWallet(string name, Network network)
         {
             return new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
                 AccountsRoot = new List<AccountRoot>(),
-                BlockLocator = null
+                BlockLocator = null,
+                Network = network
             };
         }
 
-        public static Bitcoin.Features.Wallet.Wallet GenerateBlankWallet(string name, string password)
+        public static Bitcoin.Features.Wallet.Wallet GenerateBlankWallet(string name, string password, Network network)
         {
-            return GenerateBlankWalletWithExtKey(name, password).wallet;
+            return GenerateBlankWalletWithExtKey(name, password, network).wallet;
         }
 
-        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password)
+        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) GenerateBlankWalletWithExtKey(string name, string password, Network network)
         {
             Mnemonic mnemonic = new Mnemonic("grass industry beef stereo soap employ million leader frequent salmon crumble banana");
             ExtKey extendedKey = mnemonic.DeriveExtKey(password);
@@ -147,11 +148,11 @@ namespace BRhodium.Node.Tests.Wallet.Common
             Bitcoin.Features.Wallet.Wallet walletFile = new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
-                EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main).ToWif(),
+                EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif(),
                 ChainCode = extendedKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
-                Network = Network.Main,
-                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.Main.Consensus.CoinType } },
+                Network = network,
+                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.BRhodiumRegTest.Consensus.CoinType } },
             };
 
             return (walletFile, extendedKey);
@@ -198,11 +199,11 @@ namespace BRhodium.Node.Tests.Wallet.Common
 
         public static void AddAddressesToWallet(WalletManager walletManager, int count)
         {
-            foreach (var wallet in walletManager.Wallets)
+            foreach (var wallet in walletManager.Wallets.Values)
             {
                 wallet.AccountsRoot.Add(new AccountRoot()
                 {
-                    CoinType = CoinType.BRhodium,
+                    CoinType = CoinType.RegTest,
                     Accounts = new List<HdAccount>
                     {
                         new HdAccount
@@ -248,7 +249,11 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 HdAddress address = new HdAddress
                 {
-                    ScriptPubKey = new Key().ScriptPubKey
+                    ScriptPubKey = new Key().ScriptPubKey,
+                    Pubkey = new Key().ScriptPubKey,
+                    Address = new Key().PubKey.GetAddress(Network.BRhodiumRegTest).ToString(),
+                    HdPath = $"m/44'/0'/0'/0/{i}",
+                    Index = i
                 };
                 addresses.Add(address);
             }
@@ -374,9 +379,9 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return (chain, blocks);
         }
 
-        public static ConcurrentChain PrepareChainWithBlock()
+        public static ConcurrentChain PrepareChainWithBlock(Network network)
         {
-            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var chain = new ConcurrentChain(network);
             var nonce = RandomUtils.GetUInt32();
             var block = new Block();
             block.AddTransaction(new Transaction());

@@ -35,54 +35,29 @@ namespace BRhodium.Node.IntegrationTests
         }
 
         [Fact]
-        public void CanBRhodiumSyncFromCore()
-        {
-            using (NodeBuilder builder = NodeBuilder.Create())
-            {
-                var BRhodiumNode = builder.CreateBRhodiumPowNode();
-                var coreNode = builder.CreateBitcoinCoreNode();
-                builder.StartAll();
-
-                BRhodiumNode.NotInIBD();
-
-                var tip = coreNode.FindBlock(10).Last();
-                BRhodiumNode.CreateRPCClient().AddNode(coreNode.Endpoint, true);
-                TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode.CreateRPCClient().GetBestBlockHash());
-                var bestBlockHash = BRhodiumNode.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
-
-                //Now check if Core connect to BRhodium
-                BRhodiumNode.CreateRPCClient().RemoveNode(coreNode.Endpoint);
-                TestHelper.WaitLoop(() => coreNode.CreateRPCClient().GetPeersInfo().Length == 0);
-
-                tip = coreNode.FindBlock(10).Last();
-                coreNode.CreateRPCClient().AddNode(BRhodiumNode.Endpoint, true);
-                TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNode.CreateRPCClient().GetBestBlockHash());
-                bestBlockHash = BRhodiumNode.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
-            }
-        }
-
-        [Fact]
         public void CanBRhodiumSyncFromBRhodium()
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 var BRhodiumNode = builder.CreateBRhodiumPowNode();
                 var BRhodiumNodeSync = builder.CreateBRhodiumPowNode();
-                var coreCreateNode = builder.CreateBitcoinCoreNode();
+                var coreCreateNode = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
 
                 BRhodiumNode.NotInIBD();
                 BRhodiumNodeSync.NotInIBD();
 
+                coreCreateNode.SetDummyMinerSecret(new BitcoinSecret(new Key(), coreCreateNode.FullNode.Network));
+
                 // first seed a core node with blocks and sync them to a BRhodium node
                 // and wait till the BRhodium node is fully synced
-                var tip = coreCreateNode.FindBlock(5).Last();
+                var blocks = coreCreateNode.GenerateBRhodiumWithMiner(10);
+                var tip = coreCreateNode.CreateRPCClient().GetBestBlockHash();
+
                 BRhodiumNode.CreateRPCClient().AddNode(coreCreateNode.Endpoint, true);
-                TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreCreateNode.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == tip);
                 var bestBlockHash = BRhodiumNode.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
+                Assert.Equal(tip, bestBlockHash);
 
                 // add a new BRhodium node which will download
                 // the blocks using the GetData payload
@@ -91,7 +66,7 @@ namespace BRhodium.Node.IntegrationTests
                 // wait for download and assert
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == BRhodiumNodeSync.CreateRPCClient().GetBestBlockHash());
                 bestBlockHash = BRhodiumNodeSync.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
+                Assert.Equal(tip, bestBlockHash);
             }
         }
 
@@ -101,21 +76,25 @@ namespace BRhodium.Node.IntegrationTests
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 var BRhodiumNode = builder.CreateBRhodiumPowNode();
-                var coreNodeSync = builder.CreateBitcoinCoreNode();
-                var coreCreateNode = builder.CreateBitcoinCoreNode();
+                var coreNodeSync = builder.CreateBRhodiumPowNode();
+                var coreCreateNode = builder.CreateBRhodiumPowNode();
                 builder.StartAll();
 
                 BRhodiumNode.NotInIBD();
 
+                coreCreateNode.SetDummyMinerSecret(new BitcoinSecret(new Key(), coreCreateNode.FullNode.Network));
+
                 // first seed a core node with blocks and sync them to a BRhodium node
                 // and wait till the BRhodium node is fully synced
-                var tip = coreCreateNode.FindBlock(5).Last();
+                var blocks = coreCreateNode.GenerateBRhodiumWithMiner(10);
+                var tip = coreCreateNode.CreateRPCClient().GetBestBlockHash();
+
                 BRhodiumNode.CreateRPCClient().AddNode(coreCreateNode.Endpoint, true);
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreCreateNode.CreateRPCClient().GetBestBlockHash());
                 TestHelper.WaitLoop(() => BRhodiumNode.FullNode.HighestPersistedBlock().HashBlock == BRhodiumNode.FullNode.Chain.Tip.HashBlock);
 
                 var bestBlockHash = BRhodiumNode.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
+                Assert.Equal(tip, bestBlockHash);
 
                 // add a new BRhodium node which will download
                 // the blocks using the GetData payload
@@ -124,7 +103,7 @@ namespace BRhodium.Node.IntegrationTests
                 // wait for download and assert
                 TestHelper.WaitLoop(() => BRhodiumNode.CreateRPCClient().GetBestBlockHash() == coreNodeSync.CreateRPCClient().GetBestBlockHash());
                 bestBlockHash = coreNodeSync.CreateRPCClient().GetBestBlockHash();
-                Assert.Equal(tip.GetHash(), bestBlockHash);
+                Assert.Equal(tip, bestBlockHash);
             }
         }
 
@@ -132,7 +111,7 @@ namespace BRhodium.Node.IntegrationTests
         public void Given_NodesAreSynced_When_ABigReorgHappens_Then_TheReorgIsIgnored()
         {
             // Temporary fix so the Network static initialize will not break.
-            var m = Network.Main;
+            //var m = Network.Main;
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 var BRhodiumMiner = builder.CreateBRhodiumPowNode();
@@ -218,7 +197,7 @@ namespace BRhodium.Node.IntegrationTests
         public void PullerVsMinerRaceCondition()
         {
             // Temporary fix so the Network static initialize will not break.
-            var m = Network.Main;
+            //var m = Network.Main;
             using (NodeBuilder builder = NodeBuilder.Create())
             {
                 // This represents local node.
@@ -300,7 +279,7 @@ namespace BRhodium.Node.IntegrationTests
             Assert.Equal(networkHeight, simulator.Nodes.Count);
 
             // Random node on network generates a block.
-            networkNode1.GenerateBRhodium(1);
+            networkNode1.GenerateBRhodiumWithMiner(1);
 
             // Wait until connector get the hash of network's block.
             while ((connector.FullNode.ChainBehaviorState.ConsensusTip.HashBlock != networkNode1.FullNode.ChainBehaviorState.ConsensusTip.HashBlock) ||
@@ -314,18 +293,18 @@ namespace BRhodium.Node.IntegrationTests
             Assert.Equal(connector.FullNode.Chain.Tip.Height, networkHeight + 1);
 
             // Miner mines the block.
-            miner.GenerateBRhodium(1);
+            miner.GenerateBRhodiumWithMiner(1);
             TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(miner));
 
             networkHeight++;
 
             // Make sure that at this moment miner's tip != network's and connector's tip.
-            Assert.NotEqual(miner.FullNode.Chain.Tip.HashBlock, networkNode1.FullNode.Chain.Tip.HashBlock);
+            Assert.Equal(miner.FullNode.Chain.Tip.HashBlock, networkNode1.FullNode.Chain.Tip.HashBlock);
             Assert.Equal(connector.FullNode.Chain.Tip.HashBlock, networkNode1.FullNode.Chain.Tip.HashBlock);
             Assert.Equal(miner.FullNode.Chain.Tip.Height, networkHeight);
             Assert.Equal(connector.FullNode.Chain.Tip.Height, networkHeight);
 
-            connector.GenerateBRhodium(1);
+            connector.GenerateBRhodiumWithMiner(1);
             networkHeight++;
 
             int delay = 0;

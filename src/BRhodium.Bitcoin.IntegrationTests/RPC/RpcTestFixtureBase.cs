@@ -22,7 +22,10 @@ namespace BRhodium.Node.IntegrationTests.RPC
 
         /// <summary>The network peer client for the test fixture.</summary>
         public INetworkPeer NetworkPeerClient { get; protected set; }
-
+        //wallet
+        public Bitcoin.Features.Wallet.Wallet TestWallet { get; protected set; }
+        //wallet
+        public Bitcoin.Features.Wallet.WalletManager WalletManager { get; protected set; }
         /// <summary>
         /// Constructs the test fixture by calling initialize which should initialize the properties of the fixture.
         /// </summary>
@@ -44,19 +47,6 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             this.Builder.Dispose();
             this.NetworkPeerClient.Dispose();
-        }
-
-        /// <summary>
-        /// Copies the test wallet into data folder for node if it isnt' already present.
-        /// </summary>
-        /// <param name="path">The path of the folder to move the wallet to.</param>
-        protected void InitializeTestWallet(string path)
-        {
-            Directory.CreateDirectory(path);
-
-            string testWalletPath = Path.Combine(path, "test.wallet.json");
-            if (!File.Exists(testWalletPath))
-                File.Copy("Data/test.wallet.json", testWalletPath);
         }
     }
 }

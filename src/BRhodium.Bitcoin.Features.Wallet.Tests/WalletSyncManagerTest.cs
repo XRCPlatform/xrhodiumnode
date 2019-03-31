@@ -52,7 +52,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void Start_BlockOnChain_DoesNotReorgWalletManager()
         {
             this.storeSettings.Prune = false;
-            this.chain = WalletTestsHelpers.PrepareChainWithBlock();
+            this.chain = WalletTestsHelpers.PrepareChainWithBlock(this.Network);
             this.walletManager.Setup(w => w.WalletTipHash)
                 .Returns(this.chain.Tip.Header.GetHash());
 
