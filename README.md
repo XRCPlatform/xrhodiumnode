@@ -3,14 +3,15 @@ Bitcoin Rhodium (BTR) - BRhodium, BitcoinRh
 
 Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
+Current version: 1.1.4 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/1.1.4))
+
 ## About Bitcoin Rhodium
 
 Bitcoin Rhodium is a unique crypto commodity with limited supply and strong use case. Its store-of-value qualities are further supported by a set of features that meet the demand for a long-term crypto investment, incentivize strong-hand investor behaviour and bridge the gap between the world of crypto and traditional investment.
 
 ## About BRhodiumNode
 
-BRhodiumNode is the full node for BitCoin Rhodium. It is developed in C#, using the [.NET Core] platform.
-Code is based on [NBitcoin](https://github.com/MetacoSA/NBitcoin) and [Stratis](https://github.com/stratisproject/StratisBitcoinFullNode) projects.
+BRhodiumNode is the full node for Bitcoin Rhodium. It is developed in C#, using the .NET Core platform.
 
 [.NET Core](https://dotnet.github.io/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
 
@@ -18,7 +19,7 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
 
 ## Installation and setup
 
-.NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. W convenience wrapper around most processes is provided to make setup quick.
+.NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. There is a convenience wrapper around most processes is provided to make setup quick.
 
  1. Clone the repository:
 
@@ -26,6 +27,14 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
     git clone git@gitlab.com:bitcoinrh/BRhodiumNode.git
     cd BRhodiumNode
 ```
+
+ If you want to run on stable version of the node, check out the appropriate tag. If the current version is 1.1.4, then you can check it out by doing:
+
+ ```
+    git checkout 1.1.4
+ ```
+
+The `master` branch is bleeding-edge. Use this at your own risk.
 
  2. Install .NET Core. Follow instructions here: https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x.
  3. Build BRhodium. The `bin/brhodium` script contains the required steps to do a build:
@@ -81,6 +90,3 @@ Documentation is available at http://wiki.bitcoinrh.org/.
 ## Legal
 
 See LICENSE for details.
-
-Portions Copyright (c) Stratis Platform and Contributors
-Portions Copyright (c) 2014 Metaco SA

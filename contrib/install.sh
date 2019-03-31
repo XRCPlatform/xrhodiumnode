@@ -2,11 +2,13 @@
 
 cp brhodiumnode.service /etc/systemd/system/
 
-currentdir=pwd
+currentdir=`pwd`
 ln -s `pwd`/brhodiumnode /usr/bin/brhodiumnode
 mkdir -p /usr/share/brhodiumnode
-cd ../../build/bin/Debug/netcoreapp2.0/
-ln -s `pwd`/BRhodium.BitcoinD.dll /usr/share/brhodiumnode/BRhodium.BitcoinD.dll
+pushd ..
+bin/brhodium build
+cp build/* /usr/share/brhodiumnode/
+chmod +x /usr/share/brhodiumnode/BRhodium
 cd $currentdir
 
 systemctl enable brhodiumnode.service
