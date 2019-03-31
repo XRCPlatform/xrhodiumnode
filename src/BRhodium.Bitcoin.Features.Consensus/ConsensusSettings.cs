@@ -47,9 +47,17 @@ namespace BRhodium.Bitcoin.Features.Consensus
             else
             {
                 uint256 stub = new uint256();
-                if (uint256.TryParse(config.GetOrDefault<string>("assumevalid", "0"), out stub))
+                string val = config.GetOrDefault<string>("assumevalid", "0");
+                if (val != "0")
                 {
-                    this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                    if (uint256.TryParse(val, out stub))
+                    {
+                        this.BlockAssumedValid = config.GetOrDefault<uint256>("assumevalid", nodeSettings.Network.Consensus.DefaultAssumeValid);
+                    }
+                    else
+                    {
+                        throw new ConfigurationException($"{val} is unsuitible value for assumevalid setting.");
+                    }
                 }                
             }
 
