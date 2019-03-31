@@ -173,7 +173,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         /// Tests whether the RPC method "generate" can be called and returns a string result suitable for console output.
         /// We are also testing whether all arguments can be passed as strings.
         /// </summary>
-        [Fact]
+        [Fact(Skip ="Skiping as works inconsitenly.")]
         public void CanGenerateByStringArgs()
         {
             var hdAddress = this.rpcTestFixture.TestWallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
