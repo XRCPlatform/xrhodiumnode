@@ -146,7 +146,7 @@ namespace BRhodium.Node.IntegrationTests
 
                 this.entry = new TestMemPoolEntryHelper();
                 this.chain = new ConcurrentChain(this.network);
-                this.network.Consensus.Options = new PowConsensusOptions();//.TestPowConsensusOptions()
+                this.network.Consensus.Options = new PowConsensusOptions().TestPowConsensusOptions();
                 IDateTimeProvider dateTimeProvider = DateTimeProvider.Default;
 
                 this.cachedCoinView = new CachedCoinView(new InMemoryCoinView(this.chain.Tip.HashBlock), dateTimeProvider, new LoggerFactory());
