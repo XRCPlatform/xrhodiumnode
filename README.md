@@ -3,7 +3,7 @@ Bitcoin Rhodium (BTR) - BRhodium, BitcoinRh
 
 Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
-Current version: 1.1.4 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/1.1.4))
+Current version: 1.1.5 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.5))
 
 ## About Bitcoin Rhodium
 
@@ -28,10 +28,10 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
     cd BRhodiumNode
 ```
 
- If you want to run on stable version of the node, check out the appropriate tag. If the current version is 1.1.4, then you can check it out by doing:
+ If you want to run on stable version of the node, check out the appropriate tag. If the current version is 1.1.5, then you can check it out by doing:
 
  ```
-    git checkout 1.1.4
+    git checkout 1.1.5
  ```
 
 The `master` branch is bleeding-edge. Use this at your own risk.
