@@ -1049,7 +1049,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                     else {
                         string destination = GetOutputDestinationAddress(utxo);
-                        if (this.addressLookup.ContainsKey(destination)) {
+                        if (!String.IsNullOrEmpty(destination) && this.addressLookup.ContainsKey(destination)) {
                             var address = this.addressLookup[destination];
                             this.AddTransactionToWallet(merkleProofTemplate, transaction, utxo, address, blockHeight, block, isPropagated);
                             foundReceivingTrx = true;
@@ -1082,7 +1082,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         if (!found)
                         {
                             string destination = GetOutputDestinationAddress(o);
-                            found = this.addressLookup.TryGetValue(destination, out walletAddress);
+                            if (!String.IsNullOrEmpty(destination))
+                            {
+                                found = this.addressLookup.TryGetValue(destination, out walletAddress);
+                            }
                         }
 
                         // Include the keys not included in our wallets (external payees).
@@ -1275,7 +1278,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_SCRIPTHASH:
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
-                            destinationAddress = txOut.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            destinationAddress = txOut.ScriptPubKey.GetDestinationAddress(this.network)?.ToString();
                             break;
                     }
                 }
