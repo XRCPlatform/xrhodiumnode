@@ -259,7 +259,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             var rpc = this.CreateRPCClient();
             TransactionBuilder builder = new TransactionBuilder(this.FullNode.Network);
             builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
-            builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));
+            //builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));rpc changed maybe we need a backward comp rpc
             var secret = this.GetFirstSecret(rpc);
             foreach (var part in (amount - this.fee).Split(parts))
             {
@@ -483,21 +483,26 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public bool AddToBRhodiumMempool(Transaction trx)
         {
-            var fullNode = (this.runner as BRhodiumBitcoinPowRunner).FullNode;
+            var fullNode = (this.runner as BRhodiumNodePowRunner).FullNode;
             var state = new MempoolValidationState(true);
 
             return fullNode.MempoolManager().Validator.AcceptToMemoryPool(state, trx).Result;
         }
 
-        public List<uint256> GenerateBRhodiumWithMiner(int blockCount)
+        public List<uint256> GenerateBRhodiumWithMiner(int numberOfBlocksToMine)
         {
-            return this.FullNode.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = this.MinerSecret.ScriptPubKey }, (ulong)blockCount, uint.MaxValue);
+            List<uint256> blocks = new List<uint256>();
+            while (blocks.Count < numberOfBlocksToMine)// there is an unpredictability in mining so ensure 10 blocks mined.
+            {
+                blocks.AddRange(this.FullNode.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = this.MinerSecret.ScriptPubKey }, (ulong)1, uint.MaxValue));
+            }
+            return blocks;
         }
 
         [Obsolete("Please use GenerateBRhodiumWithMiner instead.")]
         public Block[] GenerateBRhodium(int blockCount, List<Transaction> passedTransactions = null, bool broadcast = true)
         {
-            var fullNode = (this.runner as BRhodiumBitcoinPowRunner).FullNode;
+            var fullNode = (this.runner as BRhodiumNodePowRunner).FullNode;
             BitcoinSecret dest = this.MinerSecret;
             List<Block> blocks = new List<Block>();
             DateTimeOffset now = this.MockTime == null ? DateTimeOffset.UtcNow : this.MockTime.Value;

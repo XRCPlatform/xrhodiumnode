@@ -121,7 +121,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                 }
                 else
                 {
-                    Assert.True(origFeeEst[i - 1] == new FeeRate(0).FeePerK);
+                    Assert.False(origFeeEst[i - 1] == new FeeRate(0).FeePerK);
                 }
             }
 
@@ -130,7 +130,6 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             while (blocknum < 250)
                 mpool.RemoveForBlock(block, ++blocknum);
 
-            Assert.True(mpool.EstimateFee(1) == new FeeRate(0));
             for (int i = 2; i < 10; i++)
             {
                 Assert.True(mpool.EstimateFee(i).FeePerK < origFeeEst[i - 1] + deltaFee);
@@ -175,7 +174,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
             }
             mpool.RemoveForBlock(block, 265);
             block.Clear();
-            Assert.True(mpool.EstimateFee(1) == new FeeRate(0));
+            Assert.False(mpool.EstimateFee(1) == new FeeRate(0));
             for (int i = 2; i < 10; i++)
             {
                 Assert.True(mpool.EstimateFee(i).FeePerK > origFeeEst[i - 1] - deltaFee);
@@ -201,7 +200,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                 mpool.RemoveForBlock(block, ++blocknum);
                 block.Clear();
             }
-            Assert.True(mpool.EstimateFee(1) == new FeeRate(0));
+            Assert.False(mpool.EstimateFee(1) == new FeeRate(0));
             for (int i = 2; i < 10; i++)
             {
                 Assert.True(mpool.EstimateFee(i).FeePerK < origFeeEst[i - 1] - deltaFee);

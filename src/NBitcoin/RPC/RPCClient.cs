@@ -723,6 +723,7 @@ namespace NBitcoin.RPC
             webRequest.Headers[HttpRequestHeader.Authorization] = "Basic " + Encoders.Base64.EncodeData(Encoders.ASCII.DecodeData(this.authentication));
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
+            webRequest.Timeout = 1800000;//1 minute
             return webRequest;
         }
 
@@ -864,9 +865,9 @@ namespace NBitcoin.RPC
             await SendCommandAsync(RPCOperations.addnode, nodeEndPoint.ToString(), "remove").ConfigureAwait(false);
         }
 
-        public async Task<AddedNodeInfo[]> GetAddedNodeInfoAsync(bool detailed)
+        public async Task<AddedNodeInfo[]> GetAddedNodeInfoAsync()
         {
-            RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, detailed).ConfigureAwait(false);
+            RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo).ConfigureAwait(false);
             JToken obj = result.Result;
             return obj.Select(entry => new AddedNodeInfo
             {
@@ -875,37 +876,37 @@ namespace NBitcoin.RPC
                 Addresses = entry["addresses"].Select(x => new NodeAddressInfo
                 {
                     Address = Utils.ParseIpEndpoint((string)x["address"], 8333),
-                    Connected = (bool)x["connected"]
+                    Connected = x["connected"].ToString()
                 })
             }).ToArray();
         }
 
-        public AddedNodeInfo[] GetAddedNodeInfo(bool detailed)
+        public AddedNodeInfo[] GetAddedNodeInfo()
         {
             AddedNodeInfo[] addedNodesInfo = null;
 
-            addedNodesInfo = GetAddedNodeInfoAsync(detailed).GetAwaiter().GetResult();
+            addedNodesInfo = GetAddedNodeInfoAsync().GetAwaiter().GetResult();
 
             return addedNodesInfo;
         }
 
-        public AddedNodeInfo GetAddedNodeInfo(bool detailed, EndPoint nodeEndPoint)
+        public AddedNodeInfo GetAddedNodeInfo(EndPoint nodeEndPoint)
         {
             AddedNodeInfo addedNodeInfo = null;
 
-            addedNodeInfo = GetAddedNodeInfoAsync(detailed, nodeEndPoint).GetAwaiter().GetResult();
+            addedNodeInfo = GetAddedNodeInfoAsync(nodeEndPoint).GetAwaiter().GetResult();
 
             return addedNodeInfo;
         }
 
-        public async Task<AddedNodeInfo> GetAddedNodeInfoAsync(bool detailed, EndPoint nodeEndPoint)
+        public async Task<AddedNodeInfo> GetAddedNodeInfoAsync(EndPoint nodeEndPoint)
         {
             if (nodeEndPoint == null)
                 throw new ArgumentNullException("nodeEndPoint");
 
             try
             {
-                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, detailed, nodeEndPoint.ToString()).ConfigureAwait(false);
+                RPCResponse result = await SendCommandAsync(RPCOperations.getaddednodeinfo, nodeEndPoint.ToString()).ConfigureAwait(false);
                 JToken e = result.Result;
                 return e.Select(entry => new AddedNodeInfo
                 {
@@ -914,7 +915,7 @@ namespace NBitcoin.RPC
                     Addresses = entry["addresses"].Select(x => new NodeAddressInfo
                     {
                         Address = Utils.ParseIpEndpoint((string)x["address"], 8333),
-                        Connected = (bool)x["connected"]
+                        Connected = x["connected"].ToString()
                     })
                 }).FirstOrDefault();
             }
@@ -1004,7 +1005,7 @@ namespace NBitcoin.RPC
             header.Nonce = (uint)resp.Result["nonce"];
             header.Bits = new Target(Encoders.Hex.DecodeData((string)resp.Result["bits"]));
 
-            if (resp.Result["previousblockhash"] != null)
+            if (!String.IsNullOrEmpty((string)resp.Result["previousblockhash"]))
                 header.HashPrevBlock = uint256.Parse((string)resp.Result["previousblockhash"]);
 
             if (resp.Result["time"] != null)
@@ -1312,6 +1313,24 @@ namespace NBitcoin.RPC
             return txid;
         }
 
+      
+        public uint256 SendToAddress(string walletName, string password, string address, decimal amount)
+        {
+            return SendToAddressAsync(walletName, password, address, amount).GetAwaiter().GetResult();
+        }
+
+        public async Task<uint256> SendToAddressAsync(string walletName, string password, string address, decimal amount)
+        {
+            List<object> parameters = new List<object>();
+            parameters.Add(walletName);
+            parameters.Add(password);
+            parameters.Add(address);
+            parameters.Add(amount.ToString());
+
+            RPCResponse resp = await SendCommandAsync(RPCOperations.sendtoaddress, parameters.ToArray()).ConfigureAwait(false);
+            return uint256.Parse(resp.Result.ToString());
+        }
+
         /// <summary>
         /// Requires wallet support. Requires an unlocked wallet or an unencrypted wallet.
         /// </summary>
@@ -1396,7 +1415,7 @@ namespace NBitcoin.RPC
     public class NodeAddressInfo
     {
         public IPEndPoint Address { get; internal set; }
-        public bool Connected { get; internal set; }
+        public string Connected { get; internal set; }
     }
 #endif
 

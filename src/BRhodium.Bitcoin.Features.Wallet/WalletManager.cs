@@ -154,7 +154,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.addressByScriptLookup = new ConcurrentDictionary<ScriptId, WalletLinkedHdAddress>();
             this.addressLookup = new ConcurrentDictionary<string, WalletLinkedHdAddress>();
             this.outpointLookup = new ConcurrentDictionary<OutPoint, TransactionData>();
-            //this.Wallets = new ConcurrentBag<Wallet>();
         }
 
        
@@ -346,6 +345,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             // Load the file from the local system.
             Wallet wallet = this.repository.GetWalletByName(name);
 
+            if (wallet == null)
+            {
+                this.logger.LogTrace("Wallet does not exist in breeze db: {0}",name);
+                this.logger.LogTrace("(-)[EXCEPTION]");
+                throw new WalletDoesNotExistException($"Wallet {name} does not exist.");
+            }
             // Check the password.
             try
             {
@@ -1477,7 +1482,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         case TxOutType.TX_SCRIPTHASH:
                         case TxOutType.TX_MULTISIG:
                         case TxOutType.TX_NULL_DATA:
-                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network).ToString();
+                            destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network)?.ToString();
                             break;
                     }
 

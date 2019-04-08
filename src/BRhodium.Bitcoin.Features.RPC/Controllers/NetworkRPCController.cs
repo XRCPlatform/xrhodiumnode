@@ -90,8 +90,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 {
                     throw new ArgumentNullException("node");
                 }
-
-                var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                var endPoint =  Utils.ParseIpEndpoint(node, 0);
+                //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
 
                 switch (command)
                 {
@@ -226,13 +226,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (!string.IsNullOrEmpty(address))
                 {
-                    var nodeParam = address.Split(':');
-                    if (nodeParam.Length < 2)
-                    {
-                        throw new ArgumentNullException("node");
-                    }
-
-                    var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                    //var nodeParam = address.Split(':');
+                    //if (nodeParam.Length < 2)
+                    //{
+                    //    throw new ArgumentNullException("node");
+                    //}
+                    var endPoint = Utils.ParseIpEndpoint(address, 0);
+                    //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
 
                     var node = this.ConnectionManager.FindNodeByEndpoint(endPoint);
 
@@ -315,13 +315,13 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     throw new ArgumentNullException("bantime");
                 }  
 
-                var nodeParam = address.Split(':');
-                if (nodeParam.Length < 2)
-                {
-                    throw new ArgumentNullException("address");
-                }
-
-                var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
+                //var nodeParam = address.Split(':');
+                //if (nodeParam.Length < 2)
+                //{
+                //    throw new ArgumentNullException("address");
+                //}
+                var endPoint = Utils.ParseIpEndpoint(address, 0);
+                //var endPoint = new IPEndPoint(IPAddress.Parse(nodeParam[0]), int.Parse(nodeParam[1]));
                 var peer = this.peerAddressManager.Peers.FirstOrDefault(a => a.Endpoint == endPoint);
                 switch (command)
                 {
@@ -446,18 +446,22 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                 if (!string.IsNullOrEmpty(node))
                 {
+                    var resultList = new List<NetworkNodeModel>();
                     var result = new NetworkNodeModel();
-                    var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address == IPAddress.Parse(node));
-
-                    result.AddedNode = peerNode.PeerEndPoint.ToString();
-                    result.Connected = peerNode.State == NetworkPeerState.Connected ? true : false;
-                    result.Addresses = new List<AddressConnection>();
-                    var address = new AddressConnection();
-                    address.Connected = peerNode.Inbound ? "inbound" : "outbound";
-                    address.Address = peerNode.PeerEndPoint.ToString();
-                    result.Addresses.Add(address);
-
-                    return this.Json(ResultHelper.BuildResultResponse(result));
+                    var nodeIpEndpoint = Utils.ParseIpEndpoint(node, 0);
+                    var peerNode = peers.FirstOrDefault(a => a.PeerEndPoint.Address.Equals(nodeIpEndpoint.Address.EnsureIPv6())  && a.PeerEndPoint.Port.Equals(nodeIpEndpoint.Port));
+                    if (peerNode != null)
+                    {
+                        result.AddedNode = peerNode.PeerEndPoint.ToString();
+                        result.Connected = peerNode.State == NetworkPeerState.Connected ? true : false;
+                        result.Addresses = new List<AddressConnection>();
+                        var address = new AddressConnection();
+                        address.Connected = peerNode.Inbound ? "inbound" : "outbound";
+                        address.Address = peerNode.PeerEndPoint.ToString();
+                        result.Addresses.Add(address);
+                        resultList.Add(result);
+                    }                  
+                    return this.Json(ResultHelper.BuildResultResponse(resultList.ToArray()));
                 }
                 else
                 {
@@ -477,7 +481,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         result.Add(nodePeer);
                     }
 
-                    return this.Json(ResultHelper.BuildResultResponse(result));
+                    return this.Json(ResultHelper.BuildResultResponse(result.ToArray()));
                 }
             }
             catch (Exception e)

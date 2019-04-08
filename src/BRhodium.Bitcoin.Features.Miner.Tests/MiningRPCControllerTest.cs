@@ -49,7 +49,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Tests
 
         public MiningRPCControllerFixture()
         {
-            this.wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet", "password1");
+            this.wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet", "password1", Network.BRhodiumRegTest);
         }
     }
 }

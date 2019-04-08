@@ -443,9 +443,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         blockTemplate.Version = block.Header.Version;
                         blockTemplate.VersionHex = string.Format("{0:x8}", block.Header.Version);
                         blockTemplate.Mediantime = block.Header.BlockTime.ToUnixTimeSeconds();
+                        blockTemplate.Time = block.Header.BlockTime.ToUnixTimeSeconds();
                         blockTemplate.Height = chainedHeader.Height;
                         blockTemplate.Chainwork = chainedHeader.ChainWork.ToString();
                         blockTemplate.TransactionsCount = block.Transactions != null ? block.Transactions.Count() : 0;
+                        blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
 
                         return this.Json(ResultHelper.BuildResultResponse(blockTemplate));
                 }

@@ -17,7 +17,7 @@ namespace NBitcoin.Tests
     public class RPCClientTests
     {
         const string TestAccount = "NBitcoin.RPCClientTests";
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void InvalidCommandSendRPCException()
         {
             using(var builder = new NodeBuilder())
@@ -32,7 +32,7 @@ namespace NBitcoin.Tests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void CanSendCommand()
         {
             using(var builder = new NodeBuilder())
@@ -44,7 +44,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void CanGetGenesisFromRPC()
         {
             using(var builder = new NodeBuilder())
@@ -75,7 +75,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void CanGetBlockFromRPC()
         {
             using(var builder = new NodeBuilder())
@@ -132,7 +132,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void CanGetTransactionBlockFromRPC()
         {
             using(var builder = new NodeBuilder())
@@ -185,7 +185,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void CanDecodeAndEncodeRawTransaction()
         {
             var tests = TestCase.read_json("data/tx_raw.json");
@@ -273,7 +273,7 @@ namespace NBitcoin.Tests
             Assert.NotNull(unspentCoin.RedeemScript);
         }
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void RawTransactionIsConformsToRPC()
         {
             using(var builder = new NodeBuilder())
@@ -408,7 +408,7 @@ namespace NBitcoin.Tests
 
 
 
-        [Fact]
+        [Fact(Skip = "Needs to run Brhodium node. Trying to run bitcoind.")]
         public void RPCSendRPCException()
         {
             using(var builder = new NodeBuilder())

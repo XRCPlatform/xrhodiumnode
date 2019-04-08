@@ -60,7 +60,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         {
             this.CoinBaseMaturity = (int)this.nodes[NodeOne].FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
-            this.Mine100Coins(this.nodes[NodeOne]);
+            this.MineMatureCoins(this.nodes[NodeOne]);
 
             var nodeTwoAddresses = this.nodes[NodeTwo].FullNode.WalletManager().GetUnusedAddresses(new WalletAccountReference(WalletName, WalletAccountName), 50);
 
@@ -70,7 +70,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 Amount = Money.COIN
             }).ToList();
 
-            this.transactionBuildContext = SharedSteps.CreateTransactionBuildContext(WalletName, WalletAccountName, WalletPassword, nodeTwoRecipients, FeeType.Medium, 101);
+            this.transactionBuildContext = SharedSteps.CreateTransactionBuildContext(WalletName, WalletAccountName, WalletPassword, nodeTwoRecipients, FeeType.Medium, this.CoinBaseMaturity);
 
             var transaction = this.nodes[NodeOne].FullNode.WalletTransactionHandler().BuildTransaction(this.transactionBuildContext);
 
@@ -82,7 +82,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
             this.nodes[NodeOne].FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction.ToHex()));
         }
 
-        private void Mine100Coins(CoreNode node)
+        private void MineMatureCoins(CoreNode node)
         {
             this.sharedSteps.MineBlocks(this.CoinBaseMaturity + 2, node, WalletAccountName, WalletName, WalletPassword);
         }
@@ -133,7 +133,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
         {
             var nodeOneBeforeBalance = this.nodes[NodeOne].WalletBalance(WalletName);
 
-            this.sharedSteps.MineBlocks(1, this.nodes[NodeTwo], WalletAccountName, WalletName, WalletPassword, this.transactionFee.Satoshi);
+            this.sharedSteps.MineBlocks(1, this.nodes[NodeTwo], WalletAccountName, WalletName, WalletPassword, 0);//this.transactionFee.Satoshi? not sure why mining need a transaction fee
 
             this.nodes[NodeOne].WalletBalance(WalletName).Should().Be(nodeOneBeforeBalance + Money.Coins(49));
 

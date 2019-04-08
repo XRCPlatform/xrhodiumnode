@@ -36,7 +36,7 @@ namespace BRhodium.Node.Configuration
     public class NodeSettings
     {
         /// <summary>Version of the protocol the current implementation supports.</summary>
-        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.SENDHEADERS_VERSION;
+        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION;
 
         /// <summary>
         /// Initializes a new instance of the object.
@@ -233,7 +233,7 @@ namespace BRhodium.Node.Configuration
 
             this.RequireStandard = config.GetOrDefault("acceptnonstdtxn", !(this.Network.IsTest()));
             this.MaxTipAge = config.GetOrDefault("maxtipage", this.Network.MaxTipAge);
-            this.Logger.LogDebug("Network: IsTest='{0}', IsBitcoin='{1}'.", this.Network.IsTest(), this.Network.IsBRhodium());
+            this.Logger.LogDebug("Network: IsTest='{0}'", this.Network.IsTest());
             this.MinTxFeeRate = new FeeRate(config.GetOrDefault("mintxfee", this.Network.MinTxFee));
             this.Logger.LogDebug("MinTxFeeRate set to {0}.", this.MinTxFeeRate);
             this.FallbackTxFeeRate = new FeeRate(config.GetOrDefault("fallbackfee", this.Network.FallbackFee));

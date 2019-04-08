@@ -46,7 +46,7 @@ namespace BRhodium.Node.Tests.Common
             {
                directoryPath = GetTestDirectoryPath(caller, callingMethod.GetHashCode().ToString("X2"));
             }
-            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
+            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}", "-regtest" }).DataDir);
             return dataFolder;
         }
 

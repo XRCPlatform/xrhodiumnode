@@ -1766,28 +1766,29 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                uint256 uintBlockHash = null;
-                if (!string.IsNullOrEmpty(blockhash))
-                {
-                    uintBlockHash = new uint256(blockhash);
+                ChainedHeader startChainedHeader = null;
+                if (!string.IsNullOrEmpty(blockhash)) {
+
+                    var uintBlockHash = new uint256(blockhash);
+                    startChainedHeader = this.ConsensusLoop.Chain.GetBlock(uintBlockHash);
                 }
 
                 var chainedTip = chainRepository.Tip;
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.OrderByDescending(t => t.BlockHeight).ToList();
+                    txList = txList.OrderBy(t => t.BlockHeight).ToList();
                     foreach (var txItem in txList)
                     {
-                        if (uintBlockHash != null)
+                        if (startChainedHeader != null)
                         {
-                            if (txItem.BlockHash != uintBlockHash)
+                            if (txItem.BlockHeight < startChainedHeader.Height)
                             {
                                 continue;
                             }
                             else
                             {
-                                uintBlockHash = null; //remove block
+                                startChainedHeader = null; //remove block
                             }
                         }
 
@@ -1823,6 +1824,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 walletName,
                                 this.Network,
                                 this.walletManager as WalletManager);
+
+                            //in wallet tx operation
+                            var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
+                            if (existDoubleTx != null) existDoubleTx.Category = "send";
 
                             result.Add(newTxVerboseModel);
                         }
@@ -1909,6 +1914,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     this.Network,
                                     this.walletManager as WalletManager);
 
+                                //in wallet tx operation
+                                var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
+                                if (existDoubleTx != null) existDoubleTx.Category = "send";
+
                                 result.Add(newTxVerboseModel);
                             }
                         }
@@ -1987,6 +1996,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 walletName,
                                 this.Network,
                                 this.walletManager as WalletManager);
+
+                            //in wallet tx operation
+                            var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
+                            if (existDoubleTx != null) existDoubleTx.Category = "send";
 
                             result.Add(newTxVerboseModel);
                         }

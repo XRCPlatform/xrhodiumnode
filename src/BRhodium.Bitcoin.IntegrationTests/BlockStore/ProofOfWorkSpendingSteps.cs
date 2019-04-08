@@ -67,7 +67,7 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
 
         private void more_blocks_mined_to_just_BEFORE_maturity_of_original_block()// does not work well with coinbase maturity 1
         {
-            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 1, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
+            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 2, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
         }
 
         private void more_blocks_mined_to_just_AFTER_maturity_of_original_block()
@@ -93,7 +93,8 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
                             ScriptPubKey = sendtoAddress.ScriptPubKey
                         }
                     },
-                    FeeType.Medium, 1);
+                    FeeType.Medium, (int)this.sendingBRhodiumBitcoinNode.FullNode
+                .Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity);
 
                 this.lastTransaction = this.sendingBRhodiumBitcoinNode.FullNode.WalletTransactionHandler()
                     .BuildTransaction(transactionBuildContext);

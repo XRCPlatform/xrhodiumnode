@@ -30,6 +30,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         private static readonly string[] RequiredPropertyNames = new string[] {
                 "version",
                 "protocolversion",
+                "walletversion",
                 "blocks",
                 "timeoffset",
                 "proxy",
@@ -51,12 +52,12 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
                 KeypoolOldest = default(long),
                 KeypoolSize = default(int),
                 UnlockedUntil = default(uint),
-                PayTxFee = default(decimal),
+                PayTxFee = default(decimal)
             };
 
             JObject obj = ModelToJObject(info);
             Assert.True(obj.HasValues);
-            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name);
+            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
 
             Assert.Equal(expectedOrderedPropertyNames, actualOrderedPropertyNames);
         }
@@ -69,7 +70,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
 
             JObject obj = ModelToJObject(info);
             Assert.True(obj.HasValues);
-            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name);
+            var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
 
             Assert.Equal(expectedOrderedPropertyNames, actualOrderedPropertyNames);
         }
@@ -87,7 +88,8 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
                          "     \"difficulty\": 499635929816.6675,\n" +
                          "     \"testnet\": false,\n" +
                          "     \"relayfee\": 0.00001000,\n" +
-                         "     \"errors\": \"URGENT: Alert key compromised, upgrade required\"\n" +
+                         "     \"errors\": \"URGENT: Alert key compromised, upgrade required\",\n" +
+                         "     \"walletversion\": \"1.0\"\n" +
                          "   }\n";
 
             JObject obj = JObject.Parse(json);
@@ -126,6 +128,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
             Assert.Equal(expectedSortedPropertyNames, actualSortedPropertyNames);
             Assert.Equal(1010000u, model.Version);
             Assert.Equal(70012u, model.ProtocolVersion);
+            Assert.Equal(60000u, model.WalletVersion);
             Assert.Equal(Money.Satoshis(2).ToUnit(MoneyUnit.XRC), model.Balance);
             Assert.Equal(460828, model.Blocks);
             Assert.Equal(0, model.TimeOffset);

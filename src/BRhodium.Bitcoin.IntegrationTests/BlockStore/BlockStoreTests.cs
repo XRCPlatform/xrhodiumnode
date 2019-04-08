@@ -23,7 +23,7 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
         {
             this.loggerFactory = new LoggerFactory();
             DBreezeSerializer serializer = new DBreezeSerializer();
-            serializer.Initialize(Network.Main);
+            serializer.Initialize(Network.BRhodiumRegTest);
         }
 
         private void BlockRepositoryBench()

@@ -281,7 +281,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 if (trx == null)
-                    return null;
+                    throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_TRANSACTION_HASH, "Transaction with ID " + txid + " was not found.");
 
                 var block = this.GetTransactionBlockAsync(trxid).Result;
 

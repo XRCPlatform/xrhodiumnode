@@ -102,7 +102,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
             var model = Assert.IsType<List<RpcCommandModel>>(jsonResult.Value);
             Assert.NotEmpty(model);
             var commandModel = model[0];
-            Assert.Equal("getblockheader <hash> <verbose>", commandModel.Command);
+            Assert.Equal("getblockheader <hash> [<verbose>]", commandModel.Command);
             Assert.Contains("If verbose is true, returns an Object with information about blockheader 'hash'.",
                             commandModel.Description);
         }
@@ -168,7 +168,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Controller
                 var rpcResponse = RPCResponse.Load(stream);
                 this.rpcClient.Setup(c => c.SendCommand(It.Is<RPCRequest>(r => r.Method == "getblockheader"
                                                         && ((string)r.Params[0]) == new uint256(1000).ToString()
-                                                        && ((bool)r.Params[1]) == true), true))
+                                                        && ((string)r.Params[1]) == "true"), true))
                     .Returns(rpcResponse)
                     .Verifiable();
 

@@ -42,7 +42,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public override void OnStart()
         {
-            this.process = Process.Start(new FileInfo(this.bitcoinD).FullName, $"-conf=bitcoin.conf -datadir={this.DataFolder} -debug=net");
+            this.process = Process.Start(new FileInfo(this.bitcoinD).FullName, $"-conf=BRhodium.conf -datadir={this.DataFolder} -debug=net");
         }
 
         public override void BuildNode()
@@ -76,16 +76,16 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
         }
     }
 
-    public sealed class BRhodiumBitcoinPowRunner : NodeRunner
+    public sealed class BRhodiumNodePowRunner : NodeRunner
     {
-        public BRhodiumBitcoinPowRunner(string dataDir)
+        public BRhodiumNodePowRunner(string dataDir)
             : base(dataDir)
         {
         }
 
         public override void BuildNode()
         {
-            var settings = new NodeSettings(args: new string[] { "-conf=bitcoin.conf", "-datadir=" + this.DataFolder }, loadConfiguration: false);
+            var settings = new NodeSettings(args: new string[] { "-conf=BRhodium.conf", "-datadir=" + this.DataFolder }, loadConfiguration: false);
 
             this.FullNode = (FullNode)new FullNodeBuilder()
                             .UseNodeSettings(settings)
