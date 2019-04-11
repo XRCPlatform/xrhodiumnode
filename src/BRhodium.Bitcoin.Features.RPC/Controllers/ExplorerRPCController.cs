@@ -227,6 +227,36 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         }
 
         /// <summary>
+        /// Gets the explorer block by his height.
+        /// </summary>
+        /// <param name="height">The height.</param>
+        /// <returns>(ExplorerBlockModel) Object with information.</returns>
+        [ActionName("getexplorerblockbyheight")]
+        public IActionResult GetExplorerBlockByHeight(int height)
+        {
+            try
+            {
+                var result = new ExplorerBlockModel();
+                var chainedHeader = this.Chain.GetBlock(height);
+                var chainedNextHeader = this.Chain.GetBlock(chainedHeader.Height + 1);
+
+                if (chainedHeader != null)
+                {
+                    var block = this.BlockStoreManager.BlockRepository.GetAsync(chainedHeader.HashBlock).Result;
+                    if (block == null) block = new Block(chainedHeader.Header);
+                    result = ParseExplorerBlock(block, chainedHeader, chainedNextHeader);
+                }
+
+                return this.Json(ResultHelper.BuildResultResponse(result));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
         /// Gets the explorer transaction.
         /// </summary>
         /// <param name="hash">The hash.</param>
