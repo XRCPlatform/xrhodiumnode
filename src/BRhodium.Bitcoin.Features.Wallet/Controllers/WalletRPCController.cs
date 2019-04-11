@@ -1788,7 +1788,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.Where(t => t.IsPropagated == true).OrderBy(t => t.BlockHeight).ToList();
+                    txList = txList.Where(t => t.BlockHash != null).OrderBy(t => t.BlockHeight).ToList();
                     foreach (var txItem in txList)
                     {
                         if (startChainedHeader != null)
@@ -1882,7 +1882,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.Where(t => t.IsPropagated == true).OrderByDescending(t => t.BlockHeight).ToList();
+                    txList = txList.Where(t => t.BlockHash != null).OrderByDescending(t => t.BlockHeight).ToList();
                     foreach (var txItem in txList)
                     {
                         if (i >= from)
