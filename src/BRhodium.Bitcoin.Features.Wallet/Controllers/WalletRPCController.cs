@@ -1791,7 +1791,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     txList = txList
                         .Where(t => t.BlockHash != null)
-                        .OrderByDescending(t => t.BlockHeight)
+                        .OrderBy(t => t.BlockHeight)
                         .GroupBy(tx => tx.Id)
                         .Select(txs => txs.First())
                         .ToList();
