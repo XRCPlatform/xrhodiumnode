@@ -86,7 +86,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                         Amount = input.TxOut.Value.ToDecimal(MoneyUnit.XRC),
                         Address = address.Address,
                         Category = "send",
-                        TxId = input.Transaction.GetHash().ToString(),
+                        TxId = tx.GetHash().ToString(),
                         Size = tx.GetSerializedSize(),
                         VOut = input.N,
                         Version = tx.Version,
