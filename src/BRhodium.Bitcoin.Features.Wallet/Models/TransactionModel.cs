@@ -83,7 +83,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                 {
                     var inputModel = new TransactionVerboseModel
                     {
-                        Amount = input.TxOut.Value.ToDecimal(MoneyUnit.XRC),
+                        Amount = input.TxOut.Value.ToDecimal(MoneyUnit.XRC) * -1,
                         Address = address.Address,
                         Category = "send",
                         TxId = tx.GetHash().ToString(),
@@ -125,7 +125,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                             BlockHash = chainedHeader.HashBlock.ToString(),
                             Time = blockTime,
                             BlockTime = blockTime,
-                            Fee = fee,
+                            Fee = 0,
                             Confirmations = chainedTip.Height - chainedHeader.Height + 1
                         };
                         n++;
