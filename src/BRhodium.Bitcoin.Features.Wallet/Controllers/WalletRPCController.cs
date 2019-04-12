@@ -1789,9 +1789,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.
+                    txList = txList
                         .Where(t => t.BlockHash != null)
-                        .OrderBy(t => t.BlockHeight)
+                        .OrderByDescending(t => t.BlockHeight)
                         .GroupBy(tx => tx.Id)
                         .Select(txs => txs.First())
                         .ToList();
@@ -1880,7 +1880,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.Where(t => t.BlockHash != null).OrderByDescending(t => t.BlockHeight).ToList();
+                    txList = txList
+                            .Where(t => t.BlockHash != null)
+                            .OrderByDescending(t => t.BlockHeight)
+                            .GroupBy(tx => tx.Id)
+                            .Select(txs => txs.First())
+                            .ToList();
+
                     foreach (var txItem in txList)
                     {
                         if (i >= from)
