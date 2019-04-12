@@ -42,122 +42,118 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
     public class TransactionVerboseModel : TransactionModel
     {
-        public TransactionVerboseModel()
-        {
-        }
 
-        public TransactionVerboseModel(
-            Transaction trx,
-            List<IndexedTxOut> prevTrxList,
+        /**
+        * <summary>
+        * With provided parameters, generated a verbose list of
+        * transactions that are related to a node wallet.
+        * </summary>
+        */
+        public static List<TransactionVerboseModel> GenerateList(
+            Transaction tx,
+            List<IndexedTxOut> prevTxList,
             Block block,
-            ChainedHeader blockHeader,
-            ChainedHeader tipBlockHeader,
+            ChainedHeader chainedHeader,
+            ChainedHeader chainedTip,
             string walletName,
             Network network,
-            WalletManager walletManager) : base(trx)
+            WalletManager walletManager)
         {
-            if (trx != null)
+            int n = 0;
+            var result = new List<TransactionVerboseModel>();
+            var vins = tx.Inputs.Select(
+                txin => new Models.Vin(txin.PrevOut, txin.Sequence, txin.ScriptSig)).ToList();
+            var vouts = tx.Outputs.Select(
+                txout => new Models.Vout(n++, txout, network)).ToList();
+            var blockTime = Utils.DateTimeToUnixTime(block.Header.BlockTime);
+
+            decimal fee = 0;
+            if (!tx.IsCoinBase)
             {
-                this.TxId = trx.GetHash().ToString();
-                this.Size = trx.GetSerializedSize();
-                this.Version = trx.Version;
-                this.LockTime = trx.LockTime;
-                this.TimeReceived = trx.Time;
+                var totalInputs = prevTxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
+                fee = totalInputs - tx.TotalOut.ToUnit(MoneyUnit.Satoshi);
+                fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
+            }
 
-                this.VIn = trx.Inputs.Select(txin => new Vin(txin.PrevOut, txin.Sequence, txin.ScriptSig)).ToList();
-
-                int n = 0;
-                this.VOut = trx.Outputs.Select(txout => new Vout(n++, txout, network)).ToList();
-
-                if (block != null)
+            foreach (var input in prevTxList)
+            {
+                var isWalletAddress = (walletManager as WalletManager).keysLookup.TryGetValue(input.TxOut.ScriptPubKey, out HdAddress address);
+                var isInWallet = (walletManager as WalletManager).keysLookupToWalletName.TryGetValue(input.TxOut.ScriptPubKey, out string keyWalletName);
+                if (isWalletAddress && isInWallet && keyWalletName == walletName)
                 {
-                    this.BlockHeight = blockHeader.Height;
-                    this.BlockHash = blockHeader.HashBlock.ToString();
-                    this.Time = this.BlockTime = Utils.DateTimeToUnixTime(block.Header.BlockTime);
-                    this.Confirmations = tipBlockHeader.Height - blockHeader.Height + 1;
-
-                    foreach (var tx in block.Transactions)
+                    var inputModel = new TransactionVerboseModel
                     {
-                        this.BlockIndex++;
-                        if (tx.GetHash().ToString() == this.TxId)
-                        {
-                            break;
-                        }
-                    }
+                        Amount = input.TxOut.Value.ToDecimal(MoneyUnit.XRC),
+                        Address = address.Address,
+                        Category = "send",
+                        TxId = input.Transaction.GetHash().ToString(),
+                        Size = tx.GetSerializedSize(),
+                        VOut = input.N,
+                        Version = tx.Version,
+                        LockTime = tx.LockTime,
+                        TimeReceived = tx.Time,
+                        BlockHeight = chainedHeader.Height,
+                        BlockHash = chainedHeader.HashBlock.ToString(),
+                        Time = blockTime,
+                        BlockTime = blockTime,
+                        Fee = fee,
+                        Confirmations = chainedTip.Height - chainedHeader.Height + 1
+                    };
 
-                    decimal fee = 0;
-                    if (!trx.IsCoinBase)
-                    {
-                        var totalInputs = prevTrxList.Sum(i => i.TxOut.Value.ToUnit(MoneyUnit.Satoshi));
-                        fee = totalInputs - trx.TotalOut.ToUnit(MoneyUnit.Satoshi);
-                        this.Fee = new Money(fee * -1, MoneyUnit.Satoshi).ToUnit(MoneyUnit.XRC);
-                    }
-
-                    var isSendTx = false;
-                    decimal clearOutAmount = 0;
-                    foreach (IndexedTxOut utxo in prevTrxList)
-                    {
-                        if (walletManager.keysLookup.TryGetValue(utxo.TxOut.ScriptPubKey, out HdAddress address))
-                        {
-                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.TxOut.ScriptPubKey, out string keyWalletName))
-                            {
-                                if (keyWalletName == walletName)
-                                {
-                                    this.Address = address.Address;
-                                    this.Category = "send";
-
-                                    isSendTx = true;
-                                }
-                            }
-                        }
-                    }
-
-                    foreach (TxOut utxo in trx.Outputs)
-                    {
-                        if (walletManager.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress address))
-                        {
-                            if (walletManager.keysLookupToWalletName.TryGetValue(utxo.ScriptPubKey, out string keyWalletName))
-                            {
-                                if (keyWalletName == walletName)
-                                {
-
-                                    if (!address.IsChangeAddress())
-                                    {
-                                        this.Address = address.Address;
-                                        this.Category = "receive";
-                                        if ((trx.IsCoinBase) || (!isSendTx)) clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
-                                    }
-                                    else
-                                    {
-                                        clearOutAmount += utxo.Value.ToUnit(MoneyUnit.XRC);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (isSendTx)
-                    {
-                        this.Amount = trx.TotalOut.ToUnit(MoneyUnit.XRC) - clearOutAmount;
-                    }
-                    else
-                    {
-                        this.Amount = clearOutAmount;
-                    }
-
-                    if (trx.IsCoinBase && this.Category == "receive")
-                    {
-                        if (this.Confirmations < 10)
-                        {
-                            this.Category = "immature";
-                        }
-                        else
-                        {
-                            this.Category = "generate";
-                        }
+                    var existDoubleTx = result.Find(currentInput =>
+                        inputModel.TxId == currentInput.TxId &&
+                        inputModel.Address == currentInput.Address);
+                    if (existDoubleTx == null) result.Add(inputModel);
                     }
                 }
-            }
+
+                n = 0;
+                foreach (var output in tx.Outputs)
+                {
+                    var isWalletAddress = (walletManager as WalletManager).keysLookup.TryGetValue(output.ScriptPubKey, out HdAddress address);
+                    var isInWallet = (walletManager as WalletManager).keysLookupToWalletName.TryGetValue(output.ScriptPubKey, out string keyWalletName);
+                    if (isWalletAddress && isInWallet && keyWalletName == walletName)
+                    {
+                        var outputModel = new TransactionVerboseModel
+                        {
+                            Amount = output.Value.ToDecimal(MoneyUnit.XRC),
+                            Address = address.Address,
+                            Category = "receive",
+                            VOut = (uint)n,
+                            TxId = tx.GetHash().ToString(),
+                            Size = tx.GetSerializedSize(),
+                            Version = tx.Version,
+                            LockTime = tx.LockTime,
+                            TimeReceived = tx.Time,
+                            BlockHeight = chainedHeader.Height,
+                            BlockHash = chainedHeader.HashBlock.ToString(),
+                            Time = blockTime,
+                            BlockTime = blockTime,
+                            Fee = fee,
+                            Confirmations = chainedTip.Height - chainedHeader.Height + 1
+                        };
+                        n++;
+
+                        if (tx.IsCoinBase)
+                        {
+                            if (outputModel.Confirmations < 10)
+                            {
+                                outputModel.Category = "immature";
+                            }
+                            else
+                            {
+                                outputModel.Category = "generate";
+                            }
+                        }
+
+                        var existDoubleTx = result.Find(currentOutput =>
+                            outputModel.TxId == currentOutput.TxId &&
+                            outputModel.Address == currentOutput.Address);
+                        if (existDoubleTx == null) result.Add(outputModel);
+                    }
+                }
+
+                return result;
         }
 
         [JsonProperty(Order = 1, PropertyName = "txid")]
@@ -172,44 +168,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         [JsonProperty(Order = 4, PropertyName = "locktime")]
         public uint LockTime { get; set; }
 
-        [JsonProperty(Order = 5, PropertyName = "vin")]
-        public List<Vin> VIn { get; set; }
+        [JsonProperty(Order = 5, PropertyName = "vout")]
+        public uint VOut { get; set; }
 
-        [JsonProperty(Order = 6, PropertyName = "vout")]
-        public List<Vout> VOut { get; set; }
-
-        [JsonProperty(Order = 7, PropertyName = "blockhash", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 6, PropertyName = "blockhash", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string BlockHash { get; set; }
 
-        [JsonProperty(Order = 8, PropertyName = "confirmations", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 7, PropertyName = "confirmations", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int? Confirmations { get; set; }
 
-        [JsonProperty(Order = 9, PropertyName = "time", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 8, PropertyName = "time", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint? Time { get; set; }
 
-        [JsonProperty(Order = 10, PropertyName = "blocktime", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 9, PropertyName = "blocktime", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint? BlockTime { get; set; }
 
 
-        [JsonProperty(Order = 11, PropertyName = "category", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 10, PropertyName = "category", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string Category { get; set; }
 
-        [JsonProperty(Order = 12, PropertyName = "amount", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 11, PropertyName = "amount", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public decimal Amount { get; set; }
 
         [JsonProperty(Order = 12, PropertyName = "fee", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public decimal Fee { get; set; }
 
-        [JsonProperty(Order = 12, PropertyName = "blockindex", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 13, PropertyName = "blockindex", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int BlockIndex { get; set; }
 
-        [JsonProperty(Order = 15, PropertyName = "blockheight", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 14, PropertyName = "blockheight", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int BlockHeight { get; set; }
 
-        [JsonProperty(Order = 13, PropertyName = "timereceived", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 15, PropertyName = "timereceived", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint? TimeReceived { get; set; }
 
-        [JsonProperty(Order = 14, PropertyName = "address", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty(Order = 16, PropertyName = "address", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string Address { get; set; }
     }
 

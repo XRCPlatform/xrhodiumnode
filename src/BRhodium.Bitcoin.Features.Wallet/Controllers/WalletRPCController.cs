@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Linq.Expressions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -1788,7 +1789,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if ((txList != null) && (txList.Count() > 0))
                 {
-                    txList = txList.Where(t => t.BlockHash != null).OrderBy(t => t.BlockHeight).ToList();
+                    txList = txList.
+                        .Where(t => t.BlockHash != null)
+                        .OrderBy(t => t.BlockHeight)
+                        .GroupBy(tx => tx.Id)
+                        .Select(txs => txs.First())
+                        .ToList();
+
                     foreach (var txItem in txList)
                     {
                         if (startChainedHeader != null)
@@ -1826,21 +1833,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 }
                             }
 
-                            var newTxVerboseModel = new TransactionVerboseModel(
-                                tx,
-                                prevTxList,
-                                block,
-                                chainedHeader,
-                                chainRepository.Tip,
-                                walletName,
-                                this.Network,
-                                this.walletManager as WalletManager);
-
-                            //in wallet tx operation
-                            var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
-                            if (existDoubleTx != null) existDoubleTx.Category = "send";
-
-                            result.Add(newTxVerboseModel);
+                            result = result.Concat(TransactionVerboseModel.GenerateList(
+                                tx, prevTxList,
+                                block, chainedHeader,
+                                chainedTip, walletName,
+                                this.Network, this.walletManager as WalletManager
+                            )).ToList();
                         }
                     }
                 }
@@ -1915,21 +1913,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     }
                                 }
 
-                                var newTxVerboseModel = new TransactionVerboseModel(
-                                    tx,
-                                    prevTxList,
-                                    block,
-                                    chainedHeader,
-                                    chainedTip,
-                                    walletName,
-                                    this.Network,
-                                    this.walletManager as WalletManager);
-
-                                //in wallet tx operation
-                                var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
-                                if (existDoubleTx != null) existDoubleTx.Category = "send";
-
-                                result.Add(newTxVerboseModel);
+                                result = result.Concat(TransactionVerboseModel.GenerateList(
+                                    tx, prevTxList,
+                                    block, chainedHeader,
+                                    chainedTip, walletName,
+                                    this.Network, this.walletManager as WalletManager
+                                )).ToList();
                             }
                         }
 
@@ -1975,6 +1964,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     foreach (var itemUnspendTx in unspendTx)
                     {
                         var txItem = itemUnspendTx.Transaction;
+                        if (txItem.BlockHash == null) {
+                            continue; // Most likely a mempool tx
+                        }
+
                         var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
                         var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
                         var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
@@ -1998,21 +1991,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 }
                             }
 
-                            var newTxVerboseModel = new TransactionVerboseModel(
-                                tx,
-                                prevTxList,
-                                block,
-                                chainedHeader,
-                                chainRepository.Tip,
-                                walletName,
-                                this.Network,
-                                this.walletManager as WalletManager);
-
-                            //in wallet tx operation
-                            var existDoubleTx = result.Find(t => t.TxId == newTxVerboseModel.TxId);
-                            if (existDoubleTx != null) existDoubleTx.Category = "send";
-
-                            result.Add(newTxVerboseModel);
+                            result = result.Concat(TransactionVerboseModel.GenerateList(
+                                tx, prevTxList,
+                                block, chainedHeader,
+                                chainRepository.Tip, walletName,
+                                this.Network, this.walletManager as WalletManager
+                            )).ToList();
                         }
                     }
                 }
