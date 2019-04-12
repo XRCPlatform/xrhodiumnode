@@ -99,11 +99,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                         Fee = fee,
                         Confirmations = chainedTip.Height - chainedHeader.Height + 1
                     };
-
-                    var existDoubleTx = result.Find(currentInput =>
-                        inputModel.TxId == currentInput.TxId &&
-                        inputModel.Address == currentInput.Address);
-                    if (existDoubleTx == null) result.Add(inputModel);
+                        result.Add(inputModel);
                     }
                 }
 
@@ -146,10 +142,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                             }
                         }
 
-                        var existDoubleTx = result.Find(currentOutput =>
-                            outputModel.TxId == currentOutput.TxId &&
-                            outputModel.Address == currentOutput.Address);
-                        if (existDoubleTx == null) result.Add(outputModel);
+                        result.Add(outputModel);
                     }
                 }
 
