@@ -137,19 +137,24 @@ namespace BRhodium.Node.Utilities
             {
                 return Block.Load(bytes, this.Network);
             }
-                
-            var o = Activator.CreateInstance(type) as IBitcoinSerializable;
-            if (o != null)
+            try
             {
-                o.ReadWrite(bytes);
-                return o;
+                var o = Activator.CreateInstance(type) as IBitcoinSerializable;
+                if (o != null)
+                {
+                    o.ReadWrite(bytes);
+                    return o;
+                }
+                var proto = Activator.CreateInstance(type) as IProtoBufSerializeable;
+                if (proto != null)
+                {
+                    return DeserializeProtobuf(bytes, type);
+                }
             }
-            var proto = Activator.CreateInstance(type) as IProtoBufSerializeable;
-            if (proto != null)
+            catch (Exception e)
             {
-                return DeserializeProtobuf(bytes,type);
+                throw new NotSupportedException("Type Unsupported",e);
             }
-
             throw new NotSupportedException();
         }
 

@@ -146,16 +146,16 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 ChainCode = extendedKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
                 Network = network,
-                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.BRhodiumRegTest.Consensus.CoinType } },
+                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)network.Consensus.CoinType } },
             };
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < numberOfAccounts; i++)
             {
-                HdAccount account = wallet.AddNewAccount(password, (CoinType)Network.Main.Consensus.CoinType, DateTimeOffset.Now);
+                HdAccount account = wallet.AddNewAccount(password, (CoinType)network.Consensus.CoinType, DateTimeOffset.Now);
                 string path = account.HdPath;
-                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(Network.Main, 20);
-                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(Network.Main, 20, true);                
+                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(network, 20);
+                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(network, 20, true);                
             }
 
             return (wallet, extendedKey);

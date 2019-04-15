@@ -606,7 +606,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var result = wallet.AddNewAccount("password", (CoinType)this.Network.Consensus.CoinType, DateTimeOffset.UtcNow);
 
-            Assert.Equal(2, wallet.AccountsRoot.ElementAt(0).Accounts.Count);
+            Assert.Equal(3, wallet.AccountsRoot.ElementAt(0).Accounts.Count);
             var extKey = new ExtKey(Key.Parse(wallet.EncryptedSeed, "password", wallet.Network), wallet.ChainCode);
             var expectedExtendedPubKey = extKey.Derive(new KeyPath($"m/44'/1'/1'")).Neuter().ToString(wallet.Network);
             Assert.Equal($"account 1", result.Name);
@@ -2530,14 +2530,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var accounts = new List<HdAccount> { account, account2 };
 
             Wallet wallet = WalletTestsHelpers.CreateWallet("myWallet", this.Network);
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                CoinType = (CoinType)this.Network.Consensus.CoinType
-            }
-            );
-            wallet.AccountsRoot.First().Accounts = accounts;
+            //wallet.AccountsRoot.Add(new AccountRoot()
+            //{
+            //    CoinType = (CoinType)this.Network.Consensus.CoinType
+            //}
+            //);
+            //wallet.AccountsRoot.First().Accounts = accounts;
 
-            //walletManager.Wallets.AddOrReplace("myWallet", wallet);
+            walletManager.SaveWallet(wallet,true);
 
             // Act.
             var balances = walletManager.GetBalances("myWallet");
