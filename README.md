@@ -3,7 +3,7 @@ Bitcoin Rhodium (XRC) - BRhodium, BitcoinRh
 
 Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
-Current version: 1.1.5 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.5))
+Current version: 1.1.6 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.6))
 
 ## About Bitcoin Rhodium
 
