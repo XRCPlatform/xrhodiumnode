@@ -825,7 +825,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 ExtendedPubKey = "blabla"
             });
             //walletManager.Wallets.AddOrReplace("myWallet", wallet);
-
+            walletManager.SaveWallet(wallet, true);
             var result = walletManager.GetHistory("myWallet").ToList();
 
             Assert.NotEmpty(result);
@@ -2502,45 +2502,33 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
-            HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
+            var walletName = Guid.NewGuid().ToString();
+            var tuple = WalletTestsHelpers.GenerateBlankWalletWithExtKey(walletName, Guid.NewGuid().ToString(),this.Network,2);
+            Wallet wallet = tuple.wallet;
 
-            HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), null));
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1));
+            HdAccount account = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
 
-            HdAddress accountAddress2 = WalletTestsHelpers.CreateAddress();
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), null));
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), 2));
+            HdAddress accountAddress1 = account.ExternalAddresses.ElementAt(0);
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), null, null, null, accountAddress1.ScriptPubKey));
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1, null, null, accountAddress1.ScriptPubKey));
 
-            account.ExternalAddresses.Add(accountAddress1);
-            account.InternalAddresses.Add(accountAddress2);
+            HdAddress accountAddress2 = account.ExternalAddresses.ElementAt(1);
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), null, null, null, accountAddress2.ScriptPubKey));
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), 2, null, null, accountAddress2.ScriptPubKey));
 
-            HdAccount account2 = WalletTestsHelpers.CreateAccount("account 2");
-            HdAddress account2Address1 = WalletTestsHelpers.CreateAddress();
-            account2Address1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(5), new Money(74000), null));
-            account2Address1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(6), new Money(18700), 3));
+            HdAccount account2 = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(1);
+            HdAddress accountAddress21 = account2.ExternalAddresses.ElementAt(0);
+            accountAddress21.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(5), new Money(74000), null, null, null, accountAddress21.ScriptPubKey));
+            accountAddress21.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(6), new Money(18700), 3, null, null, accountAddress21.ScriptPubKey));
 
-            HdAddress account2Address2 = WalletTestsHelpers.CreateAddress();
-            account2Address2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(7), new Money(65000), null));
-            account2Address2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(8), new Money(89300), 4));
-
-            account2.ExternalAddresses.Add(account2Address1);
-            account2.InternalAddresses.Add(account2Address2);
-
-            var accounts = new List<HdAccount> { account, account2 };
-
-            Wallet wallet = WalletTestsHelpers.CreateWallet("myWallet", this.Network);
-            //wallet.AccountsRoot.Add(new AccountRoot()
-            //{
-            //    CoinType = (CoinType)this.Network.Consensus.CoinType
-            //}
-            //);
-            //wallet.AccountsRoot.First().Accounts = accounts;
+            HdAddress accountAddress22 = account2.ExternalAddresses.ElementAt(1);
+            accountAddress22.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(7), new Money(65000), null, null, null, accountAddress22.ScriptPubKey));
+            accountAddress22.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(8), new Money(89300), 4, null, null, accountAddress22.ScriptPubKey));
 
             walletManager.SaveWallet(wallet,true);
 
             // Act.
-            var balances = walletManager.GetBalances("myWallet");
+            var balances = walletManager.GetBalances(walletName);
 
             // Assert.
             AccountBalance resultingBalance = balances.First();

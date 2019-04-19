@@ -42,7 +42,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             Assert.Throws<WalletException>(() =>
             {
-                var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey("myWallet1", "password", this.Network,2);               
+                var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey("myWallet4", "password4", this.Network,2);               
                 var chain = new Mock<ConcurrentChain>();
                 var block = new BlockHeader();
                 chain.Setup(c => c.Tip).Returns(new ChainedHeader(block, block.GetHash(), 1));
@@ -57,11 +57,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
                 var walletReference = new WalletAccountReference
                 {
-                    AccountName = "account 1",
-                    WalletName = "myWallet1"
+                    AccountName = "account 0",
+                    WalletName = "myWallet4"
                 };
 
-                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password", new Script(), new Money(500), FeeType.Medium, 2));
+                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password4", new Script(), new Money(500), FeeType.Medium, 2));
             });
         }
 
@@ -74,47 +74,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low))
                     .Returns(new FeeRate(0));
 
-                var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet1", "password", this.Network);
-                var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
-                var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
+                var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet5", "password5", this.Network);
+                var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password5", "m/44'/0'/0'");
                 var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
                 var changeKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "1/0");
 
-                var address = new HdAddress
-                {
-                    Index = 0,
-                    HdPath = $"m/44'/0'/0'/0/0",
-                    Address = spendingKeys.Address.ToString(),
-                    Pubkey = spendingKeys.PubKey.ScriptPubKey,
-                    ScriptPubKey = spendingKeys.Address.ScriptPubKey,
-                    Transactions = new List<TransactionData>()
-                };
+                var address = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
 
                 var chain = new ConcurrentChain(wallet.Network);
                 WalletTestsHelpers.AddBlocksWithCoinbaseToChain(wallet.Network, chain, address);
-
-                wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount
-                {
-                    Index = 0,
-                    Name = "account1",
-                    HdPath = "m/44'/0'/0'",
-                    ExtendedPubKey = accountKeys.ExtPubKey,
-                    ExternalAddresses = new List<HdAddress> { address },
-                    InternalAddresses = new List<HdAddress>
-                {
-                    new HdAddress {
-                        Index = 0,
-                        HdPath = $"m/44'/0'/0'/1/0",
-                        Address = changeKeys.Address.ToString(),
-                        Pubkey = changeKeys.PubKey.ScriptPubKey,
-                        ScriptPubKey = changeKeys.Address.ScriptPubKey,
-                        Transactions = new List<TransactionData>()
-                    }
-                }
-                });
+               
 
                 var dataDir = "TestData/WalletTransactionHandlerTest/BuildTransactionFeeTooLowThrowsWalletException";
-                var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataDir}", "-regtest" });
+                var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataDir}" });
                 var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, nodeSettings, new Mock<WalletSettings>().Object,
                     new DataFolder(nodeSettings.DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
                 var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
@@ -123,11 +95,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
                 var walletReference = new WalletAccountReference
                 {
-                    AccountName = "account1",
-                    WalletName = "myWallet1"
+                    AccountName = "account 0",
+                    WalletName = "myWallet5"
                 };
 
-                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
+                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password5", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
             });
         }
 

@@ -209,7 +209,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     wallet.Network = NetworkHelpers.GetNetwork(reader.GetString(4));
                     wallet.CreationTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(5));
                     string blockHash = reader[6] as string;
-                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 7);
+                    int? LastBlockSyncedHeight = ExtractNullableInt(reader, 7);
 
                     int coinType = reader.GetInt16(8);
                     uint256 lastBlockHash = null;
@@ -253,9 +253,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return new BlockLocator();//retrun empty object
         }
 
-        private int ExtractNullableInt(SQLiteDataReader reader, int index)
+        private int? ExtractNullableInt(SQLiteDataReader reader, int index)
         {
-            int LastBlockSyncedHeight = 0;
+            int? LastBlockSyncedHeight = null;
 
             if (reader[index].GetType() != typeof(DBNull))
             {
@@ -265,7 +265,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return LastBlockSyncedHeight;
         }
 
-        private void BuildAccountRoot(Wallet wallet, int LastBlockSyncedHeight, int coinType, uint256 lastBlockHash)
+        private void BuildAccountRoot(Wallet wallet, int? lastBlockSyncedHeight, int coinType, uint256 lastBlockHash)
         {
             HdAccount hdAccount = null;
             List<HdAccount> accounts = new List<HdAccount>();
@@ -292,7 +292,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 LastBlockSyncedHash = lastBlockHash,
-                LastBlockSyncedHeight = EvalNullableInt(LastBlockSyncedHeight),
+                LastBlockSyncedHeight = lastBlockSyncedHeight,
                 CoinType = (CoinType)coinType,
                 Accounts = accounts
             });
@@ -1015,14 +1015,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 while (reader.Read())
                 {
-                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
+                    int? LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
 
                     uint256 BlockHashLocal = ExtractUint256FromNullableDbField(reader, 1);
-                    syncPosition = new WalletSyncPosition()
+                    if (LastBlockSyncedHeight.HasValue)
                     {
-                        Height = LastBlockSyncedHeight,
-                        BlockHash = BlockHashLocal
-                    };
+                        syncPosition = new WalletSyncPosition()
+                        {
+                            Height = LastBlockSyncedHeight.Value,
+                            BlockHash = BlockHashLocal
+                        };
+                    }                   
                 }
             }
 
@@ -1057,14 +1060,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 while (reader.Read())
                 {
-                    int LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
+                    int? LastBlockSyncedHeight = ExtractNullableInt(reader, 0);
 
                     uint256 BlockHashLocal = ExtractUint256FromNullableDbField(reader, 1);
-                    syncPosition = new WalletSyncPosition()
+                    if (LastBlockSyncedHeight.HasValue)
                     {
-                        Height = LastBlockSyncedHeight,
-                        BlockHash = BlockHashLocal
-                    };
+                        syncPosition = new WalletSyncPosition()
+                        {
+                            Height = LastBlockSyncedHeight.Value,
+                            BlockHash = BlockHashLocal
+                        };
+                    }                   
                 }
             }
 
