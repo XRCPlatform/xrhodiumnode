@@ -17,8 +17,8 @@
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <Version>1.1.6</Version>
-    <AssemblyVersion>1.1.6.0</AssemblyVersion>
+    <Version>1.1.7</Version>
+    <AssemblyVersion>1.1.7.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
