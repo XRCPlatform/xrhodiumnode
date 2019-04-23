@@ -939,7 +939,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             Assert.Throws<WalletException>(() =>
             {
-                var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+                var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                     CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
                 walletManager.GetWallet("noname");
             });
@@ -948,40 +948,31 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void GetAccountsByNameWithExistingWalletReturnsAccountsFromWallet()
         {
-            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount { Name = "Account 0" });
-            wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount { Name = "Account 1" });
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { new HdAccount { Name = "Account 2" } }
-            });
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { new HdAccount { Name = "Account 3" } }
-            });
-            //walletManager.Wallets.AddOrReplace("myWallet", wallet);
+            var tuple = WalletTestsHelpers.GenerateBlankWalletWithExtKey("myWallet", "password",this.Network, 4);
+            Wallet wallet = tuple.wallet;
+     
+            walletManager.SaveWallet(wallet);
 
             var result = walletManager.GetAccounts("myWallet");
 
             Assert.Equal(4, result.Count());
-            Assert.Equal("Account 0", result.ElementAt(0).Name);
-            Assert.Equal("Account 1", result.ElementAt(1).Name);
-            Assert.Equal("Account 2", result.ElementAt(2).Name);
-            Assert.Equal("Account 3", result.ElementAt(3).Name);
+            Assert.Equal("account 0", result.ElementAt(0).Name);
+            Assert.Equal("account 1", result.ElementAt(1).Name);
+            Assert.Equal("account 2", result.ElementAt(2).Name);
+            Assert.Equal("account 3", result.ElementAt(3).Name);
         }
 
         [Fact]
         public void GetAccountsByNameWithExistingWalletMissingAccountsReturnsEmptyList()
         {
-            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.Clear();
-            //walletManager.Wallets.AddOrReplace("myWallet", wallet);
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
+
+            walletManager.SaveWallet(wallet, true);
 
             var result = walletManager.GetAccounts("myWallet");
 

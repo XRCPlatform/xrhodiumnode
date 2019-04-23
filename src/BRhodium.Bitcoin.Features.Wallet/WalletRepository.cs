@@ -93,7 +93,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     insertCommand.Parameters.AddWithValue("$CreationTime", wallet.CreationTime.ToUnixTimeSeconds());
                     insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
                     insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHeight);
-                    insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.AccountsRoot.FirstOrDefault().CoinType);
+                    insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.Network.Consensus.CoinType);
                     insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
 
 
@@ -117,23 +117,26 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     newEntity = true;
                 }
 
-                foreach (var item in wallet.AccountsRoot.FirstOrDefault<AccountRoot>().Accounts)
+                if (wallet.AccountsRoot.FirstOrDefault<AccountRoot>() != null)
                 {
-                    SaveAccount(wallet.Id, dbTransaction, item);
-                }
+                    foreach (var item in wallet.AccountsRoot.FirstOrDefault<AccountRoot>().Accounts)
+                    {
+                        SaveAccount(wallet.Id, dbTransaction, item);
+                    }
 
-                // Index addresses.
-                foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
-                {
-                    foreach (var address in account.ExternalAddresses)
+
+                    foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
                     {
-                        SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
+                        foreach (var address in account.ExternalAddresses)
+                        {
+                            SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
+                        }
+                        foreach (var address in account.InternalAddresses)
+                        {
+                            SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
+                        }
                     }
-                    foreach (var address in account.InternalAddresses)
-                    {
-                        SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
-                    }
-                }
+                }                
 
                 dbTransaction.Commit();
 

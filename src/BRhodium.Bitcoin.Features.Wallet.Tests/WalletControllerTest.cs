@@ -1812,28 +1812,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var receiveAddresses = new List<HdAddress> { usedReceiveAddress, unusedReceiveAddress };
             var changeAddresses = new List<HdAddress> { usedChangeAddress, unusedChangeAddress };
             Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                Accounts = new List<HdAccount> { new HdAccount
-                {
-                    ExternalAddresses = receiveAddresses,
-                    InternalAddresses = changeAddresses,
-                    Name = "Account 0",
-                } },
-                CoinType = CoinType.RegTest
-            });
 
             var mockWalletWrapper = new Mock<IWalletManager>();
             mockWalletWrapper.Setup(m => m.GetWallet(walletName)).Returns(wallet);
 
             var controller = new WalletController(this.LoggerFactory.Object, mockWalletWrapper.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), this.Network, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
-            IActionResult result = controller.GetAllAddresses(new GetAllAddressesModel { WalletName = "myWallet", AccountName = "Account 0" });
+            IActionResult result = controller.GetAllAddresses(new GetAllAddressesModel { WalletName = "myWallet", AccountName = "account 0" });
 
             JsonResult viewResult = Assert.IsType<JsonResult>(result);
             var model = viewResult.Value as AddressesModel;
 
             Assert.NotNull(model);
-            Assert.Equal(4, model.Addresses.Count());
+            Assert.Equal(40, model.Addresses.Count());
 
             var modelUsedReceiveAddress = model.Addresses.Single(a => a.Address == usedReceiveAddress.Address);
             Assert.Equal(modelUsedReceiveAddress.Address, model.Addresses.Single(a => a.Address == modelUsedReceiveAddress.Address).Address);
