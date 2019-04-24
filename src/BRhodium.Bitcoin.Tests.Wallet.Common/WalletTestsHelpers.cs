@@ -229,9 +229,16 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 Index = index,
                 Address = addressName,
+                HdPath = $"m/44'/10291'/0'/0/{index}",
                 ScriptPubKey = new Script(),
                 Pubkey = new Script(),
-                Transactions = new List<TransactionData>()
+                Transactions = new List<TransactionData> {
+                    new TransactionData() {
+                    ScriptPubKey = new Script(),
+                    Amount = new Money(100*(index+1)),
+                    Id = new uint256((ulong)index)
+                    }
+                }
             };
         }
 
@@ -241,9 +248,16 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 Index = index,
                 Address = addressName,
+                HdPath = $"m/44'/10291'/0'/0/{index}",
                 ScriptPubKey = new Script(),
                 Pubkey = new Script(),
-                Transactions = new List<TransactionData> { new TransactionData() }
+                Transactions = new List<TransactionData> {
+                    new TransactionData() {
+                    ScriptPubKey = new Script(),
+                    Amount = new Money(100*(index+1)),
+                    Id = new uint256((ulong)index)
+                    }
+                }
             };
         }
 
@@ -429,6 +443,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 transactions.Add(new TransactionData
                 {
                     BlockHeight = height,
+                    Id = new uint256((ulong)new Random().Next(500000, 1000000)),
                     Amount = new Money(new Random().Next(500000, 1000000))
                 });
             }
@@ -518,5 +533,12 @@ namespace BRhodium.Node.Tests.Wallet.Common
 
             return blockList;
         }
+        public static TransactionData GenerateNewTransaction() {
+            return new TransactionData()
+            {
+                Id = new uint256((ulong)new Random().Next(500000, 1000000)),
+                Amount = new Money(new Random().Next(500000, 1000000))
+            };
+         }
     }
 }

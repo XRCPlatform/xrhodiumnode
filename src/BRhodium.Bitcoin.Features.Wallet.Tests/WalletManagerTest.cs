@@ -805,41 +805,34 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void GetHistoryByNameWithExistingWalletReturnsAllAddressesWithTransactions()
         {
-            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+            string walletName = Guid.NewGuid().ToString();
+            string walletPassword = Guid.NewGuid().ToString();
+            var chain = new ConcurrentChain(this.Network);
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            var wallet = this.walletFixture.GenerateBlankWallet("myWallet", "password");
-            wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount
-            {
-                Index = 0,
-                Name = "myAccount",
-                HdPath = "m/44'/0'/0'",
-                ExternalAddresses = new List<HdAddress>
-                {
-                    WalletTestsHelpers.CreateAddressWithEmptyTransaction(0, "myUsedExternalAddress"),
-                    WalletTestsHelpers.CreateAddressWithoutTransaction(1, "myUnusedExternalAddress"),
-                },
-                InternalAddresses = new List<HdAddress> {
-                    WalletTestsHelpers.CreateAddressWithEmptyTransaction(0, "myUsedInternalAddress"),
-                    WalletTestsHelpers.CreateAddressWithoutTransaction(1, "myUnusedInternalAddress"),
-                },
-                ExtendedPubKey = "blabla"
-            });
-            //walletManager.Wallets.AddOrReplace("myWallet", wallet);
+            var wallet = WalletTestsHelpers.GenerateBlankWallet(walletName, walletPassword, this.Network);
+
+            var account  = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
+            var extAddy = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+            var internalAddy = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0);
+            WalletTestsHelpers.AddBlocksWithCoinbaseToChain(this.Network, chain, extAddy, 1);
+            WalletTestsHelpers.AddBlocksWithCoinbaseToChain(this.Network, chain, internalAddy, 1);
+
             walletManager.SaveWallet(wallet, true);
-            var result = walletManager.GetHistory("myWallet").ToList();
+            var result = walletManager.GetHistory(walletName).ToList();
 
             Assert.NotEmpty(result);
             Assert.Single(result);
             var accountHistory = result.ElementAt(0);
             Assert.NotNull(accountHistory.Account);
-            Assert.Equal("myAccount", accountHistory.Account.Name);
+            Assert.Equal("account 0", accountHistory.Account.Name);
             Assert.NotEmpty(accountHistory.History);
             Assert.Equal(2, accountHistory.History.Count());
 
             var historyAddress = accountHistory.History.ElementAt(0);
-            Assert.Equal("myUsedExternalAddress", historyAddress.Address.Address);
+            Assert.Equal(extAddy.Address, historyAddress.Address.Address);
             historyAddress = accountHistory.History.ElementAt(1);
-            Assert.Equal("myUsedInternalAddress", historyAddress.Address.Address);
+            Assert.Equal(internalAddy.Address, historyAddress.Address.Address);
         }
 
         [Fact]
@@ -868,7 +861,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             };
 
             wallet.AccountsRoot.ElementAt(0).Accounts.Add(account);
-            //walletManager.Wallets.AddOrReplace("myWallet", wallet);
+            walletManager.SaveWallet(wallet,true);
 
             var accountHistory = walletManager.GetHistory(account);
 

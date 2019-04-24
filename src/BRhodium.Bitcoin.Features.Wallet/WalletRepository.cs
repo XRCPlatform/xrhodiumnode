@@ -952,6 +952,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private string PackageSriptToString(Script value)
         {
+            if (value == null)
+            {
+                return null;
+            }
             return Encoders.Hex.EncodeData(((Script)value).ToBytes(false));
         }
 

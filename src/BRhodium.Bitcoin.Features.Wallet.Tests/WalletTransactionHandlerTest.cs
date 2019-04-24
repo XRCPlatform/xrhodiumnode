@@ -42,7 +42,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             Assert.Throws<WalletException>(() =>
             {
-                var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey("myWallet4", "password4", this.Network,2);               
+                string walletName = Guid.NewGuid().ToString();
+                string walletPassword = Guid.NewGuid().ToString();
+                var wallet = WalletTestsHelpers.GenerateBlankWalletWithExtKey(walletName, walletPassword, this.Network,2);               
                 var chain = new Mock<ConcurrentChain>();
                 var block = new BlockHeader();
                 chain.Setup(c => c.Tip).Returns(new ChainedHeader(block, block.GetHash(), 1));
@@ -58,10 +60,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 var walletReference = new WalletAccountReference
                 {
                     AccountName = "account 0",
-                    WalletName = "myWallet4"
+                    WalletName = walletName
                 };
 
-                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password4", new Script(), new Money(500), FeeType.Medium, 2));
+                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, walletPassword, new Script(), new Money(500), FeeType.Medium, 2));
             });
         }
 
@@ -70,12 +72,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             Assert.Throws<WalletException>(() =>
             {
+                string walletName = Guid.NewGuid().ToString();
+                string walletPassword = Guid.NewGuid().ToString();
                 var walletFeePolicy = new Mock<IWalletFeePolicy>();
                 walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low))
                     .Returns(new FeeRate(0));
 
-                var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet5", "password5", this.Network);
-                var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password5", "m/44'/0'/0'");
+                var wallet = WalletTestsHelpers.GenerateBlankWallet(walletName, walletPassword, this.Network);
+                var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, walletPassword, "m/44'/0'/0'");
                 var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
                 var changeKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "1/0");
 
@@ -96,10 +100,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 var walletReference = new WalletAccountReference
                 {
                     AccountName = "account 0",
-                    WalletName = "myWallet5"
+                    WalletName = walletName
                 };
 
-                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password5", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
+                walletTransactionHandler.BuildTransaction(CreateContext(walletReference, walletPassword, destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
             });
         }
 
@@ -375,35 +379,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             DataFolder dataFolder = CreateDataFolder(this);
 
+            string walletName = Guid.NewGuid().ToString();
+            var wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}"});
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new ConcurrentChain(this.Network), nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
 
-            HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
+            HdAddress accountAddress1 = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), 1, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1, new SpendingDetails() { TransactionId = new uint256()}, null, new Script()));
 
-            HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), 1, new SpendingDetails()));
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1, new SpendingDetails()));
+            HdAddress accountAddress2 = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.ElementAt(1);
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), 3, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), 4, new SpendingDetails() { TransactionId = new uint256() }, null,new Script()));
+          
 
-            HdAddress accountAddress2 = WalletTestsHelpers.CreateAddress();
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), 3, new SpendingDetails()));
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), 4, new SpendingDetails()));
+            walletManager.SaveWallet(wallet,true);
 
-            account.ExternalAddresses.Add(accountAddress1);
-            account.InternalAddresses.Add(accountAddress2);
-
-            var wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
-            });
-
-            walletManager.SaveWallet(wallet);
-
-            (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, true);
+            (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference(walletName, "account 0"), FeeType.Low, true);
             Assert.Equal(Money.Zero, result.max);
             Assert.Equal(Money.Zero, result.fee);
         }
@@ -418,29 +413,21 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
 
-            HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
+            string walletName = Guid.NewGuid().ToString();
+            var wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network); 
 
-            HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), null));
-            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), null));
+            HdAddress accountAddress1 = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.FirstOrDefault();
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), 1, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
+            accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
 
-            HdAddress accountAddress2 = WalletTestsHelpers.CreateAddress();
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), null));
-            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), null));
+            HdAddress accountAddress2 = wallet.AccountsRoot.FirstOrDefault().Accounts.FirstOrDefault().ExternalAddresses.ElementAt(1);
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(3), new Money(20000), 3, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
+            accountAddress2.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(4), new Money(120000), 4, new SpendingDetails() { TransactionId = new uint256() }, null, new Script()));
 
-            account.ExternalAddresses.Add(accountAddress1);
-            account.InternalAddresses.Add(accountAddress2);
 
-            var wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
-            });
+            walletManager.SaveWallet(wallet, true);
 
-            walletManager.SaveWallet(wallet);
-
-            (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference("wallet1", "account 1"), FeeType.Low, false);
+            (Money max, Money fee) result = walletTransactionHandler.GetMaximumSpendableAmount(new WalletAccountReference(walletName, "account 0"), FeeType.Low, false);
             Assert.Equal(Money.Zero, result.max);
             Assert.Equal(Money.Zero, result.fee);
         }
