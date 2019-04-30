@@ -193,7 +193,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                 }
 
                 if (unspentOutputs == null)
-                    return null;
+                    return this.Json(ResultHelper.BuildResultResponse(null));
 
                 var result = new GetTxOutModel(unspentOutputs, n, this.Network, this.Chain.Tip);
 
