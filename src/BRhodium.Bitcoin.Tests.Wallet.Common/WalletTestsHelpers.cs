@@ -160,6 +160,32 @@ namespace BRhodium.Node.Tests.Wallet.Common
 
             return (wallet, extendedKey);
         }
+        public static (Bitcoin.Features.Wallet.Wallet wallet, ExtKey key) RestoreWalletWithExtKey(string name, string password, Network network, int numberOfAccounts = 1, string mnemonicString = "grass industry beef stereo soap employ million leader frequent salmon crumble banana")
+        {
+            Mnemonic mnemonic = new Mnemonic(mnemonicString);
+            ExtKey extendedKey = HdOperations.GetHdPrivateKey(mnemonic, password);
+
+            Bitcoin.Features.Wallet.Wallet wallet = new Bitcoin.Features.Wallet.Wallet
+            {
+                Name = name,
+                EncryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif(),
+                ChainCode = extendedKey.ChainCode,
+                CreationTime = DateTimeOffset.Now,
+                Network = network,
+                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)network.Consensus.CoinType } },
+            };
+
+            // Generate multiple accounts and addresses from the get-go.
+            for (int i = 0; i < numberOfAccounts; i++)
+            {
+                HdAccount account = wallet.AddNewAccount(password, (CoinType)network.Consensus.CoinType, DateTimeOffset.Now);
+                string path = account.HdPath;
+                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(network, 20);
+                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(network, 20, true);
+            }
+
+            return (wallet, extendedKey);
+        }
 
         public static Block AppendTransactionInNewBlockToChain(ConcurrentChain chain, Transaction transaction)
         {

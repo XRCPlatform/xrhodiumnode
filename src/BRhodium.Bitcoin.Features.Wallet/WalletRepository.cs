@@ -1270,7 +1270,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             uint256 result = null;
 
             var selectWalletCmd = connection.CreateCommand();
-            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHash FROM Wallet order by LastUpdated DESC LIMIT 1";
+            selectWalletCmd.CommandText = "SELECT LastBlockSyncedHash FROM Wallet order by LastUpdated DESC, LastBlockSyncedHeight DESC LIMIT 1";
 
             using (var reader = selectWalletCmd.ExecuteReader())
             {

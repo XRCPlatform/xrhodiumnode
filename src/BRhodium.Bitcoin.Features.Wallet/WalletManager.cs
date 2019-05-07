@@ -1900,6 +1900,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 result.Add((transaction.Id, transaction.CreationTime));
                                 address.Transactions = address.Transactions.Except(new[] { transaction }).ToList();
                                 i--;
+                                this.repository.RemoveTransactionFromHdAddress(address, transaction.Id);
                             }
 
                             // Remove the spending transaction object containing this transaction id.
@@ -1907,16 +1908,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             {
                                 result.Add((transaction.SpendingDetails.TransactionId, transaction.SpendingDetails.CreationTime));
                                 address.Transactions.ElementAt(i).SpendingDetails = null;
+                                this.repository.RemoveTransactionSpendingDetailsFromHdAddress(address, transaction.SpendingDetails.TransactionId); 
                             }
                         }
                     }
                 }
-            }
-
-            if (result.Any())
-            {
-                this.SaveWallet(wallet,true);
-            }
+            }        
 
             return result;
         }
