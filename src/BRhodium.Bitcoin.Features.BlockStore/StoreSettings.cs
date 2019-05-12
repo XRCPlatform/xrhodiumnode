@@ -20,6 +20,9 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         /// <summary><c>true</c> to enable pruning to reduce storage requirements by enabling deleting of old blocks.</summary>
         public bool Prune { get; set; }
 
+        /// <summary>Command to run when best-block changes</summary>
+        public string BlockNotify { get; set; }
+
         private Action<StoreSettings> callback = null;
 
         public StoreSettings()
@@ -49,6 +52,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.Prune = config.GetOrDefault<bool>("prune", false);
             this.TxIndex = config.GetOrDefault<bool>("txindex", true);
             this.ReIndex = config.GetOrDefault<bool>("reindex", false);
+            this.BlockNotify = config.GetOrDefault<string>("blocknotify", "");
 
             this.callback?.Invoke(this);
 
