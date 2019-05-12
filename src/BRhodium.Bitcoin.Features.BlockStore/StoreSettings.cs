@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -21,7 +22,15 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         public bool Prune { get; set; }
 
         /// <summary>Command to run when best-block changes</summary>
-        public string BlockNotify { get; set; }
+        public List<string> BlockNotify
+        {
+            get
+            {
+                return _blockNotify;
+            }
+        }
+
+        private List<string> _blockNotify = new List<string>();
 
         private Action<StoreSettings> callback = null;
 
@@ -52,7 +61,12 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.Prune = config.GetOrDefault<bool>("prune", false);
             this.TxIndex = config.GetOrDefault<bool>("txindex", true);
             this.ReIndex = config.GetOrDefault<bool>("reindex", false);
-            this.BlockNotify = config.GetOrDefault<string>("blocknotify", "");
+            var blockNotify = config.GetAll("blocknotify");
+
+            foreach (var blockNotifyCmd in blockNotify)
+            {
+                this._blockNotify.Add(blockNotifyCmd);
+            }
 
             this.callback?.Invoke(this);
 
@@ -87,6 +101,8 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             builder.AppendLine($"#reindex=0");
             builder.AppendLine($"#Enable pruning to reduce storage requirements by enabling deleting of old blocks.");
             builder.AppendLine($"#prune=0");
+            builder.AppendLine($"#When a block is available, trigger a program. (%s is the block hash");
+            builder.AppendLine($"#blocknotify=prog %s");
         }
     }
 }

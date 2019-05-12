@@ -231,14 +231,16 @@ namespace BRhodium.Bitcoin.Features.BlockStore
 
         private void BlockNotify(Block block)
         {
-            if (string.IsNullOrEmpty(storeSettings.BlockNotify)) return;
             try
             {
-                var command = storeSettings.BlockNotify.Replace("%s", block.Header.GetHash().ToString());
-                this.logger.LogInformation($"About to call blocknotify command [{command}]");
-                var result = ShellHelper.Run(command);
-                this.logger.LogInformation($"[{result.stdout}]");
-                this.logger.LogInformation($"[{result.stderr}]");
+                foreach (var blockNotify in this.storeSettings.BlockNotify)
+                {
+                    var command = blockNotify.Replace("%s", block.Header.GetHash().ToString());
+                    this.logger.LogInformation($"About to call blocknotify command [{command}]");
+                    var result = ShellHelper.Run(command);
+                    this.logger.LogInformation($"[{result.stdout}]");
+                    this.logger.LogInformation($"[{result.stderr}]");
+                }
             }
             catch (Exception e)
             {
