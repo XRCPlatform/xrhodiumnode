@@ -77,7 +77,7 @@ namespace BRhodium.Node.Utilities
                         break;
                     case "mac":
                     case "gnu":
-                        arguments = cmd;
+                        arguments = " -c " + cmd;
                         break;
                 }
             }
