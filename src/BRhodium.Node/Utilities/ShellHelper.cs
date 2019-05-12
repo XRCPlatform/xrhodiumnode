@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace BRhodium.Bitcoin.Features.Wallet
+namespace BRhodium.Node.Utilities
 {
     public static class OS
     {
