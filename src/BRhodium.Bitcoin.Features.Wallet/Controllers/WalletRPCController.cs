@@ -427,7 +427,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
-                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            foreach (var walletAddress in currAccount.GetCombinedAddresses())
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
