@@ -136,7 +136,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 }
 
                 //we need to find wallet
-                var hdAddressCombix = WalletRPCController.hdAddressByAddressMap.TryGet<string, HdAddress>(address);
+                var hdAddressCombix = WalletRPCController.HdAddressByAddressMap.TryGet<string, HdAddress>(address);
                 if (hdAddressCombix == null)
                 {
                     bool isFound = false;
@@ -151,8 +151,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                                 {
                                     hdAddressCombix = walletAddress;
                                     var walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    WalletRPCController.walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    WalletRPCController.hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    WalletRPCController.WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    WalletRPCController.HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     isFound = true;
                                     break;
                                 }
