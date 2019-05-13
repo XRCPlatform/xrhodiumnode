@@ -63,9 +63,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private IWalletFeePolicy walletFeePolicy { get; set; }
         private IWalletKeyPool walletKeyPool { get; set; }
 
-        //wallet address mapping on the node
-        public static ConcurrentDictionary<string, string> walletsByAddressMap = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<string, HdAddress> hdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
+        /// <summary>wallet address mapping on the node</summary>
+        public static ConcurrentDictionary<string, string> WalletsByAddressMap = new ConcurrentDictionary<string, string>();
+
+        /// <summary>Hd addresses to address list</summary>
+        public static ConcurrentDictionary<string, HdAddress> HdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
         private static ConcurrentDictionary<string, string> walletPassword = new ConcurrentDictionary<string, string>();
         private static ConcurrentDictionary<string, DateTime> walletPasswordExpiration = new ConcurrentDictionary<string, DateTime>();
 
@@ -198,7 +200,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 //we need to find wallet
-                string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+                string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
                 if (walletCombix == null)
                 {
                     bool isFound = false;
@@ -213,8 +215,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 {
                                     isFound = true;
                                     walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     break;
                                 }
                             }
@@ -413,7 +415,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     res.IsValid = false;
                 }
 
-                string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+                string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
                 if (walletCombix != null)
                 {
                     res.IsMine = true;
@@ -425,13 +427,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
-                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            foreach (var walletAddress in currAccount.GetCombinedAddresses())
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
                                     walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     res.IsMine = true;
                                     break;
                                 }
@@ -467,7 +469,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 throw new ArgumentNullException("address");
             }
 
-            string walletCombix = walletsByAddressMap.TryGet<string, string>(address);
+            string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
             if (walletCombix != null)
             {
                 return this.Json(ResultHelper.BuildResultResponse(walletCombix));
@@ -482,8 +484,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         if (walletAddress.Address.ToString().Equals(address))
                         {
                             walletCombix = $"{currAccount.Name}/{currWalletName}";
-                            walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                            hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                            WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                            HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                             return this.Json(ResultHelper.BuildResultResponse(walletCombix));
                         }
                     }
