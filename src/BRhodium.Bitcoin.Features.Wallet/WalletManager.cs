@@ -1527,11 +1527,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 
             }
-            this.repository.SaveTransaction(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress, spentTransaction);
+            //problem here that in memory version of wallet/address shomehow does not represent full transaction structure.
+            
             this.repository.SaveAddress(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress);
+            this.repository.SaveTransaction(currentWalletLinkedHdAddress.WalletId, currentWalletLinkedHdAddress.HdAddress, spentTransaction);            
             
             this.logger.LogTrace("(-)");
         }
+
+
         /// <summary>
         /// this is suboptimal but rolled back version for testing
         /// </summary>

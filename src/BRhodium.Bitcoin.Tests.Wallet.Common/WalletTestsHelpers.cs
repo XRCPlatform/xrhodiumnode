@@ -452,8 +452,20 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 {
                     BlockHeight = height,
                     Amount = new Money(new Random().Next(500000, 1000000)),
-                    SpendingDetails = new SpendingDetails(),
-                    Id = new uint256()
+                    SpendingDetails = new SpendingDetails() {
+                        TransactionId = new uint256(1),
+                            Payments = new List<PaymentDetails>()
+                            {
+                                new PaymentDetails()
+                                {
+                                    Amount = new Money(1.099999M,MoneyUnit.XRC),
+                                    DestinationAddress = "DestinationAddress1",
+                                    DestinationScriptPubKey = new Script()
+                                }
+                            }
+                    },
+                    Id = new uint256(),
+                    ScriptPubKey = new Script()
                 });
             }
 
@@ -470,7 +482,8 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 {
                     BlockHeight = height,
                     Id = new uint256((ulong)new Random().Next(500000, 1000000)),
-                    Amount = new Money(new Random().Next(500000, 1000000))
+                    Amount = new Money(new Random().Next(500000, 1000000)),
+                    ScriptPubKey = new Script()
                 });
             }
 

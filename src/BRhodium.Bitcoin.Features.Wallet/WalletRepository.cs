@@ -1009,7 +1009,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 acct_cache.LastBlockSyncedHash = chainedHeader.HashBlock;
                 acct_cache.LastBlockSyncedHeight = chainedHeader.Height;
-            }        
+            }
+            var wallet = GetWalletByName(walletName);
+            if (wallet != null)
+            {
+                wallet.BlockLocator = chainedHeader.GetLocator().Blocks;
+            }
         }
 
         public WalletSyncPosition GetLastSyncedBlock()
