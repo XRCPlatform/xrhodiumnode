@@ -392,7 +392,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                     blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
 
-                var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
+                var json = this.Json(ResultHelper.BuildResultResponse(null));// if block is successfuly accepted return null
                 return json;
             }
 
