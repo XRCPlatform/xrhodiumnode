@@ -1674,9 +1674,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 newItemResult.TxIds = balance.Transactions.Select(a => a.Id).ToList();
 
                 var lastTx = balance.Transactions.Last();
-                var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
-
-                newItemResult.Confirmations = chainRepository.Tip.Height - chainedHeader.Height + 1;
+                if (lastTx.BlockHash != null)
+                {
+                    var chainedHeader = this.ConsensusLoop.Chain.GetBlock(lastTx.BlockHash);
+                    newItemResult.Confirmations = chainRepository.Tip.Height - chainedHeader.Height + 1;
+                }
+                else
+                {
+                    newItemResult.Confirmations = 0;
+                }
             }
 
             return newItemResult;
