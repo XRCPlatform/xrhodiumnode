@@ -947,6 +947,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         walletLinkedHdAddress.HdAddress.Transactions.Remove(transactionData);
                         this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress,true);
+                        this.repository.FlushWalletCache(walletLinkedHdAddress.WalletId);
                     }
                     // Bring back all the UTXO that are now spendable after the reorg.
                     IEnumerable<TransactionData> makeSpendable = walletLinkedHdAddress.HdAddress.Transactions.Where(w => (w.SpendingDetails != null) && (w.SpendingDetails.BlockHeight > fork.Height));
@@ -954,6 +955,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         transactionData.SpendingDetails = null;
                         this.repository.SaveAddress(walletLinkedHdAddress.HdAddress.WalletId, walletLinkedHdAddress.HdAddress,true);
+                        this.repository.FlushWalletCache(walletLinkedHdAddress.WalletId);
                     }
                 }
 
@@ -1659,7 +1661,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void DeleteWallet(string walletName)
         {
-            throw new NotImplementedException();
+            this.repository.RemoveWallet(walletName);
         }
        
 

@@ -1356,6 +1356,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Directory.CreateDirectory(dataFolder.WalletPath);
 
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
+
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
@@ -1415,9 +1417,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            //walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+
+            walletManager.SaveWallet(wallet,true);
             walletManager.LoadKeysLookupLock();
             walletManager.ProcessTransaction(transaction);
+            wallet = walletManager.GetWallet("myWallet1");
 
             var spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             Assert.Equal(1, spendingAddress.Transactions.Count);
@@ -1445,6 +1449,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Directory.CreateDirectory(dataFolder.WalletPath);
 
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
+
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
@@ -1506,9 +1512,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            //walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+
+            walletManager.SaveWallet(wallet,true);
             walletManager.LoadKeysLookupLock();
             walletManager.ProcessTransaction(transaction);
+            wallet = walletManager.GetWallet("myWallet1");
 
             var spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             Assert.Equal(1, spendingAddress.Transactions.Count);
@@ -1531,6 +1539,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Directory.CreateDirectory(dataFolder.WalletPath);
 
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             var changeKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "1/0");
@@ -1590,11 +1599,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            //walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+
+            walletManager.SaveWallet(wallet, true);
             walletManager.LoadKeysLookupLock();
 
             walletManager.ProcessTransaction(transaction);
-
+            wallet = walletManager.GetWallet("myWallet1");
             var spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             Assert.Equal(1, spendingAddress.Transactions.Count);
             Assert.Equal(transaction.GetHash(), spentAddressResult.Transactions.ElementAt(0).SpendingDetails.TransactionId);
@@ -1623,6 +1633,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Directory.CreateDirectory(dataFolder.WalletPath);
 
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
+
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
@@ -1682,13 +1694,17 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            //walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+
+            walletManager.SaveWallet(wallet,true);          
+
             walletManager.LoadKeysLookupLock();
 
             var block = WalletTestsHelpers.AppendTransactionInNewBlockToChain(chainInfo.chain, transaction);
 
             var blockHeight = chainInfo.chain.GetBlock(block.GetHash()).Height;
             walletManager.ProcessTransaction(transaction, blockHeight);
+
+            wallet = walletManager.GetWallet("myWallet1");
 
             var spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             Assert.Equal(1, spendingAddress.Transactions.Count);
@@ -1719,6 +1735,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Directory.CreateDirectory(dataFolder.WalletPath);
 
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
+            wallet.AccountsRoot.FirstOrDefault().Accounts.Clear();
+
             var accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             var spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             var destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
@@ -1778,12 +1796,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            //walletManager.Wallets.AddOrReplace("myWallet1", wallet);
+            walletManager.SaveWallet(wallet,true);
             walletManager.LoadKeysLookupLock();
 
             var block = WalletTestsHelpers.AppendTransactionInNewBlockToChain(chainInfo.chain, transaction);
 
             walletManager.ProcessTransaction(transaction, block: block);
+
+            wallet = walletManager.GetWallet("myWallet1");
 
             var spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             Assert.Equal(1, spendingAddress.Transactions.Count);
@@ -2160,9 +2180,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
             var account = wallet.AccountsRoot.ElementAt(0).Accounts.FirstOrDefault();
             account.Name = "First account";
-            PlantTransactionsToAddresses(account.ExternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 1, 2, 3, 4, 5));
-            PlantTransactionsToAddresses(account.InternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 1, 2, 3, 4, 5));
-            walletManager.SaveWallet(wallet);
+            PlantTransactionsToAddresses(account.ExternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 0, 1, 2, 3, 4, 5));
+            PlantTransactionsToAddresses(account.InternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 0, 1, 2, 3, 4, 5));
 
 
             // reorg at block 3
@@ -2170,25 +2189,30 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Trx at block 0 is not spent
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().Id = trxId >> trxCount++; ;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().SpendingDetails = null;
+            //internal
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.First().Id = trxId >> trxCount++;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.First().SpendingDetails = null;
 
             // Trx at block 2 is spent in block 3, after reorg it will not be spendable.
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.BlockHeight = 3;
+            //internal
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.BlockHeight = 3;
 
             // Trx at block 3 is spent at block 5, after reorg it will be spendable.
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++; ;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.BlockHeight = 5;
+            //internal
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++; ;
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.BlockHeight = 5;
 
 
-            walletManager.SaveWallet(wallet);
+            walletManager.SaveWallet(wallet, true);
             walletManager.LoadKeysLookupLock();
             walletManager.RemoveBlocks(chainedHeader);
+
+            wallet = walletManager.GetWallet("myWallet1");
 
             Assert.Equal(chainedHeader.GetLocator().Blocks, wallet.BlockLocator);
             Assert.Equal(chainedHeader.Height, wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHeight);
@@ -2771,8 +2795,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             string pass = Guid.NewGuid().ToString();
 
             var template = WalletTestsHelpers.GenerateBlankWalletWithExtKey(name, pass, this.Network);
-            //WalletTestsHelpers.AddAddressesToWallet(template.wallet, 20, template.key);
-            walletManager.SaveWallet(template.wallet);
             var wallet = template.wallet;
 
             var firstAccount = wallet.AccountsRoot.First().Accounts.First();
@@ -2783,25 +2805,27 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             for (int i = 0; i < 3; i++)
             {
-                firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++ });
-                firstAccount.InternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++ });
+                firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++, ScriptPubKey = new Script() });
+                firstAccount.InternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++, ScriptPubKey = new Script() });
             }
 
             // Add two confirmed transactions.
             for (int i = 3; i < 6; i++)
             {
-                firstAccount.InternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++ });
-                firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++ });
+                firstAccount.InternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++, ScriptPubKey = new Script() });
+                firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, Id = trxId >> counter++, ScriptPubKey = new Script() });
             }
 
             var transactionCount = firstAccount.GetCombinedAddresses().SelectMany(a => a.Transactions).Count();
             Assert.Equal(12, transactionCount);
 
+            walletManager.SaveWallet(wallet, true);
             // Act.
-            var result = walletManager.RemoveAllTransactions("wallet1");
+            var result = walletManager.RemoveAllTransactions(name);
+            wallet = walletManager.GetWallet(name);
 
             // Assert.
-            Assert.Empty(firstAccount.GetCombinedAddresses().SelectMany(a => a.Transactions));
+            Assert.Empty(wallet.AccountsRoot.First().Accounts.First().GetCombinedAddresses().SelectMany(a => a.Transactions));
             Assert.Equal(12, result.Count);
         }
 
@@ -2877,9 +2901,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             // Act.
             var result = walletManager.RemoveTransactionsByIds("wallet1", new[] { trxUnconfirmed1.Id, trxUnconfirmed2.Id, trxConfirmed1.Id, trxConfirmed2.Id });
+            wallet = walletManager.GetWallet(name);
 
             // Assert.
-            var remainingTrxs = firstAccount.GetCombinedAddresses().SelectMany(a => a.Transactions).ToList();
+            var remainingTrxs = wallet.AccountsRoot.First().Accounts.First().GetCombinedAddresses().SelectMany(a => a.Transactions).ToList();
             Assert.Equal(2, remainingTrxs.Count());
             Assert.Equal(2, result.Count);
             Assert.Contains((trxUnconfirmed1.Id, trxConfirmed1.CreationTime), result);

@@ -574,7 +574,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return null;
         }
 
-        private void FlushWalletCache(long id)
+        public void FlushWalletCache(long id)
         {
             string cacheKey = "wallet_" + id;
             if (walletCache.ContainsKey(cacheKey))
@@ -1309,6 +1309,68 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public bool HasWallets()
         {
             return !String.IsNullOrEmpty(GetLastUpdatedWalletName());
+        }
+
+        public void RemoveWallet(string walletName)
+        {
+            long walletId = 0;
+            using (var dbTransaction = this.connection.BeginTransaction())
+            {
+                var selectCommand = connection.CreateCommand();
+                selectCommand.Transaction = dbTransaction;
+                selectCommand.CommandText = "SELECT id FROM Wallet WHERE Name = $Name";
+                selectCommand.Parameters.AddWithValue("$Name", walletName);
+                using (var reader = selectCommand.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        walletId = reader.GetInt32(0);
+                    }
+                }
+                var deleteAccountCmd = connection.CreateCommand();
+                deleteAccountCmd.Transaction = dbTransaction;
+                deleteAccountCmd.CommandText = "DELETE  FROM Account WHERE WalletId = $id";
+                deleteAccountCmd.Parameters.AddWithValue("$id", walletId);
+                deleteAccountCmd.ExecuteNonQuery();
+
+                var deleteAddressCmd = connection.CreateCommand();
+                deleteAddressCmd.Transaction = dbTransaction;
+                deleteAddressCmd.CommandText = "DELETE  FROM Address WHERE WalletId = $id";
+                deleteAddressCmd.Parameters.AddWithValue("$id", walletId);
+                deleteAddressCmd.ExecuteNonQuery();
+
+                var deletePaymentDetailsCmd = connection.CreateCommand();
+                deletePaymentDetailsCmd.Transaction = dbTransaction;
+                deletePaymentDetailsCmd.CommandText = "DELETE  FROM PaymentDetails WHERE WalletId = $id";
+                deletePaymentDetailsCmd.Parameters.AddWithValue("$id", walletId);
+                deletePaymentDetailsCmd.ExecuteNonQuery();
+
+                var deleteSpendingDetailsCmd = connection.CreateCommand();
+                deleteSpendingDetailsCmd.Transaction = dbTransaction;
+                deleteSpendingDetailsCmd.CommandText = "DELETE  FROM SpendingDetails WHERE WalletId = $id";
+                deleteSpendingDetailsCmd.Parameters.AddWithValue("$id", walletId);
+                deleteSpendingDetailsCmd.ExecuteNonQuery();
+
+                var deleteTransactionCmd = connection.CreateCommand();
+                deleteTransactionCmd.Transaction = dbTransaction;
+                deleteTransactionCmd.CommandText = "DELETE  FROM [Transaction] WHERE WalletId = $id";
+                deleteTransactionCmd.Parameters.AddWithValue("$id", walletId);
+                deleteTransactionCmd.ExecuteNonQuery();
+
+                var deleteTransactionSpendingLinksCmd = connection.CreateCommand();
+                deleteTransactionSpendingLinksCmd.Transaction = dbTransaction;
+                deleteTransactionSpendingLinksCmd.CommandText = "DELETE  FROM TransactionSpendingLinks WHERE WalletId = $id";
+                deleteTransactionSpendingLinksCmd.Parameters.AddWithValue("$id", walletId);
+                deleteTransactionSpendingLinksCmd.ExecuteNonQuery();
+
+                var deleteWalletCmd = connection.CreateCommand();
+                deleteWalletCmd.Transaction = dbTransaction;
+                deleteWalletCmd.CommandText = "DELETE  FROM Wallet WHERE Name = $Name";
+                deleteWalletCmd.Parameters.AddWithValue("$Name", walletName);
+                deleteWalletCmd.ExecuteNonQuery();
+                dbTransaction.Commit();
+            }
+            FlushWalletCache(walletId);
         }
     }
 }
