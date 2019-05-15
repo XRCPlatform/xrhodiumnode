@@ -1211,7 +1211,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
              */
             int width, positions, top, banks;
 
-            // NOTE: width 4 is the fastest over the entire range of sizes used in current crypto 
+            // NOTE: width 4 is the fastest over the entire range of sizes used in current crypto
             //        width = 1; positions = 64; top = 64; banks = 4;
             //        width = 2; positions = 32; top = 64; banks = 4;
             //        width = 3; positions = 21; top = 63; banks = 3;
@@ -1232,7 +1232,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
             int bTotal = bMax * banks, stride = width * banks;
 
             /*
-             * Create a single temporary buffer, with an offset table to find the positions of things in it 
+             * Create a single temporary buffer, with an offset table to find the positions of things in it
              */
             int[] ci = new int[1 << width];
             int cTotal = aLen;
@@ -2065,7 +2065,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
             /*
              * Inversion in F2m using the extended Euclidean algorithm
-             * 
+             *
              * Input: A nonzero polynomial a(z) of degree at most m-1
              * Output: a(z)^(-1) mod f(z)
              */

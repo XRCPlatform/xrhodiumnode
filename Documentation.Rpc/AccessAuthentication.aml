@@ -28,9 +28,9 @@ rpcallowip=127.0.0.1
 rpcuser=loginname
 rpcport=16661 (is default testnet port)
 rpcpassword=loginpassword
-</code>        
-      </content>     
-    </section>  
+</code>
+      </content>
+    </section>
     <section address="Section3">
       <title>How to work with basic authentication</title>
       <content>
@@ -50,7 +50,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic Yzc4dmRmYTJzZjFjOm
 <linkTarget>_blank</linkTarget>
 </externalLink>. You have to take rpcuser and rpcpassword to generate it.
 </para>
-       
+
 <code language="cs">
 rpcuser = Username = loginname
 rpcpassword = Password = loginpassword
@@ -59,7 +59,7 @@ rpcpassword = Password = loginpassword
 <code language="cs">
 Authorization: Basic bG9naW5uYW1lOmxvZ2lucGFzc3dvcmQ=
 </code>
-      </content>     
-    </section>    
+      </content>
+    </section>
   </developerSampleDocument>
 </topic>

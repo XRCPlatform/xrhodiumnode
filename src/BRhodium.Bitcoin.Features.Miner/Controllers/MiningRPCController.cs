@@ -222,7 +222,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         public IActionResult GetMiningInfo()
         {
             var miningInfo = new GetMiningInfo();
- 
+
             miningInfo.Chain = string.IsNullOrEmpty(this.Network.Name) ? string.Empty : this.Network.Name.Replace("BRhodium", string.Empty).ToLower();
             miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
             miningInfo.PooledTx = this.txMempool.MapTx.Count();
@@ -358,7 +358,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         public IActionResult SubmitBlock(string hex, string dummy = null)
         {
             var response = new SubmitBlockModel();
-            
+
             lock (lockSubmitBlock)
             {
                 if (string.IsNullOrEmpty(hex))
@@ -382,7 +382,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Wrong chain work", null, false);
                 }
-                    
+
                 var blockValidationContext = new BlockValidationContext { Block = pblock };
 
                 this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
@@ -467,7 +467,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="height">The height.</param>
         /// <returns>(double) Return hashes per second estimated.</returns>
         [ActionName("getnetworkhashps")]
-        [ActionDescription("Returns the estimated network hashes per second based on the last n blocks.")] 
+        [ActionDescription("Returns the estimated network hashes per second based on the last n blocks.")]
         public double GetNetworkHashPS(int nblocks = 120, int height = -1)
         {
             return GetNetworkHash(nblocks, height);

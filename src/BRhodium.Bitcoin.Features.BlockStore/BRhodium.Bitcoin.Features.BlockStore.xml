@@ -183,8 +183,8 @@
             <summary>Hash of the last block we've sent to the peer in response to "getblocks" message,
             or <c>null</c> if the peer haven't used "getblocks" message or if we sent a tip to it already.</summary>
             <remarks>
-            In case the peer is syncing using outdated "getblocks" message, we need to maintain 
-            the hash of the last block we sent to it in an inventory batch. Once the peer asks 
+            In case the peer is syncing using outdated "getblocks" message, we need to maintain
+            the hash of the last block we sent to it in an inventory batch. Once the peer asks
             for block data of the block with this hash, we will send a continuation inventory message.
             This will cause the peer to ask for more.
             </remarks>
@@ -561,7 +561,7 @@
         <member name="M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.VerifyChain(System.Nullable{System.Int32},System.Nullable{System.Int32})">
             <summary>
             Verifies blockchain database.
-            
+
             0 - Check reading blocks from chain
             1 - Validate header of blocks
             </summary>

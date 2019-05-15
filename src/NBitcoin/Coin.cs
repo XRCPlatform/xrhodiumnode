@@ -707,7 +707,7 @@ namespace NBitcoin
             return this;
         }
 
-       
+
         public Script Redeem
         {
             get;

@@ -23,7 +23,7 @@ namespace NBitcoin
 
             if (isValid)
                 return bech32;
-            
+
             throw new FormatException("Invalid BitcoinWitPubKeyAddress");
         }
 
@@ -190,7 +190,7 @@ namespace NBitcoin
             {
                 return _Hash;
             }
-        }        
+        }
 
         protected override Script GeneratePaymentScript()
         {

@@ -260,7 +260,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="wallet">The wallet to save.</param>
         void SaveWallet(Wallet wallet);
         /// <summary>
-        /// Performs pubsighash to address translation so that friendly address can be displayed in wallet. 
+        /// Performs pubsighash to address translation so that friendly address can be displayed in wallet.
         /// </summary>
         /// <param name="scriptSig"></param>
         /// <returns>HD Address that can be used for various rendering operations.</returns>
@@ -308,7 +308,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns></returns>
         ICollection<uint256> GetFirstWalletBlockLocator();
-        
+
         /// <summary>
         /// Gets the list of the wallet filenames, along with the folder in which they're contained.
         /// </summary>

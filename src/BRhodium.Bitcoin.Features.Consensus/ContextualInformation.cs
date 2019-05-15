@@ -71,7 +71,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
             // TODO: adding flags to determine the flow of logic is not ideal
             // a re-factor is in debate on moving to a consensus rules engine
-            // this will remove the need for flags as validation will only use 
+            // this will remove the need for flags as validation will only use
             // the required rules (i.e if the check pow rule will be omitted form the flow)
             this.CheckPow = true;
             this.CheckMerkleRoot = true;

@@ -53,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
             transaction.Inputs.Add(new TxIn(new Script(Op.GetPushOp(4))));
             this.ruleContext.BlockValidationContext.Block.Transactions.Add(transaction);
 
-            await this.consensusRules.RegisterRule<CoinbaseHeightRule>().RunAsync(this.ruleContext);            
+            await this.consensusRules.RegisterRule<CoinbaseHeightRule>().RunAsync(this.ruleContext);
         }
     }
 }

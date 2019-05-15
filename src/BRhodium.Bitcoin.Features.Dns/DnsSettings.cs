@@ -46,7 +46,7 @@ namespace BRhodium.Bitcoin.Features.Dns
         }
 
         /// <summary>
-        /// Constructs this object whilst providing a callback to override/constrain/extend 
+        /// Constructs this object whilst providing a callback to override/constrain/extend
         /// the settings provided by the Load method.
         /// </summary>
         /// <param name="callback">The callback used to override/constrain/extend the settings provided by the Load method.</param>
@@ -68,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.Dns
             logger.LogTrace("()");
 
             TextFileConfiguration config = nodeSettings.ConfigReader;
-            
+
             this.DnsListenPort = config.GetOrDefault<int>("dnslistenport", DefaultDnsListenPort);
             logger.LogDebug("DNS Seed Service listen port is {0}, if running as DNS Seed.", this.DnsListenPort);
 

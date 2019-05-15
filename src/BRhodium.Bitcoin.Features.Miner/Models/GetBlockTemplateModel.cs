@@ -9,7 +9,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
 {
     public class GetBlockTemplateModel
     {
-       
+
         [JsonProperty(PropertyName = "target")]
         public string Target { get; set; }
 
@@ -81,7 +81,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
 
         [JsonProperty(PropertyName = "hash")]
         public string Hash { get; set; }
-        
+
         [JsonProperty(PropertyName = "depends", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, long> Depends { get; set; }
 

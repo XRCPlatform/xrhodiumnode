@@ -63,7 +63,7 @@ namespace NBitcoin.OpenAsset
                 return new CoinprismTransactionRepository();
             }
         }
-        
+
         public async Task<ColoredTransaction> GetAsync(uint256 txId)
         {
             try

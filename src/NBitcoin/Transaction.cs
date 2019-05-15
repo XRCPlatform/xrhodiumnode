@@ -1439,8 +1439,8 @@ namespace NBitcoin
         {
             get
             {
-                return this.Inputs.Count == 1 
-                    && this.Inputs.First().PrevOut.IsNull 
+                return this.Inputs.Count == 1
+                    && this.Inputs.First().PrevOut.IsNull
                     && this.Outputs.Count >= 1;
             }
         }
@@ -1768,7 +1768,7 @@ namespace NBitcoin
         /// in order to be considered final in the context of BIP 68.  It also removes
         /// from the vector of input heights any entries which did not correspond to sequence
         /// locked inputs as they do not affect the calculation.
-        /// </summary>        
+        /// </summary>
         /// <param name="prevHeights">Previous Height</param>
         /// <param name="block">The block being evaluated</param>
         /// <param name="flags">If VerifySequence is not set, returns always true SequenceLock</param>
@@ -1783,7 +1783,7 @@ namespace NBitcoin
         /// in order to be considered final in the context of BIP 68.  It also removes
         /// from the vector of input heights any entries which did not correspond to sequence
         /// locked inputs as they do not affect the calculation.
-        /// </summary>        
+        /// </summary>
         /// <param name="prevHeights">Previous Height</param>
         /// <param name="chainedHeader">The Chained block header being evaluated</param>
         /// <param name="flags">If VerifySequence is not set, returns always true SequenceLock</param>

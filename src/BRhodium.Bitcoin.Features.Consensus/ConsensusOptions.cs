@@ -55,7 +55,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         public PowConsensusOptions()
         {
             //https://bitcoin.stackexchange.com/questions/69468/what-is-the-current-maximum-bitcoin-block-size-in-mb
-            //Block weight = Base size * 3 + Total size. (rationale[3]) 
+            //Block weight = Base size * 3 + Total size. (rationale[3])
 
             this.MaxBlockBaseSize = 4 * 1000 * 1000;
             this.MaxBlockWeight = this.MaxBlockBaseSize;

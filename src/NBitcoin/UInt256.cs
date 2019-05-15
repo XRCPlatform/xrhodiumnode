@@ -129,7 +129,7 @@ namespace NBitcoin
             for (int i = 0; i < WIDTH; i++)
                 target[i] -= sub[i];
 
-            
+
             return new uint256(target);
         }
 
@@ -245,7 +245,7 @@ namespace NBitcoin
                 fact *= 4294967296.0;
             }
             return ret;
-        }   
+        }
 
         public uint256(ulong b)
         {

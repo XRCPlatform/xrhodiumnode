@@ -8,14 +8,14 @@ namespace NBitcoin.BouncyCastle.Math.EC.Custom.Sec
     {
         /**
          * Create a point which encodes with point compression.
-         * 
+         *
          * @param curve
          *            the curve to use
          * @param x
          *            affine x co-ordinate
          * @param y
          *            affine y co-ordinate
-         * 
+         *
          * @deprecated Use ECCurve.createPoint to construct points
          */
         public SecP256K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
@@ -25,7 +25,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Custom.Sec
 
         /**
          * Create a point that encodes with or without point compresion.
-         * 
+         *
          * @param curve
          *            the curve to use
          * @param x
@@ -34,7 +34,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Custom.Sec
          *            affine y co-ordinate
          * @param withCompression
          *            if true encode with point compression
-         * 
+         *
          * @deprecated per-point compression property will be removed, refer
          *             {@link #getEncoded(bool)}
          */

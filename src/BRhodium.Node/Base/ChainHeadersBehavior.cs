@@ -151,7 +151,7 @@ namespace BRhodium.Node.Base
 
             this.AttachedPeer.MessageReceived.Unregister(this.OnMessageReceivedAsync);
             this.AttachedPeer.StateChanged.Unregister(this.OnStateChangedAsync);
-            
+
             this.bestChainSelector.RemoveAvailableTip(this.AttachedPeer.Connection.Id);
 
             this.logger.LogTrace("(-)");
@@ -215,7 +215,7 @@ namespace BRhodium.Node.Base
         /// <param name="peer">Peer from which the message was received.</param>
         /// <param name="getHeadersPayload">Payload of "getheaders" message to process.</param>
         /// <remarks>
-        /// "getheaders" message is sent by the peer in response to "inv(block)" message 
+        /// "getheaders" message is sent by the peer in response to "inv(block)" message
         /// after the connection is established, or in response to "headers" message
         /// until an empty array is returned.
         /// <para>
@@ -285,15 +285,15 @@ namespace BRhodium.Node.Base
         /// <param name="peer">Peer from which the message was received.</param>
         /// <param name="headersPayload">Payload of "headers" message to process.</param>
         /// <remarks>
-        /// "headers" message is sent in response to "getheaders" message or it is solicited 
+        /// "headers" message is sent in response to "getheaders" message or it is solicited
         /// by the peer when a new block is validated (unless in IBD).
         /// <para>
-        /// When we receive "headers" message from the peer, we can adjust our knowledge 
-        /// of the peer's view of the chain. We update its pending tip, which represents 
+        /// When we receive "headers" message from the peer, we can adjust our knowledge
+        /// of the peer's view of the chain. We update its pending tip, which represents
         /// the tip of the best chain we think the peer has.
         /// </para>
         /// <para>
-        /// If we receive a valid header from peer which work is higher than the work 
+        /// If we receive a valid header from peer which work is higher than the work
         /// of our best chain's tip, we update our view of the best chain to that tip.
         /// </para>
         /// </remarks>
@@ -370,7 +370,7 @@ namespace BRhodium.Node.Base
 
             if ((this.pendingTip != null) && !this.bestChainSelector.TrySetAvailableTip(this.AttachedPeer.Connection.Id, this.pendingTip))
                 this.InvalidHeaderReceived = true;
-            
+
             ChainedHeader chainedPendingTip = this.pendingTip == null ? null : this.Chain.GetBlock(this.pendingTip.HashBlock);
             if (chainedPendingTip != null)
             {

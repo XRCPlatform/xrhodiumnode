@@ -21,7 +21,7 @@ namespace BRhodium.Node.P2P.Protocol
     /// </summary>
     /// <typeparam name="T">Type of the messages that are being handled.</typeparam>
     public class CallbackMessageListener<T> : IMessageListener<T>, IDisposable
-    { 
+    {
         /// <summary>Queue of the unprocessed incoming messages.</summary>
         private readonly AsyncQueue<T> asyncQueue;
 

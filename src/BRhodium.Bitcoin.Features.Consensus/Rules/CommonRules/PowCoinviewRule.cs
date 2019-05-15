@@ -21,7 +21,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
     {
         /// <summary>Consensus parameters.</summary>
         private NBitcoin.Consensus consensusParams;
-            
+
         /// <summary>Consensus options.</summary>
         private PowConsensusOptions consensusOptions;
 
@@ -403,10 +403,10 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <param name="block">Block that we get weight of.</param>
         /// <returns>Block weight.</returns>
         /// TODO: this is a duplicate of the same method in BlockSizeRule <see cref="BlockSizeRule.GetBlockWeight"/>
-        public long GetBlockWeight(Block block)  
+        public long GetBlockWeight(Block block)
         {
-            return this.GetSize(block, TransactionOptions.None) 
-                   * (this.consensusOptions.WitnessScaleFactor - 1) 
+            return this.GetSize(block, TransactionOptions.None)
+                   * (this.consensusOptions.WitnessScaleFactor - 1)
                    + this.GetSize(block, TransactionOptions.Witness);
         }
 

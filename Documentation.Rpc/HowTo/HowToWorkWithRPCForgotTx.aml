@@ -10,6 +10,6 @@
 		<para>3) Delete tx in your local wallet with <legacyItalic>WalletRPCController.RemoveTransaction (walletname, tx)</legacyItalic></para>
 		<para>You are done!</para>
       </content>
-    </section>  
+    </section>
   </developerHowToDocument>
 </topic>

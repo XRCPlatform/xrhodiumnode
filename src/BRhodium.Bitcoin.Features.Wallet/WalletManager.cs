@@ -468,7 +468,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return res;
         }
-        
+
         /// <inheritdoc />
         public IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
         {
@@ -512,10 +512,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 // Get the account.
                 HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
 
-                List<HdAddress> unusedAddresses = isChange ? 
-                    account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() : 
+                List<HdAddress> unusedAddresses = isChange ?
+                    account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() :
                     account.ExternalAddresses.Where(acc => !acc.Transactions.Any()).ToList();
-                
+
                 int diff = unusedAddresses.Count - count;
                 List<HdAddress> newAddresses = new List<HdAddress>();
                 if (diff < 0)
@@ -647,7 +647,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     accounts.AddRange(wallet.GetAccountsByCoinType(this.coinType));
                 }
-                
+
                 foreach (var account in accounts)
                 {
                     (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount();
@@ -896,7 +896,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     throw new WalletException("Reorg");
                 }
 
-                // The block coming in to the wallet should never be ahead of the wallet. 
+                // The block coming in to the wallet should never be ahead of the wallet.
                 // If the block is behind, let it pass.
                 if (chainedHeader.Height > current.Height)
                 {
@@ -976,7 +976,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             return true;
 
                         // Include the keys that are in the wallet but that are for receiving
-                        // addresses (which would mean the user paid itself). 
+                        // addresses (which would mean the user paid itself).
                         // We also exclude the keys involved in a staking transaction.
                         return !addr.IsChangeAddress();
                     });
@@ -997,7 +997,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     NotifyTransaction(TransactionNotificationType.Received, hash);
                 }
-                // Save the wallet when the transaction was not included in a block. 
+                // Save the wallet when the transaction was not included in a block.
                 if (blockHeight == null)
                 {
                     this.SaveWallets();
@@ -1103,9 +1103,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private decimal AddSpendingTransactionDetails(Transaction transaction, IEnumerable<TxOut> paidToOutputs, uint256 spendingTransactionId, int spendingTransactionIndex, List<TransactionDetail> details)
         {
-            
+
             Guard.NotNull(transaction, nameof(transaction));
-            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));            
+            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));
             // Get the transaction being spent.
             TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
                 .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
@@ -1179,9 +1179,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         this.logger.LogError(e.ToString());
                     }
-                    
+
                 }
-            }     
+            }
         }
 
         /// <summary>
@@ -1408,7 +1408,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             this.DBreezeStorage.DeleteWallet(name);
             Wallet walletCache;
-            this.Wallets.TryRemove(name, out walletCache);            
+            this.Wallets.TryRemove(name, out walletCache);
         }
 
         /// <inheritdoc />
@@ -1522,7 +1522,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Create a folder if none exists and persist the file.
             this.SaveWallet(walletFile);
-            
+
             this.logger.LogTrace("(-)");
             return walletFile;
         }
@@ -1606,7 +1606,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.outpointLookup[new OutPoint(transactionData.Id, transactionData.Index)] = transactionData;
             }
         }
-        
+
         /// <inheritdoc />
         public IEnumerable<string> GetWalletsNames()
         {

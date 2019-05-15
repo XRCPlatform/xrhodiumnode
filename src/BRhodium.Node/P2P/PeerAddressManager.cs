@@ -101,7 +101,7 @@ namespace BRhodium.Node.P2P
         /// <summary>Logger factory to create loggers.</summary>
         private readonly ILoggerFactory loggerFactory;
 
-        
+
         /// <summary>Key value store that indexes all discovered peers by their end point.</summary>
         private readonly ConcurrentDictionary<IPEndPoint, PeerAddress> peers;
 
@@ -167,7 +167,7 @@ namespace BRhodium.Node.P2P
         {
             if (!endPoint.Address.IsRoutable(true))
                 return;
-            
+
             var peerToAdd = PeerAddress.Create(endPoint, source);
             this.peers.TryAdd(peerToAdd.Endpoint, peerToAdd);
         }

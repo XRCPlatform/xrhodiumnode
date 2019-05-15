@@ -15,7 +15,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         {
             this.Addresses = new List<AddressModel>();
         }
-        
+
         /// <summary>
         /// A list of addresses.
         /// </summary>

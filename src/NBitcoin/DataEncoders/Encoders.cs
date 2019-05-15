@@ -2,7 +2,7 @@
 {
     public abstract class DataEncoder
     {
-        // char.IsWhiteSpace fits well but it match other whitespaces 
+        // char.IsWhiteSpace fits well but it match other whitespaces
         // characters too and also works for unicode characters.
         public static bool IsSpace(char c)
         {

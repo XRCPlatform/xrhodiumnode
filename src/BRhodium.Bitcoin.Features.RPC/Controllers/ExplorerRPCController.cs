@@ -23,7 +23,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
     {
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
-        
+
         /// <summary>Instance of block store manager.</summary>
         private readonly BlockStoreManager BlockStoreManager;
 

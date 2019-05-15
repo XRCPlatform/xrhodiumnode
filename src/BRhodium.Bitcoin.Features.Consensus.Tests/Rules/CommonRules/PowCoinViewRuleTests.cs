@@ -16,7 +16,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
     /// <summary>
     /// These tests only cover the first part of BIP68 and not the MaxSigOps, coinview update or scripts verify or calculate block rewards
     /// </summary>
-    public class PowCoinViewRuleTests 
+    public class PowCoinViewRuleTests
     {
         private Exception caughtExecption;
         private Mock<ILogger> logger;

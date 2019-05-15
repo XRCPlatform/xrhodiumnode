@@ -214,7 +214,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return;
 
             Wallet wallet = this.walletManager.GetWalletByName(context.AccountReference.WalletName);
-            Key privateKey; 
+            Key privateKey;
             // get extended private key
             string cacheKey = wallet.EncryptedSeed;
 
@@ -495,7 +495,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Shuffles transaction inputs and outputs for increased privacy.
         /// </summary>
         public bool Shuffle { get; set; }
-        
+
         /// <summary>
         /// Optional data to be added as an extra OP_RETURN transaction output with Money.Zero value.
         /// </summary>
@@ -523,4 +523,3 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public bool SubtractFeeFromAmount { get; set; }
     }
 }
- 

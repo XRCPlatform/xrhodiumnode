@@ -209,7 +209,7 @@ namespace BRhodium.Node.Base
         {
             NodeSettings.PrintHelp(network);
         }
-        
+
         /// <summary>
         /// Get the default configuration.
         /// </summary>

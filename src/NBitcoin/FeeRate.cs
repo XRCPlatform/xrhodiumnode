@@ -90,8 +90,8 @@ namespace NBitcoin
 
         public int CompareTo(FeeRate other)
         {
-            return other == null 
-                ? 1 
+            return other == null
+                ? 1
                 : _FeePerK.CompareTo(other._FeePerK);
         }
 
@@ -173,8 +173,8 @@ namespace NBitcoin
                 throw new ArgumentNullException("left");
             if (right == null)
                 throw new ArgumentNullException("right");
-            return left <= right 
-                ? left 
+            return left <= right
+                ? left
                 : right;
         }
 

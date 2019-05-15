@@ -42,7 +42,7 @@ namespace BRhodium.Bitcoin.Features.Miner
         /// </summary>
         /// <param name="callback">Callback routine to be called once the miner settings are loaded.</param>
         public MinerSettings(Action<MinerSettings> callback = null)
-        {        
+        {
             this.callback = callback;
         }
 

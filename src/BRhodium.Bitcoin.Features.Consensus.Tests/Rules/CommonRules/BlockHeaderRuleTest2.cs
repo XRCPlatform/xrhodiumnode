@@ -30,7 +30,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             this.ruleContext.BlockValidationContext.Block = block;
             this.ruleContext.ConsensusTip = this.concurrentChain.Tip;
-            
+
             var exception = await Assert.ThrowsAsync<ConsensusErrorException>(() => this.consensusRules.RegisterRule<BlockHeaderRule>().RunAsync(this.ruleContext));
 
             Assert.Equal(ConsensusErrors.InvalidPrevTip, exception.ConsensusError);
@@ -49,7 +49,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             this.ruleContext.BlockValidationContext.Block = block;
             this.ruleContext.ConsensusTip = tip;
-            
+
             await this.consensusRules.RegisterRule<BlockHeaderRule>().RunAsync(this.ruleContext);
 
             var chainedHeader = this.ruleContext.BlockValidationContext.ChainedHeader;
@@ -102,7 +102,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
             block.Header.BlockTime = new DateTimeOffset(new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(5));
             block.Header.HashPrevBlock = this.concurrentChain.Tip.HashBlock;
             block.Header.Nonce = RandomUtils.GetUInt32();
-            
+
             this.ruleContext.BlockValidationContext.Block = block;
             this.ruleContext.ConsensusTip = this.concurrentChain.Tip;
 

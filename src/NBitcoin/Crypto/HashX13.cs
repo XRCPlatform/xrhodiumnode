@@ -59,10 +59,10 @@ namespace NBitcoin.Crypto
             this.Multiplier = 1;
         }
 
-        public uint Multiplier { get; private set; }    
+        public uint Multiplier { get; private set; }
 
         /// <summary>
-        /// using the instance method is not thread safe. 
+        /// using the instance method is not thread safe.
         /// to calling the hashing method in a multi threaded environment use the create() method
         /// </summary>
         public static HashX13 Instance => SingletonInstance.Value;

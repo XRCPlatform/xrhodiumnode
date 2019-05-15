@@ -11,7 +11,7 @@ namespace BRhodium.Node.Tests.P2P
         public SelfEndpointTrackerTests()
         {
             this.selfEndpointTracker = new SelfEndpointTracker();
-        } 
+        }
 
         [Fact]
         public void Add_OneIpEndpoint_GetsAdded()

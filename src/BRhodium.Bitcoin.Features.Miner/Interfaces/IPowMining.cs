@@ -15,7 +15,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Interfaces
         List<uint256> GenerateBlocks(ReserveScript reserveScript, ulong generate, ulong maxTries);
 
         /// <summary>
-        /// Increments or resets the extra nonce based on the previous hash block value on on the pow miner and the passed nExtraNonce.       
+        /// Increments or resets the extra nonce based on the previous hash block value on on the pow miner and the passed nExtraNonce.
         /// </summary>
         /// <param name="pblock">The template block.</param>
         /// <param name="pindexPrev">The previous chained block.</param>

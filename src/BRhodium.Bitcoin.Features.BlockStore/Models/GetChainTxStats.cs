@@ -27,6 +27,6 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
 
         [JsonProperty(PropertyName = "txrate")]
         public double TxRate { get; set; }
-        
+
     }
 }

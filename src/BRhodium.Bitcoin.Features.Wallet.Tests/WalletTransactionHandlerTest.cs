@@ -143,7 +143,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void BuildTransactionNoChangeAdressesLeftCreatesNewChangeAddress()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             var context = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0);
@@ -173,7 +173,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void BuildTransaction_When_OpReturnData_Is_Empty_Should_Not_Add_Extra_Output()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             var opReturnData = "";
@@ -184,12 +184,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             transactionResult.Outputs.Where(o => o.ScriptPubKey.IsUnspendable).Should()
                 .BeEmpty("because opReturnData is empty");
         }
-        
+
         [Fact]
         public void BuildTransaction_When_OpReturnData_Is_Null_Should_Not_Add_Extra_Output()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             string opReturnData = null;
@@ -206,7 +206,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void BuildTransaction_When_OpReturnData_Is_Neither_Null_Nor_Empty_Should_Add_Extra_Output_With_Data()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             var opReturnData = "some extra transaction info";
@@ -230,7 +230,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void BuildTransaction_When_OpReturnData_Is_Too_Long_Should_Fail_With_Helpful_Message()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             var eightyOneBytes = Encoding.UTF8.GetBytes(this.CostlyOpReturnData).Concat(Convert.ToByte(1));
@@ -239,7 +239,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var context = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, tooLongOpReturnString);
             new Action(() => walletTransactionHandler.BuildTransaction(context))
                 .Should().Throw<ArgumentOutOfRangeException>()
-                .And.Message.Should().Contain(" maximum size of 83");         
+                .And.Message.Should().Contain(" maximum size of 83");
 
         }
 
@@ -288,7 +288,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
             walletManager.Wallets.AddOrReplace("myWallet1", wallet);
-            
+
 
             var walletReference = new WalletAccountReference
             {
@@ -338,7 +338,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
             var overrideFeeRate = new FeeRate(20000);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
-            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, nodeSettings, new Mock<WalletSettings>().Object, 
+            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, nodeSettings, new Mock<WalletSettings>().Object,
                 dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
@@ -574,7 +574,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void EstimateFeeWithLowFeeMatchesBuildTxLowFee()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             // Context to build requires password in order to sign transaction.
@@ -618,7 +618,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void EstimateFee_Without_OpReturnData_Should_Be_Less_Than_Estimate_Fee_With_Costly_OpReturnData()
         {
             DataFolder dataFolder = CreateDataFolder(this);
-            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference) 
+            var (wallet, accountKeys, destinationKeys, addressTransaction, walletTransactionHandler, walletReference)
                 = this.SetupWallet(dataFolder);
 
             // Context with OpReturnData
@@ -646,7 +646,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Context with OpReturnData
             var contextWithOpReturn = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, this.CostlyOpReturnData);
             walletTransactionHandler.BuildTransaction(contextWithOpReturn);
-            
+
             // Context without OpReturnData
             var contextWithoutOpReturn = CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0, null);
             walletTransactionHandler.BuildTransaction(contextWithoutOpReturn);

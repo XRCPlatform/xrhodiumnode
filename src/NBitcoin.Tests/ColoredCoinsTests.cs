@@ -240,7 +240,7 @@ namespace NBitcoin.Tests
 
 #if !PORTABLE
         /* TODO: The external service is giving security errors for connection attempt to its testnet.
-         * 
+         *
         [Fact]
         [Trait("UnitTest", "UnitTest")]
         public void CanFetchTransactionFromCoinprism()
@@ -477,7 +477,7 @@ namespace NBitcoin.Tests
             Assert.Equal("36e0ea8e93eaa0285d641305f4c81e563aa570a2", script.Hash.ToString());
 
             Assert.Equal("36e0ea8e93eaa0285d641305f4c81e563aa570a2", key.PubKey.Decompress().Hash.ScriptPubKey.Hash.ToString());
-            //Finally, the hash is converted to a base 58 string with checksum using version byte 23: ALn3aK1fSuG27N96UGYB1kUYUpGKRhBuBC. 
+            //Finally, the hash is converted to a base 58 string with checksum using version byte 23: ALn3aK1fSuG27N96UGYB1kUYUpGKRhBuBC.
             Assert.Equal("ALn3aK1fSuG27N96UGYB1kUYUpGKRhBuBC", script.Hash.ToAssetId().GetWif(Network.Main).ToString());
         }
 

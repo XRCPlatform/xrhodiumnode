@@ -41,42 +41,42 @@ namespace NBitcoin.Tests
                     Expected = "w6kgXsOnIGhlbGxvICIxMjM0NSIgIHdvb29ybGQ="
                 },
                 //Not yet implemented
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.Bin,
                 //    Input = testPhrase,
                 //    Expected = "11000011 10101001 00100000 01011110 11000011 10100111 00100000 01101000 01100101 01101100 01101100 01101111 00100000 00100010 00110001 00110010 00110011 00110100 00110101 00100010 00100000 00100000 01110111 01101111 01101111 01101111 01110010 01101100 01100100"
                 //},
                 //Not yet implemented
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.Dec,
                 //    Input = testPhrase,
                 //    Expected = "5275000693703128425041367611933003709099386868005962673424426230508644"
                 //},
                 //Useless for bitcoin
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.RFC1751,
                 //    Input = testPhrase,
                 //    Expected = "A A OWE BANG BAN BUST KITE ARK HAT SEEN OBOE GRIM KIN GASH GLOB COAT BANE DUN JO MILL SIGH SLID MAD PAR"
                 //},
                 //Useless for bitcoin
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.Poetry,
                 //    Input = testPhrase,
                 //    Expected = "perfect perfect perfect soul stone royal fault companion sharp cross build leap possess possibly yet bone magic beam illuminate moonlight foul juice darkness universe"
                 //},
                 //Useless for bitcoin
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.Rot13,
                 //    Input = testPhrase,
                 //    Expected = "é ^ç uryyb \"12345\"  jbbbeyq"
                 //},
                 //Useless for bitcoin
-                //new 
+                //new
                 //{
                 //    Encoder = Encoders.Easy16,
                 //    Input = testPhrase,

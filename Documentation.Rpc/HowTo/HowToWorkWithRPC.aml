@@ -7,12 +7,12 @@
         <para>Working with our API RPC-JSON is easy. It is important to be authenticated with <legacyBold>Basic Auth Header on every request only</legacyBold>.</para>
         <para>Basic Auth Header is based on your <legacyBold>rpcuser:rpcpassword</legacyBold> (from your BRhodium.conf file) and is encoded with base64.<lineBreak/>You can read more on this <link xlink:href="e8437934-9f80-4efa-8d1b-fdf7c292be71">page about authentication</link>.</para>
         <para>After having done this you can easily call all from the <codeEntityReference qualifyHint="true" linkText="API RPC-JSON documentation">R:Project_Documentation</codeEntityReference>.</para>
-        
+
         <para>Example of a call:</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **Basic Auth Header**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"**nameofrpc**", "params":["**value**"]}]'
 </code>
       </content>
-    </section>  
+    </section>
   </developerHowToDocument>
 </topic>

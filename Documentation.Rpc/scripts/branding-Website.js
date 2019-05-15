@@ -33,20 +33,20 @@ function InitializeToc()
     tocWidth = parseInt(GetCookie("TocWidth", "340"));
     ResizeToc();
     $(window).resize(SetNavHeight)
-	
+
 	$("div[class^=toclevel]").each(
     function(){
 		var link = $(this).find("a.tocCollapsed");
 		Toggle(link);
-    }	
+    }
 	);
-	
+
 	$("div[class^=toclevel]").each(
     function(){
 		var link = $(this).find("a.tocCollapsed");
 		Toggle(link);
-    }	
-	);	
+    }
+	);
 }
 
 function SetNavHeight()

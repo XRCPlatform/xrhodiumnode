@@ -69,10 +69,10 @@ namespace $NAMESPACE$
     public partial class $SpecificationName$Specification : BddSpecification
     {
 		public $SpecificationName$Specification(ITestOutputHelper output) : base(output) {}
-				
+
         protected override void BeforeTest()
         {
-          
+
         }
 
         protected override void AfterTest()
@@ -102,7 +102,7 @@ namespace $NAMESPACE$
 
 		public void $a_result_should_be_observed$()
 		{
-			
+
 		}
 
 		public void $it_should_satisfy_our_specification$()

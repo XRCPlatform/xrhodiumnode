@@ -161,7 +161,7 @@ namespace BRhodium.Node.P2P
         private void AddPeer(INetworkPeer peer)
         {
             Guard.NotNull(peer, nameof(peer));
-            
+
             this.ConnectorPeers.Add(peer);
 
             if (this.asyncLoop != null && this.ConnectorPeers.Count >= this.BurstModeTargetConnections)

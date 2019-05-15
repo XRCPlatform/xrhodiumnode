@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>BRhodium Bitcoin FullNode</Description>
     <AssemblyTitle>BRhodium.Bitcoin</AssemblyTitle>
-    <TargetFramework>netstandard2.0</TargetFramework>    
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>BRhodium.Node</AssemblyName>
     <PackageId>BRhodium.Node</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>

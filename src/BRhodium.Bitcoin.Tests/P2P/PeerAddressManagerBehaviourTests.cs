@@ -47,7 +47,7 @@ namespace BRhodium.Node.Tests.P2P
             networkPeer.SetupGet(n => n.MessageReceived).Returns(messageReceived);
 
             var stateChanged = new AsyncExecutionEvent<INetworkPeer, NetworkPeerState>();
-            networkPeer.SetupGet(n => n.StateChanged).Returns(stateChanged); 
+            networkPeer.SetupGet(n => n.StateChanged).Returns(stateChanged);
 
             var behaviour = new PeerAddressManagerBehaviour(DateTimeProvider.Default, addressManager) { Mode = PeerAddressManagerBehaviourMode.AdvertiseDiscover };
             behaviour.Attach(networkPeer.Object);

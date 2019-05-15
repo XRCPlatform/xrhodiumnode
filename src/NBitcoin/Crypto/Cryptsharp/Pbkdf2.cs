@@ -31,12 +31,12 @@ namespace NBitcoin.Crypto
     /// <summary>
     /// Implements the PBKDF2 key derivation function.
     /// </summary>
-    /// 
+    ///
     /// <example>
     /// <code title="Computing a Derived Key">
     /// using System.Security.Cryptography;
     /// using CryptSharp.Utility;
-    /// 
+    ///
     /// // Compute a 128-byte derived key using HMAC-SHA256, 1000 iterations, and a given key and salt.
     /// byte[] derivedKey = Pbkdf2.ComputeDerivedKey(new HMACSHA256(key), salt, 1000, 128);
     /// </code>

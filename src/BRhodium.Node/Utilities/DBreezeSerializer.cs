@@ -16,7 +16,7 @@ namespace BRhodium.Node.Utilities
         /// <summary>
         /// Initializes custom serializers for DBreeze engine.
         /// </summary>
-        public void Initialize(Network network) 
+        public void Initialize(Network network)
         {
             this.Network = network;
             CustomSerializator.ByteArraySerializator = this.Serializer;

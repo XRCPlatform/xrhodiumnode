@@ -341,7 +341,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
             using (await this.consensusLock.LockAsync(this.nodeLifetime.ApplicationStopping).ConfigureAwait(false))
             {
                 blockValidationContext.RuleContext = new RuleContext(blockValidationContext, this.Chain.Network.Consensus, this.Tip);
-                
+
                 // TODO: Once all code is migrated to rules this can be uncommented and the logic in this method moved to the IConsensusRules.AcceptBlockAsync()
                 // await this.consensusRules.AcceptBlockAsync(blockValidationContext);
 
@@ -404,7 +404,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                         // Since ChainHeadersBehavior check PoW, MarkBlockInvalid can't be spammed.
                         this.logger.LogError("Marking block '{0}' as invalid{1}.", rejectedBlockHash, blockValidationContext.RejectUntil != null ? string.Format(" until {0:yyyy-MM-dd HH:mm:ss}", blockValidationContext.RejectUntil.Value) : "");
                         this.chainState.MarkBlockInvalid(rejectedBlockHash, blockValidationContext.RejectUntil);
-                    } 
+                    }
                 }
                 else
                 {
@@ -459,7 +459,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
 
             await this.blockRepository.PutAsync(context.BlockValidationContext.ChainedHeader.HashBlock, new List<Block> { context.BlockValidationContext.Block }).ConfigureAwait(false);
             await this.UTXOSet.SaveChangesAsync(context.Set.GetCoins(this.UTXOSet), null, this.Tip.HashBlock, context.BlockValidationContext.ChainedHeader.HashBlock).ConfigureAwait(false);
-            
+
 
             // Set the new tip.
             this.Tip = context.BlockValidationContext.ChainedHeader;

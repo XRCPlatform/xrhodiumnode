@@ -52,7 +52,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.LoopSteps
                 this.logger.LogTrace("(-)[NOT_FOUND]:{0}", StepResult.Next);
                 return StepResult.Next;
             }
-            
+
             // In case of IBD do not save every single block- persist them in batches.
             if (this.BlockStoreLoop.PendingStorage.Count < BlockStoreLoop.PendingStorageBatchThreshold &&
                 !disposeMode && this.BlockStoreLoop.InitialBlockDownloadState.IsInitialBlockDownload())

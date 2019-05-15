@@ -19,7 +19,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
         [Fact]
         public void CanHaveAllFullnodeServicesTest()
         {
-            // This test is put in the mempool feature because the 
+            // This test is put in the mempool feature because the
             // mempool requires all the features to be a fullnode
 
 

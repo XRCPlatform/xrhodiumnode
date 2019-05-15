@@ -23,7 +23,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
 
         public BlockStoreController(ILoggerFactory loggerFactory, IBlockStoreCache blockStoreCache)
         {
-            this.blockStoreCache = blockStoreCache;         
+            this.blockStoreCache = blockStoreCache;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
         }
 
@@ -42,10 +42,10 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Controllers
             {
                 var block = await this.blockStoreCache.GetBlockAsync(uint256.Parse(query.Hash)).ConfigureAwait(false);
                 if(block == null) return new NotFoundObjectResult("Block not found");
-                return query.OutputJson 
+                return query.OutputJson
                     ? this.Json(new BlockModel(block))
                     : this.Json(block);
-            } 
+            }
             catch (Exception e)
             {
                 this.logger.LogError("Exception occurred: {0}", e.ToString());

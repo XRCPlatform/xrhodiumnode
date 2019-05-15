@@ -354,7 +354,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var walletName = "mywallet";
 
             ConcurrentChain chain = WalletTestsHelpers.PrepareChainWithBlock(this.Network);
-            
+
             // create a fresh manager.
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
@@ -364,7 +364,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var deletedWallet = this.CreateWalletOnDiskAndDeleteWallet(walletManager, password, passphrase, walletName, chain);
             Assert.Throws<WalletException>(() => walletManager.GetWalletByName(walletName));
 
-           
+
             // Try to recover it.
             var recoveredWallet = walletManager.RecoverWallet(password, walletName, deletedWallet.mnemonic.ToString(), DateTime.Now.AddDays(1), passphrase);
 
@@ -458,7 +458,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var deletedWallet = this.CreateWalletOnDiskAndDeleteWallet(walletManager, password, password, walletName, chain);
             //Assert.False(File.Exists(Path.Combine(dataFolder.WalletPath + $"/{walletName}.wallet.json")));
 
-        
+
             Assert.Throws<WalletException>(() => walletManager.GetWalletByName(walletName));
 
             // try to recover it.
@@ -787,7 +787,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             walletManager.Wallets.AddOrReplace("myWallet", wallet);
 
             var result = walletManager.GetUnusedChangeAddress(new WalletAccountReference(wallet.Name, wallet.AccountsRoot.First().Accounts.First().Name));
-            
+
             Assert.Equal(alice.GetAddress().ToString(), result.Address);
         }
 
@@ -2547,9 +2547,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
                 dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            
+
             HdAccount account = WalletTestsHelpers.CreateAccount("account 1");
-            
+
             HdAddress accountAddress1 = WalletTestsHelpers.CreateAddress();
             accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(15000), null));
             accountAddress1.Transactions.Add(WalletTestsHelpers.CreateTransaction(new uint256(2), new Money(10000), 1));
@@ -2743,7 +2743,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             walletManager.LoadWallet("test", "wallet2");
 
             Assert.True(walletManager.GetWalletByName("wallet1") != null);
-            Assert.True(walletManager.GetWalletByName("wallet2") != null);      
+            Assert.True(walletManager.GetWalletByName("wallet2") != null);
 
             var resultWallet = walletManager.GetWalletByName("wallet1");
             Assert.Equal(wallet.Name, resultWallet.Name);
@@ -2998,7 +2998,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 CreateDataFolder(this), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
 
             walletManager.Wallets.AddOrReplace("myWallet1", wallet);
-            
+
             walletManager.WalletTipHash = new uint256(125125125);
 
             walletManager.UpdateLastBlockSyncedHeight(wallet, chainedBlock);
@@ -3021,7 +3021,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Generate a wallet with an account and a few transactions.
             Wallet wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
-            
+
             WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
 
             var firstAccount = wallet.AccountsRoot.First().Accounts.First();
@@ -3066,7 +3066,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Generate a wallet with an account and no transactions.
             Wallet wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
-            
+
             WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
 
             var firstAccount = wallet.AccountsRoot.First().Accounts.First();
@@ -3094,7 +3094,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Generate a wallet with an account and a few transactions.
             Wallet wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
-            
+
             WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
 
             var firstAccount = wallet.AccountsRoot.First().Accounts.First();
@@ -3141,7 +3141,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             // Generate a wallet with an account and a few transactions.
             Wallet wallet = WalletTestsHelpers.CreateWallet("wallet1", this.Network);
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
-            
+
             WalletTestsHelpers.AddAddressesToWallet(walletManager, 20);
 
             var firstAccount = wallet.AccountsRoot.First().Accounts.First();
@@ -3158,10 +3158,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             uint256 unconfirmedTransactionId = trxId >> counter++;
             SpendingDetails unconfirmedSpendingDetails1 = new SpendingDetails { TransactionId = unconfirmedTransactionId };
             TransactionData trxConfirmed2 = new TransactionData { Amount = 10, Id = trxId >> counter++, BlockHeight = 50001, SpendingDetails = unconfirmedSpendingDetails1, ScriptPubKey = new Key().ScriptPubKey };
-            
+
             // Unconfirmed transaction.
             TransactionData trxUnconfirmed1 = new TransactionData { Amount = 10, Id = unconfirmedTransactionId , ScriptPubKey = new Key().ScriptPubKey };
-            
+
             firstAccount.ExternalAddresses.ElementAt(0).Transactions.Add(trxUnconfirmed1);
             firstAccount.ExternalAddresses.ElementAt(1).Transactions.Add(trxConfirmed1);
             firstAccount.InternalAddresses.ElementAt(1).Transactions.Add(trxConfirmed2);

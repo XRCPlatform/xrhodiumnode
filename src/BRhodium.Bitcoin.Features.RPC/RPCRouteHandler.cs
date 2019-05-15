@@ -68,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.RPC
                         await this.inner.RouteAsync(context);
 
                     }
-                }               
+                }
             }
         }
     }

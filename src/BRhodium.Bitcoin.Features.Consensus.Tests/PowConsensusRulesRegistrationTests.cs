@@ -15,7 +15,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         {
             this.rules = new FullNodeBuilderConsensusExtension.PowConsensusRulesRegistration().GetRules();
         }
-        
+
         [Fact]
         public void GetRules_ForPOW_ReturnsListOfRegisteredPowRules()
         {

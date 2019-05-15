@@ -43,7 +43,7 @@ namespace BRhodium.Node.P2P.Protocol.Behaviors
                     return;
 
                 this.AttachedPeer = peer;
-                 
+
                 this.AttachCore();
             }
         }

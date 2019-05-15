@@ -220,7 +220,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
             transaction.Version = 48;
             block.Transactions.Add(transaction);
             blocks.Add(block);
-            
+
             var block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
             transaction = Network.Main.Consensus.ConsensusFactory.CreateTransaction();
             transaction.Version = 15;
