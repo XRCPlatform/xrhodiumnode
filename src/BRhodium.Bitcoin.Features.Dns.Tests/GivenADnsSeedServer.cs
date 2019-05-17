@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using DNS.Protocol;
+using Response = DNS.Protocol.Response;
 using DNS.Protocol.ResourceRecords;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
