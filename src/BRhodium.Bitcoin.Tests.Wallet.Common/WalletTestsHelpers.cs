@@ -450,10 +450,11 @@ namespace BRhodium.Node.Tests.Wallet.Common
             {
                 transactions.Add(new TransactionData
                 {
-                    BlockHeight = height,
+                    BlockHeight = height-1,
                     Amount = new Money(new Random().Next(500000, 1000000)),
                     SpendingDetails = new SpendingDetails() {
-                        TransactionId = new uint256(1),
+                        BlockHeight = height,
+                        TransactionId = new uint256((ulong)height),
                             Payments = new List<PaymentDetails>()
                             {
                                 new PaymentDetails()
@@ -464,7 +465,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                                 }
                             }
                     },
-                    Id = new uint256(),
+                    Id = new uint256((ulong)height),
                     ScriptPubKey = new Script()
                 });
             }

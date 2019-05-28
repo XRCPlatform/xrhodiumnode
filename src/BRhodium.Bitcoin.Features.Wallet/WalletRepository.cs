@@ -22,13 +22,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
     {
         private readonly string walletPath;
         private readonly CoinType coinType;
-
+        private readonly object lockObject;
         private readonly Network network;
         private ConcurrentDictionary<string, Wallet> walletCache = new ConcurrentDictionary<string, Wallet>();
         protected readonly SQLiteConnection connection;
 
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
+            this.lockObject = new object();
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
@@ -71,84 +72,88 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Guard.NotNull(wallet, nameof(wallet));
 
             Wallet placeholder;
-
-            FlushWalletCache(wallet.Id);
-
-            //Task task = Task.Run(() =>
-            // {
-            using (var dbTransaction = this.connection.BeginTransaction())
+            lock (lockObject)
             {
-                bool newEntity = false;
-                if (wallet.Id < 1)
+                FlushWalletCache(wallet.Id);
+
+                //Task task = Task.Run(() =>
+                // {
+                using (var dbTransaction = this.connection.BeginTransaction())
                 {
-                    var insertCommand = connection.CreateCommand();
-                    insertCommand.Transaction = dbTransaction;
-                    insertCommand.CommandText = "INSERT INTO Wallet ( Name, EncryptedSeed, ChainCode, Network, CreationTime, LastBlockSyncedHash, LastBlockSyncedHeight, CoinType, LastUpdated, Blocks) " +
-                    "VALUES ( $Name, $EncryptedSeed, $ChainCode, $Network, $CreationTime, $LastBlockSyncedHash, $LastBlockSyncedHeight, $CoinType, $LastUpdated, $Blocks)";
-
-                    insertCommand.Parameters.AddWithValue("$Name", wallet.Name);
-                    insertCommand.Parameters.AddWithValue("$EncryptedSeed", wallet.EncryptedSeed);
-                    insertCommand.Parameters.AddWithValue("$ChainCode", wallet.ChainCode?.ToBase64String());
-                    insertCommand.Parameters.AddWithValue("$Network", wallet.Network.Name);
-                    insertCommand.Parameters.AddWithValue("$CreationTime", wallet.CreationTime.ToUnixTimeSeconds());
-                    insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
-                    insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHeight);
-                    insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.Network.Consensus.CoinType);
-                    insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
-
-
-                    byte[] bytes = GetBlockLocatorBytes(wallet.BlockLocator);
-                    SQLiteParameter prm = new SQLiteParameter("$Blocks", DbType.Binary, bytes.Length, ParameterDirection.Input, false, 0, 0, null, DataRowVersion.Current, bytes);
-                    insertCommand.Parameters.Add(prm);
-
-                    insertCommand.ExecuteNonQuery();
-
-                    var selectCommand = connection.CreateCommand();
-                    selectCommand.Transaction = dbTransaction;
-                    selectCommand.CommandText = "SELECT id FROM Wallet WHERE Name = $Name";
-                    selectCommand.Parameters.AddWithValue("$Name", wallet.Name);
-                    using (var reader = selectCommand.ExecuteReader())
+                    bool newEntity = false;
+                    if (wallet.Id < 1)
                     {
-                        while (reader.Read())
+                        var insertCommand = connection.CreateCommand();
+                        insertCommand.Transaction = dbTransaction;
+                        insertCommand.CommandText = "INSERT INTO Wallet ( Name, EncryptedSeed, ChainCode, Network, CreationTime, LastBlockSyncedHash, LastBlockSyncedHeight, CoinType, LastUpdated, Blocks) " +
+                        "VALUES ( $Name, $EncryptedSeed, $ChainCode, $Network, $CreationTime, $LastBlockSyncedHash, $LastBlockSyncedHeight, $CoinType, $LastUpdated, $Blocks)";
+
+                        insertCommand.Parameters.AddWithValue("$Name", wallet.Name);
+                        insertCommand.Parameters.AddWithValue("$EncryptedSeed", wallet.EncryptedSeed);
+                        insertCommand.Parameters.AddWithValue("$ChainCode", wallet.ChainCode?.ToBase64String());
+                        insertCommand.Parameters.AddWithValue("$Network", wallet.Network.Name);
+                        insertCommand.Parameters.AddWithValue("$CreationTime", wallet.CreationTime.ToUnixTimeSeconds());
+                        insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
+                        insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHeight);
+                        insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.Network.Consensus.CoinType);
+                        insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
+
+
+                        byte[] bytes = GetBlockLocatorBytes(wallet.BlockLocator);
+                        SQLiteParameter prm = new SQLiteParameter("$Blocks", DbType.Binary, bytes.Length, ParameterDirection.Input, false, 0, 0, null, DataRowVersion.Current, bytes);
+                        insertCommand.Parameters.Add(prm);
+
+                        insertCommand.ExecuteNonQuery();
+
+                        var selectCommand = connection.CreateCommand();
+                        selectCommand.Transaction = dbTransaction;
+                        selectCommand.CommandText = "SELECT id FROM Wallet WHERE Name = $Name";
+                        selectCommand.Parameters.AddWithValue("$Name", wallet.Name);
+                        using (var reader = selectCommand.ExecuteReader())
                         {
-                            wallet.Id = reader.GetInt32(0);
+                            while (reader.Read())
+                            {
+                                wallet.Id = reader.GetInt32(0);
+                            }
+                        }
+                        newEntity = true;
+                    }
+
+                    if (wallet.AccountsRoot.FirstOrDefault<AccountRoot>() != null)
+                    {
+                        foreach (var item in wallet.AccountsRoot.FirstOrDefault<AccountRoot>().Accounts)
+                        {
+                            SaveAccount(wallet.Id, dbTransaction, item);
+                        }
+
+
+                        foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
+                        {
+                            foreach (var address in account.ExternalAddresses)
+                            {
+                                SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
+                            }
+                            foreach (var address in account.InternalAddresses)
+                            {
+                                SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
+                            }
                         }
                     }
-                    newEntity = true;
+
+                    dbTransaction.Commit();
+
+                    //if (wallet != null)
+                    //{
+                    //    walletCache.TryAdd(wallet.Name,wallet);
+                    //    walletCache.TryAdd("wallet_" + wallet.Id,wallet);
+                    //}
+
                 }
-
-                if (wallet.AccountsRoot.FirstOrDefault<AccountRoot>() != null)
-                {
-                    foreach (var item in wallet.AccountsRoot.FirstOrDefault<AccountRoot>().Accounts)
-                    {
-                        SaveAccount(wallet.Id, dbTransaction, item);
-                    }
-
-
-                    foreach (var account in wallet.GetAccountsByCoinType(this.coinType))
-                    {
-                        foreach (var address in account.ExternalAddresses)
-                        {
-                            SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
-                        }
-                        foreach (var address in account.InternalAddresses)
-                        {
-                            SaveAddress(wallet.Id, dbTransaction, address, saveTransactionsHere);
-                        }
-                    }
-                }                
-
-                dbTransaction.Commit();
-
-                //if (wallet != null)
-                //{
-                //    walletCache.TryAdd(wallet.Name,wallet);
-                //    walletCache.TryAdd("wallet_" + wallet.Id,wallet);
-                //}
-
+                //});
+                //return task;
             }
-            //});
-            //return task;
+
+
         }
 
         private byte[] GetBlockLocatorBytes(List<uint256> blob)
@@ -896,11 +901,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             FlushWalletCache(walletId);
             //rebuild cache async
-            Task task = Task.Run(() =>
-                {
-                    GetWalletById(walletId);
-                }
-            );
+            //Task task = Task.Run(() =>
+            //    {
+            //        GetWalletById(walletId);
+            //    }
+            //);
             
             return trx.DbId;
         }

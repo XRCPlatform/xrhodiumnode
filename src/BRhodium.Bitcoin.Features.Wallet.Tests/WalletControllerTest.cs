@@ -562,7 +562,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = new Wallet
             {
                 Name = "myWallet",
-                Network = NetworkHelpers.GetNetwork("BRhodiumMain"),
+                Network = this.Network,
                 CreationTime = new DateTime(2017, 6, 19, 1, 1, 1),
                 AccountsRoot = new List<AccountRoot> {
                     new AccountRoot()
@@ -581,15 +581,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 .Returns(new NetworkPeerCollection());
 
             var mockWalletWrapper = new Mock<IWalletManager>();
-            mockWalletWrapper.Setup(w => w.GetWallet("myWallet")).Returns(wallet);
-
-            string walletFileExtension = "wallet.json";
-            string testWalletFileName = Path.ChangeExtension("myWallet", walletFileExtension);
-            string testWalletPath = Path.Combine(AppContext.BaseDirectory, "BRhodiumnode", testWalletFileName);
-            string folder = Path.GetDirectoryName(testWalletPath);
-            string[] files = new string[] { testWalletFileName };
-            //mockWalletWrapper.Setup(w => w.GetWalletsFiles()).Returns((folder, files));
-            //mockWalletWrapper.Setup(w => w.GetWalletFileExtension()).Returns(walletFileExtension);
+            mockWalletWrapper.Setup(w => w.GetWallet("myWallet")).Returns(wallet);           
 
             var controller = new WalletController(this.LoggerFactory.Object, mockWalletWrapper.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, connectionManagerMock.Object, this.Network, concurrentChain, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
 
@@ -608,7 +600,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(0, resultValue.ConnectedNodes);
             Assert.Equal(tip.Height, resultValue.ChainTip);
             Assert.True(resultValue.IsDecrypted);
-            Assert.Equal(testWalletPath, resultValue.WalletFilePath);
+
         }
 
         [Fact]
@@ -1651,7 +1643,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var walletName = "wallet 1";
             Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
-
+            wallet.AccountsRoot.Clear();
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 Accounts = new List<HdAccount>()
@@ -1792,26 +1784,29 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void GetAllAddressesWithValidModelReturnsAllAddresses()
         {
             var walletName = "myWallet";
+            var walletPassword = Guid.NewGuid().ToString();
+
+            Wallet wallet = WalletTestsHelpers.GenerateBlankWallet(walletName, walletPassword, this.Network);
 
             // Receive address with a transaction
-            HdAddress usedReceiveAddress = WalletTestsHelpers.CreateAddress();
+            HdAddress usedReceiveAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             TransactionData receiveTransaction = WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(500000), 1);
             usedReceiveAddress.Transactions.Add(receiveTransaction);
 
             // Receive address without a transaction
-            HdAddress unusedReceiveAddress = WalletTestsHelpers.CreateAddress();
+            HdAddress unusedReceiveAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1);
 
             // Change address with a transaction
-            HdAddress usedChangeAddress = WalletTestsHelpers.CreateAddress(true);
+            HdAddress usedChangeAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0);
             TransactionData changeTransaction = WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(500000), 1);
             usedChangeAddress.Transactions.Add(changeTransaction);
 
             // Change address without a transaction
-            HdAddress unusedChangeAddress = WalletTestsHelpers.CreateAddress(true);
+            HdAddress unusedChangeAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1);
 
-            var receiveAddresses = new List<HdAddress> { usedReceiveAddress, unusedReceiveAddress };
-            var changeAddresses = new List<HdAddress> { usedChangeAddress, unusedChangeAddress };
-            Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
+            var receiveAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses;
+            var changeAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses;
+
 
             var mockWalletWrapper = new Mock<IWalletManager>();
             mockWalletWrapper.Setup(m => m.GetWallet(walletName)).Returns(wallet);

@@ -221,18 +221,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var concurrentChain = new ConcurrentChain(this.Network);
             ChainedHeader tip = WalletTestsHelpers.AppendBlock(null, concurrentChain).ChainedHeader;
 
-            //walletManager.Wallets.AddOrReplace("walletA", WalletTestsHelpers.CreateWallet("walletA", this.Network));
-            //walletManager.Wallets.AddOrReplace("walletB", WalletTestsHelpers.CreateWallet("walletB", this.Network));
+            walletManager.SaveWallet(WalletTestsHelpers.GenerateBlankWallet("walletA", "walletA", this.Network));
+            walletManager.SaveWallet(WalletTestsHelpers.GenerateBlankWallet("walletB", "walletB", this.Network));
 
-            Parallel.For(0, 500, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (int iteration) =>
+            Parallel.For(0, 50, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (int iteration) =>
             {
                 string walletName = $"wallet{iteration}";
                 walletManager.UpdateLastBlockSyncedHeight(tip);
-                //walletManager.Wallets.AddOrReplace(walletName, WalletTestsHelpers.CreateWallet(walletName, this.Network));
+                walletManager.SaveWallet(WalletTestsHelpers.GenerateBlankWallet(walletName, walletName, this.Network));
                 walletManager.UpdateLastBlockSyncedHeight(tip);
             });
 
-            Assert.Equal(502, walletManager.GetWalletNames().Count());
+            Assert.Equal(52, walletManager.GetWalletNames().Count());
             foreach (var walletName in walletManager.GetWalletNames())
             {
                 Assert.True(walletManager.GetWalletByName(walletName).BlockLocator != null);
@@ -1176,8 +1176,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         private static void PlantTransactionsToAddresses(ICollection<HdAddress> addresses, ICollection<TransactionData> intTransactions)
         {
             for (int i = 0; i < intTransactions.Count; i++)
-            {
-                addresses.ElementAt(i).Transactions.Add(intTransactions.ElementAt(i));
+            { 
+                var t = intTransactions.ElementAt(i);
+                addresses.ElementAt(i).Transactions.Add(t);
             }
         }
 
@@ -2180,36 +2181,48 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = this.walletFixture.GenerateBlankWallet("myWallet1", "password");
             var account = wallet.AccountsRoot.ElementAt(0).Accounts.FirstOrDefault();
             account.Name = "First account";
-            PlantTransactionsToAddresses(account.ExternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 0, 1, 2, 3, 4, 5));
-            PlantTransactionsToAddresses(account.InternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 0, 1, 2, 3, 4, 5));
+            PlantTransactionsToAddresses(account.ExternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 1, 2, 3, 4));
+            PlantTransactionsToAddresses(account.InternalAddresses, WalletTestsHelpers.CreateSpentTransactionsOfBlockHeights(this.Network, 1, 2, 3, 4));
 
 
             // reorg at block 3
 
             // Trx at block 0 is not spent
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().Id = trxId >> trxCount++; ;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().Id = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().SpendingDetails = null;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().BlockHeight = 0;
+            
             //internal
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.First().Id = trxId >> trxCount++;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.First().Id = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.First().SpendingDetails = null;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.First().BlockHeight = 0;
 
             // Trx at block 2 is spent in block 3, after reorg it will not be spendable.
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.BlockHeight = 3;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().BlockHeight = 2;
             //internal
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.TransactionId = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1).Transactions.First().SpendingDetails.BlockHeight = 3;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().BlockHeight = 2;
 
             // Trx at block 3 is spent at block 5, after reorg it will be spendable.
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++; ;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.BlockHeight = 5;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(2).Transactions.First().BlockHeight = 3;
             //internal
-            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = trxId >> trxCount++; ;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.TransactionId = new uint256((ulong)trxCount++);
             wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().SpendingDetails.BlockHeight = 5;
+            wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(2).Transactions.First().BlockHeight = 3;
 
 
             walletManager.SaveWallet(wallet, true);
             walletManager.LoadKeysLookupLock();
+
+            wallet = walletManager.GetWallet("myWallet1");
+            var account1 = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
+            Assert.Equal(6, account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).Count());
+
             walletManager.RemoveBlocks(chainedHeader);
 
             wallet = walletManager.GetWallet("myWallet1");
@@ -2219,11 +2232,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(chainedHeader.HashBlock, wallet.AccountsRoot.ElementAt(0).LastBlockSyncedHash);
             Assert.Equal(chainedHeader.HashBlock, walletManager.WalletTipHash);
 
-            var account1 = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
+            account1 = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0);
 
             Assert.Equal(6, account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).Count());
             Assert.True(account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).All(r => r.BlockHeight <= chainedHeader.Height));
-            Assert.True(account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).All(r => r.SpendingDetails == null || r.SpendingDetails.BlockHeight <= chainedHeader.Height));
+            Assert.True(account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).All(r => r.SpendingDetails == null || r.SpendingDetails.BlockHeight == null || r.SpendingDetails.BlockHeight <= chainedHeader.Height));
             Assert.Equal(4, account1.InternalAddresses.Concat(account1.ExternalAddresses).SelectMany(r => r.Transactions).Count(t => t.SpendingDetails == null));
         }
 
