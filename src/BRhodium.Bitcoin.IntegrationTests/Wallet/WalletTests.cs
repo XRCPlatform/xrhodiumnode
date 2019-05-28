@@ -383,7 +383,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 // create a reorg by mining on two different chains
                 // ================================================
-                // advance both chains, one chin is longer
+                // advance both chains, one chain is longer
                 BRhodiumSender.GenerateBRhodiumWithMiner(2);             
                 BRhodiumReorg.GenerateBRhodiumWithMiner(10);               
 

@@ -75,7 +75,10 @@ namespace BRhodium.Node.Utilities
             }
 
             IProtoBufSerializeable proto = obj as IProtoBufSerializeable;
-            return SerializeProtobuf(obj);
+            if (proto != null)//casted to interface
+            {
+                return SerializeProtobuf(obj);
+            }         
 
             throw new NotSupportedException();
         }
