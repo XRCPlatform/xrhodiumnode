@@ -17,7 +17,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Models
         public string Bits { get; set; }
 
         [JsonProperty(Order = 2,PropertyName = "curtime")]
-        public string Curtime { get; set; }
+        public uint Curtime { get; set; }
 
         [JsonProperty(Order = 8, PropertyName = "version")]
         public int Version { get; set; }
