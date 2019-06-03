@@ -274,7 +274,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 if (block != null)
                 {
                     blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
-                    blockTemplate.Curtime = DateTime.UtcNow.ToUnixTimestamp().ToString();
+                    blockTemplate.Curtime = (uint)DateTime.UtcNow.ToUnixTimestamp();
                     blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
                     blockTemplate.Target = block.Header.Bits.ToString();
 
