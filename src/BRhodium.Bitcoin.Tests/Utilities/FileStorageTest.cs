@@ -241,7 +241,7 @@ namespace BRhodium.Node.Tests.Utilities
             // Act
             bool isFileExists = fileStorage.Exists("savedTestObject.json");
             bool isBackupFileExists = fileStorage.Exists("savedTestObject.json.bak");
-            
+
             // Assert
             Assert.True(isFileExists);
             Assert.True(isBackupFileExists);
@@ -263,7 +263,7 @@ namespace BRhodium.Node.Tests.Utilities
             string dir = this.GetFolderPathForTestExecution();
             FileStorage<TestObject> fileStorage = new FileStorage<TestObject>(dir);
             fileStorage.SaveToFile(testObject, "savedTestObject.json", true);
-            
+
             // Act
             bool isFileExists = fileStorage.Exists("savedTestObject.json");
             bool isBackupFileExists = fileStorage.Exists("savedTestObject.json.bak");

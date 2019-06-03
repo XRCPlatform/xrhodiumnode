@@ -83,8 +83,8 @@ namespace BRhodium.Bitcoin.Features.Dns
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.peerAddressManager = peerAddressManager;
             this.dnsServer = dnsServer;
-            this.dnsSettings = dnsSettings;                      
-            this.externalEndpoint = connectionSettings.ExternalEndpoint;            
+            this.dnsSettings = dnsSettings;
+            this.externalEndpoint = connectionSettings.ExternalEndpoint;
         }
 
         /// <summary>
@@ -99,9 +99,9 @@ namespace BRhodium.Bitcoin.Features.Dns
             this.fullNodeMode = this.dnsSettings.DnsFullNode;
 
             DateTimeOffset activePeerLimit = this.dateTimeProvider.GetTimeOffset().AddSeconds(-this.dnsPeerBlacklistThresholdInSeconds);
-            
+
             var whitelist = this.peerAddressManager.Peers.Where(p => p.LastSeen > activePeerLimit);
-            
+
             if (!this.fullNodeMode)
             {
                 // Exclude the current external ip address from DNS as its not a full node.

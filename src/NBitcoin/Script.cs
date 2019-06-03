@@ -674,7 +674,7 @@ namespace NBitcoin
             }
 
             SigHash hashType = nHashType & (SigHash)31;
-            
+
             // Check for invalid use of SIGHASH_SINGLE.
             if (hashType == SigHash.Single)
             {

@@ -233,7 +233,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     MinConfirmations = 0,
                     FeeType = FeeType.Low,
                 };
-                
+
                 walletTransactionHandler.FundTransaction(fundContext, fundTransaction);
                 var fee = feeRate.GetFee(fundTransaction);
 
@@ -291,7 +291,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "Block with specified hash doesnt contain transaction");
                     }
-                } 
+                }
 
                 var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
 
@@ -375,13 +375,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs 
-        /// that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded 
+        /// Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs
+        /// that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded
         /// private keys that, if given, will be the only keys used to sign the transaction.
         /// </summary>
         /// <param name="hex">The transaction hex string.</param>
         /// <param name="privkeys">A json array of base58-encoded private keys for signing.</param>
-        /// <param name="prevtxs">An json array of previous dependent transaction outputs.</param> 
+        /// <param name="prevtxs">An json array of previous dependent transaction outputs.</param>
         /// <param name="sighashtype">The signature hash type. Default is ALL. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY".</param>
         /// <returns>(SignRawTransactionModel) Result is sign object of transaction.</returns>
         [ActionName("signrawtransaction")]

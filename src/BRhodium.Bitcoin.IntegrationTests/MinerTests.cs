@@ -232,7 +232,7 @@ namespace BRhodium.Node.IntegrationTests
                 return this;
             }
 
-          
+
         }
         [Collection("Simple breeze db context")]
         public class MinerTestsWithSharedContext
@@ -620,9 +620,9 @@ namespace BRhodium.Node.IntegrationTests
             context.mempool.Clear();
         }
 
-       
 
-     
+
+
         [Fact]
         public async Task MinerCreateBlockCoinbaseMempoolTemplateCreationFailsAsync()
         {
@@ -644,7 +644,7 @@ namespace BRhodium.Node.IntegrationTests
             context.mempool.Clear();
         }
 
-        
+
 
         [Fact]
         public void GetProofOfWorkRewardForMinedBlocksTest()

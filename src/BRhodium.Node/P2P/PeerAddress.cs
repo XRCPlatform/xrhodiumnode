@@ -106,7 +106,7 @@ namespace BRhodium.Node.P2P
         public string BanReason { get; set; }
 
         /// <summary>
-        /// Maintain a count of bad behaviour.  
+        /// Maintain a count of bad behaviour.
         /// <para>
         /// Once a certain score is reached ban the peer.
         /// </para>
@@ -205,8 +205,8 @@ namespace BRhodium.Node.P2P
         /// <summary>
         /// Resets the amount of <see cref="ConnectionAttempts"/>.
         /// <para>
-        /// This is reset when the amount of failed connection attempts reaches 
-        /// the <see cref="PeerAddress.AttemptThreshold"/> and the last attempt was 
+        /// This is reset when the amount of failed connection attempts reaches
+        /// the <see cref="PeerAddress.AttemptThreshold"/> and the last attempt was
         /// made more than <see cref="PeerAddress.AttemptResetThresholdHours"/> ago.
         /// </para>
         /// </summary>

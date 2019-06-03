@@ -85,7 +85,7 @@
         }
 
         /// <summary>
-        /// Gets the script of the hash of the public key corresponing to the private key 
+        /// Gets the script of the hash of the public key corresponing to the private key
         /// of the extended key of this Base58 item.
         /// </summary>
         public override Script ScriptPubKey

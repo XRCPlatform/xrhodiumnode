@@ -168,7 +168,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 cache.FlushAsync().GetAwaiter().GetResult();
                 cache.Dispose();
             }
-           
+
             this.dBreezeCoinView.Dispose();
         }
     }
@@ -189,7 +189,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                 .AddFeature<ConsensusFeature>()
                 .FeatureServices(services =>
                 {
-                    
+
                     fullNodeBuilder.Network.Consensus.Options = new PowConsensusOptions();
                     if (fullNodeBuilder.Network.Name == "BRhodiumRegTest")
                     {

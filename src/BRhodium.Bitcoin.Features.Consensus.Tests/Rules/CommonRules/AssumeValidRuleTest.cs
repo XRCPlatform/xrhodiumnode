@@ -66,7 +66,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
         [Fact]
         public void RunAsync_DoNotSkipValidation_BlockAssumedValidSetOnConsensus_BlockLowerThanAssumedValidHeight_SetSkipValidation()
-        {            
+        {
             this.consensusSettings.BlockAssumedValid = this.concurrentChain.GetBlock(4).HashBlock;
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(3);
@@ -79,7 +79,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
         [Fact]
         public void RunAsync_DoNotSkipValidation_BlockAssumedValidSetOnConsensus_BlockEqualToThanAssumedValidHeight_SetSkipValidation()
-        {            
+        {
             this.consensusSettings.BlockAssumedValid = this.concurrentChain.GetBlock(4).HashBlock;
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(4);
@@ -92,7 +92,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
         [Fact]
         public void RunAsync_DoNotSkipValidation_BlockAssumedValidSetOnConsensus_BlockHigherThanAssumedValidHeight_DoesNotSetSkipValidation()
-        {            
+        {
             this.consensusSettings.BlockAssumedValid = this.concurrentChain.GetBlock(3).HashBlock;
             this.ruleContext.SkipValidation = false;
             this.ruleContext.BlockValidationContext.ChainedHeader = this.concurrentChain.GetBlock(4);

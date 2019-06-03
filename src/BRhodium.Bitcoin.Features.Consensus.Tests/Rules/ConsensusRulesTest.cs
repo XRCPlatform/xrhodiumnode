@@ -56,7 +56,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
             };
 
             var consensusRules = InitializeConsensusRules();
-            
+
             consensusRules = consensusRules.Register(this.ruleRegistration.Object) as TestConsensusRules;
 
             var rules = consensusRules.Rules.ToList();
@@ -344,6 +344,6 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.Rules
 
                 return Task.FromResult(15);
             }
-        }              
+        }
     }
 }

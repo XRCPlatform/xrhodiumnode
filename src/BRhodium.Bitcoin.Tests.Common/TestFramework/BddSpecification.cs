@@ -13,7 +13,7 @@ namespace BRhodium.Node.Tests.Common.TestFramework
     {
         private readonly ITestOutputHelper output;
         private readonly DateTime startOfTestTime;
-        
+
         private ITest currentTest;
 
         /// <summary>

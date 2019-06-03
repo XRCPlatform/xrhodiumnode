@@ -10,7 +10,7 @@
           <content>
             <para><legacyBold>Client REGEX verification</legacyBold></para>
             <para>You only need to validate your address with this REGEX:</para>
-            
+
 <code language="cs">
 TESTNET: ^[T][a-km-zA-HJ-NP-Z0-9]{25,34}$
 MAINNET: ^[R][a-km-zA-HJ-NP-Z0-9]{25,34}$
@@ -22,15 +22,15 @@ MAINNET: ^[R][a-km-zA-HJ-NP-Z0-9]{25,34}$
             <para><legacyBold>Node API RPC-JSON verification process</legacyBold></para>
             <para>It is safer to use node RPC for verification as it uses encrypt method to check if everything is ok.</para>
             <para>There is RPC method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ValidateAddress(System.String)</codeEntityReference>.<lineBreak/>Example of call:</para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic xxx==' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"validateaddress", "params":["TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa"],  "id":1525052699893}]'
 </code>
-            
+
 <para>Example of result</para>
 <code language="cs">
 {"result":{"isvalid":true,"address":"TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa","scriptPubKey":"76a914a16c034cffcf8ef2b45c7e81d96f61e1b2a953de88ac","ismine":false,"iswatchonly":false,"isscript":false},"error":null,"id":0}r
-</code>            
+</code>
           </content>
         </step>
       </steps>

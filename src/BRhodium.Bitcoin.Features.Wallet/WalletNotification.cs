@@ -9,7 +9,7 @@
         {
             if (subcription.Contains(":") && (subcription.Contains("recieved") | subcription.Contains("sent")))
             {
-                
+
                 string trigger = subcription.Substring(0, subcription.IndexOf(":"));
                 string command = subcription.Substring(subcription.IndexOf(":") + 1);
 
@@ -24,7 +24,7 @@
                     default:
                         break;
                 }
-                this.command = command;               
+                this.command = command;
             }
             else
             {

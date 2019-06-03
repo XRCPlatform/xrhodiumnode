@@ -20,7 +20,7 @@ namespace BRhodium.Node.IntegrationTests
         {
             var assembly = Assembly.GetExecutingAssembly();
 
-            var testables = 
+            var testables =
             (
                 from type in assembly.GetTypes().Where(t => t == typeof(T))
                 where type.GetConstructor(Type.EmptyTypes) != null

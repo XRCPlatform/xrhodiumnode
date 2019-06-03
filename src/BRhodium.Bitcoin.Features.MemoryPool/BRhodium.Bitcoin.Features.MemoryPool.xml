@@ -115,7 +115,7 @@
              bucket will give you an indication of the lowest feerate you can put on a
              transaction and still have a sufficiently high chance of being confirmed
              within your desired 5 blocks.
-            
+
              Here is a brief description of the implementation:
              When a transaction enters the mempool, we
              track the height of the block chain at entry.  Whenever a block comes in,
@@ -135,14 +135,14 @@
              the number of transactions we've seen in that feerate bucket when calculating
              an estimate for any number of confirmations below the number of blocks
              they've been outstanding.
-            
+
              We will instantiate an instance of this class to track transactions that were
              included in a block. We will lump transactions into a bucket according to their
              approximate feerate and then track how long it took for those txs to be included in a block
-            
+
              The tracking of unconfirmed (mempool) transactions is completely independent of the
              historical tracking of transactions that have been confirmed in a block.
-            
+
               We want to be able to estimate feerates that are needed on tx's to be included in
              a certain number of blocks.Every time a block is added to the best chain, this class records
              stats on the transactions included in that block
@@ -2393,10 +2393,10 @@
              Memory pool of pending transactions.
              </summary>
              <remarks>
-            
+
              TxMempool stores valid-according-to-the-current-best-chain transactions
              that may be included in the next block.
-            
+
              Transactions are added when they are seen on the network(or created by the
              local node), but not all transactions seen are added to the pool.For
              example, the following new transactions will not be added to the mempool:
@@ -2405,43 +2405,43 @@
              the pool where the new transaction does not meet the Replace-By-Fee
              requirements as defined in BIP 125.
              - a non-standard transaction.
-            
+
              <see cref="P:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.MapTx"/>, and <see cref="T:BRhodium.Bitcoin.Features.MemoryPool.TxMempoolEntry"/> bookkeeping:
-            
+
              <see cref="P:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.MapTx"/> is a collection that sorts the mempool on 4 criteria:
              - transaction hash
              - feerate[we use max(feerate of tx, feerate of Transaction with all descendants)]
              - time in mempool
              - mining score (feerate modified by any fee deltas from PrioritiseTransaction)
-            
+
              Note: the term "descendant" refers to in-mempool transactions that depend on
              this one, while "ancestor" refers to in-mempool transactions that a given
              transaction depends on.
-            
+
              In order for the feerate sort to remain correct, we must update transactions
              in the mempool when new descendants arrive. To facilitate this, we track
              the set of in-mempool direct parents and direct children in <see cref="!:mapLinks.Within"/>
              each TxMempoolEntry, we track the size and fees of all descendants.
-            
+
              Usually when a new transaction is added to the mempool, it has no in-mempool
              children(because any such children would be an orphan).  So in
              <see cref="M:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.AddUnchecked(NBitcoin.uint256,BRhodium.Bitcoin.Features.MemoryPool.TxMempoolEntry,System.Boolean)"/>, we:
              - update a new entry's setMemPoolParents to include all in-mempool parents
              - update the new entry's direct parents to include the new tx as a child
              - update all ancestors of the transaction to include the new tx's size/fee
-            
+
              When a transaction is removed from the mempool, we must:
              - update all in-mempool parents to not track the tx in setMemPoolChildren
              - update all ancestors to not include the tx's size/fees in descendant state
              - update all in-mempool children to not include it as a parent
-            
+
              These happen in <see cref="M:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.UpdateForRemoveFromMempool(BRhodium.Bitcoin.Features.MemoryPool.TxMempool.SetEntries,System.Boolean)"/>.
              (Note that when removing a
              transaction along with its descendants, we must calculate that set of
              transactions to be removed before doing the removal, or else the mempool can
              be in an inconsistent state where it's impossible to walk the ancestors of
              a transaction.)
-            
+
              In the event of a reorg, the assumption that a newly added tx has no
              in-mempool children is false.  In particular, the mempool is in an
              inconsistent state while new transactions are being added, because there may
@@ -2459,15 +2459,15 @@
              <see cref="M:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.CalculateMemPoolAncestors(BRhodium.Bitcoin.Features.MemoryPool.TxMempoolEntry,BRhodium.Bitcoin.Features.MemoryPool.TxMempool.SetEntries,System.Int64,System.Int64,System.Int64,System.Int64,System.String@,System.Boolean)"/>
              and <see cref="M:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.CalculateDescendants(BRhodium.Bitcoin.Features.MemoryPool.TxMempoolEntry,BRhodium.Bitcoin.Features.MemoryPool.TxMempool.SetEntries)"/> that rely
              on them to walk the mempool are not generally safe to use).
-            
+
              Computational limits:
-            
+
              Updating all in-mempool ancestors of a newly added transaction can be slow,
              if no bound exists on how many in-mempool ancestors there may be.
              <see cref="M:BRhodium.Bitcoin.Features.MemoryPool.TxMempool.CalculateMemPoolAncestors(BRhodium.Bitcoin.Features.MemoryPool.TxMempoolEntry,BRhodium.Bitcoin.Features.MemoryPool.TxMempool.SetEntries,System.Int64,System.Int64,System.Int64,System.Int64,System.String@,System.Boolean)"/>
              takes configurable limits that are designed to
              prevent these calculations from being too CPU intensive.
-            
+
              Adding transactions from a disconnected block can be very time consuming,
              because we don't have a way to limit the number of in-mempool descendants.
              To bound CPU processing, we limit the amount of work we're willing to do

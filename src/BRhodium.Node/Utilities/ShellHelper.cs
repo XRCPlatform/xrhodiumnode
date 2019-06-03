@@ -123,7 +123,7 @@ namespace BRhodium.Node.Utilities
             result.stdout = stdout.ToString();
             result.stderr = stderr.ToString();
             p.Close();
-           
+
             return result;
         }
     }

@@ -130,7 +130,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.TotalCacheSetCount = cacheSetCount;
             this.Name = name;
         }
-        
+
         public TimeSpan Elapsed
         {
             get

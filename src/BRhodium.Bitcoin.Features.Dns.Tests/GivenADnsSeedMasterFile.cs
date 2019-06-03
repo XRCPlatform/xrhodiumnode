@@ -288,7 +288,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -318,7 +318,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -349,7 +349,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -380,7 +380,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -412,7 +412,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -443,7 +443,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
 
@@ -490,7 +490,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
                 resourceRecords.Should().NotBeNull();
@@ -535,7 +535,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
                 // Act.
                 masterFile.Save(stream);
 
-                // Assert.                
+                // Assert.
                 stream.Should().NotBeNull();
                 IList<IResourceRecord> resourceRecords = this.ReadResourceRecords(stream);
                 resourceRecords.Should().NotBeNullOrEmpty();

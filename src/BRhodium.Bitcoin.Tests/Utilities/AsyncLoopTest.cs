@@ -125,7 +125,7 @@ namespace BRhodium.Node.Tests.Utilities
             });
 
             Task loopRun = asyncLoop.Run(new CancellationTokenSource(5000).Token, TimeSpan.FromMilliseconds(1000)).RunningTask;
-            
+
             await loopRun;
 
             Assert.True(iterations >= 6);

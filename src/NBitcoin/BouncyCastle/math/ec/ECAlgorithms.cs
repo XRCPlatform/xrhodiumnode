@@ -91,7 +91,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
         * "Shamir's Trick", originally due to E. G. Straus
         * (Addition chains of vectors. American Mathematical Monthly,
         * 71(7):806-808, Aug./Sept. 1964)
-        *  
+        *
         * Input: The points P, Q, scalar k = (km?, ... , k1, k0)
         * and scalar l = (lm?, ... , l1, l0).
         * Output: R = k * P + l * Q.
@@ -168,7 +168,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
         /**
          * Simple shift-and-add multiplication. Serves as reference implementation
          * to verify (possibly faster) implementations, and for very small scalars.
-         * 
+         *
          * @param p
          *            The point to multiply.
          * @param k

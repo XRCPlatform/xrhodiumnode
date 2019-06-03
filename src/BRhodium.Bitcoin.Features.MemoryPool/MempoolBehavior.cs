@@ -560,7 +560,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             List<uint256> sends = await this.manager.MempoolLock.WriteAsync(() =>
             {
                 this.logger.LogTrace("Creating list of transaction inventory to send.");
-                
+
                 // Determine transactions to relay
                 // Produce a vector with all candidates for sending
                 List<uint256> invs = this.inventoryTxToSend.Keys.Take(InventoryBroadcastMax).ToList();
@@ -573,12 +573,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
                     // Check if not in the filter already
                     if (this.filterInventoryKnown.ContainsKey(hash))
                         continue;
-                    
+
                     // Not in the mempool anymore? don't bother sending it.
                     TxMempoolInfo txInfo = this.manager.Info(hash);
                     if (txInfo == null)
                         continue;
-                    
+
                     //if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) // TODO:filterrate
                     //{
                     //  continue;

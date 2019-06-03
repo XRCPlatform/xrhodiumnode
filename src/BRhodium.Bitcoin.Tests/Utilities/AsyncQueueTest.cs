@@ -42,7 +42,7 @@ namespace BRhodium.Node.Tests.Utilities
         }
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.Dispose"/> waits until the on-enqueue callback (and the consumer task) 
+        /// Tests that <see cref="AsyncQueue{T}.Dispose"/> waits until the on-enqueue callback (and the consumer task)
         /// are finished before returning to the caller.
         /// </summary>
         [Fact]
@@ -173,7 +173,7 @@ namespace BRhodium.Node.Tests.Utilities
 
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws cancellation exception 
+        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws cancellation exception
         /// when the passed cancellation token is cancelled.
         /// </summary>
         [Fact]
@@ -222,7 +222,7 @@ namespace BRhodium.Node.Tests.Utilities
         }
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> provides items in correct order 
+        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> provides items in correct order
         /// and that it throws cancellation exception when the queue is disposed.
         /// </summary>
         [Fact]
@@ -282,7 +282,7 @@ namespace BRhodium.Node.Tests.Utilities
         }
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws cancellation exception 
+        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws cancellation exception
         /// if it is called after the queue was disposed.
         /// </summary>
         [Fact]
@@ -311,7 +311,7 @@ namespace BRhodium.Node.Tests.Utilities
         }
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> can be used by 
+        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> can be used by
         /// two different threads safely.
         /// </summary>
         [Fact]
@@ -398,7 +398,7 @@ namespace BRhodium.Node.Tests.Utilities
         }
 
         /// <summary>
-        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws 
+        /// Tests that <see cref="AsyncQueue{T}.DequeueAsync(CancellationToken)"/> throws
         /// exception when it is called on a queue operating in callback mode.
         /// </summary>
         [Fact]
@@ -440,7 +440,7 @@ namespace BRhodium.Node.Tests.Utilities
 
             // We wait until the queue callback calling consumer is finished.
             asyncQueue.ConsumerTask.Wait();
-            
+
             // Now enqueuing another item should not invoke the callback because the queue should be disposed.
             asyncQueue.Enqueue(asyncQueue);
 

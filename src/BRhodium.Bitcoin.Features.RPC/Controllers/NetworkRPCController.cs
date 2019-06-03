@@ -205,7 +205,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
         /// <summary>
         /// Immediately disconnects from the specified peer node.
-        /// 
+        ///
         /// Strictly one out of 'address' and 'nodeid' can be provided to identify the node.
         ///
         /// To disconnect by nodeid, either set 'address' to the empty string, or call using the named 'nodeid' argument only.
@@ -244,7 +244,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 else
                 {
                     var peer = this.ConnectionManager.ConnectedPeers.ToList();
-                    
+
                     if ((peer.Count > 0) && (peer.Count < nodeId.Value))
                     {
                         peer[nodeId.Value].Disconnect("RPC DisconnectNode call");
@@ -310,10 +310,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 {
                     throw new ArgumentNullException("command");
                 }
-                if (!bantime.HasValue && !absolute.HasValue) 
+                if (!bantime.HasValue && !absolute.HasValue)
                 {
                     throw new ArgumentNullException("bantime");
-                }  
+                }
 
                 //var nodeParam = address.Split(':');
                 //if (nodeParam.Length < 2)
@@ -343,7 +343,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
 
                         peer.BanReason = "SetBan RPC method call";
                         peer.BanTimeStamp = this.dateTimeProvider.GetUtcNow();
-                        
+
                         if (peer.BanScore.HasValue)
                         {
                             peer.BanScore++;
@@ -460,7 +460,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         address.Address = peerNode.PeerEndPoint.ToString();
                         result.Addresses.Add(address);
                         resultList.Add(result);
-                    }                  
+                    }
                     return this.Json(ResultHelper.BuildResultResponse(resultList.ToArray()));
                 }
                 else

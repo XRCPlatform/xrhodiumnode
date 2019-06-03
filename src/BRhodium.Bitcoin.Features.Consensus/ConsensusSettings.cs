@@ -36,7 +36,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         public ConsensusSettings Load(NodeSettings nodeSettings)
         {
             Guard.NotNull(nodeSettings, nameof(nodeSettings));
-            
+
             TextFileConfiguration config = nodeSettings.ConfigReader;
             this.UseCheckpoints = config.GetOrDefault<bool>("checkpoints", true);
             string[] assumeValid = config.GetAll("assumevalid");
@@ -58,7 +58,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
                     {
                         throw new ConfigurationException($"{val} is unsuitible value for assumevalid setting.");
                     }
-                }                
+                }
             }
 
             ILogger logger = nodeSettings.LoggerFactory.CreateLogger(typeof(ConsensusSettings).FullName);

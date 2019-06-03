@@ -175,7 +175,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
          * Adds <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
          * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
          * by subsequent multiplication.
-         * 
+         *
          * @param point
          *            The <code>ECPoint</code> to store precomputations for.
          * @param name
@@ -220,7 +220,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
          * coordinates reflect those of the equivalent point in an affine coordinate system. Where more
          * than one point is to be normalized, this method will generally be more efficient than
          * normalizing each point separately.
-         * 
+         *
          * @param points
          *            An array of points that will be updated in place with their normalized versions,
          *            where necessary
@@ -237,7 +237,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
          * normalizing each point separately. An (optional) z-scaling factor can be applied; effectively
          * each z coordinate is scaled by this value prior to normalization (but only one
          * actual multiplication is needed).
-         * 
+         *
          * @param points
          *            An array of points that will be updated in place with their normalized versions,
          *            where necessary
@@ -402,7 +402,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
         }
 
         /**
-         * Sets the default <code>ECMultiplier</code>, unless already set. 
+         * Sets the default <code>ECMultiplier</code>, unless already set.
          */
         public virtual ECMultiplier GetMultiplier()
         {

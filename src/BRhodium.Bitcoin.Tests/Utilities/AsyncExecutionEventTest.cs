@@ -13,7 +13,7 @@ namespace BRhodium.Node.Tests.Utilities
     {
         /// <summary>
         /// Checks that registered callback is executed when <see cref="AsyncExecutionEvent{TSender, TArg}.ExecuteCallbacksAsync(TSender, TArg)"/>
-        /// is called and then if the callback is unregistered, it is no longer called. It also checks that the arguments passed to the callback 
+        /// is called and then if the callback is unregistered, it is no longer called. It also checks that the arguments passed to the callback
         /// are correct.
         /// </summary>
         [Fact]
@@ -61,7 +61,7 @@ namespace BRhodium.Node.Tests.Utilities
                     bool badCall = false;
                     AsyncExecutionEventCallback<object, bool> callbackAsync = (sender, arg) =>
                     {
-                        // badCall should never be set to true here 
+                        // badCall should never be set to true here
                         // because unregistered is only set to true
                         // after Unregister has been called.
                         badCall = arg;
@@ -111,7 +111,7 @@ namespace BRhodium.Node.Tests.Utilities
                 };
 
                 executionEvent.Register(callback1Async);
-                
+
                 // We can register a second callback with same body, but it is different function.
                 executionEvent.Register(callback2Async);
 

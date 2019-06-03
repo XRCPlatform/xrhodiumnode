@@ -15,7 +15,7 @@ namespace BRhodium.Node.P2P
     public interface IPeerSelector
     {
         /// <summary>
-        /// Selects a random peer, via a selection algorithm, from the address 
+        /// Selects a random peer, via a selection algorithm, from the address
         /// manager to connect to.
         /// </summary>
         PeerAddress SelectPeer();
@@ -34,9 +34,9 @@ namespace BRhodium.Node.P2P
         IEnumerable<PeerAddress> SelectPeersForGetAddrPayload(int peerCount);
 
         /// <summary>
-        /// Return peers which have had connection attempts, but none successful. 
+        /// Return peers which have had connection attempts, but none successful.
         /// <para>
-        /// The result filters out peers which satisfies the above condition within the 
+        /// The result filters out peers which satisfies the above condition within the
         /// last 60 seconds and that has had more than 10 failed attempts.
         /// </para>
         /// </summary>
@@ -45,21 +45,21 @@ namespace BRhodium.Node.P2P
         /// <summary>
         /// Return peers which have had successful connection attempts.
         /// <para>
-        /// The result filters out peers which satisfies the above condition within the 
+        /// The result filters out peers which satisfies the above condition within the
         /// last 60 seconds.
         /// </para>
         /// </summary>
         IEnumerable<PeerAddress> Connected();
 
         /// <summary>
-        /// Return peers which have never had connection attempts. 
+        /// Return peers which have never had connection attempts.
         /// </summary>
         IEnumerable<PeerAddress> Fresh();
 
         /// <summary>
         /// Return peers where a successful connection and handshake was achieved.
         /// <para>
-        /// The result filters out peers which satisfies the above condition within the 
+        /// The result filters out peers which satisfies the above condition within the
         /// last 60 seconds.
         /// </para>
         /// </summary>
@@ -81,7 +81,7 @@ namespace BRhodium.Node.P2P
         private readonly ILogger logger;
 
         /// <summary>
-        /// The address manager instance that holds the peer list to be queried. 
+        /// The address manager instance that holds the peer list to be queried.
         /// </summary>
         private readonly ConcurrentDictionary<IPEndPoint, PeerAddress> peerAddresses;
 
@@ -251,7 +251,7 @@ namespace BRhodium.Node.P2P
             }
 
             //If there are no connected or handshaked peers in the address list,
-            //just return an amount of peers that has been asked for. 
+            //just return an amount of peers that has been asked for.
             else
             {
                 peersToReturn.AddRange(freshAndAttempted.Take(peerCount));
@@ -284,7 +284,7 @@ namespace BRhodium.Node.P2P
         /// <inheritdoc/>
         public IEnumerable<PeerAddress> Connected()
         {
-            return this.peerAddresses.Values.Where(p => p.Connected && 
+            return this.peerAddresses.Values.Where(p => p.Connected &&
                                                         p.LastConnectionSuccess < this.dateTimeProvider.GetUtcNow().AddSeconds(-60) &&
                                                         !this.IsBanned(p));
         }
@@ -298,7 +298,7 @@ namespace BRhodium.Node.P2P
         /// <inheritdoc/>
         public IEnumerable<PeerAddress> Handshaked()
         {
-            return this.peerAddresses.Values.Where(p => p.Handshaked && 
+            return this.peerAddresses.Values.Where(p => p.Handshaked &&
                                                         p.LastConnectionHandshake < this.dateTimeProvider.GetUtcNow().AddSeconds(-60) &&
                                                         !this.IsBanned(p));
         }

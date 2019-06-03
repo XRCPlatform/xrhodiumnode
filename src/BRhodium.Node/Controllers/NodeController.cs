@@ -35,7 +35,7 @@ namespace BRhodium.Node.Controllers
 
         /// <summary>The connection manager.</summary>
         private readonly IConnectionManager connectionManager;
-        
+
         public NodeController(IFullNode fullNode, ILoggerFactory loggerFactory, IDateTimeProvider dateTimeProvider, IChainState chainState, NodeSettings nodeSettings, IConnectionManager connectionManager)
         {
             this.fullNode = fullNode;

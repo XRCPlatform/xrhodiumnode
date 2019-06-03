@@ -7,40 +7,40 @@
 <list class="bullet">
   <listItem><link xlink:href="#GenerateWallet"><legacyBold>GenerateNewWallet</legacyBold></link> - Generate new wallet</listItem>
   <listItem><link xlink:href="#GetNewAddress"><legacyBold>GetNewAddress</legacyBold></link> - Get new address for your wallet</listItem>
-  <listItem><link xlink:href="#ValidateAddress"><legacyBold>ValidateAddress</legacyBold></link> - Validate your address</listItem>   
-  <listItem><link xlink:href="#GetWalletInfo"><legacyBold>GetWalletInfo</legacyBold></link> - Get information about your wallet</listItem>  
-  <listItem><link xlink:href="#GetBlockCount"><legacyBold>GetBlockCount</legacyBold></link> - Get block count from block chain</listItem> 
+  <listItem><link xlink:href="#ValidateAddress"><legacyBold>ValidateAddress</legacyBold></link> - Validate your address</listItem>
+  <listItem><link xlink:href="#GetWalletInfo"><legacyBold>GetWalletInfo</legacyBold></link> - Get information about your wallet</listItem>
+  <listItem><link xlink:href="#GetBlockCount"><legacyBold>GetBlockCount</legacyBold></link> - Get block count from block chain</listItem>
   <listItem><link xlink:href="#SendToAddress"><legacyBold>SendToAddress</legacyBold></link> - Send coins to selected address</listItem>
-  <listItem><link xlink:href="#RestoreWallet"><legacyBold>RestoreFromSeed</legacyBold></link> - Restore your wallet from seed and password</listItem>  
-  <listItem><link xlink:href="#Rescan"><legacyBold>RescanBlockchain</legacyBold></link> - Function to load transactions from old blocks</listItem>        
-  <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction/GetTransactionByWallet</legacyBold></link> - Return information about specified transaction</listItem> 
-  <listItem><link xlink:href="#ListTransactions"><legacyBold>ListTransactions</legacyBold></link> - Return list of last send/received transactions</listItem> 
-  <listItem><link xlink:href="#ListReceivedByAddress"><legacyBold>ListReceivedByAddress</legacyBold></link> - The lists the total number of XRC received by each address.</listItem> 
-  
+  <listItem><link xlink:href="#RestoreWallet"><legacyBold>RestoreFromSeed</legacyBold></link> - Restore your wallet from seed and password</listItem>
+  <listItem><link xlink:href="#Rescan"><legacyBold>RescanBlockchain</legacyBold></link> - Function to load transactions from old blocks</listItem>
+  <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction/GetTransactionByWallet</legacyBold></link> - Return information about specified transaction</listItem>
+  <listItem><link xlink:href="#ListTransactions"><legacyBold>ListTransactions</legacyBold></link> - Return list of last send/received transactions</listItem>
+  <listItem><link xlink:href="#ListReceivedByAddress"><legacyBold>ListReceivedByAddress</legacyBold></link> - The lists the total number of XRC received by each address.</listItem>
+
   ListReceivedByAddress
-  
-  
+
+
 </list>
-      
+
     <para>You can find more API RPC-JSON in <codeEntityReference qualifyHint="true" linkText="full documentation">R:Project_Documentation</codeEntityReference>.</para>
-      
-    </introduction>  
+
+    </introduction>
     <section address="GenerateWallet">
       <title>GenerateNewWallet</title>
       <content>
 			<para>Node can work with 10000+ wallets.</para>
 			<para>Call example with and without base64 encoded password:</para>
-		
+
 <para><legacyBold>Default call</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GenerateNewWallet(System.String,System.String)</codeEntityReference></para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"generatenewwallet", "params":["walletname","**yourplainwalletpassword**"]}]'
 </code>
 
 <para><legacyBold>Full Base64 alternative</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GenerateNewWalletBase64(System.String,System.String)</codeEntityReference></para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"generatenewwalletbase64", "params":["walletname","bXlwYXNzd29yZDE1K0JBU0U2NA=="]}]'
 </code>
@@ -90,21 +90,21 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>  
-    
+    </section>
+
     <section address="GetNewAddress">
       <title>GetNewAddress</title>
       <content>
 		<para>Get new address for your wallet.</para>
 
 		<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetNewAddress(System.String)</codeEntityReference></para>
-	
-	
+
+
 			<para>Call example:</para>
-		
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getnewaddress", "params":["walletname"] }]'
-</code>				
+</code>
 
 <para>Example of a result:</para>
 <code language="cs">
@@ -116,21 +116,21 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>     
-    
+    </section>
+
     <section address="ValidateAddress">
       <title>ValidateAddress</title>
       <content>
 			<para>Validate your address.</para>
-			
+
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ValidateAddress(System.String)</codeEntityReference></para>
-	
-	
+
+
             <para>Call example:</para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"validateaddress", "params":["TQgjBozrWtNCjCkPZwEDkXgCu7iDo4uraa"]}]'
-</code>			
+</code>
 
 <para>Example of a result:</para>
 <code language="cs">
@@ -149,18 +149,18 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>    
-    
+    </section>
+
     <section address="GetWalletInfo">
       <title>GetWalletInfo</title>
       <content>
 			<para>Get information about your wallet.</para>
-			
+
 	<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.GetWalletInfo(System.String)</codeEntityReference> </para>
-			<para>Call example:</para>	
+			<para>Call example:</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getwallet", "params":["walletname"] }]'
-</code>			
+</code>
 <para>Example of a result:</para>
 <code language="cs">
 {
@@ -236,7 +236,7 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
     ],
     "internalAddresses": [
       {
-      
+
       //FOR INTERNAL USAGE
 	}
     ]
@@ -247,20 +247,20 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>      
-    
+    </section>
+
     <section address="GetBlockCount">
       <title>GetBlockCount</title>
       <content>
 			<para>Get block count from block chain.</para>
-			
-	
+
+
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.BlockStore.Controllers.BlockChainRPCController.GetBlockCount</codeEntityReference></para>
 			<para>Call example:</para>
-			
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"getblockcount", "params": [] }]'
-</code>			
+</code>
 
 <para>Example of a result:</para>
 
@@ -273,23 +273,23 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>     
+    </section>
 
-    
+
     <section address="SendToAddress">
       <title>SendToAddress</title>
       <content>
 			<para>Send coins to selected address.</para>
-				
-<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendToAddress(System.String,System.String,System.String,System.Decimal)</codeEntityReference></para>	
-				
+
+<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendToAddress(System.String,System.String,System.String,System.Decimal)</codeEntityReference></para>
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"sendtoaddress", "params":["walletname","**yourplainwalletpassword**", "TS8jH5oC8PCF8KBKYTLoKsPzY4YC3vT4wv", 1]}]'
 </code>
 
 <para><legacyBold>Full Base64 alternative</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.SendToAddressBase64(System.String,System.String,System.String,System.Decimal)</codeEntityReference> </para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"sendtoaddress", "params":["walletname","bXlwYXNzd29yZDE1K0JBU0U2NA==", "TS8jH5oC8PCF8KBKYTLoKsPzY4YC3vT4wv", 1]}]'
 </code>
@@ -304,27 +304,27 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>     
-    
+    </section>
+
     <section address="RestoreWallet">
       <title>RestoreFromSeed</title>
       <content>
 			<para>Restore your wallet from seed and password.</para>
 			<para>Last param is the time of creation and <legacyBold>have to be greater than 1539810400</legacyBold>. Call example with and without base64 encoded password:</para>
-		
+
 <para><legacyBold>Default call</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.Restore(System.String,System.String,System.String,System.Int64)</codeEntityReference></para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' H 'cache-control: no-cache' -d '[{"method":"restorefromseed", "params":["**yourplainwalletpassword**","walletname","firm water beef fury cranch sight drink problem lizard picnic strong clever", 1539810400]}]'
 </code>
 
 <para><legacyBold>Full Base64 alternative</legacyBold><lineBreak/>
 Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.RestoreBase64(System.String,System.String,System.String,System.Int64)</codeEntityReference> </para>
-	
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' H 'cache-control: no-cache' -d '[{"method":"restorefromseedbase64", "params":["bXlwYXNzd29yZDE1K0JBU0U2NA==","walletname","firm water beef fury cranch sight drink problem lizard picnic strong clever", 1539810400]}]'
-</code>			
+</code>
 
 <para>Example of a result:</para>
 
@@ -372,22 +372,22 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>  
-    
+    </section>
+
     <section address="Rescan">
       <title>RescanBlockchain</title>
       <content>
 			<para>Function to load transaction from old blocks.</para>
-			
+
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.RescanBlockChain(System.Nullable{System.Int32},System.Nullable{System.Int32})</codeEntityReference> </para>
-	
+
 				<para>Call example:</para>
-		
+
 <code language="cs">
 curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method":"rescanblockchain", "params":["1","167"]}]'
 </code>
-			
-<para>Example of a result:</para>		
+
+<para>Example of a result:</para>
 <code language="cs">
 {
   "result": {
@@ -400,8 +400,8 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 </code>
 
       </content>
-    </section>  
-    
+    </section>
+
     <section address="GetTransaction">
       <title>GetTransaction/GetTransactionByWallet</title>
       <content>
@@ -409,15 +409,15 @@ curl -X POST http://127.0.0.1:16661/ -H 'Authorization: Basic **yourbase64passwo
 		<para>If you have more then one wallet you need to use <legacyBold>gettransactionbywallet</legacyBold>.</para>
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.TransactionRPCController.GetTransaction(System.String[])</codeEntityReference></para>
 
-			<para>Call example:</para>	
+			<para>Call example:</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransaction","params" : ["a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
-</code>			
+</code>
 
 <para>If you have more wallets you have to call <legacyBold>gettransactionbywallet</legacyBold> with definition of wallet.</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "gettransactionbywallet","params" : ["**yourwalletname**","a58aeb2617a71e97bd1b34dda2c74a587fd4bbb482657e04cf03bf05869883ca"]}]'
-</code>		
+</code>
 
 <para>Example of a result:</para>
 
@@ -457,18 +457,18 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
 }
 </code>
       </content>
-    </section>  
-          
+    </section>
+
    <section address="ListTransactions">
       <title>ListTransactions</title>
       <content>
 			<para>Return list of last send/received transactions in your local wallet.</para>
 <para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ListTransactions(System.String,System.Int32,System.Int32)</codeEntityReference> </para>
 
-			<para>Call example:</para>	
+			<para>Call example:</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "listtransactions","params" : ["**walletname**"]}]'
-</code>			
+</code>
 
 <para>Example of a result:</para>
 
@@ -523,18 +523,18 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
 }
 </code>
       </content>
-    </section>  
-    
+    </section>
+
    <section address="ListReceivedByAddress">
       <title>ListReceivedByAddress</title>
       <content>
 			<para>List balances by receiving address.</para>
 		<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ListReceivedByAddress(System.String,System.Int32,System.Boolean)</codeEntityReference></para>
 
-			<para>Call example:</para>	
+			<para>Call example:</para>
 <code language="cs">
 curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "listreceivedbyaddress","params" : ["**walletname**"]}]'
-</code>			
+</code>
 
 <para>Example of a result:</para>
 
@@ -561,7 +561,7 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
      ...
          ]
       },
-	  
+
 	  ...
    ],
    "error":null,
@@ -569,7 +569,7 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
 }
 </code>
       </content>
-    </section>  
-    
+    </section>
+
   </developerHowToDocument>
 </topic>

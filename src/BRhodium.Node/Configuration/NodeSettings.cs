@@ -46,7 +46,7 @@ namespace BRhodium.Node.Configuration
         /// <param name="agent">The nodes user agent that will be shared with peers.</param>
         /// <param name="args">The command-line arguments.</param>
         /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
-        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION, 
+        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION,
             string agent = "BRhodiumBitcoin", string[] args = null, bool loadConfiguration = true)
         {
             this.Agent = agent;
@@ -247,7 +247,7 @@ namespace BRhodium.Node.Configuration
             // identify themselves if they wish. The prefix is limited to 10 characters.
             string agentPrefix = config.GetOrDefault("agentprefix", string.Empty);
             agentPrefix = agentPrefix.Substring(0, Math.Min(10, agentPrefix.Length));
-            this.Agent = string.IsNullOrEmpty(agentPrefix) ? this.Agent : $"{agentPrefix}-{this.Agent}"; 
+            this.Agent = string.IsNullOrEmpty(agentPrefix) ? this.Agent : $"{agentPrefix}-{this.Agent}";
 
             return this;
         }
@@ -419,7 +419,7 @@ namespace BRhodium.Node.Configuration
 
             defaults.Logger.LogInformation(builder.ToString());
         }
-        
+
         /// <summary>
         /// Get the default configuration.
         /// </summary>

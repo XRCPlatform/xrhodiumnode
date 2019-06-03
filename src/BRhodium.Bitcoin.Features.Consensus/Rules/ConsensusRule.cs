@@ -60,7 +60,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules
         }
 
         /// <summary>Rules that are strictly validation can be skipped unless the <see cref="ValidationRuleAttribute.CanSkipValidation"/> is <c>false</c>.</summary>
-        public bool CanSkipValidation { get; } 
+        public bool CanSkipValidation { get; }
 
         /// <summary>The rule represented by this descriptor.</summary>
         public ConsensusRule Rule { get; }

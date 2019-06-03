@@ -260,8 +260,8 @@ namespace NBitcoin
         }
 
         /// <summary>
-        /// Specific IP address ranges that are reserved specifically as non - routable addresses to be used in 
-        /// private networks: 10.0.0.0 through 10.255.255.255. 172.16.0.0 through 172.32.255.255. 192.168.0.0 
+        /// Specific IP address ranges that are reserved specifically as non - routable addresses to be used in
+        /// private networks: 10.0.0.0 through 10.255.255.255. 172.16.0.0 through 172.32.255.255. 192.168.0.0
         /// through 192.168.255.255.
         /// </summary>
         public static bool IsRoutable(this IPAddress address, bool allowLocal)

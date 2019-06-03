@@ -129,7 +129,7 @@ namespace NBitcoin.Tests
         public void CanParseStealthAddress()
         {
             var tests = new[]
-            { 
+            {
                 //Test vector created with sx
                 //sx stealth-newkey -> ScanSecret,SpendSecret,StealthAddress
                 //sx stealth-show-addr StealthAddress -> ScanPubKey,SpendPubKey,RequiredSignature...
@@ -196,10 +196,10 @@ namespace NBitcoin.Tests
                     EphemSecret = "9e63abaf8dcd5ea3919e6de0b6c544e00bf51bf92496113a01d6e369944dc091",
                     EphemPubKey = "03403d306ec35238384c7e340393335f9bc9bb4a2e574eb4e419452c4ea19f14b0",
 
-                    //sx steatlh-uncover-secret [EphemPubKey] [ScanSecret] [SpendSecret] 
+                    //sx steatlh-uncover-secret [EphemPubKey] [ScanSecret] [SpendSecret]
                     StealthSecret = "4e422fb1e5e1db6c1f6ab32a7706d368ceb385e7fab098e633c5c5949c3b97cd",
                     //sx stealth-initiate [EphemSecret] [ScanPubKey] [SpendPubKey] (for sender)
-                    //or 
+                    //or
                     //sx stealth-uncover [EphemPubKey] [ScanSecret] [SpendPubKey]  (for receiver)
                     StealthPubKey = "02726112ad39cb6bf848b1b1ef30b88e35286bf99f746c2be575f96c0e02a9357c",
                 },

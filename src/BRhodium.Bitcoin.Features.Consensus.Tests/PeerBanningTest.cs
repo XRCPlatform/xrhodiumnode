@@ -217,7 +217,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         [Fact]
         public async Task PeerBanning_AddingBannedPeerToAddressManagerStoreAsync()
         {
-            // Arrange 
+            // Arrange
             string dataDir = GetTestDirectoryPath(this);
 
             TestChainContext context = await TestChainFactory.CreateAsync(Network.RegTest, dataDir);
@@ -238,7 +238,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         [Fact]
         public async Task PeerBanning_SavingAndLoadingBannedPeerToAddressManagerStoreAsync()
         {
-            // Arrange 
+            // Arrange
             string dataDir = GetTestDirectoryPath(this);
 
             TestChainContext context = await TestChainFactory.CreateAsync(Network.RegTest, dataDir);
@@ -262,7 +262,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         [Fact]
         public async Task PeerBanning_ResettingExpiredBannedPeerAsync()
         {
-            // Arrange 
+            // Arrange
             string dataDir = GetTestDirectoryPath(this);
 
             TestChainContext context = await TestChainFactory.CreateAsync(Network.RegTest, dataDir);
@@ -270,7 +270,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             var endpoint = new IPEndPoint(ipAddress, 80);
             context.PeerAddressManager.AddPeer(endpoint, endpoint.Address.MapToIPv6());
 
-            // Act 
+            // Act
             context.PeerBanning.BanPeer(endpoint, 1, nameof(PeerBanningTest));
             context.PeerAddressManager.SavePeers();
 

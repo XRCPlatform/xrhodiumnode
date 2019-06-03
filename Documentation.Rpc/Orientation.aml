@@ -7,7 +7,7 @@
     <section address="Section1">
       <title>TestNET links</title>
       <content>
-		
+
 <list class="bullet">
   <listItem><externalLink>
 <linkText><para>T-Homepage</para></linkText>
@@ -55,12 +55,12 @@
 
 
       </content>
-    </section>  
+    </section>
 
         <section address="Section2">
       <title>MainNET links</title>
       <content>
-		
+
 <list class="bullet">
   <listItem><externalLink>
 <linkText><para>Official Homepage</para></linkText>
@@ -102,11 +102,11 @@
 
       </content>
     </section>
-    
+
         <section address="Section3">
       <title>Source code links</title>
       <content>
-		
+
 <list class="bullet">
   <listItem><externalLink>
 <linkText><para>GitLab ROOT directory with all GITs</para></linkText>
@@ -126,12 +126,12 @@
 
 
       </content>
-    </section>    
-    
+    </section>
+
         <section address="Section4">
       <title>Social media links</title>
       <content>
-		
+
 <list class="bullet">
   <listItem><externalLink>
 <linkText><para>BRhodium Twitter</para></linkText>
@@ -199,6 +199,6 @@
 
 
       </content>
-    </section>      
+    </section>
   </developerOrientationDocument>
 </topic>

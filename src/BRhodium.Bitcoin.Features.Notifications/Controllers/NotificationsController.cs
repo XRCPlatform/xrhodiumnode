@@ -42,7 +42,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Controllers
             {
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "'from' parameter is required.", "Please provide the height or the hash of a block from which you'd like to sync the chain.");
             }
-            
+
             // Check if an integer was provided as a parameter, meaning the request specifies a block height.
             // If not, the request specified is a block hash.
             bool isHeight = int.TryParse(from, out int height);
@@ -67,7 +67,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Controllers
 
                 this.blockNotification.SyncFrom(hashToSyncFrom);
             }
-            
+
             return this.Ok();
         }
     }

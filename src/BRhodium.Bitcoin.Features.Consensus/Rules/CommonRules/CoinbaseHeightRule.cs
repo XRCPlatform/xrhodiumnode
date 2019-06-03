@@ -61,7 +61,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
     }
 
     /// <summary>
-    /// With Bitcoin the BIP34 was activated at block 227,835 using the deployment flags, 
+    /// With Bitcoin the BIP34 was activated at block 227,835 using the deployment flags,
     /// this rule allows a chain to have BIP34 activated as a deployment rule.
     /// </summary>
     public class CoinbaseHeightActivationRule : CoinbaseHeightRule

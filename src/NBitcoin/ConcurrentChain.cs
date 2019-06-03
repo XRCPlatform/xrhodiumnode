@@ -19,12 +19,12 @@ namespace NBitcoin
         public override ChainedHeader Tip { get { return this.tip; } }
         public override int Height { get { return this.Tip.Height; } }
         public override Network Network { get { return this.network; } }
-        
+
         public ConcurrentChain()
         {
             this.network = Network.Main;
         }
-        
+
         public ConcurrentChain(BlockHeader genesisHeader, Network network = null) // TODO: Remove the null default
         {
             this.network = network ?? Network.Main;

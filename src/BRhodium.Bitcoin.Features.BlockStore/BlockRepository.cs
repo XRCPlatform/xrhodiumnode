@@ -624,7 +624,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         private List<Block> GetBlocksFromHashes(DBreeze.Transactions.Transaction dbreezeTransaction, List<uint256> hashes)
         {
             this.logger.LogTrace("({0}.{1}:{2})", nameof(hashes), nameof(hashes.Count), hashes?.Count);
-            
+
             var results = new Dictionary<uint256, Block>();
 
             // Access hash keys in sorted order.
@@ -651,7 +651,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                     this.logger.LogTrace("Block hash '{0}' not found in the store.", key.Item1);
                 }
             }
-        
+
             this.logger.LogTrace("(-):{0}", results.Count);
 
             // Return the result in the order that the hashes were presented.

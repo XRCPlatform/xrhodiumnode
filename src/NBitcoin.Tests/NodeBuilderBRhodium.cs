@@ -18,7 +18,7 @@ namespace NBitcoin.Tests
         //rpcuser=rpcuser
         //rpcpassword = rpcpassword
         //rpcallowip=*
-        //txindex=1 
+        //txindex=1
 
     public class NodeBuilderBRhodium : IDisposable
     {

@@ -47,7 +47,7 @@ namespace NBitcoin.DataEncoders
         static readonly BigInteger bn58 = BigInteger.ValueOf(58);
         public override string EncodeData(byte[] data, int offset, int count)
         {
-            
+
             BigInteger bn0 = BigInteger.Zero;
 
             // Convert big endian data to little endian

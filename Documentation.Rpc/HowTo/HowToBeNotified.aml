@@ -4,7 +4,7 @@
     <introduction>
       <para>For some applications it is important to stay informed about received and/or sent transaction. This feature is implemented as a platform independent solution.</para>
       <para>There are three options using callback:</para>
-      
+
 <list class="bullet">
   <listItem><para><legacyBold>Both directions</legacyBold></para></listItem>
   <listItem><para><legacyBold>Received only</legacyBold></para></listItem>
@@ -16,7 +16,7 @@
 <code language="cs">
 walletnotify=recieved:curl.exe -s http://localhost:62602/wallet1notify?%s
 walletnotify=recieved:curl.exe -s http://localhost:62602/sys2notify?%s
-</code>  
+</code>
 
     </introduction>
     <section address="Section1">
@@ -38,11 +38,11 @@ or
 walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s
 or
 walletnotify=sent:curl.exe -s http://localhost:62602/walletnotify?%s
-</code>        
+</code>
 
       </content>
     </section>
-    
+
     <section address="Section1">
       <title>WalletNotify under Linux and MacOSX</title>
       <content>
@@ -55,7 +55,7 @@ or
 walletnotify=recieved:/home/myuser/transaction.sh %s
 or
 walletnotify=sent:/home/myuser/transaction.sh %s
-</code>        
+</code>
 
 <para><legacyBold>Example of a bash script transaction.sh:</legacyBold></para>
        <para><legacyItalic>http://127.0.0.1/some/route is your client side.</legacyItalic></para>
@@ -65,6 +65,6 @@ curl -d "txid=$1" http://127.0.0.1/some/route
 </code>
 
       </content>
-    </section>    
+    </section>
   </developerHowToDocument>
 </topic>

@@ -2,7 +2,7 @@
 
 The Bitcoin Rhodium project welcomes contributions, code reviews, testing, patches, bug fixes, etc. The document outlines guidelines and processes that are involved with contributing to the project.
 
-For practical and security reasons, there are a few primary maintainers of the official repository who will handle any releases but also maintain the integrity of the project officially. They are referred to as the development team, but they are not privileged other than keeping the project in check and moving ahead and maintaining a roadmap. 
+For practical and security reasons, there are a few primary maintainers of the official repository who will handle any releases but also maintain the integrity of the project officially. They are referred to as the development team, but they are not privileged other than keeping the project in check and moving ahead and maintaining a roadmap.
 
 # How can I start contributing?
 
@@ -20,9 +20,9 @@ Everyone can make contributions, but it is best when a certain workflow is utili
 
 All activity happens through out GitLab account: [https://gitlab.com/bitcoinrh].
 
-An ideal contribution has a single purpose, that sufficiently states the reason for the change and references issues that it is trying to address. 
+An ideal contribution has a single purpose, that sufficiently states the reason for the change and references issues that it is trying to address.
 
-To start, fork the repository, create a topic/feature branch and start committing to it. 
+To start, fork the repository, create a topic/feature branch and start committing to it.
 
 ## Commits
 
@@ -43,7 +43,7 @@ A merge request subject and description should state the component. It would hel
  * [Consensus] : changing critical consensus code,
  * [Documentation] : changes to documentation
  * [Wallet] : changes to wallets
- * [P2P] : For low-level server code 
+ * [P2P] : For low-level server code
  * [RPC] : For RPC fixes
  * [Test] : Adding, removing and fixing tests
  * [Codebase] : For code cleanup, etc.
@@ -56,7 +56,7 @@ Examples:
 
 ## Code Reviews
 
-Code reviews are important for non-trivial systems, and Bitcoin Rhodium is no exception. In our case, the product itself has value and depends on the correct operation of this software to help towards maintaining its value. As such, we take contributions seriously in this light. Not everything requires deep review though, but ensuring at least more than one person knows what is going into the codebase is really important. 
+Code reviews are important for non-trivial systems, and Bitcoin Rhodium is no exception. In our case, the product itself has value and depends on the correct operation of this software to help towards maintaining its value. As such, we take contributions seriously in this light. Not everything requires deep review though, but ensuring at least more than one person knows what is going into the codebase is really important.
 
 We consider all requests important if there is a good reason for us to pull it in. the questions we try ask are:
 
@@ -75,7 +75,7 @@ Consensus-level code gets a lot more scrutiny, even if it is a refactor. Lean on
 ### Peers Indicating MR Viability
 
 Bitcoin Core uses a shorthand way to describe the level of acceptance and we will find it useful to adopt as well. The language suggests to the maintainer if it is ready to go in or not.
- 
+
  * (t)ACK: "I tested the code and I agree it should be merged."
  * NACK: "I disagree this should be merged". This can apply to both technical and legal reasons.
  * utACK: "I have not tested the code, but I have reviewed it, I agree it can be merged"
@@ -88,8 +88,8 @@ Even if the code base is not perfect, we want to encourage a good codebase anywa
 
 We are adopting (.NET Core's guidelines)[https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md].
 
-With these in mind, there is one major thing that would help a lot. Please don't add extraneous whitespace. Use your IDE/editor's "Remove extraneous whitespace on save" feature. If there is extraneous whitespace in existing code, please just make a separate [Codebase] merge request to clean them up. Extraneous whitespace is noise and hard to read changes with that noise. 
+With these in mind, there is one major thing that would help a lot. Please don't add extraneous whitespace. Use your IDE/editor's "Remove extraneous whitespace on save" feature. If there is extraneous whitespace in existing code, please just make a separate [Codebase] merge request to clean them up. Extraneous whitespace is noise and hard to read changes with that noise.
 
  # Copyright
 
- By contributing to the primary repository, you agree to license your code with the MIT license. If you are contributing code that you didn't write, it must follow with whatever is required for the license. The code should be compatible with the MIT license and should not cause issue for formal distribution. 
+ By contributing to the primary repository, you agree to license your code with the MIT license. If you are contributing code that you didn't write, it must follow with whatever is required for the license. The code should be compatible with the MIT license and should not cause issue for formal distribution.

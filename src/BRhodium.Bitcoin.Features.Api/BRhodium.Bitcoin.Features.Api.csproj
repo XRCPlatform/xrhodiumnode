@@ -10,7 +10,7 @@
 
     <Version>1.1.8</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    
+
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />

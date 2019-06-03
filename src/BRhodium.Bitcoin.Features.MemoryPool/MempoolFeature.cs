@@ -118,7 +118,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
         {
             MempoolSettings.PrintHelp(network);
         }
-        
+
         /// <summary>
         /// Get the default configuration.
         /// </summary>

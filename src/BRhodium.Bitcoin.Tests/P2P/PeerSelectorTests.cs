@@ -542,7 +542,7 @@ namespace BRhodium.Node.Tests.P2P
         }
 
         /// <summary>
-        /// Ensures that a particular peer is returned from the attempted peers 
+        /// Ensures that a particular peer is returned from the attempted peers
         /// set and ignores banned peers.
         /// <para>
         /// Scenario:
@@ -738,12 +738,12 @@ namespace BRhodium.Node.Tests.P2P
             selfEndpointTracker.Add(selfIpEndPoint);
 
             var peerSelector = new PeerSelector(new DateTimeProvider(), this.LoggerFactory.Object, peerAddresses, selfEndpointTracker);
-             
+
             IEnumerable<PeerAddress> peers = peerSelector.SelectPeersForDiscovery(2);
 
             Assert.Equal(otherPeerAddress, peers.Single());
 
-            // Note: This for loop is because Random is currently a hard dependency rather than using dependency inversion. 
+            // Note: This for loop is because Random is currently a hard dependency rather than using dependency inversion.
             // It is not 100% safe without mocking random, so a workaround of 20 attempts used for now.
             for (int i = 0; i < 20; i++)
             {

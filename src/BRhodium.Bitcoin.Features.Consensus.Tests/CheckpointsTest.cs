@@ -83,7 +83,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             var checkpoints = new Checkpoints();
 
             var result = checkpoints.GetCheckpoint(11111);
-        
+
             Assert.Null(result);
         }
 
@@ -127,7 +127,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
         {
             var consensusSettings = new ConsensusSettings() { UseCheckpoints = false };
             var checkpoints = new Checkpoints(Network.Main, consensusSettings);
-            
+
             var result = checkpoints.CheckHardened(117, new uint256("0x0000000059e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1e"));
             Assert.True(result);
 

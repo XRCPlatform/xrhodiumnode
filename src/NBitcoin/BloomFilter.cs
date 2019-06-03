@@ -162,7 +162,7 @@ namespace NBitcoin
                 TxOut txout = tx.Outputs[(int)i];
                 // Match if the filter contains any arbitrary script data element in any scriptPubKey in tx
                 // If this matches, also add the specific output that was matched.
-                // This means clients don't have to update the filter themselves when a new relevant tx 
+                // This means clients don't have to update the filter themselves when a new relevant tx
                 // is discovered in order to find spending transactions, which avoids round-tripping and race conditions.
                 foreach(Op op in txout.ScriptPubKey.ToOps())
                 {
