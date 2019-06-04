@@ -364,5 +364,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="transactionModel">Output response model</param>
         /// <returns>Response transaction model</returns>
         TransactionModel GetTransactionDetails(string walletName, Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
+
+        /// <summary>
+        /// Wallet settings for the wallet interface.
+        /// </summary>
+        /// <value></value>
+        WalletSettings WalletSettings { get; }
     }
 }

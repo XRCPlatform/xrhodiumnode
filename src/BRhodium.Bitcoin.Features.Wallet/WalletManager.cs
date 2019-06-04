@@ -84,6 +84,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>The settings for the wallet feature.</summary>
         private readonly WalletSettings walletSettings;
 
+        /// <summary>
+        ///  Makes the wallet settings public for other functions.
+        /// </summary>
+        public WalletSettings WalletSettings {
+            get
+            {
+                return this.walletSettings;
+            }
+        }
+
         public uint256 WalletTipHash { get; set; }
 
         /// <summary>Memory locked unspendable transaction parts (tx hash, index vount)</summary>

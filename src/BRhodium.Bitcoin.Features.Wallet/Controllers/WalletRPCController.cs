@@ -50,13 +50,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         private readonly ILogger logger;
         private readonly ILoggerFactory loggerFactory;
         private readonly IBlockRepository blockRepository;
-        private readonly NodeSettings nodeSettings;
-        private readonly Network network;
-        private readonly IConnectionManager connectionManager;
         private readonly IWalletSyncManager walletSyncManager;
         private readonly ConcurrentChain chain;
-
         private BlockStoreCache blockStoreCache { get; set; }
+
+        private bool useDeprecatedWalletRPC;
+
         private IWalletManager walletManager { get; set; }
         private IConsensusLoop ConsensusLoop { get; set; }
         private IBroadcasterManager broadcasterManager { get; set; }
@@ -99,10 +98,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             this.walletFeePolicy = walletFeePolicy;
             this.walletKeyPool = walletKeyPool;
             this.chain = chain;
-
             this.loggerFactory = loggerFactory;
             this.blockRepository = blockRepository;
             this.blockStoreCache = new BlockStoreCache(this.blockRepository, DateTimeProvider.Default, this.loggerFactory, this.Settings);
+            this.useDeprecatedWalletRPC = this.walletManager.WalletSettings.UseDeprecatedWalletRPC;
         }
 
         /// <summary>
@@ -149,14 +148,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    throw new ArgumentNullException("walletName");
-                }
-                if (string.IsNullOrEmpty(password))
-                {
-                    throw new ArgumentNullException("password");
-                }
+                Guard.NotEmpty(walletName, nameof(walletName));
+                Guard.NotEmpty(password, nameof(password));
                 if ((timeout <= 0) || (timeout > 1073741824))
                 {
                     throw new ArgumentNullException("timeout");
@@ -209,7 +202,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
                         {
-                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            foreach (var walletAddress in currAccount.GetCombinedAddresses())
                             {
                                 if (walletAddress.Address.ToString().Equals(address))
                                 {
@@ -497,6 +490,73 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
+        /// The getaccountaddress RPC is a DEPRECATED RPC. It is intended to create an "account"
+        /// and an address in that account if one doesn't exist. It will return the next available
+        /// address without a balance.
+        ///
+        /// Since the original description of this RPC does not take into account HD paths, for this
+        /// API, it will just default to the 0th account in a wallet.
+        ///
+        /// This is being supported only because certain software still expects old-style accounts.
+        ///
+        /// This will NOT generate new wallets or accounts. These need to be done SEPARATELY.
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+
+        [ActionName("getaccountaddress")]
+        [ActionDescription("DEPRECATED. Do not use for new applications.")]
+        public IActionResult GetAccountAddress(string account)
+        {
+            try
+            {
+                var hdAccount = WalletRPCUtil.GetAccountFromWalletForDeprecatedRpcs((WalletManager)this.walletManager, this.Network, account);
+                return this.Json(
+                    ResultHelper.BuildResultResponse(hdAccount.GetFirstUnusedReceivingAddress().Address)
+                );
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// The getaddressesbyaccount RPC is a DEPRECATED RPC. This will list ONLY the addresses
+        /// in the wallet specified under the first derivation path and only the receiving addresses since
+        /// there is no expectation around this RPC to delineate what each address is.
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        [ActionName("getaddressesbyaccount")]
+        [ActionDescription("DEPRECATED. Do not use for new applications.")]
+        public IActionResult GetAddressesByAccount(string account)
+        {
+            try
+            {
+                var hdAccount = WalletRPCUtil.GetAccountFromWalletForDeprecatedRpcs(
+                    (WalletManager) walletManager,
+                    this.Network,
+                    account
+                );
+                return this.Json(
+                    ResultHelper.BuildResultResponse(
+                        hdAccount.ExternalAddresses
+                        .Select(address => address.Address)
+                        .ToList()
+                    )
+                );
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+
+        /// <summary>
         /// Generates the new wallet.
         /// </summary>
         /// <param name="walletName">Name of the wallet.</param>
@@ -553,7 +613,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Send manies the specified hd acccount name.
+        /// Send to many addresses from a specified hd acccount name.
+        ///
+        /// The actual function to process this can take the hdAccountName in different ways:
+        /// "" = default account and default hd derivation path
+        /// "name" = uses the wallet name and the default hd derivation path
+        /// "account 1/name" = custom wallet name and hd derivation path
         /// </summary>
         /// <param name="hdAcccountName">Name of the hd acccount.</param>
         /// <param name="toBitcoinAddresses">(string) To bitcoin addresses.</param>
@@ -625,25 +690,30 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// </summary>
         private uint256 SendmanyProcessing(string hdAcccountName, string toBitcoinAddresses, int minconf, string password, FeeType feeType)
         {
-            string acccountName = "";
+            string accountName = "";
             string walletName = "";
             if (string.IsNullOrEmpty(hdAcccountName))
             {
-                throw new ArgumentNullException("hdAcccountName");
+                hdAcccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + DEFAULT_ACCOUNT_NAME;
             }
-            if (string.IsNullOrEmpty(toBitcoinAddresses))
-            {
-                throw new ArgumentNullException("toBitcoinAddresses");
-            }
+
+            Guard.NotEmpty(toBitcoinAddresses, nameof(toBitcoinAddresses));
+
             if (hdAcccountName.Contains("/"))
             {
-                acccountName = hdAcccountName.Substring(0, hdAcccountName.IndexOf("/"));
-                walletName = hdAcccountName.Substring(hdAcccountName.IndexOf("/") + 1);
+                var nameParts = hdAcccountName.Split('/');
+                accountName = nameParts[0];
+                walletName = nameParts[1];
+            }
+            else
+            {
+                walletName = hdAcccountName;
+                accountName = DEFAULT_ACCOUNT_NAME;
             }
 
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
             var w = this.walletManager as WalletManager;
-            var walletReference = new WalletAccountReference(walletName, acccountName);
+            var walletReference = new WalletAccountReference(walletName, accountName);
             Dictionary<string, decimal> toBitcoinAddress = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(toBitcoinAddresses);
 
             List<Recipient> recipients = new List<Recipient>();
@@ -673,17 +743,59 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>
         /// Sends some amount to specified address.
-        /// </summary>
-        /// <param name="walletName">The wallet name.</param>
-        /// <param name="password">Password for your wallet.</param>
-        /// <param name="address">Target address.</param>
-        /// <param name="amount">The amount in XRC.</param>
+        ///
+        /// Bitcoin RPC only uses the default account, so if -usedeprecatedwalletRPC
+        /// is turned on, it will change this interface to support that.
+        ///
+        /// Parameter list only applies to non-deprecated usage.
+        // /// </summary>
+        /// <param name="param1">The wallet name.</param>
+        /// <param name="param2">Password for your wallet.</param>
+        /// <param name="param3">Target address.</param>
+        /// <param name="param4">The amount in XRC.</param>
+        /// <returns>(string) The transaction id.</returns>
         /// <returns>(string) The transaction id.</returns>
         [ActionName("sendtoaddress")]
         [ActionDescription("Sends some amount to specified address.")]
-        public IActionResult SendToAddress(string walletName, string password, string address, decimal amount)
+        public IActionResult SendToAddress(string param1, string param2, string param3, string param4 = null)
         {
-            return SendToAddressResponse(walletName, password, address, amount, FeeType.Low);
+            if (this.useDeprecatedWalletRPC)
+            {
+                var address = param1;
+                var amount = Decimal.Parse(param2);
+                string password;
+                DateTime passwordExpiration;
+
+                walletPasswordExpiration.TryGetValue(WalletRPCUtil.DEFAULT_WALLET, out passwordExpiration);
+
+                if (passwordExpiration < DateTime.Now)
+                {
+                    walletPassword.TryRemove(WalletRPCUtil.DEFAULT_WALLET, out password);
+                    throw new ArgumentNullException(nameof(password));
+                }
+                else
+                {
+                    walletPassword.TryGetValue(WalletRPCUtil.DEFAULT_WALLET, out password);
+                }
+
+                Guard.NotEmpty(password, nameof(password));
+                Guard.NotEmpty(address, nameof(address));
+                Guard.NotEmpty(amount.ToString(), nameof(amount));
+                return SendToAddressResponse(WalletRPCUtil.DEFAULT_WALLET, password, address, amount, FeeType.Low);
+            }
+            else
+            {
+                var walletName = param1;
+                var address = param2;
+                var password = param3;
+                var amount = Decimal.Parse(param4);
+
+                Guard.NotEmpty(walletName, nameof(walletName));
+                Guard.NotEmpty(address, nameof(address));
+                Guard.NotEmpty(password, nameof(password));
+                Guard.NotEmpty(amount.ToString(), nameof(amount));
+                return SendToAddressResponse(walletName, password, address, amount, FeeType.Low);
+            }
         }
 
         /// <summary>
@@ -746,18 +858,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    throw new ArgumentNullException("walletName");
-                }
-                if (string.IsNullOrEmpty(address))
-                {
-                    throw new ArgumentNullException("address");
-                }
-                if (string.IsNullOrEmpty(password))
-                {
-                    throw new ArgumentNullException("password");
-                }
+
                 if (amount <= 0)
                 {
                     throw new ArgumentNullException("amount");
@@ -1307,13 +1408,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             try
             {
                 var result = string.Empty;
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    throw new ArgumentNullException("walletName");
-                }
+                walletName = String.IsNullOrEmpty(walletName) ? WalletRPCUtil.DEFAULT_WALLET : walletName;
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
-                 var address = this.walletManager.GetNewAddresses(wallet, 1);
+                var address = this.walletManager.GetNewAddresses(wallet, 1);
 
                 if (address.Any())
                 {
@@ -1380,6 +1478,36 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
+        /// DEPRECATED RPC. This will only show the balance of the first derivation path.
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        [ActionName("getreceivedbyamount")]
+        [ActionDescription("DEPRECATED.")]
+        public IActionResult GetReceivedByAccount(string account, int minconf = 1)
+        {
+            try
+            {
+                var hdAccount = WalletRPCUtil.GetAccountFromWalletForDeprecatedRpcs(
+                    (WalletManager) walletManager,
+                    this.Network,
+                    account
+                );
+
+                var confirmedAmount = hdAccount.GetSpendableAmount().ConfirmedAmount.ToUnit(MoneyUnit.XRC);
+
+                return this.Json(
+                    ResultHelper.BuildResultResponse(confirmedAmount)
+                );
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
         /// Returns the server's total unconfirmed balance.
         /// </summary>
         /// <returns>(decimal) XRC unconfirmed amount.</returns>
@@ -1420,6 +1548,17 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionName("getwalletinfo")]
         [ActionDescription("Returns an object containing various wallet state info.")]
         public IActionResult GetWalletInfo(string walletName)
+        {
+            if (this.useDeprecatedWalletRPC && string.IsNullOrEmpty(walletName)) walletName = WalletRPCUtil.DEFAULT_WALLET;
+            return GetWalletInfoBase(walletName);
+        }
+
+        /// <summary>
+        /// Returns the state of a wallet.
+        /// </summary>
+        /// <param name="walletName"></param>
+        /// <returns></returns>
+        public IActionResult GetWalletInfoBase(string walletName)
         {
             try
             {
@@ -1818,36 +1957,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             }
                         }
 
-                        var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
-                        var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
-                        var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
-
-                        if ((tx != null) && (block != null) && (chainedHeader != null))
-                        {
-                            chainedHeader.Block = block;
-
-                            //read prevTx from blockchain
-                            var prevTxList = new List<IndexedTxOut>();
-                            foreach (var itemInput in tx.Inputs)
-                            {
-                                var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
-                                if (prevTx != null)
-                                {
-                                    if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
-                                    {
-                                        var indexed = prevTx.Outputs.AsIndexedOutputs();
-                                        prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
-                                    }
-                                }
-                            }
-
-                            result = result.Concat(TransactionVerboseModel.GenerateList(
-                                tx, prevTxList,
-                                block, chainedHeader,
-                                chainedTip, walletName,
-                                this.Network, this.walletManager as WalletManager
-                            )).ToList();
-                        }
+                        result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
                     }
                 }
 
@@ -1873,71 +1983,23 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    throw new ArgumentNullException("walletName");
-                }
-
                 var result = new List<TransactionVerboseModel>();
-                var wallet = this.walletManager.GetWalletByName(walletName);
-                var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
-                var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                var i = 0;
-                var chainedTip = chainRepository.Tip;
+                if (string.IsNullOrEmpty(walletName)) walletName = WalletRPCUtil.DEFAULT_WALLET;
 
-                if ((txList != null) && (txList.Count() > 0))
+                if (walletName == "*")
                 {
-                    txList = txList
-                            .Where(t => t.BlockHash != null)
-                            .OrderByDescending(t => t.BlockHeight)
-                            .GroupBy(tx => tx.Id)
-                            .Select(txs => txs.First())
-                            .ToList();
-
-                    foreach (var txItem in txList)
+                    var walletNames = this.walletManager.GetWalletsNames();
+                    foreach(var w in walletNames)
                     {
-                        if (i >= from)
-                        {
-                            if (i > from + count - 1)
-                            {
-                                break;
-                            }
-
-                            var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
-                            var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
-                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
-
-                            if ((tx != null) && (block != null) && (chainedHeader != null))
-                            {
-                                chainedHeader.Block = block;
-
-                                //read prevTx from blockchain
-                                var prevTxList = new List<IndexedTxOut>();
-                                foreach (var itemInput in tx.Inputs)
-                                {
-                                    var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
-                                    if (prevTx != null)
-                                    {
-                                        if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
-                                        {
-                                            var indexed = prevTx.Outputs.AsIndexedOutputs();
-                                            prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
-                                        }
-                                    }
-                                }
-
-                                result = result.Concat(TransactionVerboseModel.GenerateList(
-                                    tx, prevTxList,
-                                    block, chainedHeader,
-                                    chainedTip, walletName,
-                                    this.Network, this.walletManager as WalletManager
-                                )).ToList();
-                            }
-                        }
-
-                        i++;
+                        var wallet = this.walletManager.GetWalletByName(w);
+                        result = result.Concat(ReportForListTransactions(wallet, count, from)).ToList();
                     }
+                }
+                else
+                {
+                    var wallet = this.walletManager.GetWalletByName(walletName);
+                    result = ReportForListTransactions(wallet, count, from);
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
@@ -1946,6 +2008,80 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        private List<TransactionVerboseModel> ReportForListTransactions(Wallet wallet, int count = 10, int from = 0)
+        {
+            var result = new List<TransactionVerboseModel>();
+            var walletName = wallet.Name;
+
+            var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
+            var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
+
+            var i = 0;
+            var chainedTip = chainRepository.Tip;
+
+            if ((txList != null) && (txList.Count() > 0))
+            {
+                txList = txList
+                        .Where(t => t.BlockHash != null)
+                        .OrderByDescending(t => t.BlockHeight)
+                        .GroupBy(tx => tx.Id)
+                        .Select(txs => txs.First())
+                        .ToList();
+
+                foreach (var txItem in txList)
+                {
+                    if (i >= from)
+                    {
+                        if (i > from + count - 1) break;
+                        result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+                    }
+
+                    i++;
+                }
+            }
+
+            return result;
+        }
+
+        private List<TransactionVerboseModel> DescribeTransaction(TransactionData txItem,
+                                                                  string walletName,
+                                                                  ChainedHeader chainedTip)
+        {
+            var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
+            var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
+            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
+
+            if ((tx != null) && (block != null) && (chainedHeader != null))
+            {
+                chainedHeader.Block = block;
+
+                //read prevTx from blockchain
+                var prevTxList = new List<IndexedTxOut>();
+                foreach (var itemInput in tx.Inputs)
+                {
+                    var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
+                    if (prevTx != null)
+                    {
+                        if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
+                        {
+                            var indexed = prevTx.Outputs.AsIndexedOutputs();
+                            prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
+                        }
+                    }
+                }
+
+                return TransactionVerboseModel.GenerateList(
+                        tx, prevTxList,
+                        block, chainedHeader,
+                        chainedTip, walletName,
+                        this.Network, this.walletManager as WalletManager
+                    ).ToList();
+            }
+            else {
+                return new List<TransactionVerboseModel>();
             }
         }
 
@@ -2174,5 +2310,50 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Stores the wallet decryption key in memory for 'timeout' seconds.
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="timeout"></param>
+        [ActionName("walletpassphrase")]
+        [ActionDescription("Stores the wallet decryption key in memory for 'timeout' seconds.")]
+        public IActionResult WalletPassphrase(string password, int timeout = 1073741824)
+        {
+            return Walletpassword(WalletRPCUtil.DEFAULT_WALLET, password, timeout);
+        }
+
+        /// <summary>
+        /// DEPRECATED RPC.
+        /// </summary>
+        /// <returns></returns>
+        [ActionName("listaccounts")]
+        [ActionDescription("DEPRECATED.")]
+        public IActionResult ListAccounts()
+        {
+            try
+            {
+                var result = new Dictionary<string, decimal>();
+                foreach(var walletName in walletManager.GetWalletsNames())
+                {
+                    var hdAccount = WalletRPCUtil.GetAccountFromWalletForDeprecatedRpcs(
+                        (WalletManager)walletManager,
+                        this.Network,
+                        walletName
+                    );
+
+                    result.Add(walletName,
+                            hdAccount.GetSpendableAmount().ConfirmedAmount.ToUnit(MoneyUnit.XRC));
+                }
+
+                return this.Json(
+                    ResultHelper.BuildResultResponse(result)
+                );
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
     }
 }
