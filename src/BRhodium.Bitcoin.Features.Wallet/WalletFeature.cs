@@ -202,6 +202,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 .DependOn<RPCFeature>()
                 .FeatureServices(services =>
                     {
+                        var walletSettings = new WalletSettings(setup);
+
                         services.AddSingleton<IWalletSyncManager, WalletSyncManager>();
                         services.AddSingleton<IWalletTransactionHandler, WalletTransactionHandler>();
                         services.AddSingleton<IWalletManager, WalletManager>();
@@ -212,7 +214,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         services.AddSingleton<UtilRPCController>();
                         services.AddSingleton<IBroadcasterManager, FullNodeBroadcasterManager>();
                         services.AddSingleton<BroadcasterBehavior>();
-                        services.AddSingleton<WalletSettings>(new WalletSettings(setup));
+                        services.AddSingleton<WalletSettings>(walletSettings);
                         services.AddSingleton<IWalletKeyPool, WalletKeyPool>();
                     });
             });

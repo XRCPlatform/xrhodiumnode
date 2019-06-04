@@ -22,6 +22,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// A value indicating whether the wallet being run is the light wallet or the full wallet.
         /// </summary>
         public bool IsLightWallet { get; set; }
+
+        /// <summary>Indicates wheteher the legacy bitcoin wallet RPC interface should be used.</summary>
+        /// <value></value>
+        public bool UseDeprecatedWalletRPC { get; private set; }
+
         /// <summary>
         /// Wallet notification subscriptions.
         /// </summary>
@@ -65,6 +70,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             TextFileConfiguration config = nodeSettings.ConfigReader;
             this.SaveTransactionHex = config.GetOrDefault<bool>("savetrxhex", false);
+            this.UseDeprecatedWalletRPC = config.GetOrDefault<bool>("usedeprecatedwalletrpc", false);
             var walletNotifications = config.GetAll("walletnotify");
 
             foreach (var subcription in walletNotifications)
@@ -85,6 +91,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             var builder = new StringBuilder();
 
             builder.AppendLine("-savetrxhex=<0 or 1>            Save the hex of transactions in the wallet file. Default: false.");
+            builder.AppendLine("-usedeprecatedwalletrpc=<0 or 1>            Use deprecated wallet RPC interface. Default false.");
             defaults.Logger.LogInformation(builder.ToString());
         }
 
@@ -100,6 +107,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             builder.AppendLine("#savetrxhex=0");
             builder.AppendLine("#walletnotify=recieved:curl.exe -s http://localhost:62602/walletnotify?%s");
             builder.AppendLine("#walletnotify=recieved:/home/myuser/transaction.sh %s");
+            builder.AppendLine($"#-usedeprecatedwalletrpc=<0 or 1>    Use legacy bitcoin wallet RPC. Default false.");
+            builder.AppendLine($"#usedeprecatedwalletrpc=0");
         }
     }
 }
