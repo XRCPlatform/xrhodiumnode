@@ -46,7 +46,7 @@ walletnotify=sent:curl.exe -s http://localhost:62602/walletnotify?%s
     <section address="Section1">
       <title>WalletNotify under Linux and MacOSX</title>
       <content>
-        <para>Node will call <legacyUnderline>/bin/bash + your command.</legacyUnderline></para>
+        <para>Node will call <legacyUnderline>/bin/bash -c + your command.</legacyUnderline></para>
         <para>In your BRhodium.conf, it is important to uncomment or add the following line:</para>
         <para><legacyItalic>/home/myuser/transaction.sh is your bash script.</legacyItalic></para>
 <code language="cs">
@@ -55,6 +55,40 @@ or
 walletnotify=recieved:/home/myuser/transaction.sh %s
 or
 walletnotify=sent:/home/myuser/transaction.sh %s
+</code>
+
+<para><legacyBold>Example of a bash script transaction.sh:</legacyBold></para>
+       <para><legacyItalic>http://127.0.0.1/some/route is your client side.</legacyItalic></para>
+<code language="cs">
+#!/bin/sh
+curl -d "txid=$1" http://127.0.0.1/some/route
+</code>
+
+      </content>
+    </section>
+    <section address="Section1">
+      <title>BlockNotify under Windows</title>
+      <content>
+          <para>This is for tracking when the most recent best-block is retrieved.</para>
+        <para>Node will call <legacyUnderline>cmd.exe /K + your command.</legacyUnderline></para>
+        <para>In your BRhodium.conf, it is important to uncomment or add the following line:</para>
+        <para><legacyItalic>http://localhost:62602/blocknotify is your client side.</legacyItalic></para>
+<code language="cs">
+blocknotify=curl.exe -s http://localhost:62602/blocknotify?%s
+</code>
+
+      </content>
+    </section>
+
+    <section address="Section1">
+      <title>BlockNotify under Linux and MacOSX</title>
+      <content>
+        <para>This is for tracking when the most recent best-block is retrieved.</para>
+        <para>Node will call <legacyUnderline>/bin/bash -c + your command.</legacyUnderline></para>
+        <para>In your BRhodium.conf, it is important to uncomment or add the following line:</para>
+        <para><legacyItalic>/home/myuser/newblock.sh is your bash script.</legacyItalic></para>
+<code language="cs">
+blocknotify=/home/myuser/newblock.sh %s
 </code>
 
 <para><legacyBold>Example of a bash script transaction.sh:</legacyBold></para>
