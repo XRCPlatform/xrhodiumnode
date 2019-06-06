@@ -1,0 +1,18 @@
+1.1.9 : In progress
+
+1.1.8 : June 5, 2019
+
+- curtime in getblocktemplate should be uint
+- Add various "deprecated" APIs to support older mining software
+- Whitespace cleanup
+
+1.1.7 : May 17, 2019
+
+- blocknotify: Call command on new best-block
+- Fix shell helper to run binaries
+- Corrected network hash rate
+- gettxout: Return correct output on missing transaction
+- Adding contribution document
+- Fix submitblock output on success
+- validateaddress RPC now includes change addresses
+- Specify correct confirmation blocks for unconfirmed transactions
