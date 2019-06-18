@@ -1902,6 +1902,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        [ActionName("listsinceblock")]
+        [ActionDescription("Get all transactions in blocks since block [blockhash], or all transactions if omitted.")]
+        public IActionResult ListSinceBlock(string param1 = null, string param2 = null, string param3 = null)
+        {
+            if (this.useDeprecatedWalletRPC)
+            {
+                var blockhash = param1;
+                int targetConfirmations = Int32.Parse(param2);
+                return ListSinceBlockResponse(WalletRPCUtil.DEFAULT_WALLET, blockhash, targetConfirmations);
+            }
+
+            return ListSinceBlockResponse(param1, param2, Int32.Parse(param3));
+        }
+
         /// <summary>
         /// Get all transactions in blocks since block [blockhash], or all transactions if omitted.
         /// </summary>
@@ -1909,9 +1923,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <param name="blockhash">The block hash to list transactions since.</param>
         /// <param name="target_confirmations">Return the nth block hash from the main chain. e.g. 1 would mean the best block hash.</param>
         /// <returns></returns>
-        [ActionName("listsinceblock")]
-        [ActionDescription("Get all transactions in blocks since block [blockhash], or all transactions if omitted.")]
-        public IActionResult ListSinceBlock(string walletName, string blockhash = null, int target_confirmations = 0)
+        public IActionResult ListSinceBlockResponse(string walletName, string blockhash = null, int target_confirmations = 0)
         {
             try
             {
