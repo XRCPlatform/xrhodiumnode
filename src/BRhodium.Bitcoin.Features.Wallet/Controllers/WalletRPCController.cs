@@ -1902,6 +1902,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        /// <summary>
+        /// Get all transactions in blocks since block [blockhash], or all transactions if omitted.
+        /// </summary>
+        /// <param name="param1">The wallet name or block hash if you use compatibility mode.</param>
+        /// <param name="param2">The block hash to list transactions since or nth block hash from main chain if you use compatibility mode.</param>
+        /// <param name="param3">Return the nth block hash from the main chain. e.g. 1 would mean the best block hash or null if you use compatibility mode.</param>
+        /// <returns></returns>
         [ActionName("listsinceblock")]
         [ActionDescription("Get all transactions in blocks since block [blockhash], or all transactions if omitted.")]
         public IActionResult ListSinceBlock(string param1 = null, string param2 = null, string param3 = null)
