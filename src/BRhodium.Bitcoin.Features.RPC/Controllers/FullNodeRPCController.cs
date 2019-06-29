@@ -147,51 +147,58 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     }
                 }
 
-                var networkInterface = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (var adapter in networkInterface)
+                try
                 {
-                    var network = new GetNetworkInfoNetworkModel();
-
-                    if (adapter.Supports(NetworkInterfaceComponent.IPv4))
+                    var networkInterface = NetworkInterface.GetAllNetworkInterfaces();
+                    foreach (var adapter in networkInterface)
                     {
-                        network.Name = "ipv4";
+                        var network = new GetNetworkInfoNetworkModel();
 
-                        try
+                        if (adapter.Supports(NetworkInterfaceComponent.IPv4))
                         {
-                            network.Reachable = adapter.IsReceiveOnly ? false : true;
+                            network.Name = "ipv4";
+
+                            try
+                            {
+                                network.Reachable = adapter.IsReceiveOnly ? false : true;
+                            }
+                            catch (PlatformNotSupportedException)
+                            {
+                                network.Reachable = true;
+                            }
+                            catch (Exception e)
+                            {
+                                throw e;
+                            }
+
+                            model.Networks.Add(network);
                         }
-                        catch (PlatformNotSupportedException)
+                        if (adapter.Supports(NetworkInterfaceComponent.IPv6))
                         {
-                            network.Reachable = true;
-                        }
-                        catch (Exception e)
-                        {
-                            throw e;
+                            network.Name = "ipv6";
+
+                            try
+                            {
+                                network.Reachable = adapter.IsReceiveOnly ? false : true;
+                            }
+                            catch (PlatformNotSupportedException)
+                            {
+                                network.Reachable = true;
+                            }
+                            catch (Exception e)
+                            {
+                                throw e;
+                            }
+
+                            model.Networks.Add(network);
                         }
 
                         model.Networks.Add(network);
                     }
-                    if (adapter.Supports(NetworkInterfaceComponent.IPv6))
-                    {
-                        network.Name = "ipv6";
-
-                        try
-                        {
-                            network.Reachable = adapter.IsReceiveOnly ? false : true;
-                        }
-                        catch (PlatformNotSupportedException)
-                        {
-                            network.Reachable = true;
-                        }
-                        catch (Exception e)
-                        {
-                            throw e;
-                        }
-
-                        model.Networks.Add(network);
-                    }
-
-                    model.Networks.Add(network);
+                }
+                catch (NetworkInformationException)
+                {
+                    // Do nothing if there is a problem reading network interfaces.
                 }
 
                 return this.Json(ResultHelper.BuildResultResponse(model));
