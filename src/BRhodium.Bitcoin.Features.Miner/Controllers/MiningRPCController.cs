@@ -291,7 +291,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
                                 transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, this.Network));
                                 transaction.Hash = item.GetWitHash().ToString();
-                                transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
+                                transaction.Txid = item.GetWitHash().ToString();
 
                                 transaction.Fee = pblockTemplate.VTxFees[i];
                                 transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
