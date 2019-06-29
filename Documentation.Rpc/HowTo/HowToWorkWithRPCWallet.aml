@@ -16,6 +16,7 @@
   <listItem><link xlink:href="#GetTransaction"><legacyBold>GetTransaction/GetTransactionByWallet</legacyBold></link> - Return information about specified transaction</listItem>
   <listItem><link xlink:href="#ListTransactions"><legacyBold>ListTransactions</legacyBold></link> - Return list of last send/received transactions</listItem>
   <listItem><link xlink:href="#ListReceivedByAddress"><legacyBold>ListReceivedByAddress</legacyBold></link> - The lists the total number of XRC received by each address.</listItem>
+  <listItem><link xlink:href="#ListSinceBlock"><legacyBold>ListSinceBlock</legacyBold></link> - Get all transactions in blocks since block [blockhash], or all transactions if omitted..</listItem>
 
   ListReceivedByAddress
 
@@ -563,6 +564,63 @@ curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64passwor
       },
 
 	  ...
+   ],
+   "error":null,
+   "id":0
+}
+</code>
+      </content>
+    </section>
+
+   <section address="ListSinceBlock">
+      <title>ListReceivedByAddress</title>
+      <content>
+			<para>Get all transactions in blocks since block [blockhash], or all transactions if omitted.</para>
+		<para>Specification: <codeEntityReference qualifyHint="false" autoUpgrade="true">M:BRhodium.Bitcoin.Features.Wallet.Controllers.WalletRPCController.ListSinceBlockResponse(System.String,System.String,System.Int32)</codeEntityReference></para>
+
+			<para>Call example:</para>
+<code language="cs">
+curl -X POST http://127.0.0.1:16661 -H 'Authorization: Basic **yourbase64password**' -H 'Content-Type: application/json' -H 'cache-control: no-cache' -d '[{"method" : "listsinceblock","params" : ["**walletname**", "**blockhash**", 100]}]'
+</code>
+
+<para>Example of a result:</para>
+
+<code language="cs">
+{
+   "result":[{
+       "hex": null,
+       "txid": "d825529a2be784e508b4e5027adb6195cc383cc06c6c549950a8988bb1fb4f1f",
+       "size": 115,
+       "version": 2,
+       "locktime": 0,
+       "vout": 0,
+       "blockhash": "42ef6c15928be2efe2a6c442b4bdca67c6b1906c418be601dc222728fdd8b17b",
+       "confirmations": 516,
+       "time": 1557251657,
+       "blocktime": 1557251657,
+       "category": "generate",
+       "amount": 2.5,
+       "blockheight": 10482,
+       "timereceived": 1561796322,
+       "address": "TRP11aRj4Sw6pHTiFzkSYESJhwsa18ziBn"
+       },
+       {
+       "hex": null,
+       "txid": "9f05f6868c769f2ca7322dc0f2c589f918748698b210b3bfa96e41094a776cfc",
+       "size": 115,
+       "version": 2,
+       "locktime": 0,
+       "vout": 0,
+       "blockhash": "2cb43e5d47352da2406550e98a3ac5dd35ba0de34eb8d630723f9952dca2cea9",
+       "confirmations": 515,
+       "time": 1557254850,
+       "blocktime": 1557254850,
+       "category": "generate",
+       "amount": 2.5,
+       "blockheight": 10483,
+       "timereceived": 1561796322,
+       "address": "TRP11aRj4Sw6pHTiFzkSYESJhwsa18ziBn"
+       }, ...
    ],
    "error":null,
    "id":0
