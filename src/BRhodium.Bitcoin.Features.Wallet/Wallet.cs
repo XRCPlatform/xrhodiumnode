@@ -825,9 +825,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // Get the index of the last address.
             int firstNewAddressIndex = 0;
-            if (addresses.Any())
+            if (this.ExternalAddresses.Any())
             {
-                firstNewAddressIndex = addresses.Max(add => add.Index) + 1;
+                firstNewAddressIndex = this.ExternalAddresses.Max(add => add.Index) + 1;
             }
 
             PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, firstNewAddressIndex, false);
@@ -843,9 +843,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 Transactions = new List<TransactionData>()
             };
 
-            addresses.Add(importAddress);
-
-            this.ExternalAddresses = addresses;
+            this.ExternalAddresses.Add(importAddress);
 
             return importAddress;
         }
