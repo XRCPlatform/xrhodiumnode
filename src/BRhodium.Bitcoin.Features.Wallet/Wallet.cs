@@ -821,8 +821,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <returns>The created address.</returns>
         private HdAddress ImportAddress(Network network, Script scriptPubKey, string address)
         {
-            var addresses = this.ExternalAddresses;
-
             // Get the index of the last address.
             int firstNewAddressIndex = 0;
             if (this.ExternalAddresses.Any())
