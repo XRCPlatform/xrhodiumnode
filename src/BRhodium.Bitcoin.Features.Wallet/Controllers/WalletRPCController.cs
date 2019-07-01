@@ -1408,7 +1408,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             try
             {
                 var result = string.Empty;
-                walletName = String.IsNullOrEmpty(walletName) ? WalletRPCUtil.DEFAULT_WALLET : walletName;
+                walletName = string.IsNullOrEmpty(walletName) ? WalletRPCUtil.DEFAULT_WALLET : walletName;
 
                 var wallet = this.walletManager.GetWalletByName(walletName);
                 var address = this.walletManager.GetNewAddresses(wallet, 1);
@@ -1655,13 +1655,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("address");
                 }
+
+                var isValid = false;
                 // P2PKH
-                if (!BitcoinPubKeyAddress.IsValid(address, ref this.Network))
+                if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
                 {
-                    throw new ArgumentNullException("address");
+                    isValid = true;
                 }
-                // P2SH
-                else if (!BitcoinScriptAddress.IsValid(address, ref this.Network))
+
+                if (!isValid)
                 {
                     throw new ArgumentNullException("address");
                 }
@@ -1675,6 +1677,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     hdAddress = hdAccount.ImportAddress(this.Network, address);
                     if (hdAddress != null)
                     {
+                        this.walletManager.UpdateKeysLookupLock(new[] { hdAddress }, walletName);
                         this.walletManager.SaveWallet(wallet);
 
                         if (rescan) this.RescanBlockChain();
@@ -1723,6 +1726,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     hdAddress = hdAccount.CreateAddresses(this.Network, pubKey);
                     if (hdAddress != null)
                     {
+                        this.walletManager.UpdateKeysLookupLock(new[] { hdAddress }, walletName);
                         this.walletManager.SaveWallet(wallet);
 
                         if (rescan) this.RescanBlockChain();

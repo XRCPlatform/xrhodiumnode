@@ -806,8 +806,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             var address = new BitcoinPubKeyAddress(base58Address, network);
-            var pubKeyTemplate = new PayToPubkeyTemplate();
-            var pubkey = pubKeyTemplate.ExtractScriptPubKeyParameters(address.ScriptPubKey);
+            PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, firstNewAddressIndex, false);
 
             // Add the new address details to the list of addresses.
             HdAddress importAddress = new HdAddress

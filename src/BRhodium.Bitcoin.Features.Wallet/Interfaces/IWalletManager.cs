@@ -297,6 +297,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         void UpdateLastBlockSyncedHeight(ChainedHeader chainedHeader);
 
         /// <summary>
+        /// Update the keys and transactions we're tracking in memory for faster lookups.
+        /// </summary>
+        void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses, string walletName);
+
+        /// <summary>
         /// Gets a wallet given its name.
         /// </summary>
         /// <param name="walletName">The name of the wallet to get.</param>
