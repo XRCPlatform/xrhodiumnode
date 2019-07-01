@@ -1,4 +1,12 @@
-1.1.9 : In progress
+1.1.10 : In Progress
+
+1.1.9 : July 1, 2019
+
+- Add listsinceblock deprecated argument list
+- getblocktemplate "txid" field now returns correct endianness of tx hash (similar to witness hash in "hash field)
+- Catch network exception when running getnetworkinfo
+- New documentation for listsinceblock
+- Improvement and fixes in RPCs method: ImportAddress and ImportPubKey
 
 1.1.8 : June 5, 2019
 
