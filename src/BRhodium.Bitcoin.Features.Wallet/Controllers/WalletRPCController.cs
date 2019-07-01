@@ -1656,14 +1656,21 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new ArgumentNullException("address");
                 }
 
-                var isValid = false;
+                var isP2PKH = false;
+                var isP2SH = false;
+
                 // P2PKH
                 if (BitcoinPubKeyAddress.IsValid(address, ref this.Network))
                 {
-                    isValid = true;
+                    isP2PKH = true;
+                }
+                //P2SH
+                else if (BitcoinScriptAddress.IsValid(address, ref this.Network))
+                {
+                    isP2SH = true;
                 }
 
-                if (!isValid)
+                if ((!isP2PKH) && (!isP2SH))
                 {
                     throw new ArgumentNullException("address");
                 }
@@ -1674,7 +1681,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 if (account != null)
                 {
                     var hdAccount = account.GetAccountByName(DEFAULT_ACCOUNT_NAME);
-                    hdAddress = hdAccount.ImportAddress(this.Network, address);
+
+                    if (isP2PKH)
+                    {
+                        hdAddress = hdAccount.ImportBase58Address(this.Network, address);
+                    }
+                    else
+                    {
+                        hdAddress = hdAccount.ImportScriptAddress(this.Network, address);
+                    }
+
                     if (hdAddress != null)
                     {
                         this.walletManager.UpdateKeysLookupLock(new[] { hdAddress }, walletName);

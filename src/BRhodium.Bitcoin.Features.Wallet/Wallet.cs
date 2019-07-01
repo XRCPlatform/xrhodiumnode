@@ -789,12 +789,37 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <summary>
-        /// BETA - Imports the address.
+        /// Imports the address.
         /// </summary>
         /// <param name="network">The network.</param>
         /// <param name="base58Address">The base58 address.</param>
         /// <returns>The created address.</returns>
-        public HdAddress ImportAddress(Network network, string base58Address)
+        public HdAddress ImportBase58Address(Network network, string base58Address)
+        {
+            var address = new BitcoinPubKeyAddress(base58Address, network);
+            return ImportAddress(network, address.ScriptPubKey, address.ToString());
+        }
+
+        /// <summary>
+        /// Imports the address.
+        /// </summary>
+        /// <param name="network">The network.</param>
+        /// <param name="scriptAddress">The script address.</param>
+        /// <returns>The created address.</returns>
+        public HdAddress ImportScriptAddress(Network network, string scriptAddress)
+        {
+            var address = new BitcoinScriptAddress(scriptAddress, network);
+            return ImportAddress(network, address.ScriptPubKey, address.ToString());
+        }
+
+        /// <summary>
+        /// Imports script address.
+        /// </summary>
+        /// <param name="network">The network.</param>
+        /// <param name="scriptPubKey">ScriptPubKey.</param>
+        /// <param name="address">PubKey.</param>
+        /// <returns>The created address.</returns>
+        private HdAddress ImportAddress(Network network, Script scriptPubKey, string address)
         {
             var addresses = this.ExternalAddresses;
 
@@ -805,7 +830,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 firstNewAddressIndex = addresses.Max(add => add.Index) + 1;
             }
 
-            var address = new BitcoinPubKeyAddress(base58Address, network);
             PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, firstNewAddressIndex, false);
 
             // Add the new address details to the list of addresses.
@@ -813,9 +837,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 Index = firstNewAddressIndex,
                 HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, firstNewAddressIndex),
-                ScriptPubKey = address.ScriptPubKey,
+                ScriptPubKey = scriptPubKey,
                 Pubkey = pubkey.ScriptPubKey,
-                Address = address.ToString(),
+                Address = address,
                 Transactions = new List<TransactionData>()
             };
 
