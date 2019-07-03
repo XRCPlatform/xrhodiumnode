@@ -786,8 +786,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             else
             {
                 var walletName = param1;
-                var address = param2;
-                var password = param3;
+                var password = param2;
+                var address = param3;
                 var amount = Decimal.Parse(param4);
 
                 Guard.NotEmpty(walletName, nameof(walletName));
