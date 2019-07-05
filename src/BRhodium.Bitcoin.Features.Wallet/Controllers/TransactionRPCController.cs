@@ -131,14 +131,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("outputs");
                 }
-
-                TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
+                dynamic txIns = JsonConvert.DeserializeObject(inputs);
+                //TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
                 Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
 
                 Transaction transaction = new Transaction();
                 foreach (var input in txIns)
                 {
-                    transaction.AddInput(input);
+                    transaction.AddInput(new TxIn(new OutPoint(uint256.Parse((string)input.txid),(uint)input.vout)));
                 }
 
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
@@ -386,7 +386,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(SignRawTransactionModel) Result is sign object of transaction.</returns>
         [ActionName("signrawtransaction")]
         [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded private keys that, if given, will be the only keys used to sign the transaction.")]
-        public IActionResult SignRawTransaction(string hex, string[] privkeys, string[] prevtxs, string sighashtype)
+        public IActionResult SignRawTransaction(string hex, string privkeys, string prevtxs, string sighashtype)
         {
             try
             {
@@ -402,10 +402,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     MinConfirmations = 0,
                     FeeType = FeeType.Low
                 };
-
-                var txBuilder = txBuilderContext.TransactionBuilder;
+                var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
 
                 var transaction = Transaction.Load(hex, this.Network);
+
+                transactionBuilder.CoinFinder = c =>
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    var tx1 = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
+                    if (tx1 == null)
+                    {
+                        return null;
+                    }
+                    return new Coin(tx1, c.N);
+                };
 
                 var actualFlag = SigHash.All;
                 switch (sighashtype)
@@ -430,20 +440,39 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         actualFlag = SigHash.All;
                         break;
                 }
+                string[] privkeysArray = null;
+                if (privkeys != null)
+                {
+                    privkeysArray = JsonConvert.DeserializeObject<string[]>(privkeys);
+                }
+                
 
                 List<Key> keys = new List<Key>();
 
                 if (privkeys != null)
                 {
-                    foreach (var itemKey in privkeys)
+                    foreach (var itemKey in privkeysArray)
                     {
                         var secret = this.Network.CreateBitcoinSecret(itemKey);
                         keys.Add(secret.PrivateKey);
                     }
                 }
 
-                var tx = transaction.Clone(network: this.Network);
-                var signedTx = txBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+                transactionBuilder.AddKeys(keys.ToArray());
+
+                //if (prevtxs != null)
+                //{
+                //    string[] prevtxsArray = JsonConvert.DeserializeObject<string[]>(prevtxs);
+                //}
+
+
+                //foreach (var item in transaction.Inputs)
+                //{
+                //    transactionBuilder.AddCoins(new Coin(item.PrevOut,item.ReadWrite));
+                //}
+
+                var tx = transaction.Clone(network: this.Network);                
+                var signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
 
                 result.Hex = signedTx.ToHex();
                 result.Complete = true;
