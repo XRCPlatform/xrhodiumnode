@@ -458,18 +458,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                 }
 
-                transactionBuilder.AddKeys(keys.ToArray());
+                //transactionBuilder.AddKeys(keys.ToArray());
 
                 //if (prevtxs != null)
                 //{
                 //    string[] prevtxsArray = JsonConvert.DeserializeObject<string[]>(prevtxs);
                 //}
-
-
-                //foreach (var item in transaction.Inputs)
-                //{
-                //    transactionBuilder.AddCoins(new Coin(item.PrevOut,item.ReadWrite));
-                //}
+               
 
                 var tx = transaction.Clone(network: this.Network);                
                 var signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
