@@ -131,20 +131,25 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("outputs");
                 }
-                dynamic txIns = JsonConvert.DeserializeObject(inputs);
-                //TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
-                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
+                Transaction transaction = new Transaction();               
+                               
 
-                Transaction transaction = new Transaction();
+                dynamic txIns = JsonConvert.DeserializeObject(inputs);
                 foreach (var input in txIns)
                 {
-                    transaction.AddInput(new TxIn(new OutPoint(uint256.Parse((string)input.txid),(uint)input.vout)));
+                    var txIn = new TxIn(new OutPoint(uint256.Parse((string)input.txid), (uint)input.vout));
+                    if(input.sequence != null)
+                    {
+                        txIn.Sequence = (uint)input.sequence;
+                    }                   
+                    transaction.AddInput(txIn);
                 }
 
+                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
-                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliXRC), destination));
+                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.XRC), destination));
                 }
 
                 var txHex = transaction.ToHex();
@@ -174,7 +179,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var tx = Transaction.Load(hex, this.Network);
-                return this.Json(ResultHelper.BuildResultResponse(JsonConvert.DeserializeObject(tx.ToString(RawFormat.Satoshi))));
+                return this.Json(ResultHelper.BuildResultResponse(JsonConvert.DeserializeObject(tx.ToString(RawFormat.Satoshi, this.Network))));
             }
             catch (Exception e)
             {
@@ -446,7 +451,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     privkeysArray = JsonConvert.DeserializeObject<string[]>(privkeys);
                 }
                 
-
                 List<Key> keys = new List<Key>();
 
                 if (privkeys != null)
@@ -457,14 +461,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         keys.Add(secret.PrivateKey);
                     }
                 }
+                /* prevtxs => (json object)
+                 [
+                    { 
+                    "txid": "hex",             (string, required) The transaction id
+                    "vout": n,                 (numeric, required) The output number
+                    "scriptPubKey": "hex",     (string, required) script key
+                    "redeemScript": "hex",     (string) (required for P2SH) redeem script
+                    "witnessScript": "hex",    (string) (required for P2WSH or P2SH-P2WSH) witness script
+                    "amount": amount,          (numeric or string, required) The amount spent
+                    },
+                    ...
+                ]
+                */
+                List<Coin> previousCoins = new List<Coin>();
+                dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
+                foreach (var prevTxn in prevtxsArray)
+                {
+                    Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((uint)prevTxn.amount), new NBitcoin.Script(prevTxn.scriptPubKey));
+                    previousCoins.Add(coin);
+                }             
 
-                //transactionBuilder.AddKeys(keys.ToArray());
-
-                //if (prevtxs != null)
-                //{
-                //    string[] prevtxsArray = JsonConvert.DeserializeObject<string[]>(prevtxs);
-                //}
-               
+                transactionBuilder.AddCoins(previousCoins);
 
                 var tx = transaction.Clone(network: this.Network);                
                 var signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
