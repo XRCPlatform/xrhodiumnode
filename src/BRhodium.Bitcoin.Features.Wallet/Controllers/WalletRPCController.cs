@@ -34,6 +34,7 @@ using BRhodium.Bitcoin.Features.RPC.Models;
 using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.TransactionVerboseModel;
 using System.Security;
 using BRhodium.Node.Base;
+using NBitcoin.DataEncoders;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -191,7 +192,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("address");
                 }
-
+                HdAddress hdAddress = null;
                 //we need to find wallet
                 string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
                 if (walletCombix == null)
@@ -210,6 +211,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     walletCombix = $"{currAccount.Name}/{currWalletName}";
                                     WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
                                     HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    hdAddress = walletAddress;
                                     break;
                                 }
                             }
@@ -220,9 +222,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         if (isFound) break;
                     }
                 }
-
+                if (walletCombix == null)
+                {
+                    throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
+                }
                 string walletName = walletCombix.Split('/')[1];
                 var mywallet = this.walletManager.GetWallet(walletName);
+
+                //if wallet combix was cached
+                if (HdAddressByAddressMap.ContainsKey(address) && hdAddress == null)
+                {
+                   HdAddressByAddressMap.TryGetValue(address, out hdAddress);
+                }
 
                 var passwordExpiration = walletPasswordExpiration.TryGet(mywallet.Name);
                 string password = null;
@@ -242,22 +253,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         walletPassword.TryGetValue(mywallet.Name, out password);
                     }
                 }
-
-                //try to decript wallet
-                foreach (var item in walletPassword)
+                if (hdAddress == null)
                 {
-                    try
+                    throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
+                }
+                try
+                {
+                    if (password != null && hdAddress != null)
                     {
-                        var privateKey = HdOperations.DecryptSeed(mywallet.EncryptedSeed, password, this.Network);
+                        var pk = mywallet.GetExtendedPrivateKeyForAddress(password, hdAddress).PrivateKey.GetWif(this.Network);
+                        string privatekey = pk.ToString();
+                        return this.Json(ResultHelper.BuildResultResponse(privatekey));
+                    }                   
+                }
+                catch (Exception)
+                {
 
-                        var secret = new BitcoinSecret(privateKey, this.Network);
-                        var stringPrivateKey = secret.ToString();
-                        return this.Json(ResultHelper.BuildResultResponse(stringPrivateKey));
-                    }
-                    catch (Exception)
-                    {
-
-                    }
                 }
 
                 throw new ArgumentNullException("password");
