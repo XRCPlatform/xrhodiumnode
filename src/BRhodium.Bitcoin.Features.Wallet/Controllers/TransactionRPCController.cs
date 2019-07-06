@@ -475,12 +475,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 ]
                 */
                 List<Coin> previousCoins = new List<Coin>();
-                dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
-                foreach (var prevTxn in prevtxsArray)
+                if (prevtxs != null)
                 {
-                    Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((uint)prevTxn.amount), new NBitcoin.Script(prevTxn.scriptPubKey));
-                    previousCoins.Add(coin);
-                }             
+                    dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
+                    foreach (var prevTxn in prevtxsArray)
+                    {
+                        Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((decimal)prevTxn.amount,MoneyUnit.XRC), new NBitcoin.Script((string)prevTxn.scriptPubKey));
+                        previousCoins.Add(coin);
+                    }
+                }                       
 
                 transactionBuilder.AddCoins(previousCoins);
 
