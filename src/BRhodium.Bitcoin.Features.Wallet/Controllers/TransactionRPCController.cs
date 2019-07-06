@@ -223,7 +223,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(FundRawTransactionModel) Result object with transaction fund.</returns>
         [ActionName("fundrawtransaction")]
         [ActionDescription("Add inputs to a transaction until it has enough in value to meet its out value. This will not modify existing inputs, and will add at most one change output to the outputs. No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet. Note that all inputs selected must be of standard form and P2SH scripts must be in the wallet using importaddress or addmultisigaddress(to calculate fees). You can see whether this is the case by checking the \"solvable\" field in the listunspent output. Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only.")]
-        public IActionResult FundRawTransaction(string hex)
+        public IActionResult FundRawTransaction(string hdAcccountName, string hex, string password)
         {
             try
             {
@@ -233,16 +233,47 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var feeRate = new FeeRate(this.Settings.MinTxFeeRate.FeePerK);
 
-                var fundContext = new TransactionBuildContext(null, new List<Recipient>())
+                string walletName = "";
+                string accountName = "";
+                if (string.IsNullOrEmpty(hdAcccountName))
+                {
+                    hdAcccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                if (hdAcccountName.Contains("/"))
+                {
+                    var nameParts = hdAcccountName.Split('/');                    
+                    walletName = nameParts[0];
+                    accountName = nameParts[1];
+                }
+                else
+                {
+                    walletName = hdAcccountName;
+                    accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                var walletReference = new WalletAccountReference(walletName, accountName);
+                List<Recipient> recipients = new List<Recipient>();
+                foreach (var item in fundTransaction.Outputs)
+                {
+                    var r = new Recipient();
+                    r.ScriptPubKey = item.ScriptPubKey;
+                    r.Amount = item.Value;
+                    recipients.Add(r);
+                }
+
+                var fundContext = new TransactionBuildContext(walletReference, recipients, password)
                 {
                     MinConfirmations = 0,
                     FeeType = FeeType.Low,
+                    Sign = true
                 };
 
-                walletTransactionHandler.FundTransaction(fundContext, fundTransaction);
-                var fee = feeRate.GetFee(fundTransaction);
+                var trx = walletTransactionHandler.BuildTransaction(fundContext);
 
-                result.Hex = fundTransaction.ToHex();
+                var fee = feeRate.GetFee(trx);
+
+                result.Hex = trx.ToHex();
                 result.Fee = fee.ToUnit(MoneyUnit.XRC);
                 result.ChangePos = -1;
 
