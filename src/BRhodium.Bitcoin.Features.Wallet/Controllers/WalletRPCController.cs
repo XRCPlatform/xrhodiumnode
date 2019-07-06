@@ -1243,6 +1243,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("stopHeight", "Chain is shorter");
                 }
+                //bug genesis does not have transctions and can't be scanned start from 1 if below 1
+                if (startHeight.Value < 1)
+                {
+                    startHeight  = 1;
+                }
 
                 var result = new RescanBlockChainModel();
                 result.StartHeight = startHeight.Value;
@@ -1707,7 +1712,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         this.walletManager.UpdateKeysLookupLock(new[] { hdAddress }, walletName);
                         this.walletManager.SaveWallet(wallet);
 
-                        if (rescan) this.RescanBlockChain();
+                        if (rescan) this.RescanBlockChain(null,null);
                     }
                 }
 
