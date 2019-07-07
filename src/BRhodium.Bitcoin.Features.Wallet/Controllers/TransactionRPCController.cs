@@ -266,7 +266,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     MinConfirmations = 0,
                     FeeType = FeeType.Low,
-                    Sign = true
+                    Sign = false
                 };
 
                 var trx = walletTransactionHandler.BuildTransaction(fundContext);
