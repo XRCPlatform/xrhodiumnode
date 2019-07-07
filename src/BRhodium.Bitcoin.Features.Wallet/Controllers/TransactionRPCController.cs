@@ -252,28 +252,25 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
                 }
 
-                var walletReference = new WalletAccountReference(walletName, accountName);
-                List<Recipient> recipients = new List<Recipient>();
-                foreach (var item in fundTransaction.Outputs)
-                {
-                    var r = new Recipient();
-                    r.ScriptPubKey = item.ScriptPubKey;
-                    r.Amount = item.Value;
-                    recipients.Add(r);
-                }
+                var walletReference = new WalletAccountReference(walletName, accountName);              
 
-                var fundContext = new TransactionBuildContext(walletReference, recipients, password)
+                var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
                 {
                     MinConfirmations = 0,
                     FeeType = FeeType.Low,
                     Sign = false
                 };
 
-                var trx = walletTransactionHandler.BuildTransaction(fundContext);
+                if (fundTransaction.Inputs.Any())
+                {
+                    throw new Exception("Unable to fund raw transaction with specified inputs");
+                }
 
-                var fee = feeRate.GetFee(trx);
+                walletTransactionHandler.FundTransaction(fundContext, fundTransaction);
 
-                result.Hex = trx.ToHex();
+                var fee = feeRate.GetFee(fundTransaction);
+
+                result.Hex = fundTransaction.ToHex();
                 result.Fee = fee.ToUnit(MoneyUnit.XRC);
                 result.ChangePos = -1;
 
