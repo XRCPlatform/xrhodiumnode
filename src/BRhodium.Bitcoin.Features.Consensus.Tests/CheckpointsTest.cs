@@ -39,7 +39,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
 
             var result = checkpoints.GetLastCheckpointHeight();
 
-            Assert.Equal(800, result);
+            Assert.Equal(26800, result);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             consensusSettings.UseCheckpoints = true;
 
             result = checkpoints.GetLastCheckpointHeight();
-            Assert.Equal(800, result);
+            Assert.Equal(26800, result);
         }
 
         [Fact]

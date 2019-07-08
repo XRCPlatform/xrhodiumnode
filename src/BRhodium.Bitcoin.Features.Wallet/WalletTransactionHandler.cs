@@ -69,13 +69,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
-
-            if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
-                return context.Transaction;
-
-            string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
-            this.logger.LogError($"Build transaction failed: {errorsMessage}");
-            throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+            if (context.Sign)
+            {
+                if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
+                {
+                    return context.Transaction;
+                }
+                string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
+                this.logger.LogError($"Build transaction failed: {errorsMessage}");
+                throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+            }
+            return context.Transaction;
         }
 
         /// <inheritdoc />
