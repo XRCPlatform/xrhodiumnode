@@ -603,9 +603,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Get detailed information about in-wallet transaction.
         /// </summary>
-        /// <param name="walletName"></param>
-        /// <param name="txId"></param>
-        /// <returns></returns>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="txId">Hash id of tx.</param>
+        /// <returns>(TransactionModel) Result object with informations.</returns>
         [ActionName("gettransactionbywallet")]
         [ActionDescription("Get detailed information about in-wallet transaction.")]
         public IActionResult GetTransactionByWallet(string walletName, string txId)
