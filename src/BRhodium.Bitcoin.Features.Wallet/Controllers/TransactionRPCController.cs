@@ -217,15 +217,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Add inputs to a transaction until it has enough in value to meet its out value. This will not accept inputs specified in raw tranaction.It will add at most one change output to the outputs. No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet."
+        /// Add inputs to a transaction until it has enough in value to meet its out value. This will not accept inputs specified in raw tranaction.It will add at most one change output to the outputs. No existing outputs will be modified unless "subtractFeeFromOutputs" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet."
         /// </summary>
-        /// <param name="hdAcccountName"></param>
-        /// <param name="hex"></param>
-        /// <param name="password"></param>
+        /// <param name="hdAccountName">HD Account Name - Example: "WalletName/WalletAccount"</param>
+        /// <param name="hex">The hex string of the raw transaction.</param>
+        /// <param name="password">Transaction password.</param>
         /// <returns>hex of funded transaction</returns>
         [ActionName("fundrawtransaction")]
-        [ActionDescription("Add inputs to a transaction until it has enough in value to meet its out value. This will not accept inputs specified in raw tranaction.It will add at most one change output to the outputs. No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet.")]
-        public IActionResult FundRawTransaction(string hdAcccountName, string hex, string password)
+        [ActionDescription("Add inputs to a transaction until it has enough in value to meet its out value.")]
+        public IActionResult FundRawTransaction(string hdAccountName, string hex, string password)
         {
             try
             {
@@ -237,20 +237,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 string walletName = "";
                 string accountName = "";
-                if (string.IsNullOrEmpty(hdAcccountName))
+                if (string.IsNullOrEmpty(hdAccountName))
                 {
-                    hdAcccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+                    hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
                 }
 
-                if (hdAcccountName.Contains("/"))
+                if (hdAccountName.Contains("/"))
                 {
-                    var nameParts = hdAcccountName.Split('/');                    
+                    var nameParts = hdAccountName.Split('/');                    
                     walletName = nameParts[0];
                     accountName = nameParts[1];
                 }
                 else
                 {
-                    walletName = hdAcccountName;
+                    walletName = hdAccountName;
                     accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
                 }
 
@@ -416,31 +416,34 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// </summary>
         /// <param name="hex">The transaction hex string.</param>
         /// <param name="privkeys">A json array of base58-encoded private keys for signing.
-        /// Example: (json object)
+        /// <code>Example: (json object)
         /// [
         ///     'cQUVnB8q9fx6wruWWZSTbGWhzApr3ikitciF5RYBcyCT9qXCUrKW',
         ///     'cNAVHMhm4wDugACof95TVWoeMtK3cQRGMti2mrVxSG4x8wXjBDtm',
         ///     ...
         /// ]
+        /// </code>
         /// </param>
         /// <param name="prevtxs">A json array of previous dependent transaction outputs.
-        /// 
+        /// <code>
         /// Example: (json object)
-        //    [
-        //        { 
-        //         "txid": "hex",             (string, required) The transaction id
-        //         "vout": n,                 (numeric, required) The output number
-        //         "scriptPubKey": "hex",     (string, required) script key
-        //         "redeemScript": "hex",     (string) (required for P2SH) redeem script
-        //         "amount": amount,          (numeric or string, required) The amount spent
-        //        },
-        //         ...
-        //     ]
-        //</param>
+        ///    [
+        ///        { 
+        ///         "txid": "hex",             (string, required) The transaction id
+        ///         "vout": n,                 (numeric, required) The output number
+        ///         "scriptPubKey": "hex",     (string, required) script key
+        ///         "redeemScript": "hex",     (string) (required for P2SH) redeem script
+        ///         "amount": amount,          (numeric or string, required) The amount spent
+        ///        },
+        ///         ...
+        ///     ]
+        /// </code>
+        /// </param>
         /// <param name="sighashtype">The signature hash type. Default is ALL. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY".</param>
+
         /// <returns>(SignRawTransactionModel) Result is sign object of transaction.</returns>
         [ActionName("signrawtransaction")]
-        [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded private keys that, if given, will be the only keys used to sign the transaction.")]
+        [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded).")]
         public IActionResult SignRawTransaction(string hex, string privkeys, string prevtxs, string sighashtype)
         {
             try
