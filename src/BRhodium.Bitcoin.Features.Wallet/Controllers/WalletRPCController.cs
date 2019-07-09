@@ -1902,7 +1902,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(List, ListReceivedByAddressModel) Object with informations.</returns>
         [ActionName("listreceivedbyaddress")]
         [ActionDescription("List balances by receiving address.")]
-        public IActionResult ListReceivedByAddress(string walletName, int minconf = 0, bool include_empty = false)
+        public IActionResult ListReceivedByAddress(string walletName, int minconf = 1, bool include_empty = false)
         {
             try
             {
@@ -2148,7 +2148,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <returns>(List, TransactionVerboseModel) Object with transaction information.</returns>
         [ActionName("listunspent")]
         [ActionDescription("Returns array of unspent transaction outputs. With between minconf confirmations.")]
-        public IActionResult ListUnspent(string walletName, int minconf = 0)
+        public IActionResult ListUnspent(string walletName, int minconf = 1)
         {
             try
             {
@@ -2169,39 +2169,54 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     foreach (var itemUnspendTx in unspendTx)
                     {
                         var txItem = itemUnspendTx.Transaction;
+                        if (txItem == null)
+                        {
+                            continue;
+                        }
                         if (txItem.BlockHash == null) {
                             continue; // Most likely a mempool tx
-                        }
+                        }                       
 
                         var tx = this.blockRepository.GetTrxAsync(txItem.Id).GetAwaiter().GetResult();
                         var block = this.blockRepository.GetAsync(txItem.BlockHash).GetAwaiter().GetResult();
                         var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.BlockHash);
+                        var chainedTip = this.ConsensusLoop.Chain.Tip;
 
                         if ((tx != null) && (block != null) && (chainedHeader != null))
                         {
-                            chainedHeader.Block = block;
-
-                            //read prevTx from blockchain
-                            var prevTxList = new List<IndexedTxOut>();
-                            foreach (var itemInput in tx.Inputs)
+                            var outputModel = new TransactionVerboseModel
                             {
-                                var prevTx = this.blockRepository.GetTrxAsync(itemInput.PrevOut.Hash).GetAwaiter().GetResult();
-                                if (prevTx != null)
+                                Amount = txItem.Amount.ToDecimal(MoneyUnit.XRC),
+                                Address = txItem.ScriptPubKey.GetDestinationAddress(this.Network).ToString(),
+                                Category = "receive",
+                                VOut = (uint)itemUnspendTx.ToOutPoint().N,
+                                TxId = tx.GetHash().ToString(),
+                                Size = tx.GetSerializedSize(),
+                                Version = tx.Version,
+                                LockTime = tx.LockTime,
+                                TimeReceived = tx.Time,
+                                BlockHeight = chainedHeader.Height,
+                                BlockHash = chainedHeader.HashBlock.ToString(),
+                                Time = (uint)block.Header.BlockTime.ToUnixTimeSeconds(),
+                                BlockTime = (uint)block.Header.BlockTime.ToUnixTimeSeconds(),
+                                Fee = 0,
+                                Confirmations = chainedTip.Height - chainedHeader.Height + 1
+                            };
+
+                            if (tx.IsCoinBase)
+                            {
+                                if (outputModel.Confirmations < 10)
                                 {
-                                    if (prevTx.Outputs.Count() > itemInput.PrevOut.N)
-                                    {
-                                        var indexed = prevTx.Outputs.AsIndexedOutputs();
-                                        prevTxList.Add(indexed.First(t => t.N == itemInput.PrevOut.N));
-                                    }
+                                    outputModel.Category = "immature";
+                                }
+                                else
+                                {
+                                    outputModel.Category = "generate";
                                 }
                             }
 
-                            result = result.Concat(TransactionVerboseModel.GenerateList(
-                                tx, prevTxList,
-                                block, chainedHeader,
-                                chainRepository.Tip, walletName,
-                                this.Network, this.walletManager as WalletManager
-                            )).ToList();
+                            result.Add(outputModel);
+
                         }
                     }
                 }
