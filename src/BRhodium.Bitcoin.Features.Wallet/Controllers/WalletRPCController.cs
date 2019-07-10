@@ -1980,11 +1980,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
+                if (!string.IsNullOrEmpty(blockhash) && target_confirmations > 0)
+                {
+                    throw new ArgumentException("blockhash  and target_confirmations can't be specified at once. choose either hash or confirmations");
+                }
+
                 ChainedHeader startChainedHeader = null;
                 if (!string.IsNullOrEmpty(blockhash)) {
 
                     var uintBlockHash = new uint256(blockhash);
                     startChainedHeader = this.ConsensusLoop.Chain.GetBlock(uintBlockHash);
+                }
+
+                if (target_confirmations > 0)
+                {
+                    int target_block = (chainRepository.Tip.Height - target_confirmations);
+                    startChainedHeader = chainRepository.GetBlock(target_block);
                 }
 
                 var chainedTip = chainRepository.Tip;
