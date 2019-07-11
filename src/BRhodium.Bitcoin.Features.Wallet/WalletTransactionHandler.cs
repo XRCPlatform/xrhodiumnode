@@ -83,6 +83,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
+        public Transaction SignTransaction(TransactionBuildContext context, TransactionBuilder builder , Transaction transaction)
+        {
+            
+            this.InitializeSignableTransactionBuilder(context, builder);
+            builder.ContinueToBuild(transaction);
+            // build transaction
+            context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
+            if (context.Sign)
+            {
+                if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
+                {
+                    return context.Transaction;
+                }
+                string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
+                this.logger.LogError($"Build transaction failed: {errorsMessage}");
+                throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+            }
+            return context.Transaction;
+        }
+
+        /// <inheritdoc />
         public void FundTransaction(TransactionBuildContext context, Transaction transaction)
         {
             if (context.Recipients.Any())
@@ -206,6 +227,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.AddSecrets(context);
             this.FindChangeAddress(context);
             this.AddFee(context);
+        }
+
+        /// <summary>
+        /// Initializes the context transaction builder from information in <see cref="TransactionBuildContext"/>.
+        /// </summary>
+        /// <param name="context">Transaction build context.</param>
+        private void InitializeSignableTransactionBuilder(TransactionBuildContext context, TransactionBuilder builder)
+        {
+            Guard.NotNull(context, nameof(context));
+            Guard.NotNull(context.Recipients, nameof(context.Recipients));
+            Guard.NotNull(context.AccountReference, nameof(context.AccountReference));
+
+            context.TransactionBuilder = builder;
+
+            this.AddCoins(context);
+            this.AddSecrets(context);
         }
 
         /// <summary>

@@ -258,7 +258,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
                 {
-                    MinConfirmations = 0,
+                    MinConfirmations = 1,
                     FeeType = FeeType.Low,
                     Sign = false
                 };
@@ -440,11 +440,13 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// </code>
         /// </param>
         /// <param name="sighashtype">The signature hash type. Default is ALL. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY".</param>
-
+        /// <param name="hdAccountName">HD Account Name - Example: "WalletName/WalletAccount" (OPTIONAL if keys are supplied as arg. If not specified will initialize to default wallet) </param>
+        /// <param name="password">Transaction password.(OPTIONAL if PrivateKeys supplied, mandatory othervice)</param>
+        /// 
         /// <returns>(SignRawTransactionModel) Result is sign object of transaction.</returns>
         [ActionName("signrawtransaction")]
         [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded).")]
-        public IActionResult SignRawTransaction(string hex, string privkeys, string prevtxs, string sighashtype)
+        public IActionResult SignRawTransaction(string hex, string privkeys, string prevtxs, string sighashtype, string hdAccountName, string password)
         {
             try
             {
@@ -455,11 +457,40 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new ArgumentNullException("hex");
                 }
 
-                var txBuilderContext = new TransactionBuildContext(null, new List<Recipient>())
+                string walletName = "";
+                string accountName = "";
+                if (string.IsNullOrEmpty(hdAccountName))
                 {
-                    MinConfirmations = 0,
-                    FeeType = FeeType.Low
+                    hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                if (hdAccountName.Contains("/"))
+                {
+                    var nameParts = hdAccountName.Split('/');
+                    walletName = nameParts[0];
+                    accountName = nameParts[1];
+                }
+                else
+                {
+                    walletName = hdAccountName;
+                    accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                var walletReference = new WalletAccountReference(walletName, accountName);
+
+                if (!string.IsNullOrEmpty(privkeys))
+                {
+                    walletReference = null;
+                    password = null;
+                }
+
+                var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
+                {
+                    MinConfirmations = 1,
+                    FeeType = FeeType.Low,
+                    Sign = true
                 };
+
                 var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
 
                 var transaction = Transaction.Load(hex, this.Network);
@@ -474,6 +505,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                     return new Coin(tx1, c.N);
                 };
+                //transactionBuilder.KeyFinder = c =>
+                //{
+                //    c.GetDestination
+                //    return new Key(tx1, c.N);
+                //};
 
                 var actualFlag = SigHash.All;
                 switch (sighashtype)
@@ -540,8 +576,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 transactionBuilder.AddCoins(previousCoins);
 
-                var tx = transaction.Clone(network: this.Network);                
-                var signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+                var tx = transaction.Clone(network: this.Network);
+                Transaction signedTx;
+                if (keys.Any())
+                {
+                    signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+                }
+                else
+                {
+                    var walletTransactionHandler = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+                    signedTx = walletTransactionHandler.SignTransaction(fundContext, transactionBuilder,tx);
+                }
+                
 
                 result.Hex = signedTx.ToHex();
                 result.Complete = true;
