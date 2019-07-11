@@ -457,27 +457,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new ArgumentNullException("hex");
                 }
 
-                string walletName = "";
-                string accountName = "";
-                if (string.IsNullOrEmpty(hdAccountName))
-                {
-                    hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
-                }
-
-                if (hdAccountName.Contains("/"))
-                {
-                    var nameParts = hdAccountName.Split('/');
-                    walletName = nameParts[0];
-                    accountName = nameParts[1];
-                }
-                else
-                {
-                    walletName = hdAccountName;
-                    accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
-                }
-
-                var walletReference = new WalletAccountReference(walletName, accountName);
-
+                WalletAccountReference walletReference = GetWalletReference(hdAccountName);
+                //should not use both externaly managed keys and keys found wallet
+                //because the ways of signing today are very different and blend is not possible
+                //if keys passed in only use those
                 if (!string.IsNullOrEmpty(privkeys))
                 {
                     walletReference = null;
@@ -486,7 +469,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
                 {
-                    MinConfirmations = 1,
+                    MinConfirmations = 0,
                     FeeType = FeeType.Low,
                     Sign = true
                 };
@@ -505,11 +488,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                     return new Coin(tx1, c.N);
                 };
-                //transactionBuilder.KeyFinder = c =>
-                //{
-                //    c.GetDestination
-                //    return new Key(tx1, c.N);
-                //};
 
                 var actualFlag = SigHash.All;
                 switch (sighashtype)
@@ -534,45 +512,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         actualFlag = SigHash.All;
                         break;
                 }
-                string[] privkeysArray = null;
-                if (privkeys != null)
-                {
-                    privkeysArray = JsonConvert.DeserializeObject<string[]>(privkeys);
-                }
-                
-                List<Key> keys = new List<Key>();
+                List<Key> keys = ParsePrivateKeysInput(privkeys);
 
-                if (privkeys != null)
-                {
-                    foreach (var itemKey in privkeysArray)
-                    {
-                        var secret = this.Network.CreateBitcoinSecret(itemKey);
-                        keys.Add(secret.PrivateKey);
-                    }
-                }
-                /* prevtxs => (json object)
-                 [
-                    { 
-                    "txid": "hex",             (string, required) The transaction id
-                    "vout": n,                 (numeric, required) The output number
-                    "scriptPubKey": "hex",     (string, required) script key
-                    "redeemScript": "hex",     (string) (required for P2SH) redeem script
-                    "witnessScript": "hex",    (string) (required for P2WSH or P2SH-P2WSH) witness script
-                    "amount": amount,          (numeric or string, required) The amount spent
-                    },
-                    ...
-                ]
-                */
-                List<Coin> previousCoins = new List<Coin>();
-                if (prevtxs != null)
-                {
-                    dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
-                    foreach (var prevTxn in prevtxsArray)
-                    {
-                        Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((decimal)prevTxn.amount,MoneyUnit.XRC), new NBitcoin.Script((string)prevTxn.scriptPubKey));
-                        previousCoins.Add(coin);
-                    }
-                }                       
+                List<Coin> previousCoins = ParsePreviousTransactionsInput(prevtxs);
 
                 transactionBuilder.AddCoins(previousCoins);
 
@@ -585,9 +527,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 else
                 {
                     var walletTransactionHandler = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-                    signedTx = walletTransactionHandler.SignTransaction(fundContext, transactionBuilder,tx);
+                    signedTx = walletTransactionHandler.SignTransaction(fundContext, transactionBuilder, tx);
                 }
-                
 
                 result.Hex = signedTx.ToHex();
                 result.Complete = true;
@@ -599,6 +540,69 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        private static List<Coin> ParsePreviousTransactionsInput(string prevtxs)
+        {
+            List<Coin> previousCoins = new List<Coin>();
+            if (prevtxs != null)
+            {
+                dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
+                foreach (var prevTxn in prevtxsArray)
+                {
+                    Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((decimal)prevTxn.amount, MoneyUnit.XRC), new NBitcoin.Script((string)prevTxn.scriptPubKey));
+                    previousCoins.Add(coin);
+                }
+            }
+
+            return previousCoins;
+        }
+
+        private List<Key> ParsePrivateKeysInput(string privkeys)
+        {
+            string[] privkeysArray = null;
+            if (privkeys != null)
+            {
+                privkeysArray = JsonConvert.DeserializeObject<string[]>(privkeys);
+            }
+
+            List<Key> keys = new List<Key>();
+
+            if (privkeys != null)
+            {
+                foreach (var itemKey in privkeysArray)
+                {
+                    var secret = this.Network.CreateBitcoinSecret(itemKey);
+                    keys.Add(secret.PrivateKey);
+                }
+            }
+
+            return keys;
+        }
+
+        private static WalletAccountReference GetWalletReference(string hdAccountName)
+        {
+            string walletName = "";
+            string accountName = "";
+            if (string.IsNullOrEmpty(hdAccountName))
+            {
+                hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+            }
+
+            if (hdAccountName.Contains("/"))
+            {
+                var nameParts = hdAccountName.Split('/');
+                walletName = nameParts[0];
+                accountName = nameParts[1];
+            }
+            else
+            {
+                walletName = hdAccountName;
+                accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
+            }
+
+            var walletReference = new WalletAccountReference(walletName, accountName);
+            return walletReference;
         }
 
         /// <summary>
