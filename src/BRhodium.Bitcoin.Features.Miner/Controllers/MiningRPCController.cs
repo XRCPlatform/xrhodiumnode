@@ -437,6 +437,10 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
                 result.Blocks = foundAtBlock;
                 result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.XRC);
+                if (result.FeeRate.Equals(0))
+                {
+                    result.FeeRate = new Money(10).ToUnit(MoneyUnit.XRC);
+                }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }

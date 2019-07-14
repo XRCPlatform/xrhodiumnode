@@ -294,7 +294,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 (currentHeight.HasValue ? currentHeight.Value : this.nBestSeenHeight));
 
             if (median < 0)
-                return new FeeRate(0);
+                return new FeeRate(new Money(10));
 
             return new FeeRate(new Money((int)median));
         }
