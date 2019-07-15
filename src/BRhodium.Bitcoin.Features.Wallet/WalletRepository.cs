@@ -819,8 +819,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 var updateTrxCommand = this.connection.CreateCommand();
                 updateTrxCommand.Transaction = dbTransaction;
-                updateTrxCommand.CommandText = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent  WHERE WalletId = $WalletId AND Hash = $Hash ";
+                updateTrxCommand.CommandText = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent  WHERE WalletId = $WalletId AND Hash = $Hash AND AddressId = $AddressId";
                 updateTrxCommand.Parameters.AddWithValue("$WalletId", walletId);
+                updateTrxCommand.Parameters.AddWithValue("$AddressId", address.Id);
                 updateTrxCommand.Parameters.AddWithValue("$Hash", trx.Id);
                 updateTrxCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                 updateTrxCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
