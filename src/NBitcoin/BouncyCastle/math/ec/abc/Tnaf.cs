@@ -118,7 +118,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
         * Computes the norm of an element <code>&#955;</code> of
         * <code><b>R</b>[&#964;]</code>, where <code>&#955; = u + v&#964;</code>
         * and <code>u</code> and <code>u</code> are real numbers (elements of
-        * <code><b>R</b></code>). 
+        * <code><b>R</b></code>).
         * @param mu The parameter <code>&#956;</code> of the elliptic curve.
         * @param u The real part of the element <code>&#955;</code> of
         * <code><b>R</b>[&#964;]</code>.
@@ -318,7 +318,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
 
             BigInteger norm = Norm(mu, lambda);
 
-            // Ceiling of log2 of the norm 
+            // Ceiling of log2 of the norm
             int log2Norm = norm.BitLength;
 
             // If length(TNAF) > 30, then length(TNAF) < log2Norm + 3.52
@@ -384,7 +384,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
 
         /**
         * Applies the operation <code>&#964;()</code> to an
-        * <code>AbstractF2mPoint</code>. 
+        * <code>AbstractF2mPoint</code>.
         * @param p The AbstractF2mPoint to which <code>&#964;()</code> is applied.
         * @return <code>&#964;(p)</code>
         */
@@ -398,7 +398,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
         * @param curve The elliptic curve from which to obtain <code>&#956;</code>.
         * The curve must be a Koblitz curve, i.e. <code>a</code> Equals
         * <code>0</code> or <code>1</code> and <code>b</code> Equals
-        * <code>1</code>. 
+        * <code>1</code>.
         * @return <code>&#956;</code> of the elliptic curve.
         * @throws ArgumentException if the given ECCurve is not a Koblitz
         * curve.
@@ -495,7 +495,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
         /**
         * Computes the auxiliary value <code>t<sub>w</sub></code>. If the width is
         * 4, then for <code>mu = 1</code>, <code>t<sub>w</sub> = 6</code> and for
-        * <code>mu = -1</code>, <code>t<sub>w</sub> = 10</code> 
+        * <code>mu = -1</code>, <code>t<sub>w</sub> = 10</code>
         * @param mu The parameter <code>&#956;</code> of the elliptic curve.
         * @param w The window width of the WTNAF.
         * @return the auxiliary value <code>t<sub>w</sub></code>
@@ -530,7 +530,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
 
         /**
         * Computes the auxiliary values <code>s<sub>0</sub></code> and
-        * <code>s<sub>1</sub></code> used for partial modular reduction. 
+        * <code>s<sub>1</sub></code> used for partial modular reduction.
         * @param curve The elliptic curve for which to compute
         * <code>s<sub>0</sub></code> and <code>s<sub>1</sub></code>.
         * @throws ArgumentException if <code>curve</code> is not a
@@ -737,7 +737,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
 
             BigInteger norm = Norm(mu, lambda);
 
-            // Ceiling of log2 of the norm 
+            // Ceiling of log2 of the norm
             int log2Norm = norm.BitLength;
 
             // If length(TNAF) > 30, then length(TNAF) < log2Norm + 3.52
@@ -822,7 +822,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
         * Does the precomputation for WTNAF multiplication.
         * @param p The <code>ECPoint</code> for which to do the precomputation.
         * @param a The parameter <code>a</code> of the elliptic curve.
-        * @return The precomputation array for <code>p</code>. 
+        * @return The precomputation array for <code>p</code>.
         */
         public static AbstractF2mPoint[] GetPreComp(AbstractF2mPoint p, sbyte a)
         {

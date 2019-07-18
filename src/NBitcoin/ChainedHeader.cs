@@ -15,7 +15,7 @@ namespace NBitcoin
         HeaderOnly,
 
         /// <summary>
-        /// We are interested in downloading the <see cref="Block"/> that is being represented by the current <see cref="BlockHeader"/>. 
+        /// We are interested in downloading the <see cref="Block"/> that is being represented by the current <see cref="BlockHeader"/>.
         /// This happens when we don't have block which is represented by this header and the header is a part of a chain that
         /// can potentially replace our consensus tip because its chain work is greater than our consensus tip's chain work.
         /// </summary>
@@ -57,7 +57,7 @@ namespace NBitcoin
 
         /// <summary>
         /// Validated using all the rules.
-        /// Some rules validation may be skipped for blocks previously marked as <see cref="AssumedValid"/>. 
+        /// Some rules validation may be skipped for blocks previously marked as <see cref="AssumedValid"/>.
         /// </summary>
         FullyValidated
     }
@@ -268,7 +268,7 @@ namespace NBitcoin
         /// </summary>
         /// <param name="chainedHeader">The chained header to search for.</param>
         /// <returns>The chained block header or <c>null</c> if can't be found.</returns>
-        /// <remarks>This method compares the hash of the block header at the same height in the current chain 
+        /// <remarks>This method compares the hash of the block header at the same height in the current chain
         /// to verify the correct chained block header has been found.</remarks>
         public ChainedHeader FindAncestorOrSelf(ChainedHeader chainedHeader)
         {
@@ -393,7 +393,7 @@ namespace NBitcoin
                     // then allow mining of a min-difficulty block.
                     if (this.Header.BlockTime > (lastBlock.Header.BlockTime + TimeSpan.FromTicks(consensus.PowTargetSpacing.Ticks * 2)))
                         return proofOfWorkLimit;
-                 
+
                     // Return the last non-special-min-difficulty-rules-block.
                     ChainedHeader chainedHeader = lastBlock;
                     while ((chainedHeader.Previous != null) && ((chainedHeader.Height % consensus.DifficultyAdjustmentInterval) != 0) && (chainedHeader.Header.Bits == proofOfWorkLimit))

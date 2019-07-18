@@ -229,14 +229,14 @@ namespace NBitcoin
         }
     }
 
-    public partial class Network 
+    public partial class Network
     {
         private static readonly ConcurrentDictionary<string, Network> NetworksContainer = new ConcurrentDictionary<string, Network>();
 
         private byte[] alertPubKeyArray;
         private PubKey alertPubKey;
         private Block genesis;
-        
+
         private Network()
         {
             this.DNSSeeds = new List<DNSSeedData>();

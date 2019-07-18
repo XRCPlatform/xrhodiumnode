@@ -9,7 +9,7 @@ using System.Net;
 namespace BRhodium.Node.IntegrationTests.RPC
 {
     /// <summary>
-    /// These tests are for RPC tests that require modifying the chain/nodes. 
+    /// These tests are for RPC tests that require modifying the chain/nodes.
     /// Setup of the chain or nodes can be done in each test.
     /// </summary>
     public class RpcBitcoinMutableTests

@@ -100,6 +100,9 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.logger.LogTrace("Block header '{0}' added to the announce queue.", chainedHeader);
             this.blocksToAnnounce.Enqueue(chainedHeader);
 
+            // Notify to external clients
+            this.BlockNotify(block);
+
             this.logger.LogTrace("(-)");
         }
 
@@ -125,7 +128,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                     Task task = timerTask == null ? dequeueTask : await Task.WhenAny(dequeueTask, timerTask).ConfigureAwait(false);
                     await task.ConfigureAwait(false);
 
-                    // Send batch if timer ran out or we've received a tip.  
+                    // Send batch if timer ran out or we've received a tip.
                     bool sendBatch = false;
                     if (dequeueTask.Status == TaskStatus.RanToCompletion)
                     {
@@ -141,7 +144,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                     {
                         this.nodeLifetime.ApplicationStopping.ThrowIfCancellationRequested();
 
-                        await this.SendBatchAsync(batch).ConfigureAwait(false);                        
+                        await this.SendBatchAsync(batch).ConfigureAwait(false);
                         batch.Clear();
 
                         timerTask = null;
@@ -198,7 +201,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                 this.logger.LogTrace("Block header '{0}' not found in the consensus chain and will be skipped.", reorgedBlock);
 
                 // List removal is of O(N) complexity but in this case removals will happen just a few times a day (on orphaned blocks)
-                // and always only the latest items in this list will be subjected to removal so in this case it's better than creating 
+                // and always only the latest items in this list will be subjected to removal so in this case it's better than creating
                 // a new list of blocks on every batch send that were not reorged.
                 batch.Remove(reorgedBlock);
             }
@@ -224,6 +227,25 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                 await behaviour.AnnounceBlocksAsync(batch).ConfigureAwait(false);
 
             this.logger.LogTrace("(-)");
+        }
+
+        private void BlockNotify(Block block)
+        {
+            try
+            {
+                foreach (var blockNotify in this.storeSettings.BlockNotify)
+                {
+                    var command = blockNotify.Replace("%s", block.Header.GetHash().ToString());
+                    this.logger.LogInformation($"About to call blocknotify command [{command}]");
+                    var result = ShellHelper.Run(command);
+                    this.logger.LogInformation($"[{result.stdout}]");
+                    this.logger.LogInformation($"[{result.stderr}]");
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError(e.ToString());
+            }
         }
 
         /// <inheritdoc />

@@ -53,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         {
             Guard.NotEmpty(code, nameof(code));
             Guard.NotEmpty(message, nameof(message));
-            
+
             this.Code = code;
             this.Message = message;
         }
@@ -90,7 +90,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         {
             return !(a == b);
         }
-        
+
         /// <inheritdoc />
         public override int GetHashCode()
         {

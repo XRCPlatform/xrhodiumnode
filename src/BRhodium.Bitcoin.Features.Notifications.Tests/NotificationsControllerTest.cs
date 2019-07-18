@@ -81,7 +81,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
         {
             // Set up
             string hashLocation = "000000000000000000c03dbe6ee5fedb25877a12e32aa95bc1d3bd480d7a93f9";
-            
+
             var chain = new Mock<ConcurrentChain>();
             chain.Setup(c => c.GetBlock(uint256.Parse(hashLocation))).Returns((ChainedHeader)null);
             var blockNotification = new Mock<BlockNotification>(this.LoggerFactory.Object, chain.Object, new Mock<ILookaheadBlockPuller>().Object, new Signals(), new AsyncLoopFactory(new LoggerFactory()), new NodeLifetime());

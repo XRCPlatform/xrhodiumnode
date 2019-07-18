@@ -27,9 +27,9 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
         * Returns a <code>SimpleBigDecimal</code> representing the same numerical
         * value as <code>value</code>.
         * @param value The value of the <code>SimpleBigDecimal</code> to be
-        * created. 
+        * created.
         * @param scale The scale of the <code>SimpleBigDecimal</code> to be
-        * created. 
+        * created.
         * @return The such created <code>SimpleBigDecimal</code>.
         */
         public static SimpleBigDecimal GetInstance(BigInteger val, int scale)
@@ -39,7 +39,7 @@ namespace NBitcoin.BouncyCastle.Math.EC.Abc
 
         /**
         * Constructor for <code>SimpleBigDecimal</code>. The value of the
-        * constructed <code>SimpleBigDecimal</code> Equals <code>bigInt / 
+        * constructed <code>SimpleBigDecimal</code> Equals <code>bigInt /
         * 2<sup>scale</sup></code>.
         * @param bigInt The <code>bigInt</code> value parameter.
         * @param scale The scale of the constructed <code>SimpleBigDecimal</code>.

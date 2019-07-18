@@ -45,7 +45,7 @@ namespace BRhodium.Node.Connection
         /// <summary>Functionality of date and time.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
 
-        /// <summary>Keeps a set of peers discovered on the network in cache and on disk.</summary> 
+        /// <summary>Keeps a set of peers discovered on the network in cache and on disk.</summary>
         private readonly IPeerAddressManager peerAddressManager;
 
         public PeerBanning(IConnectionManager connectionManager, ILoggerFactory loggerFactory, IDateTimeProvider dateTimeProvider, IPeerAddressManager peerAddressManager)

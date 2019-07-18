@@ -477,7 +477,7 @@ namespace NBitcoin.Tests
             Assert.NotNull(side.GetBlock(sideb.HashBlock));
         }
 
-        /// <summary> 
+        /// <summary>
         /// Adapted from bitcoin core test, verify GetAncestor is using skip list in <see cref="ChainedHeader"/>.
         /// <seealso cref="https://github.com/bitcoin/bitcoin/blob/master/src/test/skiplist_tests.cpp"/>
         /// </summary>
@@ -517,7 +517,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        /// <summary> 
+        /// <summary>
         /// Adapted from bitcoin core test, verify GetLocator is using skip list in <see cref="ChainedHeader"/>.
         /// <seealso cref="https://github.com/bitcoin/bitcoin/blob/master/src/test/skiplist_tests.cpp"/>
         /// </summary>

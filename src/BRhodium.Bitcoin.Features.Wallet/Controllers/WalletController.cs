@@ -423,7 +423,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         HdPath = accountHistory.Account.HdPath
                     });
                 }
-                
+
                 return this.Json(model);
             }
             catch (Exception e)
@@ -684,7 +684,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 TransactionBroadcastEntry transactionBroadCastEntry = this.broadcasterManager.GetTransaction(transaction.GetHash());
 
                 if (!string.IsNullOrEmpty(transactionBroadCastEntry?.ErrorMessage))
-                {                    
+                {
                     this.logger.LogError("Exception occurred: {0}", transactionBroadCastEntry.ErrorMessage);
                     return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, transactionBroadCastEntry.ErrorMessage, "Transaction Exception");
                 }

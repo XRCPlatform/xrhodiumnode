@@ -32,5 +32,5 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
         }
     }
 
-    
+
 }

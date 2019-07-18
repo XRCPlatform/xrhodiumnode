@@ -27,7 +27,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         uint256 WalletTipHash { get; set; }
 
-            /// <summary>
+
+        /// <summary>
         /// Memory locked unspendable transaction parts (tx hash, index vount)
         /// </summary>
         ConcurrentDictionary<string, int> LockedTxOut { get; set; }
@@ -76,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <summary>
         /// Deletes a wallet.
         /// </summary>
-        void DeleteWallet(string walletName);
+        void DeleteWallet(string name);
 
         /// <summary>
         /// Gets an account that contains no transactions.
@@ -253,11 +254,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// Saves the wallet into the file system.
         /// </summary>
         /// <param name="wallet">The wallet to save.</param>
-        void SaveWallet(Wallet wallet, bool saveTransactions=false);
+        void SaveWallet(Wallet wallet, bool saveTransactions = false);
+        
 
+        /// <summary>
+        /// Gets the extension of the wallet files.
+        /// </summary>
+        /// <returns></returns>
         string GetWalletFileExtension();
- 
-
 
         /// <summary>
         /// Gets all the wallets' names.
@@ -279,6 +283,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         void UpdateLastBlockSyncedHeight(ChainedHeader chainedHeader);
 
         /// <summary>
+        /// Update the keys and transactions we're tracking in memory for faster lookups.
+        /// </summary>
+        void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses, string walletName);
+
+        /// <summary>
         /// Gets a wallet given its name.
         /// </summary>
         /// <param name="walletName">The name of the wallet to get.</param>
@@ -296,7 +305,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns>Whether any wallet files are loaded.</returns>
         bool ContainsWallets { get; }
-      
 
         /// <summary>
         /// Gets the extended public key of an account.
@@ -342,5 +350,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <returns>Response transaction model</returns>
         TransactionModel GetTransactionDetails(string walletName, Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
         Wallet GetWalletByAddress(string address);
+        /// <summary>
+        /// Wallet settings for the wallet interface.
+        /// </summary>
+        /// <value></value>
+        WalletSettings WalletSettings { get; }
     }
 }

@@ -83,7 +83,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             testChainContext.ConnectionSettings.Load(testChainContext.NodeSettings);
             testChainContext.LoggerFactory = testChainContext.NodeSettings.LoggerFactory;
             testChainContext.DateTimeProvider = DateTimeProvider.Default;
-           
+
 
             network.Consensus.Options = new PowConsensusOptions();
 
@@ -114,19 +114,19 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
             testChainContext.Consensus = new ConsensusLoop(
                 new AsyncLoopFactory(testChainContext.LoggerFactory),
                 new NodeLifetime(),
-                testChainContext.Chain, 
-                cachedCoinView, 
-                blockPuller, 
-                new NodeDeployments(network, testChainContext.Chain), 
-                testChainContext.LoggerFactory, 
-                new ChainState(new InvalidBlockHashStore(testChainContext.DateTimeProvider)), 
-                testChainContext.ConnectionManager, 
-                testChainContext.DateTimeProvider, 
-                new Signals(), 
-                consensusSettings, 
-                testChainContext.NodeSettings, 
-                testChainContext.PeerBanning,               
-                consensusRules, 
+                testChainContext.Chain,
+                cachedCoinView,
+                blockPuller,
+                new NodeDeployments(network, testChainContext.Chain),
+                testChainContext.LoggerFactory,
+                new ChainState(new InvalidBlockHashStore(testChainContext.DateTimeProvider)),
+                testChainContext.ConnectionManager,
+                testChainContext.DateTimeProvider,
+                new Signals(),
+                consensusSettings,
+                testChainContext.NodeSettings,
+                testChainContext.PeerBanning,
+                consensusRules,
                 testChainContext.BlockRepository);
             await testChainContext.Consensus.StartAsync();
 

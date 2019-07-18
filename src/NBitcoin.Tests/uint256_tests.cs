@@ -59,7 +59,7 @@ namespace NBitcoin.Tests
             MemoryStream ms = new MemoryStream();
             BitcoinStream stream = new BitcoinStream(ms, true);
             stream.ConsensusFactory = Network.Main.Consensus.ConsensusFactory;
-            
+
             var v = new uint256("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
             var vless = new uint256("00000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffe");
             var vplus = new uint256("00000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");

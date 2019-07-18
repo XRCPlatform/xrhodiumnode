@@ -38,7 +38,7 @@ namespace BRhodium.Node.P2P.Peer
                 return this.networkPeers.Count;
             }
         }
-        
+
         /// <summary>
         /// Provides a comparer to specify how peers are compared for equality.
         /// </summary>
@@ -100,12 +100,12 @@ namespace BRhodium.Node.P2P.Peer
         {
             if (port.HasValue)
             {
-                return ((peer.State == NetworkPeerState.Connected || peer.State == NetworkPeerState.HandShaked) && peer.RemoteSocketAddress.Equals(ip) && 
+                return ((peer.State == NetworkPeerState.Connected || peer.State == NetworkPeerState.HandShaked) && peer.RemoteSocketAddress.Equals(ip) &&
                         (peer.RemoteSocketPort == port.Value)) || (peer.PeerVersion.AddressFrom.Address.Equals(ip) && (peer.PeerVersion.AddressFrom.Port == port.Value));
             }
             else
             {
-                return ((peer.State == NetworkPeerState.Connected || peer.State == NetworkPeerState.HandShaked) && 
+                return ((peer.State == NetworkPeerState.Connected || peer.State == NetworkPeerState.HandShaked) &&
                         peer.RemoteSocketAddress.Equals(ip)) || peer.PeerVersion.AddressFrom.Address.Equals(ip);
             }
         }

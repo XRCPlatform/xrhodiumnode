@@ -217,7 +217,7 @@ namespace BRhodium.Node.Builder
             foreach (var configureFeature in this.featuresRegistrationDelegates)
                 configureFeature(this.Features);
 
-            // configure features startup            
+            // configure features startup
             foreach (var featureRegistration in this.Features.FeatureRegistrations)
             {
                 try

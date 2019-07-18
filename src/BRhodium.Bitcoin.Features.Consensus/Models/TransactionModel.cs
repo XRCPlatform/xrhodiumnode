@@ -35,8 +35,8 @@ namespace BRhodium.Bitcoin.Features.Consensus.Models
         public List<TransactionDetail> Details { get; set; }
         public string Hex { get; set; }
 
-        
-    }   
 
-    
+    }
+
+
 }

@@ -136,7 +136,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 }
 
                 //we need to find wallet
-                var hdAddressCombix = WalletRPCController.hdAddressByAddressMap.TryGet<string, HdAddress>(address);
+                var hdAddressCombix = WalletRPCController.HdAddressByAddressMap.TryGet<string, HdAddress>(address);
                 if (hdAddressCombix == null)
                 {
                     bool isFound = false;
@@ -151,8 +151,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                                 {
                                     hdAddressCombix = walletAddress;
                                     var walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    WalletRPCController.walletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    WalletRPCController.hdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                    WalletRPCController.WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
+                                    WalletRPCController.HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
                                     isFound = true;
                                     break;
                                 }
@@ -222,7 +222,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         public IActionResult GetMiningInfo()
         {
             var miningInfo = new GetMiningInfo();
- 
+
             miningInfo.Chain = string.IsNullOrEmpty(this.Network.Name) ? string.Empty : this.Network.Name.Replace("BRhodium", string.Empty).ToLower();
             miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
             miningInfo.PooledTx = this.txMempool.MapTx.Count();
@@ -274,7 +274,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 if (block != null)
                 {
                     blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
-                    blockTemplate.Curtime = DateTime.UtcNow.ToUnixTimestamp().ToString();
+                    blockTemplate.Curtime = (uint)DateTime.UtcNow.ToUnixTimestamp();
                     blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
                     blockTemplate.Target = block.Header.Bits.ToString();
 
@@ -291,7 +291,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
                                 transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, this.Network));
                                 transaction.Hash = item.GetWitHash().ToString();
-                                transaction.Txid = Encoders.Hex.EncodeData(item.GetHash().ToBytes());
+                                transaction.Txid = item.GetWitHash().ToString();
 
                                 transaction.Fee = pblockTemplate.VTxFees[i];
                                 transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
@@ -358,7 +358,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         public IActionResult SubmitBlock(string hex, string dummy = null)
         {
             var response = new SubmitBlockModel();
-            
+
             lock (lockSubmitBlock)
             {
                 if (string.IsNullOrEmpty(hex))
@@ -382,7 +382,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 {
                     throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Wrong chain work", null, false);
                 }
-                    
+
                 var blockValidationContext = new BlockValidationContext { Block = pblock };
 
                 this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
@@ -392,7 +392,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                     blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
                 }
 
-                var json = this.Json(ResultHelper.BuildResultResponse(string.Empty));// if block is successfuly accepted return null
+                var json = this.Json(ResultHelper.BuildResultResponse(null));// if block is successfuly accepted return null
                 return json;
             }
 
@@ -437,6 +437,10 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
                 result.Blocks = foundAtBlock;
                 result.FeeRate = estimation.FeePerK.ToUnit(MoneyUnit.XRC);
+                if (result.FeeRate.Equals(0))
+                {
+                    result.FeeRate = new Money(10).ToUnit(MoneyUnit.XRC);
+                }
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }
@@ -467,7 +471,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         /// <param name="height">The height.</param>
         /// <returns>(double) Return hashes per second estimated.</returns>
         [ActionName("getnetworkhashps")]
-        [ActionDescription("Returns the estimated network hashes per second based on the last n blocks.")] 
+        [ActionDescription("Returns the estimated network hashes per second based on the last n blocks.")]
         public double GetNetworkHashPS(int nblocks = 120, int height = -1)
         {
             return GetNetworkHash(nblocks, height);
@@ -511,7 +515,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
 
             var workDiff = pb.ChainWork - pb0.ChainWork;
             var timeDiff = maxTime - minTime;
-            return (Math.Pow(2, 4) * workDiff.GetLow64()) / timeDiff;
+            return workDiff.GetLow64() / timeDiff;
         }
 
         /// <summary>

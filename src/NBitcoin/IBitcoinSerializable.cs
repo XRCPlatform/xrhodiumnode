@@ -13,7 +13,7 @@ namespace NBitcoin
         public static void ReadWrite(this IBitcoinSerializable serializable, Stream stream, bool serializing, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
         {
             network = network ?? Network.Main;
-            
+
             serializable.ReadWrite(new BitcoinStream(stream, serializing)
             {
                 ProtocolVersion = version,
@@ -71,7 +71,7 @@ namespace NBitcoin
         public static void FromBytes(this IBitcoinSerializable serializable, byte[] bytes, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
         {
             network = network ?? Network.Main;
-            
+
             var bms = new BitcoinStream(bytes)
             {
                 ProtocolVersion = version,
@@ -83,7 +83,7 @@ namespace NBitcoin
         public static T Clone<T>(this T serializable, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null) where T : IBitcoinSerializable, new()
         {
             network = network ?? Network.Main;
-            
+
             if (!network.Consensus.ConsensusFactory.TryCreateNew<T>(out T instance))
                 instance = new T();
 

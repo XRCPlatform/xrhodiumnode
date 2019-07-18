@@ -99,7 +99,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules
                 consensusRule.Parent = this;
                 consensusRule.Logger = this.loggerFactory.CreateLogger(consensusRule.GetType().FullName);
                 consensusRule.Initialize();
-                
+
                 this.consensusRules.Add(consensusRule.GetType().FullName, new ConsensusRuleDescriptor(consensusRule));
             }
 
@@ -113,7 +113,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules
         {
             // TODO: set a rule that will be invoked when a validation of a block failed.
 
-            // This will allow the creator of the blockchain to provide  
+            // This will allow the creator of the blockchain to provide
             // an error handler rule that is unique to the current blockchain.
             // future sidechains may have additional handling of errors that
             // extend or replace the default current error handling code.

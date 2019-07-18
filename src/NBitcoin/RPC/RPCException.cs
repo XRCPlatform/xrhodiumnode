@@ -54,7 +54,7 @@ namespace NBitcoin.RPC
             _RPCCode = code;
             if (useDefaultMessage) {
                 _RPCCodeMessage = FindMessage(code);
-            }           
+            }
             else {
                 _RPCCodeMessage = message;
             }

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using DNS.Protocol;
+using Response = DNS.Protocol.Response;
 using DNS.Protocol.ResourceRecords;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -451,7 +452,7 @@ namespace BRhodium.Bitcoin.Features.Dns.Tests
 
             Mock<IAsyncLoopFactory> asyncLoopFactory = new Mock<IAsyncLoopFactory>();
             asyncLoopFactory.Setup(f => f.Run(It.IsAny<string>(), It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<TimeSpan?>(), It.IsAny<TimeSpan?>())).Returns(new Mock<IAsyncLoop>().Object);
-            
+
             IDateTimeProvider dateTimeProvider = new Mock<IDateTimeProvider>().Object;
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsHostName = "host.example.com";

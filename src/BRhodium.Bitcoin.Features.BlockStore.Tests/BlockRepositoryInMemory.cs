@@ -54,7 +54,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
         {
             return Task.FromResult(this.store[hash]);
         }
-        
+
         /// <inheritdoc />
         public Task<List<Block>> GetBlocksAsync(List<uint256> hashes)
         {

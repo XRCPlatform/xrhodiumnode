@@ -351,7 +351,7 @@ namespace NBitcoin.OpenAsset
                 if(entry.Asset.Quantity == 0)
                     continue;
 
-                //If there are less asset units in the input sequence than in the output sequence, the transaction is considered invalid and all outputs are uncolored. 
+                //If there are less asset units in the input sequence than in the output sequence, the transaction is considered invalid and all outputs are uncolored.
                 if(previousAssetQueue.Count == 0)
                 {
                     Transfers.Clear();

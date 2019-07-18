@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>BRhodium.Bitcoin.IntegrationTests</AssemblyName>    
+    <AssemblyName>BRhodium.Bitcoin.IntegrationTests</AssemblyName>
     <PackageId>BRhodium.Bitcoin.IntegrationTests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>

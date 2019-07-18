@@ -98,7 +98,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Normalizes this point, and then returns the affine x-coordinate.
-         * 
+         *
          * Note: normalization can be expensive, this method is deprecated in favour
          * of caller-controlled normalization.
          */
@@ -113,7 +113,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Normalizes this point, and then returns the affine y-coordinate.
-         * 
+         *
          * Note: normalization can be expensive, this method is deprecated in favour
          * of caller-controlled normalization.
          */
@@ -128,7 +128,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Returns the affine x-coordinate after checking that this point is normalized.
-         * 
+         *
          * @return The affine x-coordinate of this point
          * @throws IllegalStateException if the point is not normalized
          */
@@ -143,7 +143,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Returns the affine y-coordinate after checking that this point is normalized
-         * 
+         *
          * @return The affine y-coordinate of this point
          * @throws IllegalStateException if the point is not normalized
          */
@@ -158,11 +158,11 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Returns the x-coordinate.
-         * 
+         *
          * Caution: depending on the curve's coordinate system, this may not be the same value as in an
          * affine coordinate system; use Normalize() to get a point where the coordinates have their
          * affine values, or use AffineXCoord if you expect the point to already have been normalized.
-         * 
+         *
          * @return the x-coordinate of this point
          */
         public virtual ECFieldElement XCoord
@@ -175,11 +175,11 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
         /**
          * Returns the y-coordinate.
-         * 
+         *
          * Caution: depending on the curve's coordinate system, this may not be the same value as in an
          * affine coordinate system; use Normalize() to get a point where the coordinates have their
          * affine values, or use AffineYCoord if you expect the point to already have been normalized.
-         * 
+         *
          * @return the y-coordinate of this point
          */
         public virtual ECFieldElement YCoord
@@ -250,7 +250,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
         /**
          * Normalization ensures that any projective coordinate is 1, and therefore that the x, y
          * coordinates reflect those of the equivalent point in an affine coordinate system.
-         * 
+         *
          * @return a new ECPoint instance representing the same point, but with normalized coordinates
          */
         public virtual ECPoint Normalize()
@@ -1364,7 +1364,7 @@ namespace NBitcoin.BouncyCastle.Math.EC
 
                 if(X.IsZero)
                 {
-                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y 
+                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y
                     lhs = Y.Square();
                     rhs = B;
                     if(!ZIsOne)

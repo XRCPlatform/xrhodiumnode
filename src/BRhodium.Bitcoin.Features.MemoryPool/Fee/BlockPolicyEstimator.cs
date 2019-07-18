@@ -91,7 +91,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
 
         /// <summary>Value for infinite priority.</summary>
         public const double InfPriority = 1e9 * 2100000ul * Money.COIN;
-        
+
         /// <summary>Maximum money value.</summary>
         private static readonly Money MaxMoney = new Money(2100000 * Money.COIN);
 
@@ -294,7 +294,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Fee
                 (currentHeight.HasValue ? currentHeight.Value : this.nBestSeenHeight));
 
             if (median < 0)
-                return new FeeRate(0);
+                return new FeeRate(new Money(10));
 
             return new FeeRate(new Money((int)median));
         }

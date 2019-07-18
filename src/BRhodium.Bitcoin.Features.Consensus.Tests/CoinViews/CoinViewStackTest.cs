@@ -136,7 +136,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.CoinViews
         {
             private BackedCoinView2 inner;
 
-            public BackedCoinView1(BackedCoinView2 inner, int outputCount = 0) 
+            public BackedCoinView1(BackedCoinView2 inner, int outputCount = 0)
             {
                 this.inner = inner;
                 this.OutputCount = outputCount;
@@ -165,7 +165,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests.CoinViews
         {
             private NonBackedCoinView inner;
 
-            public BackedCoinView2(NonBackedCoinView inner, int outputCount = 0) 
+            public BackedCoinView2(NonBackedCoinView inner, int outputCount = 0)
             {
                 this.inner = inner;
                 this.OutputCount = outputCount;

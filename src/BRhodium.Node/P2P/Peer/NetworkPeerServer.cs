@@ -17,7 +17,7 @@ namespace BRhodium.Node.P2P.Peer
     {
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
-        
+
         /// <summary>Factory for creating P2P network peers.</summary>
         private readonly INetworkPeerFactory networkPeerFactory;
 
@@ -42,7 +42,7 @@ namespace BRhodium.Node.P2P.Peer
 
         /// <summary>TCP server listener accepting inbound connections.</summary>
         private readonly TcpListener tcpListener;
-        
+
         /// <summary>Cancellation that is triggered on shutdown to stop all pending operations.</summary>
         private readonly CancellationTokenSource serverCancel;
 
@@ -81,7 +81,7 @@ namespace BRhodium.Node.P2P.Peer
 
             this.Network = network;
             this.Version = version;
-            
+
             this.serverCancel = new CancellationTokenSource();
 
             this.tcpListener = new TcpListener(this.LocalEndpoint);
@@ -190,10 +190,10 @@ namespace BRhodium.Node.P2P.Peer
 
             this.logger.LogTrace("Waiting for accepting task to complete.");
             this.acceptTask.Wait();
-            
+
             if (this.networkPeerDisposer.ConnectedPeersCount > 0)
                 this.logger.LogInformation("Waiting for {0} connected clients to finish.", this.networkPeerDisposer.ConnectedPeersCount);
-            
+
             this.networkPeerDisposer.Dispose();
 
             this.logger.LogTrace("(-)");

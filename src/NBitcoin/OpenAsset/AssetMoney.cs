@@ -12,7 +12,7 @@ namespace NBitcoin.OpenAsset
             {
                 return _Quantity;
             }
-            // used as a central point where long.MinValue checking can be enforced 
+            // used as a central point where long.MinValue checking can be enforced
             private set
             {
                 CheckLongMinValue(value);
@@ -91,7 +91,7 @@ namespace NBitcoin.OpenAsset
                 throw new ArgumentNullException("assetId");
             _Id = assetId;
 
-            // overflow check. 
+            // overflow check.
             // ulong.MaxValue is greater than long.MaxValue
             checked
             {
@@ -112,7 +112,7 @@ namespace NBitcoin.OpenAsset
                 Quantity = (long)satoshi;
             }
         }
-        
+
         #endregion
 
         private static int Pow10(int divisibility)
@@ -156,7 +156,7 @@ namespace NBitcoin.OpenAsset
         public decimal ToDecimal(int divisibility)
         {
             var dec = Pow10(divisibility);
-            // overflow safe because (long / int) always fit in decimal 
+            // overflow safe because (long / int) always fit in decimal
             // decimal operations are checked by default
             return (decimal)Quantity / (int)dec;
         }

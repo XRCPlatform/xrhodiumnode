@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DNS.Client;
 using DNS.Protocol;
+using Response = DNS.Protocol.Response;
 using DNS.Protocol.ResourceRecords;
 using DNS.Protocol.Utils;
 using Microsoft.Extensions.Logging;

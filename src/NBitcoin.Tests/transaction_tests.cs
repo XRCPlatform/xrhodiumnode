@@ -287,7 +287,7 @@ namespace NBitcoin.Tests
  	                //However, explicitely having the redeem will make code more easy to update to other payment like 2-2
  	                //.Select(c => c.ToScriptCoin(k.PubKey.WitHash.ScriptPubKey))
                     .ToArray();
- 
+
             TransactionBuilder builder = new TransactionBuilder();
             builder.AddCoins(coins);
             builder.AddKeys(k);
@@ -297,7 +297,7 @@ namespace NBitcoin.Tests
             Transaction signedTx = builder.BuildTransaction(true);
             Assert.True(builder.Verify(signedTx));
         }
- 
+
         private Coin[] GetCoins(BitcoinScriptAddress p2sh)
         {
             return new Coin[] { new Coin(new uint256(Enumerable.Range(0, 32).Select(i => (byte)0xaa).ToArray()), 0, Money.Coins(2.0m), p2sh.ScriptPubKey) };
@@ -355,7 +355,7 @@ namespace NBitcoin.Tests
             Assert.True(unsigned.Outputs[2].IsTo(aliceKey.PubKey.Hash));
             Assert.True(unsigned.Outputs[2].Value == Money.Parse("0.02"));
 
-            //Alice signs    
+            //Alice signs
             txBuilder = new TransactionBuilder();
             var aliceSigned = txBuilder
                     .AddCoins(aliceBobCoins)
@@ -600,8 +600,8 @@ namespace NBitcoin.Tests
             repo.Transactions.Put(tx);
 
 
-            //Can swap : 
-            //satoshi wants to send 100 gold to bob 
+            //Can swap :
+            //satoshi wants to send 100 gold to bob
             //bob wants to send 200 silver, 5 gold and 0.9 BTC to satoshi
 
             //Satoshi receive gold
@@ -1005,14 +1005,14 @@ namespace NBitcoin.Tests
             CanVerifySequenceLockCore(
                 new[]
                 {
-                    new Sequence(smallStep), //MTP(block[11] is +60min) 
+                    new Sequence(smallStep), //MTP(block[11] is +60min)
                 },
                 new[] { 12 }, 13, now, true, new SequenceLock(-1, now + TimeSpan.FromMinutes(60.0) + smallStep - TimeSpan.FromSeconds(1)));
 
             CanVerifySequenceLockCore(
                 new[]
                 {
-                    new Sequence(smallStep), //MTP(block[11] is +60min) 
+                    new Sequence(smallStep), //MTP(block[11] is +60min)
                 },
                 new[] { 12 }, 12, now, false, new SequenceLock(-1, now + TimeSpan.FromMinutes(60.0) + smallStep - TimeSpan.FromSeconds(1)));
         }
@@ -1455,16 +1455,16 @@ namespace NBitcoin.Tests
         {
             var k = new Key();
             var tx = new Transaction();
- 
+
             var coin = new Coin(new OutPoint(Rand(), 0), new TxOut(Money.Coins(1.0m), k.PubKey.Hash));
             tx.Inputs.Add(new TxIn(coin.Outpoint));
             TransactionSignature signature = tx.SignInput(Network.Main, k, coin);
- 
+
             var txBuilder = new TransactionBuilder();
             txBuilder.AddCoins(coin);
             txBuilder.AddKnownSignature(k.PubKey, signature);
             txBuilder.SignTransactionInPlace(tx);
- 
+
             Assert.True(tx.Inputs.AsIndexedInputs().First().VerifyScript(Network.Main, coin));
         }
 

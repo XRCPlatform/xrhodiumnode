@@ -27,6 +27,6 @@ namespace BRhodium.Node.Utilities.JsonContract
 
             return resultModel;
         }
-       
+
     }
 }

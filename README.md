@@ -3,7 +3,7 @@ Bitcoin Rhodium (XRC) - BRhodium, BitcoinRh
 
 Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
 
-Current version: 1.1.5 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.5))
+Current version: 1.1.9 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.9))
 
 ## About Bitcoin Rhodium
 
@@ -24,15 +24,9 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
  1. Clone the repository:
 
 ```
-    git clone git@gitlab.com:bitcoinrh/BRhodiumNode.git
+    git clone -b master_1.1.9 https://gitlab.com/bitcoinrh/BRhodiumNode.git
     cd BRhodiumNode
 ```
-
- If you want to run on stable version of the node, check out the appropriate tag. If the current version is 1.1.5, then you can check it out by doing:
-
- ```
-    git checkout 1.1.5
- ```
 
 The `master` branch is bleeding-edge. Use this at your own risk.
 

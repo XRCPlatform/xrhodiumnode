@@ -5,15 +5,15 @@
       <title>Primary configuration of your node</title>
       <content>
         <para>It is good to update your server to latest software:</para>
-        
+
 <code language="cs">
 apt-get update
 apt-get upgrade -y
 apt-get dist-upgrade -y
 apt-get autoremove -y
 apt-get autoclean –y
-</code>        
-        
+</code>
+
         <para>Create a new user for your node. It's much safer then to run it under root.</para>
 <code language="cs">
 adduser mynode
@@ -21,7 +21,7 @@ adduser mynode sudo
 </code>
 
         <para>For correct compilation it is necessary to install:</para>
-        
+
 <code language="cs">
 apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev libsodium-dev libzmq5 tmux
 </code>
@@ -36,36 +36,36 @@ https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-curr
 
       </content>
     </section>
-    
+
     <section address="Section2">
       <title>First run of Bitcoin Rhodium node</title>
       <content>
         <para>Switch to your new user (mynode) and run new TMUX session.</para>
-        
+
 <code language="cs">
 su mynode
 tmux new -s btrnode
-</code>        
-             
+</code>
+
         <para>Later you will attach this session with command.</para>
 <code language="cs">
 tmux a –t btrnode
 </code>
 
         <para>Next step is cloning of master branch of actual node under your user (su mynode).</para>
-        
+
 <code language="cs">
 Go to \home\mynode\
 
 And clone this git:
 
-git@gitlab.com:bitcoinrh/BRhodiumNode.git
+git clone -b master_1.1.9 https://gitlab.com/bitcoinrh/BRhodiumNode.git
 </code>
 
         <para>Now go to project folder and call.</para>
-        
+
 <code language="cs">
-Go to \home\mynode\BRhodiumNode\src\BRhodium\ 
+Go to \home\mynode\BRhodiumNode\src\BRhodium\
 
 then call:
 
@@ -83,16 +83,16 @@ dotnet run –testnet
     <caption>Then you will see something like this:</caption>
         <image xlink:href="firstrun"/>
     </mediaLink>
-    
+
     <para>Don't wait for download and stop node with <legacyBold>CTRL+C</legacyBold>.</para>
       </content>
     </section>
-    
+
     <section address="Section3">
       <title>Configure your node</title>
       <content>
         <para>Now go to new folder under your user (<legacyBold>can be hidden</legacyBold>).</para>
-        
+
 
 <code language="cs">
 \home\mynode\.brhodiumnode\BRhodium\BRhodiumTest\
@@ -142,7 +142,7 @@ rpcpassword=yourpsw
 
 
 <code language="cs">
-Then go back to 
+Then go back to
 \home\mynode\BRhodiumNode\src\BRhodium\
 
 And run again:
@@ -155,6 +155,6 @@ dotnet run –testnet
         <image xlink:href="downloading"/>
     </mediaLink>
       </content>
-    </section>    
+    </section>
   </developerHowToDocument>
 </topic>

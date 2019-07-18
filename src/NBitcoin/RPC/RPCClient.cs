@@ -15,9 +15,9 @@ using Newtonsoft.Json.Linq;
 namespace NBitcoin.RPC
 {
     /*
-        Category            Name                        Implemented 
+        Category            Name                        Implemented
         ------------------ --------------------------- -----------------------
-        ------------------ Overall control/query calls 
+        ------------------ Overall control/query calls
         control            getinfo
         control            help
         control            stop
@@ -474,7 +474,7 @@ namespace NBitcoin.RPC
         }
 
         private async Task SendBatchAsyncCoreAsync(List<Tuple<RPCRequest, TaskCompletionSource<RPCResponse>>> requests)
-        {           
+        {
             var writer = new StringWriter();
             writer.Write("[");
 
@@ -785,7 +785,7 @@ namespace NBitcoin.RPC
                     Inflight = peer["inflight"].Select(x => uint.Parse((string)x)).ToArray()
                 };
             }
-        
+
             return result;
         }
 
@@ -1313,7 +1313,7 @@ namespace NBitcoin.RPC
             return txid;
         }
 
-      
+
         public uint256 SendToAddress(string walletName, string password, string address, decimal amount)
         {
             return SendToAddressAsync(walletName, password, address, amount).GetAwaiter().GetResult();

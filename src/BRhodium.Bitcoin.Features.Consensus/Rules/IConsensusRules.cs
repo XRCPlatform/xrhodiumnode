@@ -6,7 +6,7 @@ using BRhodium.Bitcoin.Features.Consensus.CoinViews;
 namespace BRhodium.Bitcoin.Features.Consensus.Rules
 {
     /// <summary>
-    /// An engine that enforce the execution and validation of consensus rule. 
+    /// An engine that enforce the execution and validation of consensus rule.
     /// </summary>
     /// <remarks>
     /// In order for a block to be valid it has to successfully pass the rules checks.
@@ -69,7 +69,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules
         /// </summary>
         /// <returns>A list of rules.</returns>
         /// <remarks>
-        /// It is important to note that there is high importance to the order the rules are registered 
+        /// It is important to note that there is high importance to the order the rules are registered
         /// with the engine, this is important for rules with dependencies on other rules.
         /// Rules are executed in the same order they are registered with the engine.
         /// </remarks>

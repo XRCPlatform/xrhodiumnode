@@ -11,7 +11,7 @@ namespace BRhodium.Bitcoin.Features.Dns
     public static class IFullNodeBuilderExtensions
     {
         /// <summary>
-        /// Configures the Dns feature. 
+        /// Configures the Dns feature.
         /// </summary>
         /// <param name="fullNodeBuilder">Full node builder used to configure the feature.</param>
         /// <returns>The full node builder with the Dns feature configured.</returns>

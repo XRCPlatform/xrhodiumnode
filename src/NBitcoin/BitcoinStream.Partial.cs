@@ -10,7 +10,7 @@ namespace NBitcoin
     public partial class BitcoinStream
     {
         VarInt _VarInt = new VarInt(0);
-        
+
         private void ReadWriteArray<T>(ref T[] data) where T : IBitcoinSerializable
         {
             if(data == null && Serializing)
@@ -30,7 +30,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref ulong[] data)
         {
             if(data == null && Serializing)
@@ -50,7 +50,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref ushort[] data)
         {
             if(data == null && Serializing)
@@ -70,7 +70,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref uint[] data)
         {
             if(data == null && Serializing)
@@ -90,7 +90,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref byte[] data)
         {
             if(data == null && Serializing)
@@ -110,7 +110,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref long[] data)
         {
             if(data == null && Serializing)
@@ -130,7 +130,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref short[] data)
         {
             if(data == null && Serializing)
@@ -150,7 +150,7 @@ namespace NBitcoin
             }
         }
 
-        
+
         private void ReadWriteArray(ref int[] data)
         {
             if(data == null && Serializing)
@@ -170,51 +170,51 @@ namespace NBitcoin
             }
         }
 
-        
-        
+
+
         public void ReadWrite(ref ulong[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         public void ReadWrite(ref ushort[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         public void ReadWrite(ref uint[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         public void ReadWrite(ref long[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         public void ReadWrite(ref short[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         public void ReadWrite(ref int[] data)
         {
             ReadWriteArray(ref data);
         }
 
-        
+
         uint256.MutableUint256 _MutableUint256 = new uint256.MutableUint256(uint256.Zero);
         public void ReadWrite(ref uint256 value)
         {
             value = value ?? uint256.Zero;
             _MutableUint256.Value = value;
             this.ReadWrite(ref _MutableUint256);
-            value = _MutableUint256.Value;            
+            value = _MutableUint256.Value;
         }
 
         public void ReadWrite(uint256 value)
@@ -222,7 +222,7 @@ namespace NBitcoin
             value = value ?? uint256.Zero;
             _MutableUint256.Value = value;
             this.ReadWrite(ref _MutableUint256);
-            value = _MutableUint256.Value;            
+            value = _MutableUint256.Value;
         }
 
         public void ReadWrite(ref List<uint256> value)
@@ -245,7 +245,7 @@ namespace NBitcoin
             value = value ?? uint160.Zero;
             _MutableUint160.Value = value;
             this.ReadWrite(ref _MutableUint160);
-            value = _MutableUint160.Value;            
+            value = _MutableUint160.Value;
         }
 
         public void ReadWrite(uint160 value)
@@ -253,7 +253,7 @@ namespace NBitcoin
             value = value ?? uint160.Zero;
             _MutableUint160.Value = value;
             this.ReadWrite(ref _MutableUint160);
-            value = _MutableUint160.Value;            
+            value = _MutableUint160.Value;
         }
 
         public void ReadWrite(ref List<uint160> value)
@@ -271,7 +271,7 @@ namespace NBitcoin
             }
         }
 
-            
+
         public void ReadWrite(ref ulong data)
         {
             ulong l = (ulong)data;
@@ -286,7 +286,7 @@ namespace NBitcoin
             return data;
         }
 
-        
+
         public void ReadWrite(ref ushort data)
         {
             ulong l = (ulong)data;
@@ -301,7 +301,7 @@ namespace NBitcoin
             return data;
         }
 
-        
+
         public void ReadWrite(ref uint data)
         {
             ulong l = (ulong)data;
@@ -316,9 +316,9 @@ namespace NBitcoin
             return data;
         }
 
-        
 
-            
+
+
         public void ReadWrite(ref long data)
         {
             long l = (long)data;
@@ -333,7 +333,7 @@ namespace NBitcoin
             return data;
         }
 
-        
+
         public void ReadWrite(ref short data)
         {
             long l = (long)data;
@@ -348,7 +348,7 @@ namespace NBitcoin
             return data;
         }
 
-        
+
         public void ReadWrite(ref int data)
         {
             long l = (long)data;

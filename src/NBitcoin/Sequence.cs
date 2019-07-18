@@ -20,14 +20,14 @@ namespace NBitcoin
 
         /// <summary>
         /// If this flag set, CTxIn::nSequence is NOT interpreted as a
-        /// relative lock-time. 
+        /// relative lock-time.
         /// </summary>
         public const uint SEQUENCE_LOCKTIME_DISABLE_FLAG = (1U << 31);
 
         /// <summary>
         /// If CTxIn::nSequence encodes a relative lock-time and this flag
         /// is set, the relative lock-time has units of 512 seconds,
-        /// otherwise it specifies blocks with a granularity of 1. 
+        /// otherwise it specifies blocks with a granularity of 1.
         /// </summary>
         public const uint SEQUENCE_LOCKTIME_TYPE_FLAG = (1U << 22);
 
@@ -55,7 +55,7 @@ namespace NBitcoin
         /// for time-based relative lock-time is fixed at 512 seconds.
         /// Converting from CTxIn::nSequence to seconds is performed by
         /// multiplying by 512 = 2^9, or equivalently shifting up by
-        /// 9 bits. 
+        /// 9 bits.
         /// </summary>
         internal const int SEQUENCE_LOCKTIME_GRANULARITY = 9;
 

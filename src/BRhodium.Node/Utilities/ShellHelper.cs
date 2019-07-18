@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace BRhodium.Bitcoin.Features.Wallet
+namespace BRhodium.Node.Utilities
 {
     public static class OS
     {
@@ -77,7 +77,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         break;
                     case "mac":
                     case "gnu":
-                        arguments = cmd;
+                        arguments = " -c " + cmd;
                         break;
                 }
             }
@@ -123,7 +123,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             result.stdout = stdout.ToString();
             result.stderr = stderr.ToString();
             p.Close();
-           
+
             return result;
         }
     }

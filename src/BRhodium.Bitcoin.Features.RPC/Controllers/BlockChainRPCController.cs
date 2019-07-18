@@ -115,10 +115,18 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
         /// <returns>(int) Block count.</returns>
         [ActionName("getblockcount")]
         [ActionDescription("Returns the number of blocks in the longest blockchain.")]
-        public int GetBlockCount()
+        public IActionResult GetBlockCount()
         {
-            var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
-            return chainRepository.Tip.Height;
+            try
+            {
+                var chainState = this.FullNode.NodeService<IChainState>();
+                return this.Json(ResultHelper.BuildResultResponse(chainState?.ConsensusTip?.Height));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         /// <summary>

@@ -83,8 +83,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         /// <summary>The settings for the wallet feature.</summary>
         private readonly WalletSettings walletSettings;
-        /// <summary>Gets the list of wallets.</summary>
-        //public ConcurrentBag<Wallet> Wallets { get; }
+
+        /// <summary>
+        ///  Makes the wallet settings public for other functions.
+        /// </summary>
+        public WalletSettings WalletSettings {
+            get
+            {
+                return this.walletSettings;
+            }
+        }
 
         public uint256 WalletTipHash { get; set; }
 
@@ -545,7 +553,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("(-)");
             return res;
         }
-        
+
         /// <inheritdoc />
         public IEnumerable<HdAddress> GetUnusedAddresses(WalletAccountReference accountReference, int count, bool isChange = false)
         {
@@ -588,10 +596,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 // Get the account.
                 HdAccount account = wallet.GetAccountByCoinType(accountName, this.coinType);
 
-                List<HdAddress> unusedAddresses = isChange ? 
-                    account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() : 
+                List<HdAddress> unusedAddresses = isChange ?
+                    account.InternalAddresses.Where(acc => !acc.Transactions.Any()).ToList() :
                     account.ExternalAddresses.Where(acc => !acc.Transactions.Any()).ToList();
-                
+
                 int diff = unusedAddresses.Count - count;
                 List<HdAddress> newAddresses = new List<HdAddress>();
                 if (diff < 0)
@@ -732,7 +740,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     accounts.AddRange(wallet.GetAccountsByCoinType(this.coinType));
                 }
-                
+
                 foreach (var account in accounts)
                 {
                     (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount();
@@ -996,7 +1004,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     throw new WalletException("Reorg");
                 }
 
-                // The block coming in to the wallet should never be ahead of the wallet. 
+                // The block coming in to the wallet should never be ahead of the wallet.
                 // If the block is behind, let it pass.
                 if (chainedHeader.Height > current.Height)
                 {
@@ -1216,9 +1224,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private decimal AddSpendingTransactionDetails(Transaction transaction, IEnumerable<TxOut> paidToOutputs, uint256 spendingTransactionId, int spendingTransactionIndex, List<TransactionDetail> details)
         {
-            
+
             Guard.NotNull(transaction, nameof(transaction));
-            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));            
+            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));
             // Get the transaction being spent.
             TransactionData spentTransaction = null;
             WalletLinkedHdAddress currentWalletLinkedHdAddress = null;
@@ -1306,9 +1314,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     {
                         this.logger.LogError(e.ToString());
                     }
-                    
+
                 }
-            }     
+            }
         }
 
         /// <summary>
@@ -1836,7 +1844,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 this.outpointLookup[new OutPoint(transactionData.Id, transactionData.Index)] = transactionData;
             }
         }
-        
+
         /// <inheritdoc />
         public IEnumerable<string> GetWalletNames()
         {
@@ -1993,5 +2001,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return this.repository.GetWalletByAddress(address);
         }
 
+        public void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses, string walletName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

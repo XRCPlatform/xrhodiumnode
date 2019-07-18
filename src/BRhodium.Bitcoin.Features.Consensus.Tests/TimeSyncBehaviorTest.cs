@@ -39,12 +39,12 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
                 TestSample.Outbound(true,  false, false,    0, TimeSpan.FromSeconds(26.0),      IPAddress.Parse("2000:0db8:85a3:1232:0000:8a2e:0370:7334")),
                 TestSample.Outbound(false, false, false,    0, TimeSpan.FromSeconds(260),       IPAddress.Parse("2000:0db8:85a3:1232:0000:8a2e:0370:7334")), // IP address already used for outbound.
                 TestSample.Outbound(true,  false, false,    0, TimeSpan.FromSeconds(-2126.0),   new IPAddress(2)),
-                TestSample.Inbound(true,   false, false,    0, TimeSpan.FromSeconds(-391),      new IPAddress(3)),                           
+                TestSample.Inbound(true,   false, false,    0, TimeSpan.FromSeconds(-391),      new IPAddress(3)),
 
                 // These samples will change adjusted time because next outbound is the 4th outbound and we are under the limits.
                 TestSample.Outbound(true,  false, false, 1280, TimeSpan.FromSeconds(-1),        new IPAddress(4)),  // 2 inbound, 4 outbound. 2/4 * 3 = 1.5 -> ceil -> 2 of each outbound   { -2126000, -2126000, -391000, -1000, -1000, 3560, 3560, 13123, 26000, 26000 } -> median is 1280ms.
-                TestSample.Inbound(true,   false, false, 3560, TimeSpan.FromSeconds(23.6),      new IPAddress(5)),  // 3 inbound, 4 outbound. 3/4 * 3 = 2.25 -> ceil -> 3 of each outbound  { -2126000, -2126000, -2126000, -391000, -1000, -1000, -1000, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000 } -> median is 3560ms.                     
-                TestSample.Inbound(true,   false, false, 3560, TimeSpan.FromSeconds(236),       new IPAddress(6)),  // 4 inbound, 4 outbound. 4/4 * 3 = 3 -> ceil -> 3 of each outbound     { -2126000, -2126000, -2126000, -391000, -1000, -1000, -1000, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000, 236000 } -> median is 3560ms.                                                       
+                TestSample.Inbound(true,   false, false, 3560, TimeSpan.FromSeconds(23.6),      new IPAddress(5)),  // 3 inbound, 4 outbound. 3/4 * 3 = 2.25 -> ceil -> 3 of each outbound  { -2126000, -2126000, -2126000, -391000, -1000, -1000, -1000, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000 } -> median is 3560ms.
+                TestSample.Inbound(true,   false, false, 3560, TimeSpan.FromSeconds(236),       new IPAddress(6)),  // 4 inbound, 4 outbound. 4/4 * 3 = 3 -> ceil -> 3 of each outbound     { -2126000, -2126000, -2126000, -391000, -1000, -1000, -1000, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000, 236000 } -> median is 3560ms.
                 TestSample.Outbound(true,  false, false, 1236, TimeSpan.FromSeconds(1.236),     new IPAddress(7)),  // 4 inbound, 5 outbound. 4/5 * 3 = 2.4 -> ceil -> 3 of each outbound   { -2126000, -2126000, -2126000, -391000, -1000, -1000, -1000, 1236, 1236, 1236, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000, 236000 }  -> median is 1236ms.
                 TestSample.Inbound(true,   false, false, 1236, TimeSpan.FromSeconds(-1001),     new IPAddress(8)),  // 5 inbound, 5 outbound. 5/5 * 3 = 3 -> ceil -> 3 of each outbound     { -2126000, -2126000, -2126000, -391000, -1001, -1000, -1000, -1000, 1236, 1236, 1236, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000, 236000 }  -> median is 1236ms.
                 TestSample.Inbound(true,   false, false, 1236, TimeSpan.FromSeconds(-4.9236),   new IPAddress(9)),  // 6 inbound, 5 outbound. 6/5 * 3 = 3.6 -> ceil -> 4 of each outbound   { -2126000, -2126000, -2126000, -2126000, -391000, -4923.6, -1001, -1000, -1000, -1000, -1000, 1236, 1236, 1236, 1236, 3560, 3560, 3560, 3560, 13123, 23600, 26000, 26000, 26000, 26000, 236000 }  -> median is 1236ms.
@@ -108,16 +108,16 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
                 // First group of samples does not affect adjusted time, so difference should be ~0 ms.
                 TestSample.Outbound(true,  false, false, 0,                             TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.41")),
                 TestSample.Outbound(true,  false, false, 0,                             TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.42")),
-                TestSample.Outbound(true,  false, false, 0,                             TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.43")), 
-                                                                                        
-                // The next sample turns on the warning.                                
-                TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.44")), 
-                                                                                        
-                // It can't be turned off.                                              
+                TestSample.Outbound(true,  false, false, 0,                             TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.43")),
+
+                // The next sample turns on the warning.
+                TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(offsetAboveWarningLevelSeconds), IPAddress.Parse("1.2.3.44")),
+
+                // It can't be turned off.
                 TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(0),                              IPAddress.Parse("1.2.3.45")),
-                TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(0),                              IPAddress.Parse("1.2.3.46")), 
-                                                                                        
-                // Add more samples (above switch off level, trying to switch it off).  
+                TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(0),                              IPAddress.Parse("1.2.3.46")),
+
+                // Add more samples (above switch off level, trying to switch it off).
                 TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs,     TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.3.47")),
                 TestSample.Outbound(true,  true,  false, offsetAboveWarningLevelMs/2,   TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.3.48")),
                 TestSample.Outbound(true,  true,  false, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.3.49")),
@@ -125,9 +125,9 @@ namespace BRhodium.Bitcoin.Features.Consensus.Tests
                 TestSample.Outbound(true,  true,  false, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.32.4")),
 
                 // Now the feature should be turned off.
-                TestSample.Outbound( true,  true,  true, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.33.5")), 
-                                                                                                                                              
-                // No more samples should be accepted now.                                                                                    
+                TestSample.Outbound( true,  true,  true, 0,                             TimeSpan.FromSeconds(-offsetAbovSwitchOffLevel),      IPAddress.Parse("1.2.33.5")),
+
+                // No more samples should be accepted now.
                 TestSample.Outbound(false, true,  true,  0,                             TimeSpan.FromSeconds(2),                              IPAddress.Parse("1.2.34.4")),
                 TestSample.Outbound(false, true,  true,  0,                             TimeSpan.FromSeconds(1),                              IPAddress.Parse("1.2.35.4")),
             };

@@ -34,7 +34,7 @@ namespace BRhodium.Node.Tests.Base
                 var chainedHeader = new ChainedHeader(header, header.GetHash(), chain.Tip);
 
                 chain.SetTip(chainedHeader);
-                
+
                 this.chainedHeaders.Add(chainedHeader);
             }
 
@@ -65,7 +65,7 @@ namespace BRhodium.Node.Tests.Base
             chainSelector.RemoveAvailableTip(1);
 
             await Task.Delay(100).ConfigureAwait(false);
-            
+
             Assert.Equal(chain.Tip, tipFromFirstPeer);
 
             //Disconnect first peer
@@ -86,12 +86,12 @@ namespace BRhodium.Node.Tests.Base
             var chainSelector = new BestChainSelector(chain, this.chainState.Object, new LoggerFactory());
 
             chain.SetTip(this.chainedHeaders[10]);
-            
+
             chainSelector.TrySetAvailableTip(0, this.chainedHeaders[15]);
             chainSelector.TrySetAvailableTip(1, this.chainedHeaders[2]);
             chainSelector.TrySetAvailableTip(2, this.chainedHeaders[3]);
             chainSelector.TrySetAvailableTip(3, this.chainedHeaders[4]);
-            
+
             await Task.Delay(100).ConfigureAwait(false);
 
             Assert.Equal(chain.Tip, this.chainedHeaders[15]);

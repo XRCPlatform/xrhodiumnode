@@ -50,7 +50,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
         }
 
         /// <summary>
-        /// The transactions identifiers that need to be fetched from store. 
+        /// The transactions identifiers that need to be fetched from store.
         /// </summary>
         /// <param name="block">The block with the transactions.</param>
         /// <param name="enforceBIP30">Whether to enforce look up of the transaction id itself and not only the reference to previous transaction id.</param>

@@ -6,7 +6,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
 {
     /// <summary>
     /// Check that the previous block hash is correct.
-    /// </summary>  
+    /// </summary>
     [ValidationRule(CanSkipValidation = false)]
     public class BlockHeaderRule : ConsensusRule
     {
@@ -27,8 +27,8 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
             // Build the next block in the chain of headers. The chain header is most likely already created by
             // one of the peers so after we create a new chained block (mainly for validation)
             // we ask the chain headers for its version (also to prevent memory leaks).
-            context.BlockValidationContext.ChainedHeader = new ChainedHeader(context.BlockValidationContext.Block.Header, 
-                context.BlockValidationContext.Block.Header.GetHash(), 
+            context.BlockValidationContext.ChainedHeader = new ChainedHeader(context.BlockValidationContext.Block.Header,
+                context.BlockValidationContext.Block.Header.GetHash(),
                 context.ConsensusTip);
 
             // Liberate from memory the block created above if possible.

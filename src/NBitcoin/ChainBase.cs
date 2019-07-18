@@ -155,7 +155,7 @@ namespace NBitcoin
         {
             if (hashes == null)
                 throw new ArgumentNullException("hashes");
-            
+
             // Find the first block the caller has in the main chain.
             foreach (uint256 hash in hashes)
             {

@@ -69,13 +69,38 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
+            if (context.Sign)
+            {
+                if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
+                {
+                    return context.Transaction;
+                }
+                string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
+                this.logger.LogError($"Build transaction failed: {errorsMessage}");
+                throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+            }
+            return context.Transaction;
+        }
 
-            if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
-                return context.Transaction;
-
-            string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
-            this.logger.LogError($"Build transaction failed: {errorsMessage}");
-            throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+        /// <inheritdoc />
+        public Transaction SignTransaction(TransactionBuildContext context, TransactionBuilder builder , Transaction transaction)
+        {
+            
+            this.InitializeSignableTransactionBuilder(context, builder);
+            builder.ContinueToBuild(transaction);
+            // build transaction
+            context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
+            if (context.Sign)
+            {
+                if (context.TransactionBuilder.Verify(context.Transaction, out TransactionPolicyError[] errors, this.walletManager.LockedTxOut))
+                {
+                    return context.Transaction;
+                }
+                string errorsMessage = string.Join(" - ", errors.Select(s => s.ToString()));
+                this.logger.LogError($"Build transaction failed: {errorsMessage}");
+                throw new WalletException($"Could not build the transaction. Details: {errorsMessage}");
+            }
+            return context.Transaction;
         }
 
         /// <inheritdoc />
@@ -205,6 +230,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <summary>
+        /// Initializes the context transaction builder from information in <see cref="TransactionBuildContext"/>.
+        /// </summary>
+        /// <param name="context">Transaction build context.</param>
+        private void InitializeSignableTransactionBuilder(TransactionBuildContext context, TransactionBuilder builder)
+        {
+            Guard.NotNull(context, nameof(context));
+            Guard.NotNull(context.Recipients, nameof(context.Recipients));
+            Guard.NotNull(context.AccountReference, nameof(context.AccountReference));
+
+            context.TransactionBuilder = builder;
+
+            this.AddCoins(context);
+            this.AddSecrets(context);
+        }
+
+        /// <summary>
         /// Load's all the private keys for each of the <see cref="HdAddress"/> in <see cref="TransactionBuildContext.UnspentOutputs"/>
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
@@ -214,7 +255,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 return;
 
             Wallet wallet = this.walletManager.GetWalletByName(context.AccountReference.WalletName);
-            Key privateKey; 
+            Key privateKey;
             // get extended private key
             string cacheKey = wallet.EncryptedSeed;
 
@@ -495,7 +536,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Shuffles transaction inputs and outputs for increased privacy.
         /// </summary>
         public bool Shuffle { get; set; }
-        
+
         /// <summary>
         /// Optional data to be added as an extra OP_RETURN transaction output with Money.Zero value.
         /// </summary>
@@ -523,4 +564,3 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public bool SubtractFeeFromAmount { get; set; }
     }
 }
- 

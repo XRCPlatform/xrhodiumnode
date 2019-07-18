@@ -137,13 +137,13 @@ namespace NBitcoin
         public virtual uint256 GetPoWHash(int height, int powLimit2Height)
         {
             if (height > powLimit2Height)
-            {             
+            {
                 return HashX13.Instance.Hash(this.ToBytes(), 2);
             }
             else
             {
                 return HashX13.Instance.Hash(this.ToBytes(), 1);
-            }            
+            }
         }
 
         /// <summary>

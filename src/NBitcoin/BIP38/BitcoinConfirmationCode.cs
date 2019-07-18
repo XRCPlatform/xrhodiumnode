@@ -85,7 +85,7 @@ namespace NBitcoin
 
         public bool Check(string passphrase, BitcoinAddress expectedAddress)
         {
-            //Derive passfactor using scrypt with ownerentropy and the user's passphrase and use it to recompute passpoint 
+            //Derive passfactor using scrypt with ownerentropy and the user's passphrase and use it to recompute passpoint
             byte[] passfactor = BitcoinEncryptedSecretEC.CalculatePassFactor(passphrase, LotSequence, OwnerEntropy);
             //Derive decryption key for pointb using scrypt with passpoint, addresshash, and ownerentropy
             byte[] passpoint = BitcoinEncryptedSecretEC.CalculatePassPoint(passfactor);

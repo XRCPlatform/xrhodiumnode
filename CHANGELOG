@@ -1,0 +1,26 @@
+1.1.10 : In Progress
+
+1.1.9 : July 1, 2019
+
+- Add listsinceblock deprecated argument list
+- getblocktemplate "txid" field now returns correct endianness of tx hash (similar to witness hash in "hash field)
+- Catch network exception when running getnetworkinfo
+- New documentation for listsinceblock
+- Improvement and fixes in RPCs method: ImportAddress and ImportPubKey
+
+1.1.8 : June 5, 2019
+
+- curtime in getblocktemplate should be uint
+- Add various "deprecated" APIs to support older mining software
+- Whitespace cleanup
+
+1.1.7 : May 17, 2019
+
+- blocknotify: Call command on new best-block
+- Fix shell helper to run binaries
+- Corrected network hash rate
+- gettxout: Return correct output on missing transaction
+- Adding contribution document
+- Fix submitblock output on success
+- validateaddress RPC now includes change addresses
+- Specify correct confirmation blocks for unconfirmed transactions

@@ -255,7 +255,7 @@ namespace NBitcoin.Stealth
         }
 
         /// <summary>
-        /// Prepare a stealth payment 
+        /// Prepare a stealth payment
         /// </summary>
         /// <param name="ephemKey">Ephem Key</param>
         /// <returns>Stealth Payment</returns>

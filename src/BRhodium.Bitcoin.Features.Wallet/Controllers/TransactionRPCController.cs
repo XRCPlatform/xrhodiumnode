@@ -131,20 +131,25 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     throw new ArgumentNullException("outputs");
                 }
+                Transaction transaction = new Transaction();               
+                               
 
-                TxInList txIns = JsonConvert.DeserializeObject<TxInList>(inputs);
-                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
-
-                Transaction transaction = new Transaction();
+                dynamic txIns = JsonConvert.DeserializeObject(inputs);
                 foreach (var input in txIns)
                 {
-                    transaction.AddInput(input);
+                    var txIn = new TxIn(new OutPoint(uint256.Parse((string)input.txid), (uint)input.vout));
+                    if(input.sequence != null)
+                    {
+                        txIn.Sequence = (uint)input.sequence;
+                    }                   
+                    transaction.AddInput(txIn);
                 }
 
+                Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
-                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.MilliXRC), destination));
+                    transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.XRC), destination));
                 }
 
                 var txHex = transaction.ToHex();
@@ -174,7 +179,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var tx = Transaction.Load(hex, this.Network);
-                return this.Json(ResultHelper.BuildResultResponse(JsonConvert.DeserializeObject(tx.ToString(RawFormat.Satoshi))));
+                return this.Json(ResultHelper.BuildResultResponse(JsonConvert.DeserializeObject(tx.ToString(RawFormat.Satoshi, this.Network))));
             }
             catch (Exception e)
             {
@@ -212,13 +217,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Add inputs to a transaction until it has enough in value to meet its out value. This will not modify existing inputs, and will add at most one change output to the outputs. No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet. Note that all inputs selected must be of standard form and P2SH scripts must be in the wallet using importaddress or addmultisigaddress(to calculate fees). You can see whether this is the case by checking the \"solvable\" field in the listunspent output. Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only.
+        /// Add inputs to a transaction until it has enough in value to meet its out value. This will not accept inputs specified in raw tranaction.It will add at most one change output to the outputs. No existing outputs will be modified unless "subtractFeeFromOutputs" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet."
         /// </summary>
+        /// <param name="hdAccountName">HD Account Name - Example: "WalletName/WalletAccount"</param>
         /// <param name="hex">The hex string of the raw transaction.</param>
-        /// <returns>(FundRawTransactionModel) Result object with transaction fund.</returns>
+        /// <param name="password">Transaction password.</param>
+        /// <returns>hex of funded transaction</returns>
         [ActionName("fundrawtransaction")]
-        [ActionDescription("Add inputs to a transaction until it has enough in value to meet its out value. This will not modify existing inputs, and will add at most one change output to the outputs. No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified. Note that inputs which were signed may need to be resigned after completion since in/ outputs have been added. The inputs added will not be signed, use signrawtransaction for that. Note that all existing inputs must have their previous output transaction be in the wallet. Note that all inputs selected must be of standard form and P2SH scripts must be in the wallet using importaddress or addmultisigaddress(to calculate fees). You can see whether this is the case by checking the \"solvable\" field in the listunspent output. Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only.")]
-        public IActionResult FundRawTransaction(string hex)
+        [ActionDescription("Add inputs to a transaction until it has enough in value to meet its out value.")]
+        public IActionResult FundRawTransaction(string hdAccountName, string hex, string password)
         {
             try
             {
@@ -228,13 +235,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 var feeRate = new FeeRate(this.Settings.MinTxFeeRate.FeePerK);
 
-                var fundContext = new TransactionBuildContext(null, new List<Recipient>())
+                string walletName = "";
+                string accountName = "";
+                if (string.IsNullOrEmpty(hdAccountName))
                 {
-                    MinConfirmations = 0,
+                    hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                if (hdAccountName.Contains("/"))
+                {
+                    var nameParts = hdAccountName.Split('/');                    
+                    walletName = nameParts[0];
+                    accountName = nameParts[1];
+                }
+                else
+                {
+                    walletName = hdAccountName;
+                    accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
+                }
+
+                var walletReference = new WalletAccountReference(walletName, accountName);              
+
+                var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
+                {
+                    MinConfirmations = 1,
                     FeeType = FeeType.Low,
+                    Sign = false
                 };
-                
+
+                if (fundTransaction.Inputs.Any())
+                {
+                    throw new Exception("Unable to fund raw transaction with specified inputs");
+                }
+
                 walletTransactionHandler.FundTransaction(fundContext, fundTransaction);
+
                 var fee = feeRate.GetFee(fundTransaction);
 
                 result.Hex = fundTransaction.ToHex();
@@ -291,7 +326,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     {
                         throw new RPCServerException(NBitcoin.RPC.RPCErrorCode.RPC_INVALID_REQUEST, "Block with specified hash doesnt contain transaction");
                     }
-                } 
+                }
 
                 var model = new RPC.Models.TransactionVerboseModel(trx, this.Network, block, this.ChainState?.ConsensusTip);
 
@@ -375,18 +410,43 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         }
 
         /// <summary>
-        /// Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs 
-        /// that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded 
+        /// Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs
+        /// that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded
         /// private keys that, if given, will be the only keys used to sign the transaction.
         /// </summary>
         /// <param name="hex">The transaction hex string.</param>
-        /// <param name="privkeys">A json array of base58-encoded private keys for signing.</param>
-        /// <param name="prevtxs">An json array of previous dependent transaction outputs.</param> 
+        /// <param name="privkeys">A json array of base58-encoded private keys for signing.
+        /// <code>Example: (json object)
+        /// [
+        ///     'cQUVnB8q9fx6wruWWZSTbGWhzApr3ikitciF5RYBcyCT9qXCUrKW',
+        ///     'cNAVHMhm4wDugACof95TVWoeMtK3cQRGMti2mrVxSG4x8wXjBDtm',
+        ///     ...
+        /// ]
+        /// </code>
+        /// </param>
+        /// <param name="prevtxs">A json array of previous dependent transaction outputs.
+        /// <code>
+        /// Example: (json object)
+        ///    [
+        ///        { 
+        ///         "txid": "hex",             (string, required) The transaction id
+        ///         "vout": n,                 (numeric, required) The output number
+        ///         "scriptPubKey": "hex",     (string, required) script key
+        ///         "redeemScript": "hex",     (string) (required for P2SH) redeem script
+        ///         "amount": amount,          (numeric or string, required) The amount spent
+        ///        },
+        ///         ...
+        ///     ]
+        /// </code>
+        /// </param>
         /// <param name="sighashtype">The signature hash type. Default is ALL. Must be one of "ALL", "NONE", "SINGLE", "ALL|ANYONECANPAY", "NONE|ANYONECANPAY", "SINGLE|ANYONECANPAY".</param>
+        /// <param name="hdAccountName">HD Account Name - Example: "WalletName/WalletAccount" (OPTIONAL if keys are supplied as arg. If not specified will initialize to default wallet) </param>
+        /// <param name="password">Transaction password.(OPTIONAL if PrivateKeys supplied, mandatory othervice)</param>
+        /// 
         /// <returns>(SignRawTransactionModel) Result is sign object of transaction.</returns>
         [ActionName("signrawtransaction")]
-        [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded). The second optional argument(may be null) is an array of previous transaction outputs that this transaction depends on but may not yet be in the block chain. The third optional argument(may be null) is an array of base58 - encoded private keys that, if given, will be the only keys used to sign the transaction.")]
-        public IActionResult SignRawTransaction(string hex, string[] privkeys, string[] prevtxs, string sighashtype)
+        [ActionDescription("Sign inputs for raw transaction (serialized, hex-encoded).")]
+        public IActionResult SignRawTransaction(string hex, string privkeys, string prevtxs, string sighashtype, string hdAccountName, string password)
         {
             try
             {
@@ -397,15 +457,37 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new ArgumentNullException("hex");
                 }
 
-                var txBuilderContext = new TransactionBuildContext(null, new List<Recipient>())
+                WalletAccountReference walletReference = GetWalletReference(hdAccountName);
+                //should not use both externaly managed keys and keys found wallet
+                //because the ways of signing today are very different and blend is not possible
+                //if keys passed in only use those
+                if (!string.IsNullOrEmpty(privkeys))
+                {
+                    walletReference = null;
+                    password = null;
+                }
+
+                var fundContext = new TransactionBuildContext(walletReference, new List<Recipient>(), password)
                 {
                     MinConfirmations = 0,
-                    FeeType = FeeType.Low
+                    FeeType = FeeType.Low,
+                    Sign = true
                 };
 
-                var txBuilder = txBuilderContext.TransactionBuilder;
+                var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
 
                 var transaction = Transaction.Load(hex, this.Network);
+
+                transactionBuilder.CoinFinder = c =>
+                {
+                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                    var tx1 = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
+                    if (tx1 == null)
+                    {
+                        return null;
+                    }
+                    return new Coin(tx1, c.N);
+                };
 
                 var actualFlag = SigHash.All;
                 switch (sighashtype)
@@ -430,20 +512,23 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         actualFlag = SigHash.All;
                         break;
                 }
+                List<Key> keys = ParsePrivateKeysInput(privkeys);
 
-                List<Key> keys = new List<Key>();
+                List<Coin> previousCoins = ParsePreviousTransactionsInput(prevtxs);
 
-                if (privkeys != null)
-                {
-                    foreach (var itemKey in privkeys)
-                    {
-                        var secret = this.Network.CreateBitcoinSecret(itemKey);
-                        keys.Add(secret.PrivateKey);
-                    }
-                }
+                transactionBuilder.AddCoins(previousCoins);
 
                 var tx = transaction.Clone(network: this.Network);
-                var signedTx = txBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+                Transaction signedTx;
+                if (keys.Any())
+                {
+                    signedTx = transactionBuilder.SignTransactionInPlace(tx, actualFlag, keys);
+                }
+                else
+                {
+                    var walletTransactionHandler = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+                    signedTx = walletTransactionHandler.SignTransaction(fundContext, transactionBuilder, tx);
+                }
 
                 result.Hex = signedTx.ToHex();
                 result.Complete = true;
@@ -455,6 +540,69 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 this.logger.LogError("Exception occurred: {0}", e.ToString());
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
+        }
+
+        private static List<Coin> ParsePreviousTransactionsInput(string prevtxs)
+        {
+            List<Coin> previousCoins = new List<Coin>();
+            if (prevtxs != null)
+            {
+                dynamic prevtxsArray = JsonConvert.DeserializeObject(prevtxs);
+                foreach (var prevTxn in prevtxsArray)
+                {
+                    Coin coin = new Coin(uint256.Parse((string)prevTxn.txid), (uint)prevTxn.vout, new Money((decimal)prevTxn.amount, MoneyUnit.XRC), new NBitcoin.Script((string)prevTxn.scriptPubKey));
+                    previousCoins.Add(coin);
+                }
+            }
+
+            return previousCoins;
+        }
+
+        private List<Key> ParsePrivateKeysInput(string privkeys)
+        {
+            string[] privkeysArray = null;
+            if (privkeys != null)
+            {
+                privkeysArray = JsonConvert.DeserializeObject<string[]>(privkeys);
+            }
+
+            List<Key> keys = new List<Key>();
+
+            if (privkeys != null)
+            {
+                foreach (var itemKey in privkeysArray)
+                {
+                    var secret = this.Network.CreateBitcoinSecret(itemKey);
+                    keys.Add(secret.PrivateKey);
+                }
+            }
+
+            return keys;
+        }
+
+        private static WalletAccountReference GetWalletReference(string hdAccountName)
+        {
+            string walletName = "";
+            string accountName = "";
+            if (string.IsNullOrEmpty(hdAccountName))
+            {
+                hdAccountName = WalletRPCUtil.DEFAULT_WALLET + "/" + WalletRPCUtil.DEFAULT_ACCOUNT;
+            }
+
+            if (hdAccountName.Contains("/"))
+            {
+                var nameParts = hdAccountName.Split('/');
+                walletName = nameParts[0];
+                accountName = nameParts[1];
+            }
+            else
+            {
+                walletName = hdAccountName;
+                accountName = WalletRPCUtil.DEFAULT_ACCOUNT;
+            }
+
+            var walletReference = new WalletAccountReference(walletName, accountName);
+            return walletReference;
         }
 
         /// <summary>
@@ -534,9 +682,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         /// <summary>
         /// Get detailed information about in-wallet transaction.
         /// </summary>
-        /// <param name="walletName"></param>
-        /// <param name="txId"></param>
-        /// <returns></returns>
+        /// <param name="walletName">Name of the wallet.</param>
+        /// <param name="txId">Hash id of tx.</param>
+        /// <returns>(TransactionModel) Result object with informations.</returns>
         [ActionName("gettransactionbywallet")]
         [ActionDescription("Get detailed information about in-wallet transaction.")]
         public IActionResult GetTransactionByWallet(string walletName, string txId)

@@ -138,7 +138,7 @@ namespace BRhodium.Bitcoin.Features.Notifications.Tests
                 .Returns(new LookaheadResult() { Block = null })
                 .Returns(new LookaheadResult() { Block = blocks[0] });
 
-            
+
             CancellationTokenSource source = new CancellationTokenSource();
             var token = source.Token;
             signals.Setup(s => s.SignalBlock(It.Is<Block>(b => b.GetHash(this.Network) == blocks[0].GetHash(this.Network))))

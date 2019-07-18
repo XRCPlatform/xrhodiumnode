@@ -40,7 +40,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
-                BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 5);                
+                BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 5);
 
                 // wait for block repo for block sync to work
 
@@ -89,7 +89,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
             {
                 CoreNode BRhodiumSender = builder.CreateBRhodiumPowNode();
                 CoreNode BRhodiumReceiver = builder.CreateBRhodiumPowNode();
-                
+
                 builder.StartAll();
                
                 var walletManager = BRhodiumSender.FullNode.NodeService<IWalletManager>() as WalletManager;
@@ -103,7 +103,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 {
                     rpc.SendCommand(NBitcoin.RPC.RPCOperations.generate, 1, addressToMine.Address, 100000000000000);
                 }
-               
+
                 int mined = rpc.GetBlockCount();
                 Assert.True(mined > 2);
 
@@ -155,7 +155,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
 
-                var currentBestHeight = maturity + 15;               
+                var currentBestHeight = maturity + 15;
 
                 // the mining should add coins to the wallet
                 var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
@@ -338,7 +338,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 Assert.Equal(20, BRhodiumReceiver.FullNode.Chain.Tip.Height);
 
                 BRhodiumSender.GenerateBRhodiumWithMiner(5);
-               
+
 
 
                 TestHelper.TriggerSync(BRhodiumReceiver);
@@ -401,7 +401,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 // rewind the wallet in the BRhodiumReceiver node
                 (BRhodiumReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(10);
 
-                BRhodiumSender.GenerateBRhodiumWithMiner(5);                
+                BRhodiumSender.GenerateBRhodiumWithMiner(5);
 
 
                 TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(BRhodiumReceiver, BRhodiumSender));
@@ -432,11 +432,11 @@ namespace BRhodium.Node.IntegrationTests.Wallet
 
                 // wait for block repo for block sync to work
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));
-                
+
 
                 // push the wallet back
                 BRhodiumminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
-                
+
                 BRhodiumminer.GenerateBRhodiumWithMiner(5);
 
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumminer));

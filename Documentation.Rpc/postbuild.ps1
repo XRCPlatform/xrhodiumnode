@@ -1,5 +1,5 @@
 $exclude = @("*log*", "*bak*", "*png*", "*gif*", "*css*", "*jpg*")
-$files = Get-ChildItem -Path "Help\*" -Recurse -exclude $exclude 
+$files = Get-ChildItem -Path "Help\*" -Recurse -exclude $exclude
 
 foreach ($file in $files){
 
@@ -11,7 +11,7 @@ $content = Get-Content $($file.FullName)
 #write replaced content back to the file
 $content -replace $find,$replace | Out-File $($file.FullName) -encoding utf8
         }
-		
+
 
 }
 

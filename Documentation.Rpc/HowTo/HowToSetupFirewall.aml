@@ -12,9 +12,9 @@
 sudo apt-get install iptables
 sudo apt-get install ip6tables
 </code>
-      
+
         <para>It is advised to block all ip6tables access:</para>
-        
+
 <code language="cs">
 ip6tables -P INPUT DROP
 ip6tables -P OUTPUT DROP
@@ -30,7 +30,7 @@ sudo iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 <list class="bullet">
   <listItem><para><legacyBold>127.0.0.1</legacyBold> - allowed ip for access to API RPC-JSON</para></listItem>
   <listItem><para><legacyBold>16661</legacyBold> - testnet API RPC-JSON port</para></listItem>
-  <listItem><para><legacyBold>16665</legacyBold> - node communication port</para></listItem>  
+  <listItem><para><legacyBold>16665</legacyBold> - node communication port</para></listItem>
 </list>
 
 <code language="cs">
@@ -61,6 +61,6 @@ sudo apt-get install iptables-persistent
         <para>-	Answer <legacyBold>YES</legacyBold> to all questions.</para>
         <para><legacyItalic>Recommendation: If you make a change in your configuration uninstall it and install it again to store new configuration.</legacyItalic></para>
       </content>
-    </section>    
+    </section>
   </developerHowToDocument>
 </topic>

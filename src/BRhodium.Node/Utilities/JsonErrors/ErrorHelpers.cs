@@ -20,7 +20,7 @@ namespace BRhodium.Node.Utilities.JsonErrors
                 Description = ""
 #endif
             };
-           
+
 
             return new ErrorResult((int)statusCode, errorResponse);
         }

@@ -7,7 +7,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
 {
     /// <summary>
     /// This rule will validate the block size and weight.
-    /// </summary>        
+    /// </summary>
     public class BlockSizeRule : ConsensusRule
     {
         /// <inheritdoc />
@@ -34,7 +34,7 @@ namespace BRhodium.Bitcoin.Features.Consensus.Rules.CommonRules
             Block block = context.BlockValidationContext.Block;
 
             // Size limits.
-            if ((block.Transactions.Count == 0) || (block.Transactions.Count > options.MaxBlockBaseSize) || 
+            if ((block.Transactions.Count == 0) || (block.Transactions.Count > options.MaxBlockBaseSize) ||
                 (GetSize(this.Parent.Network, block, TransactionOptions.None) > options.MaxBlockBaseSize))
             {
                 this.Logger.LogTrace("(-)[BAD_BLOCK_LEN]");

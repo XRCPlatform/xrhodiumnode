@@ -12,12 +12,12 @@ namespace BRhodium.Node.Tests.Utilities
             int maxItemsCount = 100;
 
             var cache = new MemoryCache<int, string>(maxItemsCount);
-            
+
             for (int i = 0; i < maxItemsCount*2; i++)
             {
                 cache.AddOrUpdate(i, RandomUtils.GetInt32().ToString());
             }
-             
+
             Assert.Equal(maxItemsCount, cache.Count);
         }
 
@@ -28,7 +28,7 @@ namespace BRhodium.Node.Tests.Utilities
             int itemsCountToAdd = 100;
 
             var cache = new MemoryCache<int, string>(maxItemsCount);
-            
+
             for (int i = 0; i < itemsCountToAdd; i++)
             {
                 cache.AddOrUpdate(i, RandomUtils.GetInt32().ToString());
@@ -48,7 +48,7 @@ namespace BRhodium.Node.Tests.Utilities
         public void CanManuallyRemoveItemsFromTheCache()
         {
             var cache = new MemoryCache<int, string>(10);
-            
+
             for (int i = 0; i < 5; i++)
             {
                 cache.AddOrUpdate(i, i + "VALUE");
@@ -58,7 +58,7 @@ namespace BRhodium.Node.Tests.Utilities
             {
                 cache.Remove(i);
             }
-            
+
             Assert.Equal(2, cache.Count);
 
             // Check if cache still has the same values that were added.
@@ -73,7 +73,7 @@ namespace BRhodium.Node.Tests.Utilities
         public void CacheKeepsMostRecentlyUsedItems()
         {
             var cache = new MemoryCache<int, string>(10);
-            
+
             for (int i = 0; i < 15; i++)
             {
                 cache.AddOrUpdate(i, RandomUtils.GetInt32().ToString());
@@ -87,7 +87,7 @@ namespace BRhodium.Node.Tests.Utilities
                     }
                 }
             }
-            
+
             // Cache should have 0-2 & 8-14.
             for (int i = 0; i < 15; i++)
             {
