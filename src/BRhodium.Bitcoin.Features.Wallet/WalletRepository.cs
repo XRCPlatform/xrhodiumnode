@@ -37,7 +37,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.network = network;
 
             EnsureSQLiteDbExists();
-            if (this.connection != null)
+            if (this.connection == null)
             {
                 this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
                 {
