@@ -142,15 +142,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.chain = chain;
             this.asyncLoopFactory = asyncLoopFactory;
             this.nodeLifetime = nodeLifetime;
-            if (walletRepository != null)
+
+            this.repository = walletRepository;
+            if (this.repository == null)
             {
-                this.repository = walletRepository;
-            }
-            else {
                 this.repository = new WalletRepository(dataFolder.WalletPath, this.coinType, this.network);
             }
-            DirectoryInfo walletDbPath = new DirectoryInfo(dataFolder.WalletPath);
-            this.fileStorage = new FileStorage<Wallet>(walletDbPath.Parent.FullName);
+            this.fileStorage = new FileStorage<Wallet>(dataFolder.RootPath);
+
             this.broadcasterManager = broadcasterManager;
             this.dateTimeProvider = dateTimeProvider;
 

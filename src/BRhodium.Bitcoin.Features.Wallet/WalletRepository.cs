@@ -15,6 +15,7 @@ using System.Data;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using BRhodium.Bitcoin.Features.Wallet.Helpers;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -25,44 +26,48 @@ namespace BRhodium.Bitcoin.Features.Wallet
         private readonly object lockObject;
         private readonly Network network;
         private ConcurrentDictionary<string, Wallet> walletCache = new ConcurrentDictionary<string, Wallet>();
-        protected readonly SQLiteConnection connection;
+        protected SQLiteConnection connection;
 
+        private const string WALLET_DB_FILE = "Wallet.db";
         public WalletRepository(string walletPath, CoinType coinType, Network network = null)
         {
             this.lockObject = new object();
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
+
             EnsureSQLiteDbExists();
-            this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
+            if (this.connection != null)
             {
-                DataSource = $"{walletPath}\\Wallet.db"
-            }
+                this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
+                {
+                    DataSource = Path.Combine(this.walletPath, WALLET_DB_FILE)
+                }
             .ToString());
+            }
+
             this.connection.Open();
         }
 
         private void EnsureSQLiteDbExists()
         {
-            string filePath = $"{walletPath}\\Wallet.db";
+            string filePath = Path.Combine(this.walletPath, WALLET_DB_FILE);
             FileInfo fi = new FileInfo(filePath);
             if (!fi.Exists)
             {
-                //not sure if this is best way to find working directory
-                var current = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-                try
+                if (!Directory.Exists(this.walletPath))
                 {
-                    if (!Directory.Exists(fi.DirectoryName))
-                    {
-                        Directory.CreateDirectory(fi.DirectoryName);
-                    }
-                    current.GetDirectories(@"Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath,true);
-                    //current.Parent.GetDirectories(@"\Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath);
+                    Directory.CreateDirectory(this.walletPath);
                 }
-                catch (DirectoryNotFoundException)
+
+                SQLiteConnection.CreateFile(filePath);
+                this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
                 {
-                    current.Parent.Parent.Parent.Parent.GetDirectories(@"BRhodium.Bitcoin.Features.Wallet\Db").FirstOrDefault().GetFiles("Wallet.db").FirstOrDefault().CopyTo(filePath);
-                }
+                    DataSource = Path.Combine(this.walletPath, WALLET_DB_FILE)
+                }.ToString());
+
+                var dbStructureHelper = new CreateDbStructureHelper();
+                dbStructureHelper.CreateIt(this.connection);
             }
         }
 
