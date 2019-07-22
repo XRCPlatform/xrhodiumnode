@@ -35,9 +35,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.coinType = coinType;
             this.walletPath = walletPath;
             this.network = network;
-
-            EnsureSQLiteDbExists();
-            if (this.connection == null)
+            
+            if ((!EnsureSQLiteDbExists()) || (this.connection == null))
             {
                 this.connection = new SQLiteConnection(new SQLiteConnectionStringBuilder
                 {
@@ -49,8 +48,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.connection.Open();
         }
 
-        private void EnsureSQLiteDbExists()
+        private bool EnsureSQLiteDbExists()
         {
+            var result = true;
+
             string filePath = Path.Combine(this.walletPath, WALLET_DB_FILE);
             FileInfo fi = new FileInfo(filePath);
             if (!fi.Exists)
@@ -68,7 +69,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 var dbStructureHelper = new CreateDbStructureHelper();
                 dbStructureHelper.CreateIt(this.connection);
+
+                result = false;
             }
+
+            return result;
         }
 
         public void SaveWallet(string walletName, Wallet wallet, bool saveTransactionsHere = false)
