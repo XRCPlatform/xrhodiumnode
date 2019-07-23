@@ -255,7 +255,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                     stream.Position = 0;
                     var bin = new BinaryFormatter();
-                    blocks = (List<uint256>)bin.Deserialize(stream);
+                    if (stream.Length > 0)
+                    {
+                        blocks = (List<uint256>)bin.Deserialize(stream);
+                    }
                     bin = null;
                 }
 
