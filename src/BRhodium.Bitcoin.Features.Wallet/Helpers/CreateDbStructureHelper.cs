@@ -8,9 +8,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
 {
     internal class CreateDbStructureHelper
     {
-        internal void CreateIt(SQLiteConnection connection)
+        internal void CreateIt(string connection)
         {
-            using (var dbConnection = connection)
+            using (var dbConnection = new SQLiteConnection(connection))
             {
                 dbConnection.Open();
 
@@ -31,8 +31,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                                 "\"LastUpdated\" INTEGER NOT NULL, " +
                                 "\"Blocks\"    BLOB " +
                                 "); ";
-                        var command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE TABLE \"Account\"(" +
                               "\"Id\"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
@@ -43,8 +45,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                               "\"ExtendedPubKey\"    TEXT NOT NULL," +
                               "\"CreationTime\"  INTEGER  NOT NULL" +
                         ");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE TABLE \"Address\"(" +
                               "\"Id\"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
@@ -56,8 +60,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                               "\"Address\"   TEXT NOT NULL UNIQUE," +
                               "\"HdPath\"    TEXT NOT NULL" +
                         ");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE TABLE \"Transaction\"(" +
                               "\"Id\"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
@@ -75,8 +81,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                               "\"IsPropagated\"  NUMERIC NOT NULL," +
                               "\"IsSpent\"   NUMERIC NOT NULL" +
                         ");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = " CREATE TABLE \"TransactionSpendingLinks\"(" +
                               "\"WalletId\"  INTEGER NOT NULL," +
@@ -84,8 +92,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                               "\"SpendingTransactionId\" INTEGER NOT NULL," +
                               "PRIMARY KEY(WalletId, TransactionId, SpendingTransactionId)" +
                         ");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = " CREATE TABLE \"SpendingDetails\"(" +
                             "\"Id\"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
@@ -95,9 +105,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                             "\"CreationTime\"  INTEGER NOT NULL," +
                             "\"Hex\"   TEXT NULL" +
                         ");";
-
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE TABLE \"PaymentDetails\"( " +
                             "\"Id\"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
@@ -107,28 +118,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                             "\"DestinationAddress\"    TEXT NOT NULL," +
                             "\"DestinationScriptPubKey\"   TEXT NOT NULL" +
                         ");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE UNIQUE INDEX \"ix_Address\" ON \"Address\" (\"Address\");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE UNIQUE INDEX \"ix_Address_ScriptPubKey\" ON \"Address\" (\"ScriptPubKey\");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE UNIQUE INDEX \"ix_WalletName\" ON \"Wallet\" (\"Name\");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE INDEX \"ix_Transaction_WalletId\" ON \"Transaction\" (\"WalletId\");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         sql = "CREATE INDEX \"ix_SpendingDetails_WalletId\" ON \"SpendingDetails\" (\"WalletId\");";
-                        command = new SQLiteCommand(sql, dbConnection);
-                        command.ExecuteNonQuery();
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
 
                         transaction.Commit();
                     }
