@@ -165,7 +165,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         isValid = false;
                     }
 
-                    if (!isValid) throw new Exception(string.Format("Output address {0} isnt valid.", entry.Key));
+                    if (!isValid) throw new Exception(string.Format("Output address {0} is invalid.", entry.Key));
 
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
                     transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.XRC), destination));
