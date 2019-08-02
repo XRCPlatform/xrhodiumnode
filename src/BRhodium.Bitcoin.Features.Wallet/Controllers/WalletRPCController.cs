@@ -747,7 +747,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             var controller = this.FullNode.NodeService<WalletController>();
 
             var fundTransaction = transaction.BuildTransaction(context);
-            controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+            var response = controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+            if (response.GetType() == typeof(ErrorResult)) return null;
 
             return fundTransaction.GetHash();
         }
@@ -1035,7 +1036,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var controller = this.FullNode.NodeService<WalletController>();
 
                 var fundTransaction = transaction.BuildTransaction(context);
-                controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+                var response = controller.SendTransaction(new SendTransactionRequest(fundTransaction.ToHex()));
+                if (response.GetType() == typeof(ErrorResult)) return null;
 
                 return fundTransaction;
             }
