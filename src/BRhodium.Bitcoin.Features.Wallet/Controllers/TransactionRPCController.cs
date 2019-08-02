@@ -147,6 +147,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
+                    var isValid = false;
+                    try
+                    {
+                        // P2PKH
+                        if (BitcoinPubKeyAddress.IsValid(entry.Key, ref this.Network))
+                        {
+                            isValid = true;
+                        }
+                        else if (BitcoinScriptAddress.IsValid(entry.Key, ref this.Network))
+                        {
+                            isValid = true;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isValid = false;
+                    }
+
+                    if (!isValid) throw new Exception(string.Format("Output address {0} isnt valid.", entry.Key));
+
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
                     transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.XRC), destination));
                 }
