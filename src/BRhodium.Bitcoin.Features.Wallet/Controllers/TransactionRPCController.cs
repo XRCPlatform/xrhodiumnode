@@ -394,7 +394,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var transactionRequest = new SendTransactionRequest(transaction.ToHex());
-                controller.SendTransaction(transactionRequest);
+                var response = controller.SendTransaction(transactionRequest);
+                if (response.GetType() == typeof(ErrorResult)) return response;
 
                 TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
 
