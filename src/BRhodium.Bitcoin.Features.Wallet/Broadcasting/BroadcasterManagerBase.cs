@@ -58,6 +58,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Broadcasting
             else if (broadcastEntry.State != state)
             {
                 broadcastEntry.State = state;
+                broadcastEntry.ErrorMessage = errorMessage;
                 this.OnTransactionStateChanged(broadcastEntry);
             }
         }
