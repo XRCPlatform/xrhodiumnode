@@ -133,7 +133,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
                 Transaction transaction = new Transaction();               
                                
-
                 dynamic txIns = JsonConvert.DeserializeObject(inputs);
                 foreach (var input in txIns)
                 {
@@ -370,9 +369,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
                 var transaction = Transaction.Load(hex, this.Network);
 
+                var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                if (blockStore.GetTrxAsync(transaction.GetHash()).Result != null)
+                {
+                    throw new WalletException($"Transaction exist in blockchain.");
+                }
+
                 transactionBuilder.CoinFinder = c =>
                 {
-                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
                     var tx = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
                     if (tx == null) {
                         return null;
