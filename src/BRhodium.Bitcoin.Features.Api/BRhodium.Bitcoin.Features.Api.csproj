@@ -8,7 +8,7 @@
     <PackageId>BRhodium.Bitcoin.Api</PackageId>
     <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
 
-    <Version>1.1.10</Version>
+    <Version>1.1.11</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 
     <ApplicationIcon />

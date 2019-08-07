@@ -1,4 +1,8 @@
-1.1.11 : In Progress
+1.1.12 : In Progress
+
+1.1.11
+- Security improvement
+- Extended RPC error messages
 
 1.1.10
 - Improvement in RPC ListUnspent
