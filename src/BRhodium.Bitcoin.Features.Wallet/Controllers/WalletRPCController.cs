@@ -2032,7 +2032,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                 }
 
-                return this.Json(ResultHelper.BuildResultResponse(result));
+                if (this.useDeprecatedWalletRPC)
+                {
+                    var resultObj = new Dictionary<string, List<TransactionVerboseModel>>();
+                    resultObj.Add("transactions", result);
+                    return this.Json(ResultHelper.BuildResultResponse(resultObj));
+                }
+                else
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(result));
+                }
             }
             catch (Exception e)
             {
