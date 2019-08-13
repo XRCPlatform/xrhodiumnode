@@ -1954,10 +1954,10 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             if (this.useDeprecatedWalletRPC)
             {
                 var blockhash = param1;
-                int targetConfirmations = 1;
-                if (param2 != null) {
-                    targetConfirmations = Int32.Parse(param2);
-                }
+                
+                int targetConfirmations = 0;
+                Int32.TryParse(param2, out targetConfirmations);
+
                 return ListSinceBlockResponse(WalletRPCUtil.DEFAULT_WALLET, blockhash, targetConfirmations);
             }
 
@@ -1985,7 +1985,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var txList = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
 
-                if (!string.IsNullOrEmpty(blockhash) && target_confirmations > 0 && !this.useDeprecatedWalletRPC)
+                if (!string.IsNullOrEmpty(blockhash) && target_confirmations > 0)
                 {
                     throw new ArgumentException("blockhash  and target_confirmations can't be specified at once. choose either hash or confirmations");
                 }
