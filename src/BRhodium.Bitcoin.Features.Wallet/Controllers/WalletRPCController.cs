@@ -1951,17 +1951,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         [ActionDescription("Get all transactions in blocks since block [blockhash], or all transactions if omitted.")]
         public IActionResult ListSinceBlock(string param1 = null, string param2 = null, string param3 = null)
         {
+            int targetConfirmations = 0;
             if (this.useDeprecatedWalletRPC)
             {
                 var blockhash = param1;
-                
-                int targetConfirmations = 0;
+                                
                 Int32.TryParse(param2, out targetConfirmations);
 
                 return ListSinceBlockResponse(WalletRPCUtil.DEFAULT_WALLET, blockhash, targetConfirmations);
             }
 
-            return ListSinceBlockResponse(param1, param2, Int32.Parse(param3));
+            Int32.TryParse(param3, out targetConfirmations);
+            return ListSinceBlockResponse(param1, param2, targetConfirmations);
         }
 
         /// <summary>
@@ -2032,7 +2033,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     }
                 }
 
-                return this.Json(ResultHelper.BuildResultResponse(result));
+                if (this.useDeprecatedWalletRPC)
+                {
+                    var resultObj = new Dictionary<string, List<TransactionVerboseModel>>();
+                    resultObj.Add("transactions", result);
+                    return this.Json(ResultHelper.BuildResultResponse(resultObj));
+                }
+                else
+                {
+                    return this.Json(ResultHelper.BuildResultResponse(result));
+                }
             }
             catch (Exception e)
             {
