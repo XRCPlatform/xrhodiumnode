@@ -2021,7 +2021,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         {
                             if (txItem.BlockHeight < startChainedHeader.Height)
                             {
-                                continue;
+                                if ((txItem.SpendingDetails != null) && (txItem.SpendingDetails.BlockHeight >= startChainedHeader.Height))
+                                {
+                                    //do nothing => add it to result
+                                    var spendingDataTx = new TransactionData();
+                                    var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
+
+                                    spendingDataTx.BlockHash = chainedHeader.HashBlock;
+                                    spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
+
+                                    result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
+                                    continue;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
                             }
                             else
                             {
