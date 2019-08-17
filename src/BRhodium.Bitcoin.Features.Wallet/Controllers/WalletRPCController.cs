@@ -1956,12 +1956,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 var blockhash = param1;
                                 
-                Int32.TryParse(param2, out targetConfirmations);
+                int.TryParse(param2, out targetConfirmations);
 
                 return ListSinceBlockResponse(WalletRPCUtil.DEFAULT_WALLET, blockhash, targetConfirmations);
             }
 
-            Int32.TryParse(param3, out targetConfirmations);
+            int.TryParse(param3, out targetConfirmations);
             return ListSinceBlockResponse(param1, param2, targetConfirmations);
         }
 
@@ -1992,7 +1992,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 ChainedHeader startChainedHeader = null;
-                if (!string.IsNullOrEmpty(blockhash)) {
+                if (!string.IsNullOrEmpty(blockhash))
+                {
 
                     var uintBlockHash = new uint256(blockhash);
                     startChainedHeader = this.ConsensusLoop.Chain.GetBlock(uintBlockHash);
@@ -2023,19 +2024,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             {
                                 if ((txItem.SpendingDetails != null) && (txItem.SpendingDetails.BlockHeight >= startChainedHeader.Height))
                                 {
-                                    //do nothing => add it to result
-                                    var spendingDataTx = new TransactionData();
-                                    var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
-
-                                    if (chainedHeader != null)
-                                    {
-                                        spendingDataTx.BlockHash = chainedHeader.HashBlock;
-                                        spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
-
-                                        result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
-                                    }
-
-                                    continue;
+                                    //do nothing
                                 }
                                 else
                                 {
@@ -2048,19 +2037,54 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             }
                         }
 
-                        result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+                        if (startChainedHeader == null) result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+
+                        if ((txItem.SpendingDetails != null) && (startChainedHeader != null) && (txItem.SpendingDetails.BlockHeight >= startChainedHeader.Height))
+                        {
+                            var spendingDataTx = new TransactionData();
+                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
+
+                            if (chainedHeader != null)
+                            {
+                                spendingDataTx.BlockHash = chainedHeader.HashBlock;
+                                spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
+
+                                result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
+                            }
+                        }
                     }
                 }
+
+                //filter duplicates & sort it
+                var clearResult = new List<TransactionVerboseModel>();
+                foreach (var item in result)
+                {
+                    var exist = clearResult.Exists(e =>
+                                       e.TxId == item.TxId &&
+                                       e.Amount == item.Amount &&
+                                       e.BlockHash == item.BlockHash &&
+                                       e.Category == item.Category &&
+                                       e.Time == item.Time);
+
+                    if (!exist)
+                    {
+                        clearResult.Add(item);
+                    }
+                }
+                clearResult = clearResult.OrderBy(o => o.BlockHeight)
+                    .ThenBy(o => o.TxId)
+                    .ThenBy(o => o.Category)
+                    .ToList();
 
                 if (this.useDeprecatedWalletRPC)
                 {
                     var resultObj = new Dictionary<string, List<TransactionVerboseModel>>();
-                    resultObj.Add("transactions", result);
+                    resultObj.Add("transactions", clearResult);
                     return this.Json(ResultHelper.BuildResultResponse(resultObj));
                 }
                 else
                 {
-                    return this.Json(ResultHelper.BuildResultResponse(result));
+                    return this.Json(ResultHelper.BuildResultResponse(clearResult));
                 }
             }
             catch (Exception e)
