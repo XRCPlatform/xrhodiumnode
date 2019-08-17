@@ -2027,10 +2027,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                     var spendingDataTx = new TransactionData();
                                     var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
 
-                                    spendingDataTx.BlockHash = chainedHeader.HashBlock;
-                                    spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
+                                    if (chainedHeader != null)
+                                    {
+                                        spendingDataTx.BlockHash = chainedHeader.HashBlock;
+                                        spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
 
-                                    result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
+                                        result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
+                                    }
+
                                     continue;
                                 }
                                 else
