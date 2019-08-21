@@ -2018,13 +2018,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                     foreach (var txItem in txList)
                     {
+                        var addTx = false;
+                        var addSpendingTx = false;
                         if (startChainedHeader != null)
                         {
                             if (txItem.BlockHeight < startChainedHeader.Height)
                             {
                                 if ((txItem.SpendingDetails != null) && (txItem.SpendingDetails.BlockHeight >= startChainedHeader.Height))
                                 {
-                                    //do nothing
+                                    addSpendingTx = true;
                                 }
                                 else
                                 {
@@ -2033,13 +2035,22 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             }
                             else
                             {
-                                startChainedHeader = null; //remove block
+                                addTx = true;
+                                if (txItem.SpendingDetails != null) addSpendingTx = true;
                             }
                         }
+                        else
+                        {
+                            addTx = true;
+                            if (txItem.SpendingDetails != null) addSpendingTx = true;
+                        }
 
-                        if (startChainedHeader == null) result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+                        if (addTx)
+                        {
+                            result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+                        }
 
-                        if ((txItem.SpendingDetails != null) && (startChainedHeader != null) && (txItem.SpendingDetails.BlockHeight >= startChainedHeader.Height))
+                        if (addSpendingTx)
                         {
                             var spendingDataTx = new TransactionData();
                             var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
