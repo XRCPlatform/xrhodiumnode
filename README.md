@@ -24,7 +24,7 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
  1. Clone the repository:
 
 ```
-    git clone -b master_1.1.10 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+    git clone -b master_1.1.12 https://gitlab.com/bitcoinrh/BRhodiumNode.git
     cd BRhodiumNode
 ```
 
