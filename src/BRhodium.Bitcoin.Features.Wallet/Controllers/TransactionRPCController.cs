@@ -133,7 +133,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
                 Transaction transaction = new Transaction();               
                                
-
                 dynamic txIns = JsonConvert.DeserializeObject(inputs);
                 foreach (var input in txIns)
                 {
@@ -148,6 +147,26 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 Dictionary<string, decimal> parsedOutputs = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(outputs);
                 foreach (KeyValuePair<string, decimal> entry in parsedOutputs)
                 {
+                    var isValid = false;
+                    try
+                    {
+                        // P2PKH
+                        if (BitcoinPubKeyAddress.IsValid(entry.Key, ref this.Network))
+                        {
+                            isValid = true;
+                        }
+                        else if (BitcoinScriptAddress.IsValid(entry.Key, ref this.Network))
+                        {
+                            isValid = true;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isValid = false;
+                    }
+
+                    if (!isValid) throw new Exception(string.Format("Output address {0} is invalid.", entry.Key));
+
                     var destination = BitcoinAddress.Create(entry.Key, this.Network).ScriptPubKey;
                     transaction.AddOutput(new TxOut(new Money(entry.Value, MoneyUnit.XRC), destination));
                 }
@@ -370,9 +389,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var transactionBuilder = new TransactionBuilder(this.FullNode.Network);
                 var transaction = Transaction.Load(hex, this.Network);
 
+                var blockStore = this.FullNode.NodeFeature<IBlockStore>();
+                if (blockStore.GetTrxAsync(transaction.GetHash()).Result != null)
+                {
+                    throw new WalletException($"Transaction exist in blockchain.");
+                }
+
                 transactionBuilder.CoinFinder = c =>
                 {
-                    var blockStore = this.FullNode.NodeFeature<IBlockStore>();
                     var tx = blockStore != null ? blockStore.GetTrxAsync(c.Hash).Result : null;
                     if (tx == null) {
                         return null;
@@ -390,7 +414,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var transactionRequest = new SendTransactionRequest(transaction.ToHex());
-                controller.SendTransaction(transactionRequest);
+                var response = controller.SendTransaction(transactionRequest);
+                if (response.GetType() == typeof(ErrorResult)) return response;
 
                 TransactionBroadcastEntry entry = this.broadcasterManager.GetTransaction(transaction.GetHash());
 

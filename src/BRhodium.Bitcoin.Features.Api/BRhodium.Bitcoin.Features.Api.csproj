@@ -8,7 +8,7 @@
     <PackageId>BRhodium.Bitcoin.Api</PackageId>
     <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
 
-    <Version>1.1.10</Version>
+    <Version>1.1.12</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 
     <ApplicationIcon />
@@ -17,6 +17,8 @@
 
     <!-- Force packing of a web project https://github.com/aspnet/websdk/issues/228 -->
     <IsPackable>true</IsPackable>
+    <AssemblyVersion>1.1.12.0</AssemblyVersion>
+    <FileVersion>1.1.12.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
