@@ -1985,7 +1985,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                         if (addTx)
                         {
-                            result = result.Concat(DescribeTransaction(txItem, walletName, chainedTip)).ToList();
+                            result = result.Concat(DescribeTransaction(txItem, wallet.Id, chainedTip)).ToList();
                         }
 
                         if (addSpendingTx)
@@ -1998,7 +1998,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                                 spendingDataTx.BlockHash = chainedHeader.HashBlock;
                                 spendingDataTx.Id = txItem.SpendingDetails.TransactionId;
 
-                                result = result.Concat(DescribeTransaction(spendingDataTx, walletName, chainedTip)).ToList();
+                                result = result.Concat(DescribeTransaction(spendingDataTx, wallet.Id, chainedTip)).ToList();
                             }
                         }
                     }
