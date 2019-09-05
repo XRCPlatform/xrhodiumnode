@@ -2005,7 +2005,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public void UpdateKeysLookupLock(IEnumerable<HdAddress> addresses, string walletName)
         {
-            throw new NotImplementedException();
+            var wallet = GetWallet(walletName);
+            foreach (HdAddress address in addresses)
+            {
+                Script script = address.ScriptPubKey;
+                WalletLinkedHdAddress walletLinkedHdAddress = new WalletLinkedHdAddress(address, wallet.Id);
+                this.addressByScriptLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(address.ScriptPubKey.Hash, walletLinkedHdAddress);
+                if (address.Pubkey != null)
+                {
+                    this.addressByScriptLookup.TryAdd<ScriptId, WalletLinkedHdAddress>(address.Pubkey.Hash, walletLinkedHdAddress);
+                }
+                foreach (var transaction in address.Transactions)
+                {
+                    this.outpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
+                }
+                this.addressLookup.TryAdd<string, WalletLinkedHdAddress>(address.Address, walletLinkedHdAddress);
+            }
         }
     }
 }
