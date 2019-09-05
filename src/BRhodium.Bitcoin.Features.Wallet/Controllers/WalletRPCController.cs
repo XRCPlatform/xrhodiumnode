@@ -35,6 +35,7 @@ using TransactionVerboseModel = BRhodium.Bitcoin.Features.Wallet.Models.Transact
 using System.Security;
 using BRhodium.Node.Base;
 using NBitcoin.DataEncoders;
+using BRhodium.Bitcoin.Features.Consensus;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 {
@@ -1018,6 +1019,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     WalletName = walletName
                 };
 
+                var maturity = (int)this.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
+
                 var context = new TransactionBuildContext(
                     walletReference,
                     new[]
@@ -1028,7 +1031,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                          }
                     }.ToList(), password)
                 {
-                    MinConfirmations = 1,
+                    MinConfirmations = maturity,
                     FeeType = feeType,
                     Sign = true
                 };
