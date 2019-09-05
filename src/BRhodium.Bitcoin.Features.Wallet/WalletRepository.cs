@@ -38,7 +38,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.network = network;
             this.connection = new SQLiteConnectionStringBuilder
             {
-                DataSource = Path.Combine(this.walletPath, WALLET_DB_FILE)
+                DataSource = Path.Combine(this.walletPath, WALLET_DB_FILE),
+                JournalMode = SQLiteJournalModeEnum.Wal,
+                Pooling = true
             }
             .ToString();
 

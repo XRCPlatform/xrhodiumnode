@@ -1296,6 +1296,34 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+        [ActionName("backupallwallets")]
+        [ActionDescription("The destination directory or file.")]
+        public IActionResult BackupAllWallets(string destination)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(destination))
+                {
+                    throw new ArgumentNullException("destination");
+                }
+                var names = this.walletManager.GetWalletNames();
+                Parallel.ForEach(names, walletName =>
+                {
+                    var fileStorage = new FileStorage<Wallet>(destination);
+                    var wallet = this.walletManager.GetWalletByName(walletName);
+                    fileStorage.SaveToFile(wallet, $"{wallet.Name}.{this.walletManager.GetWalletFileExtension()}.bak");
+                });
+                
+                return this.Json(ResultHelper.BuildResultResponse(true));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+
         /// <summary>
         /// Dumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files. Imported scripts are included in the dumpfile, but corresponding BIP173 addresses, etc.may not be added automatically by importwallet.        Note that if your wallet contains keys which are not derived from your HD seed(e.g.imported keys), these are not covered by only backing up the seed itself, and must be backed up too(e.g.ensure you back up the whole dumpfile).
         /// </summary>

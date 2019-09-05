@@ -243,9 +243,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             {
                 LoadWalletsFromFiles();
             }
-
+            var sw = Stopwatch.StartNew();
+            sw.Start();
             // Load data in memory for faster lookups.
             this.LoadKeysLookupLock();
+            sw.Stop();
+            //Console.WriteLine(sw.ElapsedMilliseconds/1000);
 
             // Find the last chain block received by the wallet manager.
             this.WalletTipHash = this.LastReceivedBlockHash();
@@ -1771,14 +1774,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         public void LoadKeysLookupLock()
         {
-            int count = 0;
-            Stopwatch sw = new Stopwatch();
+            int count = 0;            
             lock (this.lockObject)
             {
                 var col = this.repository.GetAllWalletPointers();
                 int length = col.Count();
-                foreach (WalletPointer pointer in col)
+                Parallel.ForEach(col, pointer =>
                 {
+                    Stopwatch sw = new Stopwatch();
                     sw.Start();
                     count++;
                     IEnumerable<HdAddress> addresses = repository.GetAllWalletAddressesByCoinType(pointer.WalletName, this.coinType);
@@ -1799,8 +1802,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     }
                     sw.Stop();
                     this.logger.LogInformation($"Loading wallet from db: {pointer.WalletName} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100, 2) }% complete");
-                    sw.Reset();                    
-                }
+                    sw.Reset();
+                });
             }
         }
 
