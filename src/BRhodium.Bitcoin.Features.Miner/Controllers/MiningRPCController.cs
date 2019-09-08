@@ -136,42 +136,34 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                 }
 
                 //we need to find wallet
-                var hdAddressCombix = WalletRPCController.HdAddressByAddressMap.TryGet<string, HdAddress>(address);
-                if (hdAddressCombix == null)
+                var hdAddress = WalletRPCController.HdAddressByAddressMap.TryGet<string, HdAddress>(address);
+                if (hdAddress == null)
                 {
                     bool isFound = false;
 
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    var wallet = walletManager.GetWalletByAddress(address);
+                    if(wallet != null)
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        foreach (var walletAddress in wallet.GetAllAddressesByCoinType((CoinType)this.Network.Consensus.CoinType))
                         {
-                            foreach (var walletAddress in currAccount.ExternalAddresses)
+                            if (walletAddress.Address.ToString().Equals(address))
                             {
-                                if (walletAddress.Address.ToString().Equals(address))
-                                {
-                                    hdAddressCombix = walletAddress;
-                                    var walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    WalletRPCController.WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    WalletRPCController.HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
-                                    isFound = true;
-                                    break;
-                                }
+                                hdAddress = walletAddress;
+                                WalletRPCController.HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
+                                isFound = true;
+                                break;
                             }
-
-                            if (isFound) break;
                         }
-
-                        if (isFound) break;
-                    }
+                    }                    
                 }
 
-                if (hdAddressCombix == null)
+                if (hdAddress == null)
                 {
                     throw new WalletException("Address doesnt exist.");
                 }
 
                 var result = new List<uint256>();
-                result.AddRange(this.powMining.GenerateBlocks(new ReserveScript(hdAddressCombix.Pubkey), (ulong)nblocks, (ulong)maxtries));
+                result.AddRange(this.powMining.GenerateBlocks(new ReserveScript(hdAddress.Pubkey), (ulong)nblocks, (ulong)maxtries));
 
                 return this.Json(ResultHelper.BuildResultResponse(result));
             }

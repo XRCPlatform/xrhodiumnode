@@ -1017,11 +1017,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                MerkleProofTemplate merkleProofTemplate = new MerkleProofTemplate(block);
+                //MerkleProofTemplate merkleProofTemplate = new MerkleProofTemplate(block);
                 bool walletUpdated = false;
                 foreach (Transaction transaction in block.Transactions)
                 {
-                    bool trxFound = this.ProcessTransaction(transaction, chainedHeader.Height, block, merkleProofTemplate, true);
+                    bool trxFound = this.ProcessTransaction(transaction, chainedHeader.Height, block, null, true);
                     if (trxFound)
                     {
                         walletUpdated = true;

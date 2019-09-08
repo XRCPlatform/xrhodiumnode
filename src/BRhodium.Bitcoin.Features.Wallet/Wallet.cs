@@ -46,6 +46,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonProperty(PropertyName = "encryptedSeed")]
         public string EncryptedSeed { get; set; }
 
+   
         /// <summary>
         /// The chain code.
         /// </summary>
@@ -53,6 +54,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonProperty(PropertyName = "chainCode")]
         [JsonConverter(typeof(ByteArrayConverter))]
         public byte[] ChainCode { get; set; }
+
+        /// <summary>
+        /// The time this wallet was created.
+        /// </summary>
+
+        [ProtoMember(7)]
+        [JsonProperty(PropertyName = "creationTime")]
+        [JsonConverter(typeof(DateTimeOffsetConverter))]
+        public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>
         /// Gets or sets block locator.
@@ -68,15 +78,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonProperty(PropertyName = "network")]
         [JsonConverter(typeof(NetworkConverter))]
         public Network Network { get; set; }
-
-        /// <summary>
-        /// The time this wallet was created.
-        /// </summary>
-
-        [ProtoMember(7)]
-        [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+       
 
         /// <summary>
         /// The root of the accounts tree.
