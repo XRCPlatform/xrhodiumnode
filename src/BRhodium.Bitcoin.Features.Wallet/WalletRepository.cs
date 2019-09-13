@@ -801,18 +801,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 throw new Exception("Atempting to add transaction to wallet that was not saved.");
             }
 
-            return -1;
-            //using (var dbConnection = new SQLiteConnection(this.connection))
-            //{
-            //    dbConnection.Open();
+            using (var dbConnection = new SQLiteConnection(this.connection))
+            {
+                dbConnection.Open();
 
-            //    using (var dbTransaction = dbConnection.BeginTransaction())
-            //    {
-            //        long retval = SaveTransaction(walletId, address, trx, dbTransaction, dbConnection);
-            //        dbTransaction.Commit();
-            //        return retval;
-            //    }
-            //}
+                using (var dbTransaction = dbConnection.BeginTransaction())
+                {
+                    long retval = SaveTransaction(walletId, address, trx, dbTransaction, dbConnection);
+                    dbTransaction.Commit();
+                    return retval;
+                }
+            }
         }
 
         private long SaveTransaction(long walletId, HdAddress address, TransactionData trx, SQLiteTransaction dbTransaction, SQLiteConnection dbConnection)
@@ -850,11 +849,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     insertCommand.ExecuteNonQuery();
                 }
 
-                sql = "select last_insert_rowid();";
-                using (var selectCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
-                {
-                    trx.DbId = int.Parse(selectCommand.ExecuteScalar().ToString());
-                }
+                //is this thread safe ? could it not get another transaction id? 
+                //sql = "select last_insert_rowid();";
+                //using (var selectCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
+                //{
+                //    trx.DbId = int.Parse(selectCommand.ExecuteScalar().ToString());
+                //}
+
+                trx.DbId = GetTransactionDbId(walletId, trx, address.Id, dbTransaction, dbConnection);
             }
             else
             {
@@ -891,12 +893,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                         insertSpendCommand.ExecuteNonQuery();
                     }
-
-                    sql = "select last_insert_rowid();";
-                    using (var selectCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
-                    {
-                        spendTrx.DbId = int.Parse(selectCommand.ExecuteScalar().ToString());
-                    }
+                    //is this thread safe ? could it not get another transaction id? 
+                    //sql = "select last_insert_rowid();";
+                    //using (var selectCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
+                    //{
+                    //    spendTrx.DbId = int.Parse(selectCommand.ExecuteScalar().ToString());
+                    //}
+                    spendTrx.DbId = GetTransactionSpendingDbId(walletId, trx, dbTransaction, dbConnection);
 
                     //var deletPaymentDetailCmd = this.connection.CreateCommand();
                     //deletPaymentDetailCmd.Transaction = dbTransaction;
@@ -1416,14 +1419,20 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         internal void RemoveTransactionFromHdAddress(HdAddress hdAddress, uint256 id)
         {
-            hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.Id == id));
-            this.SaveAddress(hdAddress.WalletId, hdAddress, true);
+            if (hdAddress.Transactions.Exists(tran => tran.Id == id))
+            {
+                hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.Id == id));
+                this.SaveAddress(hdAddress.WalletId, hdAddress, true);
+            }
         }
 
         internal void RemoveTransactionSpendingDetailsFromHdAddress(HdAddress hdAddress, uint256 id)
         {
-            hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.SpendingDetails.TransactionId == id));
-            this.SaveAddress(hdAddress.WalletId, hdAddress,true);
+            if (hdAddress.Transactions.Exists(tran=> tran.Id == id) || hdAddress.Transactions.Exists(tran => tran.SpendingDetails.TransactionId == id))
+            {
+                hdAddress.Transactions.Remove(hdAddress.Transactions.Single(t => t.SpendingDetails.TransactionId == id));
+                this.SaveAddress(hdAddress.WalletId, hdAddress, true);
+            }           
         }
 
         internal uint256 GetLastUpdatedBlockHash()

@@ -2873,61 +2873,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Empty(result);
         }
 
-
-        [Fact]
-        public void RemoveTransactionsByIdsWhenTransactionsAreUnconfirmedReturnsRemovedTransactionsList()
-        {
-            // Arrange.
-            DataFolder dataFolder = CreateDataFolder(this);
-
-            var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-
-            // Generate a wallet with an account and a few transactions.
-            string name = "wallet1";
-            string pass = Guid.NewGuid().ToString();
-
-            var template = WalletTestsHelpers.GenerateBlankWalletWithExtKey(name, pass, this.Network);
-            
-            var wallet = template.wallet;
-
-            var firstAccount = wallet.AccountsRoot.First().Accounts.First();
-
-            // Add two unconfirmed transactions.
-            uint256 trxId = uint256.Parse("d6043add63ec364fcb591cf209285d8e60f1cc06186d4dcbce496cdbb4303400");
-            int counter = 0;
-
-            TransactionData trxUnconfirmed1 = new TransactionData { Amount = 10, ScriptPubKey = new Script(), Id = trxId >> counter++ };
-            TransactionData trxUnconfirmed2 = new TransactionData { Amount = 10, ScriptPubKey = new Script(), Id = trxId >> counter++ };
-            TransactionData trxConfirmed1 = new TransactionData { Amount = 10, ScriptPubKey = new Script(), Id = trxId >> counter++, BlockHeight = 50000 };
-            TransactionData trxConfirmed2 = new TransactionData { Amount = 10, ScriptPubKey = new Script(), Id = trxId >> counter++, BlockHeight = 50001 };
-
-            firstAccount.ExternalAddresses.ElementAt(0).Transactions.Add(trxUnconfirmed1);
-            firstAccount.ExternalAddresses.ElementAt(1).Transactions.Add(trxConfirmed1);
-            firstAccount.InternalAddresses.ElementAt(0).Transactions.Add(trxUnconfirmed2);
-            firstAccount.InternalAddresses.ElementAt(1).Transactions.Add(trxConfirmed2);
-
-            walletManager.SaveWallet(template.wallet,true);
-
-            var transactionCount = firstAccount.GetCombinedAddresses().SelectMany(a => a.Transactions).Count();
-            Assert.Equal(4, transactionCount);
-
-            // Act.
-            var result = walletManager.RemoveTransactionsByIds("wallet1", new[] { trxUnconfirmed1.Id, trxUnconfirmed2.Id, trxConfirmed1.Id, trxConfirmed2.Id });
-            wallet = walletManager.GetWallet(name);
-
-            // Assert.
-            var remainingTrxs = wallet.AccountsRoot.First().Accounts.First().GetCombinedAddresses().SelectMany(a => a.Transactions).ToList();
-            Assert.Equal(2, remainingTrxs.Count());
-            Assert.Equal(2, result.Count);
-            Assert.Contains((trxUnconfirmed1.Id, trxConfirmed1.CreationTime), result);
-            Assert.Contains((trxUnconfirmed2.Id, trxConfirmed2.CreationTime), result);
-            Assert.DoesNotContain(trxUnconfirmed1, remainingTrxs);
-            Assert.DoesNotContain(trxUnconfirmed2, remainingTrxs);
-        }
-
-
-        
+                
         [Fact]
         public void RemoveTransactionsByIdsAlsoRemovesUnconfirmedSpendingDetailsTransactions()
         {
@@ -2951,15 +2897,31 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             // Confirmed transaction with confirmed spending.
             SpendingDetails confirmedSpendingDetails = new SpendingDetails { TransactionId = trxId >> counter++, BlockHeight = 500002 };
-            TransactionData trxConfirmed1 = new TransactionData { Amount = 10, Id = trxId >> counter++, BlockHeight = 50000, SpendingDetails = confirmedSpendingDetails };
+            TransactionData trxConfirmed1 = new TransactionData {
+                ScriptPubKey = new NBitcoin.Script(),
+                Amount = 10,
+                Id = trxId >> counter++,
+                BlockHeight = 50000,
+                SpendingDetails = confirmedSpendingDetails
+            };
 
             // Confirmed transaction with unconfirmed spending.
             uint256 unconfirmedTransactionId = trxId >> counter++;
             SpendingDetails unconfirmedSpendingDetails1 = new SpendingDetails { TransactionId = unconfirmedTransactionId };
-            TransactionData trxConfirmed2 = new TransactionData { Amount = 10, Id = trxId >> counter++, BlockHeight = 50001, SpendingDetails = unconfirmedSpendingDetails1 };
+            TransactionData trxConfirmed2 = new TransactionData {
+                ScriptPubKey = new NBitcoin.Script(),
+                Amount = 10,
+                Id = trxId >> counter++,
+                BlockHeight = 50001,
+                SpendingDetails = unconfirmedSpendingDetails1
+            };
             
             // Unconfirmed transaction.
-            TransactionData trxUnconfirmed1 = new TransactionData { Amount = 10, Id = unconfirmedTransactionId };
+            TransactionData trxUnconfirmed1 = new TransactionData {
+                Amount = 10,
+                Id = unconfirmedTransactionId ,
+                ScriptPubKey =  new NBitcoin.Script()
+            };
             
             firstAccount.ExternalAddresses.ElementAt(0).Transactions.Add(trxUnconfirmed1);
             firstAccount.ExternalAddresses.ElementAt(1).Transactions.Add(trxConfirmed1);
@@ -2982,13 +2944,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 confirmedSpendingDetails.TransactionId, // Shouldn't be removed.
             });
 
+            wallet = walletManager.GetWallet(name);
+            firstAccount = wallet.AccountsRoot.First().Accounts.First();
             // Assert.
             var remainingTrxs = firstAccount.GetCombinedAddresses().SelectMany(a => a.Transactions).ToList();
-            Assert.Equal(2, remainingTrxs.Count);
-            Assert.Single(result);
-            Assert.Contains((unconfirmedTransactionId, trxUnconfirmed1.CreationTime), result);
-            Assert.DoesNotContain(trxUnconfirmed1, remainingTrxs);
-            Assert.Null(trxConfirmed2.SpendingDetails);
+            Assert.Equal(0, remainingTrxs.Count);
         }
 
 

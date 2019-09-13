@@ -29,15 +29,17 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 BRhodiumReceiver.NotInIBD();
 
                 // get a key from the wallet
-                var mnemonic1 = BRhodiumSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                var mnemonic2 = BRhodiumReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic1 = BRhodiumSender.FullNode.WalletManager().CreateWallet("sender-pass", "sender");
+                var mnemonic2 = BRhodiumReceiver.FullNode.WalletManager().CreateWallet("receiver-pass", "receiver");
                 Assert.Equal(12, mnemonic1.Words.Length);
                 Assert.Equal(12, mnemonic2.Words.Length);
-                var addr = BRhodiumSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var wallet = BRhodiumSender.FullNode.WalletManager().GetWalletByName("mywallet");
-                var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
+                var addr = BRhodiumSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("sender", "account 0"));
+                var wallet = BRhodiumSender.FullNode.WalletManager().GetWalletByName("sender");
+
+                var key = wallet.GetExtendedPrivateKeyForAddress("sender-pass", addr).PrivateKey;
                 BRhodiumSender.SetDummyMinerSecret(new BitcoinSecret(key, BRhodiumSender.FullNode.Network));
+                
                 var maturity = (int)BRhodiumSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
 
                 BRhodiumSender.GenerateBRhodiumWithMiner(maturity + 5);
@@ -47,7 +49,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
 
                 // the mining should add coins to the wallet
-                var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var total = BRhodiumSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("sender").Sum(s => s.Transaction.Amount);
                 Assert.Equal(105002500000000, total);
 
                 // sync both nodes
@@ -55,20 +57,20 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(BRhodiumReceiver, BRhodiumSender));
 
                 // send coins to the receiver
-                var sendto = BRhodiumReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var sendto = BRhodiumReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("receiver", "account 0"));
                 var trx = BRhodiumSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(
-                    new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 1));
+                    new WalletAccountReference("sender", "account 0"), "sender-pass", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 1));
 
                 // broadcast to the other node
                 BRhodiumSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(trx.ToHex()));
 
                 // wait for the trx to arrive
                 TestHelper.WaitLoop(() => BRhodiumReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                TestHelper.WaitLoop(() => BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
+                TestHelper.WaitLoop(() => BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("receiver").Any());
 
-                var receivetotal = BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var receivetotal = BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("receiver").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * 100, receivetotal);
-                Assert.Null(BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                Assert.Null(BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("receiver").First().Transaction.BlockHeight);
 
                 // generate two new blocks do the trx is confirmed
                 BRhodiumSender.GenerateBRhodium(1, new List<Transaction>(new[] { trx.Clone() }));
@@ -78,7 +80,7 @@ namespace BRhodium.Node.IntegrationTests.Wallet
                 TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(BRhodiumSender));
                 TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(BRhodiumReceiver, BRhodiumSender));
 
-                TestHelper.WaitLoop(() => maturity + 6 == BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                TestHelper.WaitLoop(() => maturity + 6 == BRhodiumReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("receiver").First().Transaction.BlockHeight);
             }
         }
 

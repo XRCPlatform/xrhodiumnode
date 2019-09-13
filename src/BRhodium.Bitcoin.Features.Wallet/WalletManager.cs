@@ -1908,22 +1908,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         for (int i = 0; i < address.Transactions.Count; i++)
                         {
                             TransactionData transaction = address.Transactions.ElementAt(i);
-
-                            // Remove the transaction from the list of transactions affecting an address.
-                            // Only transactions that haven't been confirmed in a block can be removed.
-                            if (!transaction.IsConfirmed() && idsToRemove.Contains(transaction.Id))
+  
+                            if (idsToRemove.Contains(transaction.Id))
                             {
-                                result.Add((transaction.Id, transaction.CreationTime));
-                                address.Transactions = address.Transactions.Except(new[] { transaction }).ToList();
-                                i--;
+                                result.Add((transaction.Id, transaction.CreationTime));                               
                                 this.repository.RemoveTransactionFromHdAddress(address, transaction.Id);
                             }
 
                             // Remove the spending transaction object containing this transaction id.
-                            if (transaction.SpendingDetails != null && !transaction.SpendingDetails.IsSpentConfirmed() && idsToRemove.Contains(transaction.SpendingDetails.TransactionId))
+                            if (transaction.SpendingDetails != null && idsToRemove.Contains(transaction.SpendingDetails.TransactionId))
                             {
                                 result.Add((transaction.SpendingDetails.TransactionId, transaction.SpendingDetails.CreationTime));
-                                address.Transactions.ElementAt(i).SpendingDetails = null;
                                 this.repository.RemoveTransactionSpendingDetailsFromHdAddress(address, transaction.SpendingDetails.TransactionId); 
                             }
                         }
