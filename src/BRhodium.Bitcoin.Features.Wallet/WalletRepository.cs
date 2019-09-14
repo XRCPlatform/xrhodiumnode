@@ -72,7 +72,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             lock (this.lockObject)
             {
-                FlushWalletCache(wallet.Id);
+                //FlushWalletCache(wallet.Id);
 
                 //Task task = Task.Run(() =>
                 // {
@@ -98,7 +98,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 insertCommand.Parameters.AddWithValue("$LastBlockSyncedHash", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHash);
                                 insertCommand.Parameters.AddWithValue("$LastBlockSyncedHeight", wallet.AccountsRoot.FirstOrDefault()?.LastBlockSyncedHeight);
                                 insertCommand.Parameters.AddWithValue("$CoinType", (int)wallet.Network.Consensus.CoinType);
-                                insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeSeconds());
+                                insertCommand.Parameters.AddWithValue("$LastUpdated", DateTimeOffset.Now.ToUnixTimeMilliseconds());//critical for last updated sorting resolution
 
                                 byte[] bytes = GetBlockLocatorBytes(wallet.BlockLocator);
                                 SQLiteParameter prm = new SQLiteParameter("$Blocks", DbType.Binary, bytes.Length, ParameterDirection.Input, false, 0, 0, null, DataRowVersion.Current, bytes);
@@ -949,7 +949,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
             }
 
-            FlushWalletCache(walletId);
+            //FlushWalletCache(walletId);
             //rebuild cache async
             //Task task = Task.Run(() =>
             //    {

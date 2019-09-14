@@ -1003,7 +1003,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             var result = walletManager.LastBlockHeight();
 
-            Assert.Equal(15, result);
+            Assert.Equal(56, result);
         }
 
 
