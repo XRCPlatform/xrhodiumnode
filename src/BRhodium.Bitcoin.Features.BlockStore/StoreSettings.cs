@@ -30,7 +30,17 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             }
         }
 
+        /// <summary>Command to notify Zero MQ subscribers when best-block changes</summary>
+        public List<ZeroMqTopicAddress> BlockNotifyZeroMq
+        {
+            get
+            {
+                return _blockNotifyZeroMq;
+            }
+        }
+
         private List<string> _blockNotify = new List<string>();
+        private List<ZeroMqTopicAddress> _blockNotifyZeroMq = new List<ZeroMqTopicAddress>();
 
         private Action<StoreSettings> callback = null;
 
@@ -62,10 +72,15 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.TxIndex = config.GetOrDefault<bool>("txindex", true);
             this.ReIndex = config.GetOrDefault<bool>("reindex", false);
             var blockNotify = config.GetAll("blocknotify");
+            var blockNotifyZeroMQ = config.GetAll("zmqBlocknotify");
 
             foreach (var blockNotifyCmd in blockNotify)
             {
                 this._blockNotify.Add(blockNotifyCmd);
+            }
+            foreach (var blockNotifyCmd in blockNotifyZeroMQ)
+            {
+                this._blockNotifyZeroMq.Add(new ZeroMqTopicAddress(blockNotifyCmd));
             }
 
             this.callback?.Invoke(this);
@@ -103,6 +118,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             builder.AppendLine($"#prune=0");
             builder.AppendLine($"#When a block is available, trigger a program. (%s is the block hash");
             builder.AppendLine($"#blocknotify=prog %s");
+            builder.AppendLine($"#zmqBlocknotify=tcp://127.0.0.1:15101|hashblock|s%");
         }
     }
 }
