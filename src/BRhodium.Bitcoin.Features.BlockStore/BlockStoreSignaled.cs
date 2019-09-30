@@ -10,6 +10,8 @@ using BRhodium.Node.P2P.Peer;
 using BRhodium.Node.Signals;
 using BRhodium.Node.Utilities;
 using System.Timers;
+using NetMQ.Sockets;
+using NetMQ;
 
 namespace BRhodium.Bitcoin.Features.BlockStore
 {
@@ -229,10 +231,25 @@ namespace BRhodium.Bitcoin.Features.BlockStore
             this.logger.LogTrace("(-)");
         }
 
+        private void PublishZeroMqMessage(String address, String topic, String message) {
+
+            using (var publisher = new PublisherSocket())
+            {
+                publisher.Bind(address);
+                publisher.SendMoreFrame("topic").SendFrame(message);
+                this.logger.LogInformation($"Published blocknotify over ZeroMQ  [{address}/{topic}/{message}]");
+            }
+        }
+
         private void BlockNotify(Block block)
         {
             try
             {
+                foreach (var zeroMqTopic in this.storeSettings.BlockNotifyZeroMq)
+                {
+                    PublishZeroMqMessage(zeroMqTopic.Address, zeroMqTopic.Topic, zeroMqTopic.RenderMessage(block.Header.GetHash().ToString()));
+                }
+
                 foreach (var blockNotify in this.storeSettings.BlockNotify)
                 {
                     var command = blockNotify.Replace("%s", block.Header.GetHash().ToString());
@@ -241,6 +258,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                     this.logger.LogInformation($"[{result.stdout}]");
                     this.logger.LogInformation($"[{result.stderr}]");
                 }
+
             }
             catch (Exception e)
             {
