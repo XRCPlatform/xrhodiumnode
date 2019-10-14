@@ -705,10 +705,17 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     insertCommand.ExecuteNonQuery();
                 }
 
-                sql = "select last_insert_rowid();";
+                sql = "SELECT id  FROM Address WHERE Address = $Address;";
                 using (var selectCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
                 {
-                    address.Id = int.Parse(selectCommand.ExecuteScalar().ToString());
+                    selectCommand.Parameters.AddWithValue("$Address", address.Address);
+                    using (var reader = selectCommand.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            address.Id = reader.GetInt64(0);
+                        }
+                    }
                 }
             }
 
@@ -840,7 +847,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     insertCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                     insertCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
                     insertCommand.Parameters.AddWithValue("$CreationTime", trx.CreationTime.ToUnixTimeSeconds());
-                    insertCommand.Parameters.AddWithValue("$MerkleProof", (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
+                    insertCommand.Parameters.AddWithValue("$MerkleProof", (trx.SpendingDetails != null) ? null : (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
                     insertCommand.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(trx.ScriptPubKey));
                     insertCommand.Parameters.AddWithValue("$Hex", trx.Hex);
                     insertCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
@@ -855,6 +862,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 //{
                 //    trx.DbId = int.Parse(selectCommand.ExecuteScalar().ToString());
                 //}
+                // also integer looks too small for transactions model use long 
 
                 trx.DbId = GetTransactionDbId(walletId, trx, address.Id, dbTransaction, dbConnection);
             }
@@ -871,6 +879,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     updateTrxCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
                     updateTrxCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
                     updateTrxCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
+                    updateTrxCommand.Parameters.AddWithValue("$MerkleProof", (trx.SpendingDetails != null) ? null : (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
                     updateTrxCommand.ExecuteNonQuery();
                 }
             }

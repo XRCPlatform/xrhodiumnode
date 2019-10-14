@@ -196,7 +196,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 lastUsedAddressIndex = lastAddy.Index;
             }
             int addressesCount = isChange ? hdAccount.InternalAddresses.Count() : hdAccount.ExternalAddresses.Count();
-            int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
+            int emptyAddressesCount = addressesCount - lastUsedAddressIndex;
             int accountsToAdd = UnusedAddressesBuffer - emptyAddressesCount;
             var newAddresses = hdAccount.CreateAddresses(this.network, accountsToAdd, isChange);
 
