@@ -144,10 +144,11 @@ namespace BRhodium.Node.Connection
 
         public bool IsActive { get; private set; }
 
+#if !NO_UPNP
         private NatDiscoverer nat;
         private CancellationTokenSource cts;
         private NatDevice device;
-
+#endif
         public ConnectionManager(
 
             IDateTimeProvider dateTimeProvider,
@@ -213,7 +214,7 @@ namespace BRhodium.Node.Connection
         {
 
             var logs = new StringBuilder();
-
+#if !NO_UPNP
             this.logger.LogInformation("Looking for UPnP devices");
             if (this.nat == null) this.nat = new NatDiscoverer();
             if (this.cts == null) this.cts = new CancellationTokenSource(5000);
@@ -241,6 +242,7 @@ namespace BRhodium.Node.Connection
                     this.logger.LogWarning("No NAT devoices found");
                 }
             }
+#endif
             logs.AppendLine("Node listening on:");
 
             foreach (NodeServerEndpoint listen in this.ConnectionSettings.Listen)
@@ -389,7 +391,7 @@ namespace BRhodium.Node.Connection
             this.IsActive = false;
 
             this.logger.LogTrace("(-)");
-
+#if !NO_UPNP
             // Delete any entries made
             if (this.device != null)
             {
@@ -414,6 +416,7 @@ namespace BRhodium.Node.Connection
                 }
 
             }
+#endif
         }
 
         /// <inheritdoc />
