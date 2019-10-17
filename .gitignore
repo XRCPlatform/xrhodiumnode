@@ -245,3 +245,5 @@ ModelManifest.xml
 .fake/
 /Documentation.Rpc/Help/*
 *.pubxml
+
+.DS_STORE
