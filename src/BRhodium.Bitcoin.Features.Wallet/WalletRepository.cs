@@ -47,6 +47,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             EnsureSQLiteDbExists();
         }
 
+        public void ResetGlobalRepositoryCache()
+        {
+            walletCache = new ConcurrentDictionary<string, Wallet>();
+        }
+
         private void EnsureSQLiteDbExists()
         {
             string filePath = Path.Combine(this.walletPath, WALLET_DB_FILE);
@@ -431,7 +436,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             var data = new List<TransactionData>();
             var sql = "SELECT Id, TxIndex, Hash, Amount, BlockHeight, BlockHash, CreationTime, MerkleProof, ScriptPubKey, Hex, IsPropagated,  AddressId  " +
-                " FROM [Transaction] WHERE WalletId = $WalletId ORDER BY BlockHeight, AddressId ASC ";
+                " FROM [Transaction] WHERE WalletId = $WalletId ORDER BY AddressId ASC, CreationTime ASC";
 
             using (var selectTrnCommand = new SQLiteCommand(sql, dbConnection))
             {
@@ -868,7 +873,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             else
             {
-                sql = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent  WHERE WalletId = $WalletId AND Hash = $Hash AND AddressId = $AddressId";
+                sql = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent, MerkleProof = $MerkleProof WHERE WalletId = $WalletId AND Hash = $Hash AND AddressId = $AddressId";
 
                 using (var updateTrxCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
                 {

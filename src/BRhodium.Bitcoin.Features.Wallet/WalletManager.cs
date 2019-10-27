@@ -176,12 +176,29 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 count++;
                 EnsureAddress(wallet, false);
                 EnsureAddress(wallet, true);
-                this.repository.SaveWallet(wallet.Name, wallet, true);
-                var walletResult = this.repository.GetWalletByName(wallet.Name);
+                wallet.AccountsRoot.FirstOrDefault().LastBlockSyncedHash = new uint256("baff5bfd9dc43fb672d003ec20fd21428f9282ca46bfa1730d73e1f2c75f5fdd");
+                wallet.AccountsRoot.FirstOrDefault().LastBlockSyncedHeight = 0;
+                wallet.BlockLocator = null;
+                this.repository.SaveWallet(wallet.Name, wallet, false);
+                //var walletResult = this.repository.GetWalletByName(wallet.Name);
                 sw.Stop();                
                 this.logger.LogInformation($"Migrated wallet to db: {wallet.Name} #{count} / of {length} duration {sw.ElapsedMilliseconds}ms {Math.Round((double)((double)count / (double)length) * 100,2) }% complete");
                 sw.Reset();
             }
+            StoreStrippedWallets();
+        }
+
+        private void StoreStrippedWallets()
+        {
+            this.repository.ResetGlobalRepositoryCache();
+
+            var names = this.GetWalletNames();
+            Parallel.ForEach(names, walletName =>
+            {
+                var fileStorage = new FileStorage<Wallet>(this.FileStorage.FolderPath+"\\block0");
+                var wallet = this.GetWalletByName(walletName);
+                fileStorage.SaveToFile(wallet, $"{wallet.Name}.{GetWalletFileExtension()}");
+            });
         }
 
         private void EnsureAddress(Wallet wallet, bool isChange) {
