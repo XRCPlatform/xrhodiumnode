@@ -148,11 +148,36 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                             command.ExecuteNonQuery();
                         }
 
+                        sql = "CREATE INDEX \"ix_Transaction_Combined\" ON \"Transaction\" (\"WalletId\",\"AddressId\",\"TxIndex\");";
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+
                         sql = "CREATE INDEX \"ix_SpendingDetails_WalletId\" ON \"SpendingDetails\" (\"WalletId\");";
                         using (var command = new SQLiteCommand(sql, dbConnection, transaction))
                         {
                             command.ExecuteNonQuery();
                         }
+
+                        sql = "CREATE INDEX \"ix_SpendingDetails_WalletIdAndTxHash\" ON \"SpendingDetails\" (\"WalletId\",\"TransactionHash\");";
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+
+                        sql = "CREATE INDEX \"ix_PaymentDetails_WalletId\" ON \"PaymentDetails\" (\"WalletId\");";
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+
+                        sql = "CREATE INDEX \"ix_TransactionSpendingLinks_WalletId\" ON \"TransactionSpendingLinks\" (\"WalletId\");";
+                        using (var command = new SQLiteCommand(sql, dbConnection, transaction))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+                        
 
                         transaction.Commit();
                     }

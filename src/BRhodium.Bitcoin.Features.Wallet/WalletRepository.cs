@@ -873,7 +873,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             else
             {
-                sql = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent, MerkleProof = $MerkleProof WHERE WalletId = $WalletId AND Hash = $Hash AND AddressId = $AddressId";
+                sql = "UPDATE [Transaction]  set BlockHeight = $BlockHeight , BlockHash = $BlockHash, IsPropagated = $IsPropagated, IsSpent= $IsSpent, MerkleProof = $MerkleProof, CreationTime = $CreationTime WHERE WalletId = $WalletId AND Hash = $Hash AND AddressId = $AddressId";
 
                 using (var updateTrxCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
                 {
@@ -882,6 +882,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     updateTrxCommand.Parameters.AddWithValue("$Hash", trx.Id);
                     updateTrxCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                     updateTrxCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
+                    updateTrxCommand.Parameters.AddWithValue("$CreationTime", trx.CreationTime.ToUnixTimeSeconds());
                     updateTrxCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
                     updateTrxCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
                     updateTrxCommand.Parameters.AddWithValue("$MerkleProof", (trx.SpendingDetails != null) ? null : (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
@@ -1004,13 +1005,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         private long GetTransactionDbId(long walletId, TransactionData trx, long AddressId, SQLiteTransaction dbTransaction, SQLiteConnection dbConnection)
         {
-            var sql = "SELECT id  FROM [Transaction] WHERE Hash = $Hash AND WalletId = $WalletId AND AddressId = $AddressId";
+            var sql = "SELECT id  FROM [Transaction] WHERE Hash = $Hash AND WalletId = $WalletId AND AddressId = $AddressId AND TxIndex = $TxIndex ";
 
             using (var selectCmd = new SQLiteCommand(sql, dbConnection, dbTransaction))
             {
                 selectCmd.Parameters.AddWithValue("$Hash", trx.Id);
                 selectCmd.Parameters.AddWithValue("$WalletId", walletId);
                 selectCmd.Parameters.AddWithValue("$AddressId", AddressId);
+                selectCmd.Parameters.AddWithValue("$TxIndex", trx.Index);
+
                 using (var reader = selectCmd.ExecuteReader())
                 {
                     while (reader.Read())
