@@ -246,4 +246,6 @@ ModelManifest.xml
 /Documentation.Rpc/Help/*
 *.pubxml
 
+.DS_STORE
+
 *.sqbpro

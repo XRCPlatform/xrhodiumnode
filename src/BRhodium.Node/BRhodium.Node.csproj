@@ -41,6 +41,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
 
+    <PackageReference Include="Open.Nat" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +58,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1705;IDE0008;</NoWarn>
+    <DefineConstants>TRACE;NETCORE;DEBUG;NETSTANDARD;NETSTANDARD2_0;NO_UPNP</DefineConstants>
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
