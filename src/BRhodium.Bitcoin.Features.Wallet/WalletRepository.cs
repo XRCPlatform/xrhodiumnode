@@ -941,13 +941,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
                 else
                 {
-                    sql = "UPDATE SpendingDetails  set BlockHeight = $BlockHeight WHERE WalletId = $WalletId AND TransactionHash = $TransactionHash ";
+                    sql = "UPDATE SpendingDetails  set BlockHeight = $BlockHeight, CreationTime=$CreationTime WHERE WalletId = $WalletId AND TransactionHash = $TransactionHash ";
                     using (var updateTrxCommand = new SQLiteCommand(sql, dbConnection, dbTransaction))
                     {
                         updateTrxCommand.Parameters.AddWithValue("$WalletId", walletId);
                         updateTrxCommand.Parameters.AddWithValue("$TransactionHash", spendTrx.TransactionId);
                         updateTrxCommand.Parameters.AddWithValue("$BlockHeight", spendTrx.BlockHeight);
-
+                        updateTrxCommand.Parameters.AddWithValue("$CreationTime", spendTrx.CreationTime.ToUnixTimeSeconds());
                         updateTrxCommand.ExecuteNonQuery();
                     }
                 }

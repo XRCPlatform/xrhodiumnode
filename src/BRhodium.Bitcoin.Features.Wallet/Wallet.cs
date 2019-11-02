@@ -1118,6 +1118,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public SpendingDetails SpendingDetails { get; set; }
         [JsonIgnore]
         public bool IsFinal { get; internal set; }
+        [JsonIgnore]
+        public int Position { get; internal set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.

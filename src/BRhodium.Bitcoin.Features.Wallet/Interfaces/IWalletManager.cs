@@ -350,6 +350,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <returns>Response transaction model</returns>
         TransactionModel GetTransactionDetails(string walletName, Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
         Wallet GetWalletByAddress(string address);
+        void SortTransactionsInWallet(Wallet wallet);
+
         /// <summary>
         /// Wallet settings for the wallet interface.
         /// </summary>

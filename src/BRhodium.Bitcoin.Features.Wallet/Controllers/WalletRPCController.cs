@@ -1311,6 +1311,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     var fileStorage = new FileStorage<Wallet>(destination);
                     var wallet = this.walletManager.GetWalletByName(walletName);
+                    this.walletManager.SortTransactionsInWallet(wallet);
                     fileStorage.SaveToFile(wallet, $"{wallet.Name}.{this.walletManager.GetWalletFileExtension()}.bak");
                 });
                 
