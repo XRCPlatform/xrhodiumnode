@@ -360,7 +360,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 foreach (var account in accounts)
                 {
-                    var result = account.GetSpendableAmount();
+                    var result = account.GetSpendableAmount(this.chain);
 
                     List<Money> balances = new List<Money>();
                     balances.Add(totalBalance);
@@ -1515,7 +1515,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     account
                 );
 
-                var confirmedAmount = hdAccount.GetSpendableAmount().ConfirmedAmount.ToUnit(MoneyUnit.XRC);
+                var confirmedAmount = hdAccount.GetSpendableAmount(this.chain).ConfirmedAmount.ToUnit(MoneyUnit.XRC);
 
                 return this.Json(
                     ResultHelper.BuildResultResponse(confirmedAmount)
@@ -2245,7 +2245,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var chainRepository = this.FullNode.NodeService<ConcurrentChain>();
                 var wallet = this.walletManager.GetWalletByName(walletName);
 
-                var unspendTx = wallet.GetAllSpendableTransactions((CoinType)this.Network.Consensus.CoinType, chainRepository.Height, minconf);
+                var unspendTx = wallet.GetAllSpendableTransactions((CoinType)this.Network.Consensus.CoinType, this.Network, chainRepository.Height, minconf);
 
                 if (unspendTx != null)
                 {
@@ -2495,7 +2495,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     );
 
                     result.Add(walletName,
-                            hdAccount.GetSpendableAmount().ConfirmedAmount.ToUnit(MoneyUnit.XRC));
+                            hdAccount.GetSpendableAmount(this.chain).ConfirmedAmount.ToUnit(MoneyUnit.XRC));
                 }
 
                 return this.Json(

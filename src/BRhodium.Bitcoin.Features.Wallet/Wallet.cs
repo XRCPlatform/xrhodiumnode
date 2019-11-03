@@ -9,6 +9,7 @@ using BRhodium.Node.Utilities.JsonConverters;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
 using NBitcoin.DataEncoders;
+using BRhodium.Bitcoin.Features.Consensus;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -275,15 +276,16 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// Lists all spendable transactions from all accounts in the wallet.
         /// </summary>
         /// <param name="coinType">Type of the coin to get transactions from.</param>
+        /// <param name="network">Network where transaction is broadcasted and mined.</param>
         /// <param name="currentChainHeight">Height of the current chain, used in calculating the number of confirmations.</param>
         /// <param name="confirmations">The number of confirmations required to consider a transaction spendable.</param>
         /// <returns>A collection of spendable outputs.</returns>
-        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, int currentChainHeight, int confirmations = 0)
+        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, Network network, int currentChainHeight, int confirmations = 0)
         {
             IEnumerable<HdAccount> accounts = this.GetAccountsByCoinType(coinType);
 
             return accounts
-                .SelectMany(x => x.GetSpendableTransactions(currentChainHeight, confirmations));
+                .SelectMany(x => x.GetSpendableTransactions(network, currentChainHeight, confirmations));
         }
     }
 
@@ -643,13 +645,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Get the accounts total spendable value for both confirmed and unconfirmed UTXO.
         /// </summary>
-        public (Money ConfirmedAmount, Money UnConfirmedAmount) GetSpendableAmount()
+        public (Money ConfirmedAmount, Money UnConfirmedAmount) GetSpendableAmount(ConcurrentChain chain)
         {
             var allTransactions = this.ExternalAddresses.SelectMany(a => a.Transactions)
                 .Concat(this.InternalAddresses.SelectMany(i => i.Transactions)).ToList();
-
-            var confirmed = allTransactions.Sum(t => t.SpendableAmount(true));
-            var total = allTransactions.Sum(t => t.SpendableAmount(false));
+            
+            var confirmed = allTransactions.Sum(t => t.SpendableAmount(chain, true));
+            var total = allTransactions.Sum(t => t.SpendableAmount(chain, false));
 
             return (confirmed, total - confirmed);
         }
@@ -852,8 +854,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="currentChainHeight">The current height of the chain. Used for calculating the number of confirmations a transaction has.</param>
         /// <param name="confirmations">The minimum number of confirmations required for transactions to be considered.</param>
         /// <returns>A collection of spendable outputs that belong to the given account.</returns>
-        public IEnumerable<UnspentOutputReference> GetSpendableTransactions(int currentChainHeight, int confirmations = 0)
+        public IEnumerable<UnspentOutputReference> GetSpendableTransactions(Network network, int currentChainHeight, int confirmations = 0)
         {
+            var maturity = (int)network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
             // This will take all the spendable coins that belong to the account and keep the reference to the HDAddress and HDAccount.
             // This is useful so later the private key can be calculated just from a given UTXO.
             foreach (var address in this.GetCombinedAddresses())
@@ -867,8 +870,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     int? confirmationCount = 0;
                     if (transactionData.BlockHeight != null)
                         confirmationCount = countFrom >= transactionData.BlockHeight ? countFrom - transactionData.BlockHeight : 0;
-
-                    if (confirmationCount >= confirmations)
+                    if (transactionData.IsCoinbase && confirmationCount >= maturity)
                     {
                         yield return new UnspentOutputReference
                         {
@@ -877,6 +879,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
                             Transaction = transactionData
                         };
                     }
+                    else
+                    {
+                        if (confirmationCount >= confirmations)
+                        {
+                            yield return new UnspentOutputReference
+                            {
+                                Account = this,
+                                Address = address,
+                                Transaction = transactionData
+                            };
+                        }
+                    }                   
                 }
             }
         }
@@ -1000,12 +1014,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// Get the address total spendable value for both confirmed and unconfirmed UTXO.
         /// </summary>
-        public (Money confirmedAmount, Money unConfirmedAmount) GetSpendableAmount()
+        public (Money confirmedAmount, Money unConfirmedAmount) GetSpendableAmount(ConcurrentChain chain)
         {
             List<TransactionData> allTransactions = this.Transactions.ToList();
 
-            long confirmed = allTransactions.Sum(t => t.SpendableAmount(true));
-            long total = allTransactions.Sum(t => t.SpendableAmount(false));
+            long confirmed = allTransactions.Sum(t => t.SpendableAmount(chain, true));
+            long total = allTransactions.Sum(t => t.SpendableAmount(chain, false));
 
             return (confirmed, total - confirmed);
         }
@@ -1017,6 +1031,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
     [Serializable]
     public class TransactionData : ISerializable
     {
+        private bool isCoinbase = false;
+
         public TransactionData()
         {
         }
@@ -1189,12 +1205,22 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public SpendingDetails SpendingDetails { get; set; }
 
         /// <summary>
+        /// Reflects if the transaction is a coinbase transaction.
+        /// </summary>
+        /// <returns></returns>
+        [JsonProperty(PropertyName = "isCoinbase", NullValueHandling = NullValueHandling.Ignore)]
+
+        public bool IsCoinbase { get => this.isCoinbase; set => this.isCoinbase = value; }
+
+        /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
         public bool IsConfirmed()
         {
             return this.BlockHeight != null;
         }
+
+    
 
         /// <summary>
         /// Indicates an output is spendable.
@@ -1204,16 +1230,29 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return this.SpendingDetails == null;
         }
 
-        public Money SpendableAmount(bool confirmedOnly)
+        public Money SpendableAmount(ConcurrentChain chain, bool confirmedOnly)
         {
             // This method only returns a UTXO that has no spending output.
             // If a spending output exists (even if its not confirmed) this will return as zero balance.
             if (this.IsSpendable())
             {
-                // If the 'confirmedOnly' flag is set check that the UTXO is confirmed.
-                if (confirmedOnly && !this.IsConfirmed())
+                // If the 'confirmedOnly' flag is set check that the UTXO is confirmed. Mining reward transactions are subject to consensus coinbase maturity settings
+                if (confirmedOnly)
                 {
-                    return Money.Zero;
+                    if (this.IsCoinbase)
+                    {
+                        if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity > (this.BlockHeight - chain.Height))
+                        {
+                            return Money.Zero;
+                        }
+                    }
+                    else
+                    {
+                        if (!this.IsConfirmed())
+                        {
+                            return Money.Zero;
+                        }
+                    }
                 }
 
                 return this.Amount;

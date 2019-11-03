@@ -660,7 +660,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 foreach (var account in accounts)
                 {
-                    (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount();
+                    (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount(this.chain);
 
                     balances.Add(new AccountBalance
                     {
@@ -701,7 +701,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                     if (hdAddress == null) continue;
 
-                    (Money amountConfirmed, Money amountUnconfirmed) result = hdAddress.GetSpendableAmount();
+                    (Money amountConfirmed, Money amountUnconfirmed) result = hdAddress.GetSpendableAmount(this.chain);
 
                     balance.AmountConfirmed = result.amountConfirmed;
                     balance.AmountUnconfirmed = result.amountUnconfirmed;
@@ -817,7 +817,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             UnspentOutputReference[] res = null;
             lock (this.lockObject)
             {
-                res = wallet.GetAllSpendableTransactions(this.coinType, this.chain.Tip.Height, confirmations).ToArray();
+                res = wallet.GetAllSpendableTransactions(this.coinType, this.network, this.chain.Tip.Height, confirmations).ToArray();
             }
 
             this.logger.LogTrace("(-):*.Count={0}", res.Count());
@@ -843,7 +843,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         $"Account '{walletAccountReference.AccountName}' in wallet '{walletAccountReference.WalletName}' not found.");
                 }
 
-                res = account.GetSpendableTransactions(this.chain.Tip.Height, confirmations).ToArray();
+                res = account.GetSpendableTransactions(this.network, this.chain.Tip.Height, confirmations).ToArray();
             }
 
             this.logger.LogTrace("(-):*.Count={0}", res.Count());
@@ -949,7 +949,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(transaction), hash, nameof(blockHeight), blockHeight);
 
             bool foundReceivingTrx = false, foundSendingTrx = false;
-
             lock (this.lockObject)
             {
                 // Check the outputs.
@@ -1216,6 +1215,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Script script = utxo.ScriptPubKey;
             this.keysLookup.TryGetValue(script, out HdAddress address);
             ICollection<TransactionData> addressTransactions = address.Transactions;
+            bool isCoinbase = false;
+            if (transaction.Inputs.FirstOrDefault().PrevOut.Hash.Equals(new uint256()))
+            {
+                isCoinbase = true;
+            }
 
             // Check if a similar UTXO exists or not (same transaction ID and same index).
             // New UTXOs are added, existing ones are updated.
@@ -1235,7 +1239,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     Index = index,
                     ScriptPubKey = script,
                     Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null,
-                    IsPropagated = isPropagated
+                    IsPropagated = isPropagated,
+                    IsCoinbase = isCoinbase
                 };
 
                 // Add the Merkle proof to the (non-spending) transaction.
