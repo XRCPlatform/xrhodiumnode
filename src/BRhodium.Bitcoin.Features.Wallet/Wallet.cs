@@ -1241,7 +1241,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 {
                     if (this.IsCoinbase)
                     {
-                        if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity > (this.BlockHeight - chain.Height))
+                        if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity > (chain.Height - this.BlockHeight))
                         {
                             return Money.Zero;
                         }
