@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BRhodium.Bitcoin.Features.Consensus\BRhodium.Bitcoin.Features.Consensus.csproj" />
     <ProjectReference Include="..\BRhodium.Node\BRhodium.Node.csproj" />
   </ItemGroup>
 
