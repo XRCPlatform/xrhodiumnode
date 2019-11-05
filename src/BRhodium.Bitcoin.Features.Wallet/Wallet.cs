@@ -1258,7 +1258,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public Money ImmatureCoinbaseAmount(ConcurrentChain chain)
         {
-            if (this.IsCoinbase.HasValue && this.IsCoinbase.Value)
+            if (this.IsSpendable() && this.IsCoinbase.HasValue && this.IsCoinbase.Value)
             {
                 if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity < (chain.Height - this.BlockHeight))
                 {
