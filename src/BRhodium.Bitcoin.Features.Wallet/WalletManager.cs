@@ -660,13 +660,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 foreach (var account in accounts)
                 {
-                    (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount(this.chain);
+                    (Money amountConfirmed, Money amountUnconfirmed, Money amountImmature) result = account.GetSpendableAmount(this.chain);
 
                     balances.Add(new AccountBalance
                     {
                         Account = account,
                         AmountConfirmed = result.amountConfirmed,
-                        AmountUnconfirmed = result.amountUnconfirmed
+                        AmountUnconfirmed = result.amountUnconfirmed,
+                        AmountImmature = result.amountImmature
+
                     });
                 }
             }
@@ -701,10 +703,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                     if (hdAddress == null) continue;
 
-                    (Money amountConfirmed, Money amountUnconfirmed) result = hdAddress.GetSpendableAmount(this.chain);
+                    (Money amountConfirmed, Money amountUnconfirmed, Money amountImmature) result = hdAddress.GetSpendableAmount(this.chain);
 
                     balance.AmountConfirmed = result.amountConfirmed;
                     balance.AmountUnconfirmed = result.amountUnconfirmed;
+                    balance.AmountImmature = result.amountImmature;
                     balance.Transactions = hdAddress.Transactions;
 
                     break;
@@ -1276,7 +1279,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
 
                 if (isPropagated)
+                {
                     foundTransaction.IsPropagated = true;
+                }
+                
+                foundTransaction.IsCoinbase = isCoinbase;
             }
 
             this.TransactionFoundInternal(script);

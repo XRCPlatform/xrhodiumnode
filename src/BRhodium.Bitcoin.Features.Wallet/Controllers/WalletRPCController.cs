@@ -1599,6 +1599,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 result.WalletVersion = this.FullNode?.Version?.ToString() ?? string.Empty;
                 result.WalletName = walletName;
                 result.UnconfirmedBalance = new Money(accountBalances.Sum(a => a.AmountUnconfirmed.Satoshi)).ToUnit(MoneyUnit.XRC);
+                result.Immaturebalance = new Money(accountBalances.Sum(a => a.AmountImmature.Satoshi)).ToUnit(MoneyUnit.XRC);
                 result.PayTxFee = this.walletFeePolicy.GetPayTxFee().FeePerK.ToUnit(MoneyUnit.XRC);
 
                 var txCount = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
@@ -2270,7 +2271,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                             var outputModel = new TransactionVerboseModel
                             {
                                 Amount = txItem.Amount.ToDecimal(MoneyUnit.XRC),
-                                Address = txItem.ScriptPubKey.GetDestinationAddress(this.Network).ToString(),
+                                Address = txItem.ScriptPubKey.GetDestinationAddress(this.Network)?.ToString(),
                                 Category = "receive",
                                 VOut = (uint)itemUnspendTx.ToOutPoint().N,
                                 TxId = tx.GetHash().ToString(),

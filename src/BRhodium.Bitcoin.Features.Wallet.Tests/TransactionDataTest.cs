@@ -59,7 +59,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Amount = new Money(15)
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object,false);
+            var result = transaction.SpendableAmount(false);
 
             Assert.Equal(new Money(15), result);
         }
@@ -74,7 +74,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 BlockHeight = 15
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, false);
+            var result = transaction.SpendableAmount(false);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -89,7 +89,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 BlockHeight = 15
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, false);
+            var result = transaction.SpendableAmount(false);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -104,7 +104,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 BlockHeight = 15
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, true);
+            var result = transaction.SpendableAmount(true);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -118,7 +118,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Amount = new Money(15),
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, false);
+            var result = transaction.SpendableAmount(false);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -131,7 +131,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 SpendingDetails = null
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, true);
+            var result = transaction.SpendableAmount(true);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -146,7 +146,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 BlockHeight = 15
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, true);
+            var result = transaction.SpendableAmount(true);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -160,7 +160,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Amount = new Money(15),
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, true);
+            var result = transaction.SpendableAmount(true);
 
             Assert.Equal(Money.Zero, result);
         }
@@ -175,7 +175,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 BlockHeight = 15
             };
 
-            var result = transaction.SpendableAmount(new Mock<ConcurrentChain>().Object, true);
+            var result = transaction.SpendableAmount(true);
 
             Assert.Equal(new Money(15), result);
         }
