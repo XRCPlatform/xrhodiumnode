@@ -1258,14 +1258,14 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
         public Money ImmatureCoinbaseAmount(ConcurrentChain chain)
         {
-            if (this.IsSpendable() && this.IsCoinbase.HasValue && this.IsCoinbase.Value)
+            if (this.IsCoinbase.HasValue && this.IsCoinbase.Value)
             {
-                if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity < (chain.Height - this.BlockHeight))
+                if (chain.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity > (chain.Height - this.BlockHeight))
                 {
-                    return Money.Zero;
+                    return this.Amount;
                 }
             }
-            return this.Amount;
+            return Money.Zero;
         }
     }
 
