@@ -1218,11 +1218,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             Script script = utxo.ScriptPubKey;
             this.keysLookup.TryGetValue(script, out HdAddress address);
             ICollection<TransactionData> addressTransactions = address.Transactions;
-            bool isCoinbase = false;
-            if (transaction.Inputs.FirstOrDefault().PrevOut.Hash.Equals(new uint256()))
-            {
-                isCoinbase = true;
-            }
 
             // Check if a similar UTXO exists or not (same transaction ID and same index).
             // New UTXOs are added, existing ones are updated.
@@ -1243,7 +1238,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     ScriptPubKey = script,
                     Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null,
                     IsPropagated = isPropagated,
-                    IsCoinbase = isCoinbase
+                    IsCoinbase = transaction.IsCoinBase
                 };
 
                 // Add the Merkle proof to the (non-spending) transaction.
@@ -1283,7 +1278,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     foundTransaction.IsPropagated = true;
                 }
                 
-                foundTransaction.IsCoinbase = isCoinbase;
+                foundTransaction.IsCoinbase = transaction.IsCoinBase;
             }
 
             this.TransactionFoundInternal(script);
