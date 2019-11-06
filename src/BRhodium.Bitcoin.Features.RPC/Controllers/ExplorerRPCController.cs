@@ -128,29 +128,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var i = 0;
                         foreach (var itemOutput in currentTx.Outputs)
                         {
-                            var destinations = new List<TxDestination>() { itemOutput.ScriptPubKey.GetDestination(this.Network) };
-                            var address = string.Empty;
-                            if (destinations[0] == null)
-                            {
-                                destinations = itemOutput.ScriptPubKey.GetDestinationPublicKeys(this.Network)
-                                                                    .Select(p => p.Hash)
-                                                                    .ToList<TxDestination>();
-                            }
-                            if (destinations.Count == 1)
-                            {
-                                address = destinations[0].GetAddress(this.Network).ToString();
-                            }
-                            else
-                            {
-                                var multi = PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(this.Network, itemOutput.ScriptPubKey);
-                                if (multi != null)
-                                {
-                                    if (multi.PubKeys != null && (multi.PubKeys.Count() > 0))
-                                    {
-                                        address = multi.PubKeys[0].Hash.GetAddress(this.Network).ToString();
-                                    }
-                                }
-                            }
+                            var address = Transaction.GetPlainTxOutDestinationAddress(itemOutput.ScriptPubKey, this.Network);
 
                             var newAddress = new ExplorerAddressModel();
                             newAddress.Address = address;
@@ -344,29 +322,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                             {
                                 foreach (var itemOutput in currentTx.Outputs)
                                 {
-                                    var txOutAddress = string.Empty;
-                                    var destinations = new List<TxDestination>() { itemOutput.ScriptPubKey.GetDestination(this.Network) };
-                                    if (destinations[0] == null)
-                                    {
-                                        destinations = itemOutput.ScriptPubKey.GetDestinationPublicKeys(this.Network)
-                                                                            .Select(p => p.Hash)
-                                                                            .ToList<TxDestination>();
-                                    }
-                                    if (destinations.Count == 1)
-                                    {
-                                        address = destinations[0].GetAddress(this.Network).ToString();
-                                    }
-                                    else
-                                    {
-                                        var multi = PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(this.Network, itemOutput.ScriptPubKey);
-                                        if (multi != null)
-                                        {
-                                            if (multi.PubKeys != null && (multi.PubKeys.Count() > 0))
-                                            {
-                                                address = multi.PubKeys[0].Hash.GetAddress(this.Network).ToString();
-                                            }
-                                        }
-                                    }
+                                    var txOutAddress = Transaction.GetPlainTxOutDestinationAddress(itemOutput.ScriptPubKey, this.Network);
 
                                     if ((txOutAddress != null) && (txOutAddress.ToString() == address))
                                     {
