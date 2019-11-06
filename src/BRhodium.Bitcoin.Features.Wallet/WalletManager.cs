@@ -2074,27 +2074,27 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
         }
 
-        private void BuildTransactionIndex()
-        {
-            if (transactionPositionCache.Count < 1)
-            {
-                for (int i = 0; i < this.chain.Height; i++)
-                {
-                    var chainedHeader = this.chain.GetBlock(i);
-                    Block fullBlock = this.blockStoreCache.GetBlockAsync(chainedHeader.HashBlock).GetAwaiter().GetResult();
-                    if (fullBlock != null)
-                    {
-                        int ti = 0;
-                        foreach (var tx in fullBlock.Transactions)
-                        {
-                            ti++;
-                            uint256 t = tx.GetHash();
-                            transactionPositionCache.TryAdd(t, ti);
-                        }
-                    }
-                }
-                Console.WriteLine("Finished transaction index");
-            }
-        }
+        //private void BuildTransactionIndex()
+        //{
+        //    if (transactionPositionCache.Count < 1)
+        //    {
+        //        for (int i = 0; i < this.chain.Height; i++)
+        //        {
+        //            var chainedHeader = this.chain.GetBlock(i);
+        //            Block fullBlock = this.blockStoreCache.GetBlockAsync(chainedHeader.HashBlock).GetAwaiter().GetResult();
+        //            if (fullBlock != null)
+        //            {
+        //                int ti = 0;
+        //                foreach (var tx in fullBlock.Transactions)
+        //                {
+        //                    ti++;
+        //                    uint256 t = tx.GetHash();
+        //                    transactionPositionCache.TryAdd(t, ti);
+        //                }
+        //            }
+        //        }
+        //        Console.WriteLine("Finished transaction index");
+        //    }
+        //}
     }
 }
