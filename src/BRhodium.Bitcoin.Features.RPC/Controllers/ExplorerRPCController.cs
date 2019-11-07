@@ -128,11 +128,10 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         var i = 0;
                         foreach (var itemOutput in currentTx.Outputs)
                         {
-                            var address = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
-                            if (address == null) address = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
+                            var address = Transaction.GetPlainTxOutDestinationAddress(itemOutput.ScriptPubKey, this.Network);
 
                             var newAddress = new ExplorerAddressModel();
-                            newAddress.Address = address.ToString();
+                            newAddress.Address = address;
                             newAddress.Satoshi = itemOutput.Value.Satoshi;
                             newAddress.Scripts = itemOutput.ScriptPubKey.ToString();
 
@@ -323,8 +322,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                             {
                                 foreach (var itemOutput in currentTx.Outputs)
                                 {
-                                    var txOutAddress = itemOutput.ScriptPubKey.GetDestinationAddress(this.Network);
-                                    if (txOutAddress == null) txOutAddress = itemOutput.ScriptPubKey.GetScriptAddress(this.Network);
+                                    var txOutAddress = Transaction.GetPlainTxOutDestinationAddress(itemOutput.ScriptPubKey, this.Network);
 
                                     if ((txOutAddress != null) && (txOutAddress.ToString() == address))
                                     {
