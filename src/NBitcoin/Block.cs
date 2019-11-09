@@ -123,7 +123,7 @@ namespace NBitcoin
             if (hash != null)
                 return hash;
 
-            hash = Hashes.Hash256(this.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, network));
+            hash = Hashes.Hash256(this.ToBytes(ProtocolVersion.XRC_PROTOCOL_VERSION, network));
 
             innerHashes = this.hashes;
             if (innerHashes != null)

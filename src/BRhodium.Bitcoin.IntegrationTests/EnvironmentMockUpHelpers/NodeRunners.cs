@@ -114,7 +114,7 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public override void BuildNode()
         {
-            var settings = new NodeSettings(Network.BRhodiumRegTest, ProtocolVersion.BTR_PROTOCOL_VERSION, args: new string[] { "-conf=BRhodium.conf", "-datadir=" + this.DataFolder }, loadConfiguration: false);
+            var settings = new NodeSettings(Network.BRhodiumRegTest, ProtocolVersion.XRC_PROTOCOL_VERSION, args: new string[] { "-conf=BRhodium.conf", "-datadir=" + this.DataFolder }, loadConfiguration: false);
 
             this.FullNode = (FullNode)new FullNodeBuilder()
                             .UseNodeSettings(settings)

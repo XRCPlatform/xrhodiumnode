@@ -330,7 +330,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Controller
                 var bytesProof = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(proof);
 
                 var mBlock = new MerkleBlock();
-                mBlock.FromBytes(bytesProof, NBitcoin.Protocol.ProtocolVersion.BTR_PROTOCOL_VERSION, this.Network);
+                mBlock.FromBytes(bytesProof, NBitcoin.Protocol.ProtocolVersion.XRC_PROTOCOL_VERSION, this.Network);
 
                 var hashes = mBlock.PartialMerkleTree.Hashes;
 

@@ -298,8 +298,8 @@ namespace NBitcoin
 
         private static Block CreateBRhodiumGenesisBlock(ConsensusFactory consensusFactory, string message, uint nTime, uint nNonce, uint nBits, int nVersion, Network network, string pubKeyHexNew = null)
         {
-            //nTime = 1512043200 => Thursday, November 30, 2017 12:00:00 PM (born BTR)
-            //nTime = 1527811200 => Friday, Jun 1, 2017 12:00:00 PM (born TestBTR)
+            //nTime = 1512043200 => Thursday, November 30, 2017 12:00:00 PM (born XRC)
+            //nTime = 1527811200 => Friday, Jun 1, 2017 12:00:00 PM (born TestXRC)
             //nBits = 0x1d00ffff (it is exactly 0x1b = 27 bytes long) => 0x00ffff0000000000000000000000000000000000000000000000000000 => 1
             //nNonce = XTimes to trying to find a genesis block
             var pubKeyHex = "2103d1b6cd5f956ccedf5877c89843a438bfb800468133fb2e73946e1452461a9b1aac";

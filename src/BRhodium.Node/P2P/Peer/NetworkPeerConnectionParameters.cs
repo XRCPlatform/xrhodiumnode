@@ -38,7 +38,7 @@ namespace BRhodium.Node.P2P.Peer
         public NetworkPeerConnectionParameters()
         {
             this.TemplateBehaviors.Add(new PingPongBehavior());
-            this.Version = ProtocolVersion.BTR_PROTOCOL_VERSION;
+            this.Version = ProtocolVersion.XRC_PROTOCOL_VERSION;
             this.IsRelay = true;
             this.Services = NetworkPeerServices.Nothing;
             this.ConnectCancellation = default(CancellationToken);
