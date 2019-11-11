@@ -60,4 +60,7 @@
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+  </PropertyGroup>
 </Project>
