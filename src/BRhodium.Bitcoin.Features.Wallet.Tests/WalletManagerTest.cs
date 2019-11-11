@@ -2535,8 +2535,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10 });
             }
 
-            Assert.Equal(0, firstAccount.GetSpendableAmount().ConfirmedAmount);
-            Assert.Equal(40, firstAccount.GetSpendableAmount().UnConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).ConfirmedAmount);
+            Assert.Equal(40, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).UnConfirmedAmount);
         }
 
         [Fact]
@@ -2623,8 +2623,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, BlockHeight = 10 });
             }
 
-            Assert.Equal(40, firstAccount.GetSpendableAmount().ConfirmedAmount);
-            Assert.Equal(0, firstAccount.GetSpendableAmount().UnConfirmedAmount);
+            Assert.Equal(40, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).ConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).UnConfirmedAmount);
         }
 
         [Fact]
@@ -2648,8 +2648,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, BlockHeight = 10, SpendingDetails = new SpendingDetails() });
             }
 
-            Assert.Equal(0, firstAccount.GetSpendableAmount().ConfirmedAmount);
-            Assert.Equal(0, firstAccount.GetSpendableAmount().UnConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).ConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).UnConfirmedAmount);
         }
 
         [Fact]
@@ -2679,8 +2679,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10, BlockHeight = 10 });
             }
 
-            Assert.Equal(40, firstAccount.GetSpendableAmount().ConfirmedAmount);
-            Assert.Equal(0, firstAccount.GetSpendableAmount().UnConfirmedAmount);
+            Assert.Equal(40, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).ConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).UnConfirmedAmount);
         }
 
         [Fact]
@@ -2710,8 +2710,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 firstAccount.ExternalAddresses.ElementAt(i).Transactions.Add(new TransactionData { Amount = 10 });
             }
 
-            Assert.Equal(0, firstAccount.GetSpendableAmount().ConfirmedAmount);
-            Assert.Equal(40, firstAccount.GetSpendableAmount().UnConfirmedAmount);
+            Assert.Equal(0, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).ConfirmedAmount);
+            Assert.Equal(40, firstAccount.GetSpendableAmount(new Mock<ConcurrentChain>().Object).UnConfirmedAmount);
         }
 
         [Fact]

@@ -660,13 +660,15 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
                 foreach (var account in accounts)
                 {
-                    (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount();
+                    (Money amountConfirmed, Money amountUnconfirmed, Money amountImmature) result = account.GetSpendableAmount(this.chain);
 
                     balances.Add(new AccountBalance
                     {
                         Account = account,
                         AmountConfirmed = result.amountConfirmed,
-                        AmountUnconfirmed = result.amountUnconfirmed
+                        AmountUnconfirmed = result.amountUnconfirmed,
+                        AmountImmature = result.amountImmature
+
                     });
                 }
             }
@@ -701,10 +703,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     HdAddress hdAddress = wallet.GetAllAddressesByCoinType(this.coinType).FirstOrDefault(a => a.Address == address);
                     if (hdAddress == null) continue;
 
-                    (Money amountConfirmed, Money amountUnconfirmed) result = hdAddress.GetSpendableAmount();
+                    (Money amountConfirmed, Money amountUnconfirmed, Money amountImmature) result = hdAddress.GetSpendableAmount(this.chain);
 
                     balance.AmountConfirmed = result.amountConfirmed;
                     balance.AmountUnconfirmed = result.amountUnconfirmed;
+                    balance.AmountImmature = result.amountImmature;
                     balance.Transactions = hdAddress.Transactions;
 
                     break;
@@ -817,7 +820,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             UnspentOutputReference[] res = null;
             lock (this.lockObject)
             {
-                res = wallet.GetAllSpendableTransactions(this.coinType, this.chain.Tip.Height, confirmations).ToArray();
+                res = wallet.GetAllSpendableTransactions(this.coinType, this.network, this.chain.Tip.Height, confirmations).ToArray();
             }
 
             this.logger.LogTrace("(-):*.Count={0}", res.Count());
@@ -843,7 +846,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         $"Account '{walletAccountReference.AccountName}' in wallet '{walletAccountReference.WalletName}' not found.");
                 }
 
-                res = account.GetSpendableTransactions(this.chain.Tip.Height, confirmations).ToArray();
+                res = account.GetSpendableTransactions(this.network, this.chain.Tip.Height, confirmations).ToArray();
             }
 
             this.logger.LogTrace("(-):*.Count={0}", res.Count());
@@ -949,7 +952,6 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(transaction), hash, nameof(blockHeight), blockHeight);
 
             bool foundReceivingTrx = false, foundSendingTrx = false;
-
             lock (this.lockObject)
             {
                 // Check the outputs.
@@ -1235,7 +1237,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     Index = index,
                     ScriptPubKey = script,
                     Hex = this.walletSettings.SaveTransactionHex ? transaction.ToHex() : null,
-                    IsPropagated = isPropagated
+                    IsPropagated = isPropagated,
+                    IsCoinbase = transaction.IsCoinBase
                 };
 
                 // Add the Merkle proof to the (non-spending) transaction.
@@ -1271,7 +1274,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 }
 
                 if (isPropagated)
+                {
                     foundTransaction.IsPropagated = true;
+                }
+                
+                foundTransaction.IsCoinbase = transaction.IsCoinBase;
             }
 
             this.TransactionFoundInternal(script);
