@@ -36,7 +36,7 @@ namespace BRhodium.Node.Configuration
     public class NodeSettings
     {
         /// <summary>Version of the protocol the current implementation supports.</summary>
-        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION;
+        public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.XRC_PROTOCOL_VERSION;
 
         /// <summary>
         /// Initializes a new instance of the object.
@@ -46,7 +46,7 @@ namespace BRhodium.Node.Configuration
         /// <param name="agent">The nodes user agent that will be shared with peers.</param>
         /// <param name="args">The command-line arguments.</param>
         /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
-        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION,
+        public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.XRC_PROTOCOL_VERSION,
             string agent = "BRhodiumBitcoin", string[] args = null, bool loadConfiguration = true)
         {
             this.Agent = agent;

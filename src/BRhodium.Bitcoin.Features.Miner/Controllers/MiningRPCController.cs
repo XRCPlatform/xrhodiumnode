@@ -289,13 +289,13 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
                             {
                                 var transaction = new TransactionContractModel();
 
-                                transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.BTR_PROTOCOL_VERSION, this.Network));
+                                transaction.Data = Encoders.Hex.EncodeData(item.ToBytes(ProtocolVersion.XRC_PROTOCOL_VERSION, this.Network));
                                 transaction.Hash = item.GetWitHash().ToString();
                                 transaction.Txid = item.GetWitHash().ToString();
 
                                 transaction.Fee = pblockTemplate.VTxFees[i];
                                 transaction.Sigops = pblockTemplate.TxSigOpsCost[i];
-                                transaction.Weight = item.GetSerializedSize(ProtocolVersion.BTR_PROTOCOL_VERSION);
+                                transaction.Weight = item.GetSerializedSize(ProtocolVersion.XRC_PROTOCOL_VERSION);
 
                                 blockTemplate.Transactions.Add(transaction);
                             }

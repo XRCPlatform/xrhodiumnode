@@ -41,7 +41,7 @@ namespace BRhodium.Dns
         {
             try
             {
-                NodeSettings nodeSettings = new NodeSettings(protocolVersion:ProtocolVersion.BTR_PROTOCOL_VERSION, args:args, loadConfiguration:true);
+                NodeSettings nodeSettings = new NodeSettings(protocolVersion:ProtocolVersion.XRC_PROTOCOL_VERSION, args:args, loadConfiguration:true);
 
                 Action<DnsSettings> serviceTest = (s) =>
                 {

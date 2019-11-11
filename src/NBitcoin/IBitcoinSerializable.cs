@@ -10,7 +10,7 @@ namespace NBitcoin
 
     public static class BitcoinSerializableExtensions
     {
-        public static void ReadWrite(this IBitcoinSerializable serializable, Stream stream, bool serializing, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
+        public static void ReadWrite(this IBitcoinSerializable serializable, Stream stream, bool serializing, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION, Network network = null)
         {
             network = network ?? Network.Main;
 
@@ -58,17 +58,17 @@ namespace NBitcoin
             }
         }
 
-        public static int GetSerializedSize(this IBitcoinSerializable serializable, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
+        public static int GetSerializedSize(this IBitcoinSerializable serializable, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION)
         {
             return GetSerializedSize(serializable, version, SerializationType.Disk);
         }
 
-        public static void ReadWrite(this IBitcoinSerializable serializable, byte[] bytes, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
+        public static void ReadWrite(this IBitcoinSerializable serializable, byte[] bytes, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION, Network network = null)
         {
             ReadWrite(serializable, new MemoryStream(bytes), false, version, network);
         }
 
-        public static void FromBytes(this IBitcoinSerializable serializable, byte[] bytes, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
+        public static void FromBytes(this IBitcoinSerializable serializable, byte[] bytes, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION, Network network = null)
         {
             network = network ?? Network.Main;
 
@@ -80,7 +80,7 @@ namespace NBitcoin
             serializable.ReadWrite(bms);
         }
 
-        public static T Clone<T>(this T serializable, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null) where T : IBitcoinSerializable, new()
+        public static T Clone<T>(this T serializable, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION, Network network = null) where T : IBitcoinSerializable, new()
         {
             network = network ?? Network.Main;
 
@@ -91,7 +91,7 @@ namespace NBitcoin
             return instance;
         }
 
-        public static byte[] ToBytes(this IBitcoinSerializable serializable, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION, Network network = null)
+        public static byte[] ToBytes(this IBitcoinSerializable serializable, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION, Network network = null)
         {
             network = network ?? Network.Main;
 

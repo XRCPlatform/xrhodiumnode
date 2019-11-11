@@ -1167,7 +1167,7 @@ namespace NBitcoin
             vout = new TxOutList(this);
         }
 
-        internal Transaction(string hex, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
+        internal Transaction(string hex, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION)
             : this()
         {
             this.FromBytes(Encoders.Hex.DecodeData(hex), version);
@@ -1179,7 +1179,7 @@ namespace NBitcoin
             this.FromBytes(bytes);
         }
 
-        public static Transaction Load(string hex, Network network, ProtocolVersion version = ProtocolVersion.BTR_PROTOCOL_VERSION)
+        public static Transaction Load(string hex, Network network, ProtocolVersion version = ProtocolVersion.XRC_PROTOCOL_VERSION)
         {
             if (hex == null)
                 throw new ArgumentNullException(nameof(hex));
@@ -1203,6 +1203,35 @@ namespace NBitcoin
             var transaction = network.Consensus.ConsensusFactory.CreateTransaction();
             transaction.FromBytes(bytes, network: network);
             return transaction;
+        }
+
+        public static string GetPlainTxOutDestinationAddress(Script scriptPubKey, Network network)
+        {
+            var destinations = new List<TxDestination>() { scriptPubKey.GetDestination(network) };
+            string address = null;
+            if (destinations[0] == null)
+            {
+                destinations = scriptPubKey.GetDestinationPublicKeys(network)
+                                                    .Select(p => p.Hash)
+                                                    .ToList<TxDestination>();
+            }
+            if (destinations.Count == 1)
+            {
+                address = destinations[0].GetAddress(network).ToString();
+            }
+            else
+            {
+                var multi = PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(network, scriptPubKey);
+                if (multi != null)
+                {
+                    if (multi.PubKeys != null && (multi.PubKeys.Count() > 0))
+                    {
+                        address = multi.PubKeys[0].Hash.GetAddress(network).ToString();
+                    }
+                }
+            }
+
+            return address;
         }
 
         public Money TotalOut

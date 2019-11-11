@@ -155,7 +155,7 @@ namespace BRhodium.Node.P2P.Protocol.Payloads
             this.signature = new VarString(key.Sign(Hashes.Hash256(this.payload.GetString())).ToDER());
         }
 
-        public void UpdatePayload(ProtocolVersion protocolVersion = ProtocolVersion.BTR_PROTOCOL_VERSION)
+        public void UpdatePayload(ProtocolVersion protocolVersion = ProtocolVersion.XRC_PROTOCOL_VERSION)
         {
             this.UpdatePayload(new BitcoinStream(new byte[0])
             {
