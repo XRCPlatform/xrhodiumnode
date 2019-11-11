@@ -144,11 +144,11 @@ namespace BRhodium.Node.Connection
 
         public bool IsActive { get; private set; }
 
-#if !NO_UPNP
+
         private NatDiscoverer nat;
         private CancellationTokenSource cts;
         private NatDevice device;
-#endif
+
         public ConnectionManager(
 
             IDateTimeProvider dateTimeProvider,
@@ -214,35 +214,36 @@ namespace BRhodium.Node.Connection
         {
 
             var logs = new StringBuilder();
-#if !NO_UPNP
-            this.logger.LogInformation("Looking for UPnP devices");
-            if (this.nat == null) this.nat = new NatDiscoverer();
-            if (this.cts == null) this.cts = new CancellationTokenSource(5000);
-            // Add any UPnP entires that may be required
-            var t = Task.Run(async () =>
+            if (this.ConnectionSettings.EnableUPnP)
             {
-                this.device = await this.nat.DiscoverDeviceAsync(PortMapper.Upnp, this.cts);
-                var ip = await this.device.GetExternalIPAsync();
+                this.logger.LogInformation("Looking for UPnP devices");
+                if (this.nat == null) this.nat = new NatDiscoverer();
+                if (this.cts == null) this.cts = new CancellationTokenSource(5000);
+                // Add any UPnP entires that may be required
+                var t = Task.Run(async () =>
+                {
+                    this.device = await this.nat.DiscoverDeviceAsync(PortMapper.Upnp, this.cts);
+                    var ip = await this.device.GetExternalIPAsync();
                 //logs.AppendLine($"External IP: {ip}");
                 this.logger.LogInformation("External IP: {0}", ip);
-                foreach (NodeServerEndpoint listen in this.ConnectionSettings.Listen)
-                {
-                    await this.device.CreatePortMapAsync(new Mapping(Protocol.Tcp, listen.Endpoint.Port, listen.Endpoint.Port, "Bitcoin Rhodium"));
-                }
-            });
+                    foreach (NodeServerEndpoint listen in this.ConnectionSettings.Listen)
+                    {
+                        await this.device.CreatePortMapAsync(new Mapping(Protocol.Tcp, listen.Endpoint.Port, listen.Endpoint.Port, "Bitcoin Rhodium"));
+                    }
+                });
 
-            try
-            {
-                t.Wait();
-            }
-            catch (AggregateException e)
-            {
-                if (e.InnerException is NatDeviceNotFoundException)
+                try
                 {
-                    this.logger.LogWarning("No NAT devoices found");
+                    t.Wait();
+                }
+                catch (AggregateException e)
+                {
+                    if (e.InnerException is NatDeviceNotFoundException)
+                    {
+                        this.logger.LogWarning("No NAT devoices found");
+                    }
                 }
             }
-#endif
             logs.AppendLine("Node listening on:");
 
             foreach (NodeServerEndpoint listen in this.ConnectionSettings.Listen)
@@ -391,32 +392,33 @@ namespace BRhodium.Node.Connection
             this.IsActive = false;
 
             this.logger.LogTrace("(-)");
-#if !NO_UPNP
-            // Delete any entries made
-            if (this.device != null)
+            if (this.ConnectionSettings.EnableUPnP)
             {
-                this.logger.LogInformation("Removing UPnP ports");
-                var t = Task.Run(async () =>
+                // Delete any entries made
+                if (this.device != null)
                 {
-
-                    var mappings = await this.device.GetAllMappingsAsync();
-                    foreach (Mapping map in mappings)
+                    this.logger.LogInformation("Removing UPnP ports");
+                    var t = Task.Run(async () =>
                     {
-                        await this.device.DeletePortMapAsync(map);
+
+                        var mappings = await this.device.GetAllMappingsAsync();
+                        foreach (Mapping map in mappings)
+                        {
+                            await this.device.DeletePortMapAsync(map);
+                        }
+                    });
+
+                    try
+                    {
+                        t.Wait();
                     }
-                });
+                    catch (Exception ex)
+                    {
+                        this.logger.LogError($"Could not remove ports: {ex}");
+                    }
 
-                try
-                {
-                    t.Wait();
                 }
-                catch (Exception ex)
-                {
-                    this.logger.LogError($"Could not remove ports: {ex}");
-                }
-
             }
-#endif
         }
 
         /// <inheritdoc />

@@ -416,7 +416,7 @@ namespace BRhodium.Node.Configuration
             builder.AppendLine($"-minrelaytxfee=<number>   Minimum relay fee rate. Defaults to network specific value.");
             builder.AppendLine($"-bantime=<number>         Number of seconds to keep misbehaving peers from reconnecting. Default {ConnectionManagerSettings.DefaultMisbehavingBantimeSeconds}.");
             builder.AppendLine($"-maxoutboundconnections=<number> The maximum number of outbound connections. Default {ConnectionManagerSettings.DefaultMaxOutboundConnections}.");
-
+            builder.AppendLine($"-upnp=true|false Enable UPnP for NAT Traversal. Default {ConnectionManagerSettings.DefaultUPnP}.");
             defaults.Logger.LogInformation(builder.ToString());
         }
 
@@ -454,6 +454,8 @@ namespace BRhodium.Node.Configuration
             builder.AppendLine($"#bantime=<number>");
             builder.AppendLine($"#The maximum number of outbound connections. Default {ConnectionManagerSettings.DefaultMaxOutboundConnections}.");
             builder.AppendLine($"#maxoutboundconnections=<number>");
+            builder.AppendLine($"#Enable UPnP for NAT Traversal. Default {ConnectionManagerSettings.DefaultUPnP}.");
+            builder.AppendLine($"#upnp=true|false");
         }
     }
 }

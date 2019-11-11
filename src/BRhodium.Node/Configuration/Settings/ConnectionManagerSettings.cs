@@ -13,6 +13,7 @@ namespace BRhodium.Node.Configuration.Settings
         /// <summary>Number of seconds to keep misbehaving peers from reconnecting (Default 24-hour ban).</summary>
         public const int DefaultMisbehavingBantimeSeconds = 24 * 60 * 60;
         public const int DefaultMaxOutboundConnections = 8;
+        public const bool DefaultUPnP = false;
 
         /// <summary>
         /// Default constructor.
@@ -98,6 +99,7 @@ namespace BRhodium.Node.Configuration.Settings
 
             this.BanTimeSeconds = config.GetOrDefault<int>("bantime", ConnectionManagerSettings.DefaultMisbehavingBantimeSeconds);
             this.MaxOutboundConnections = config.GetOrDefault<int>("maxoutboundconnections", ConnectionManagerSettings.DefaultMaxOutboundConnections);
+            this.EnableUPnP = config.GetOrDefault<bool>("upnp",true);
         }
 
         /// <summary>List of exclusive end points that the node should be connected to.</summary>
@@ -117,5 +119,10 @@ namespace BRhodium.Node.Configuration.Settings
 
         /// <summary>Maximum number of outbound connections.</summary>
         public int MaxOutboundConnections { get; internal set; }
+
+        /// <summary>
+        /// Enable UPnP
+        /// </summary>
+        public bool EnableUPnP { get; internal set; }
     }
 }

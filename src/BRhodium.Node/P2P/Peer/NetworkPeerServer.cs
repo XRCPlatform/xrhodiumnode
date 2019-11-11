@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Protocol;
 using BRhodium.Node.Utilities;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Authentication;
 
 namespace BRhodium.Node.P2P.Peer
 {
@@ -20,6 +22,7 @@ namespace BRhodium.Node.P2P.Peer
 
         /// <summary>Factory for creating P2P network peers.</summary>
         private readonly INetworkPeerFactory networkPeerFactory;
+
 
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
         public Network Network { get; private set; }
@@ -68,6 +71,7 @@ namespace BRhodium.Node.P2P.Peer
             ILoggerFactory loggerFactory,
             INetworkPeerFactory networkPeerFactory)
         {
+
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName, $"[{localEndPoint}] ");
             this.logger.LogTrace("({0}:{1},{2}:{3},{4}:{5})", nameof(network), network, nameof(localEndPoint), localEndPoint, nameof(externalEndPoint), externalEndPoint, nameof(version), version);
 
