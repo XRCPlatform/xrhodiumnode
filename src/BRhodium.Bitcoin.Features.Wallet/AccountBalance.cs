@@ -21,5 +21,10 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The balance of unconfirmed transactions.
         /// </summary>
         public Money AmountUnconfirmed { get; set; }
+
+        /// <summary>
+        /// The balance of imature coinbase transactions 
+        /// </summary>
+        public Money AmountImmature { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿using Moq;
+using NBitcoin;
 using Xunit;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests

@@ -86,9 +86,9 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
                     // At this point we should need to combine 5 buckets to get enough data points
                     // So estimateFee(1,2,3) should fail and estimateFee(4) should return somewhere around
                     // 8*baserate.  estimateFee(4) %'s are 100,100,100,100,90 = average 98%
-                    Assert.True(mpool.EstimateFee(1) == new FeeRate(0));
-                    Assert.True(mpool.EstimateFee(2) == new FeeRate(0));
-                    Assert.True(mpool.EstimateFee(3) == new FeeRate(0));
+                    Assert.True(mpool.EstimateFee(1) == new FeeRate(10));
+                    Assert.True(mpool.EstimateFee(2) == new FeeRate(10));
+                    Assert.True(mpool.EstimateFee(3) == new FeeRate(10));
                     Assert.True(mpool.EstimateFee(4).FeePerK < 8 * baseRate.FeePerK + deltaFee);
                     Assert.True(mpool.EstimateFee(4).FeePerK > 8 * baseRate.FeePerK - deltaFee);
 
@@ -156,7 +156,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool.Tests
 
             for (int i = 1; i < 10; i++)
             {
-                Assert.True(mpool.EstimateFee(i) == new FeeRate(0) || mpool.EstimateFee(i).FeePerK > origFeeEst[i - 1] - deltaFee);
+                Assert.True(mpool.EstimateFee(i) == new FeeRate(10) || mpool.EstimateFee(i).FeePerK > origFeeEst[i - 1] - deltaFee);
                 Assert.True(mpool.EstimateSmartFee(i, out answerFound).FeePerK > origFeeEst[answerFound - 1] - deltaFee);
             }
 

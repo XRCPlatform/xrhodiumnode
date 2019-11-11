@@ -130,7 +130,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         {
             var k = new Key();
             var tx = new Transaction();
-            var unspentOutputs = this.rpcTestFixture.TestWallet.GetAllSpendableTransactions((CoinType)this.rpcTestFixture.TestWallet.Network.Consensus.CoinType,100,1);
+            var unspentOutputs = this.rpcTestFixture.TestWallet.GetAllSpendableTransactions((CoinType)this.rpcTestFixture.TestWallet.Network.Consensus.CoinType, this.rpcTestFixture.TestWallet.Network, 100, 1);
             var outPoint = unspentOutputs.FirstOrDefault().ToOutPoint();
             TxIn input = new TxIn(outPoint);
             tx.AddInput(input);

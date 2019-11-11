@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using BRhodium.Node.Configuration;
 using BRhodium.Node.Utilities;
+using BRhodium.Bitcoin.Features.Consensus;
 
 namespace BRhodium.Node.Tests.Common
 {
@@ -19,6 +20,7 @@ namespace BRhodium.Node.Tests.Common
         public TestBase(Network network)
         {
             this.Network = network;
+            this.Network.Consensus.Options = new PowConsensusOptions().RegTestPowConsensusOptions();
             DBreezeSerializer serializer = new DBreezeSerializer();
             serializer.Initialize(this.Network);
         }

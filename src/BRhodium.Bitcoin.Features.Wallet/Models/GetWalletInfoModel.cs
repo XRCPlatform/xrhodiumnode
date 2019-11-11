@@ -19,6 +19,9 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
         [JsonProperty(PropertyName = "unconfirmed_balance")]
         public decimal UnconfirmedBalance { get; set; }
 
+        [JsonProperty(PropertyName = "immature_balance")]
+        public decimal Immaturebalance { get; set; }
+
         [JsonProperty(PropertyName = "txcount")]
         public int TxCount { get; set; }
 
@@ -36,5 +39,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
         [JsonProperty(PropertyName = "paytxfee")]
         public decimal PayTxFee { get; set; }
+        
     }
 }

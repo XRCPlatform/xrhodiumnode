@@ -34,6 +34,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         public ICollection<TransactionData> Transactions { get; set; }
 
         /// <summary>
+        /// Shows immature coinbase transactions
+        /// </summary>
+        public Money AmountImmature { get; set; }
+
+        /// <summary>
         /// Gets the total amount.
         /// </summary>
         /// <returns>Money object with amount.</returns>
