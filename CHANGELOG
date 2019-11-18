@@ -1,4 +1,14 @@
-1.1.13 : In Progress
+1.1.14 : In Progress
+
+1.1.13
+- Added support for UPnP for NAT Traversal **
+--- add node configuration: upnp=true|false
+- Added support for ZeroMQ block notify**
+--- add node configuration: zmqBlocknotify=tcp://127.0.0.1:15101|hashblock|s%
+- Added new 3rd party DNS seed**
+- Fixed issue with some Script decryption in Explorer RPC**
+- Fixed issue with Excluding immature coinbase transactions from spendable candidates**
+- Some small fixes and improvement**
 
 1.1.12
 - Improvement in ListSinceBlock RPC
