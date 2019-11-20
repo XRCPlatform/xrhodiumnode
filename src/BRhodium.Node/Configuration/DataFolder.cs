@@ -25,7 +25,7 @@ namespace BRhodium.Node.Configuration
             this.BlockPath = Path.Combine(path, "blocks");
             this.IndexPath = Path.Combine(path, "index");
             this.RpcCookieFile = Path.Combine(path, ".cookie");
-            this.WalletPath = Path.Combine(path);
+            this.WalletPath = Path.Combine(path, "Wallet");
             this.LogPath = Path.Combine(path, "Logs");
             this.DnsMasterFilePath = path;
             this.RootPath = path;

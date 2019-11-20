@@ -27,10 +27,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         uint256 WalletTipHash { get; set; }
 
-        /// <summary>
-        /// Gets the list of wallets.
-        /// </summary>
-        ConcurrentDictionary<string,Wallet> Wallets { get; }
 
         /// <summary>
         /// Memory locked unspendable transaction parts (tx hash, index vount)
@@ -258,18 +254,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// Saves the wallet into the file system.
         /// </summary>
         /// <param name="wallet">The wallet to save.</param>
-        void SaveWallet(Wallet wallet);
-        /// <summary>
-        /// Performs pubsighash to address translation so that friendly address can be displayed in wallet.
-        /// </summary>
-        /// <param name="scriptSig"></param>
-        /// <returns>HD Address that can be used for various rendering operations.</returns>
-        HdAddress GetAddressByPubKeyHash(Script scriptSig);
+        void SaveWallet(Wallet wallet, bool saveTransactions = false);
 
-        /// <summary>
-        /// Saves all the loaded wallets into the file system.
-        /// </summary>
-        void SaveWallets();
 
         /// <summary>
         /// Gets the extension of the wallet files.
@@ -281,14 +267,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// Gets all the wallets' names.
         /// </summary>
         /// <returns>A collection of the wallets' names.</returns>
-        IEnumerable<string> GetWalletsNames();
+        IEnumerable<string> GetWalletNames();
 
         /// <summary>
         /// Updates the wallet with the height of the last block synced.
         /// </summary>
-        /// <param name="wallet">The wallet to update.</param>
+        /// <param name="walletName">The wallet to update.</param>
         /// <param name="chainedHeader">The height of the last block synced.</param>
-        void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedHeader chainedHeader);
+        void UpdateLastBlockSyncedHeight(string walletName, ChainedHeader chainedHeader);
 
         /// <summary>
         /// Updates all the loaded wallets with the height of the last block synced.
@@ -313,12 +299,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns></returns>
         ICollection<uint256> GetFirstWalletBlockLocator();
-
-        /// <summary>
-        /// Gets the list of the wallet filenames, along with the folder in which they're contained.
-        /// </summary>
-        /// <returns>The wallet filenames, along with the folder in which they're contained.</returns>
-        (string folderPath, IEnumerable<string>) GetWalletsFiles();
 
         /// <summary>
         /// Gets whether there are any wallet files loaded or not.
@@ -369,6 +349,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// <param name="transactionModel">Output response model</param>
         /// <returns>Response transaction model</returns>
         TransactionModel GetTransactionDetails(string walletName, Transaction transaction, List<IndexedTxOut> prevTransactions, TransactionModel transactionModel);
+        Wallet GetWalletByAddress(string address);
+        //void SortTransactionsInWallet(Wallet wallet);
 
         /// <summary>
         /// Wallet settings for the wallet interface.

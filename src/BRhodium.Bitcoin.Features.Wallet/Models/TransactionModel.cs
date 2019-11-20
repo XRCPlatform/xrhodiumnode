@@ -55,7 +55,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
             Block block,
             ChainedHeader chainedHeader,
             ChainedHeader chainedTip,
-            string walletName,
+            long walletid,
             Network network,
             WalletManager walletManager)
         {
@@ -77,14 +77,20 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
 
             foreach (var input in prevTxList)
             {
-                var isWalletAddress = (walletManager as WalletManager).keysLookup.TryGetValue(input.TxOut.ScriptPubKey, out HdAddress address);
-                var isInWallet = (walletManager as WalletManager).keysLookupToWalletName.TryGetValue(input.TxOut.ScriptPubKey, out string keyWalletName);
-                if (isWalletAddress && isInWallet && keyWalletName == walletName)
+                //var isWalletAddress = (walletManager as WalletManager).keysLookup.TryGetValue(input.TxOut.ScriptPubKey, out HdAddress address);
+                //var isInWallet = (walletManager as WalletManager).keysLookupToWalletName.TryGetValue(input.TxOut.ScriptPubKey, out string keyWalletName);
+                //if (isWalletAddress && isInWallet && keyWalletName == walletName)
+                //{
+                WalletLinkedHdAddress walletLinkedHdAddress = null;
+                walletManager.addressByScriptLookup.TryGetValue(input.TxOut.ScriptPubKey.Hash, out walletLinkedHdAddress);
+
+                if (walletLinkedHdAddress != null && walletid == walletLinkedHdAddress.WalletId)
                 {
+
                     var inputModel = new TransactionVerboseModel
                     {
                         Amount = input.TxOut.Value.ToDecimal(MoneyUnit.XRC) * -1,
-                        Address = address.Address,
+                        Address = walletLinkedHdAddress.HdAddress.Address,
                         Category = "send",
                         TxId = tx.GetHash().ToString(),
                         Size = tx.GetSerializedSize(),
@@ -106,14 +112,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Models
                 n = 0;
                 foreach (var output in tx.Outputs)
                 {
-                    var isWalletAddress = (walletManager as WalletManager).keysLookup.TryGetValue(output.ScriptPubKey, out HdAddress address);
-                    var isInWallet = (walletManager as WalletManager).keysLookupToWalletName.TryGetValue(output.ScriptPubKey, out string keyWalletName);
-                    if (isWalletAddress && isInWallet && keyWalletName == walletName)
+                    WalletLinkedHdAddress walletLinkedHdAddress = null;
+                    walletManager.addressByScriptLookup.TryGetValue(output.ScriptPubKey.Hash, out walletLinkedHdAddress);
+
+                    if (walletLinkedHdAddress != null && walletid == walletLinkedHdAddress.WalletId)
                     {
+
                         var outputModel = new TransactionVerboseModel
                         {
                             Amount = output.Value.ToDecimal(MoneyUnit.XRC),
-                            Address = address.Address,
+                            Address = walletLinkedHdAddress.HdAddress.Address,
                             Category = "receive",
                             VOut = (uint)n,
                             TxId = tx.GetHash().ToString(),

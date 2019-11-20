@@ -658,7 +658,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                if (this.walletManager.Wallets.Count() > 1)
+                if (this.walletManager.ContainsWallets)
                 {
                     var response = new Node.Utilities.JsonContract.ErrorModel();
                     response.Code = "-100";

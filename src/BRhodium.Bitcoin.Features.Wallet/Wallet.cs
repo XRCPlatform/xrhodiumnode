@@ -96,6 +96,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "accountsRoot")]
         public ICollection<AccountRoot> AccountsRoot { get; set; }
+        
+        [JsonIgnore]
+        public int Id { get; internal set; }
 
         /// <summary>
         /// Gets the accounts the wallet has for this type of coin.
@@ -117,6 +120,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
             return accountRoot?.GetAccountByName(accountName);
+        }
+
+        /// <summary>
+        /// Gets account by HD path.
+        /// </summary>
+        /// <param name="hdPath"></param>
+        /// <param name="coinType"></param>
+        /// <returns></returns>
+        public HdAccount GetAccountByHdPathCoinType(string hdPath, CoinType coinType)
+        {
+            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            return accountRoot?.GetAccountByHdPath(hdPath);
         }
 
         /// <summary>
@@ -398,6 +413,24 @@ namespace BRhodium.Bitcoin.Features.Wallet
         }
 
         /// <summary>
+        /// Gets account by HD Path.
+        /// </summary>
+        /// <param name="hdPath"></param>
+        /// <returns></returns>
+        public HdAccount GetAccountByHdPath(string hdPath)
+        {
+            if (this.Accounts == null)
+                throw new WalletException($"No account with the hd path {hdPath} could be found.");
+
+            // get the account
+            HdAccount account = this.Accounts.SingleOrDefault(a => hdPath.Contains(a.HdPath));
+            if (account == null)
+                throw new WalletException($"No account with the hd path {hdPath} could be found.");
+
+            return account;
+        }
+
+        /// <summary>
         /// Adds an account to the current account root.
         /// </summary>
         /// <remarks>The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
@@ -548,6 +581,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         [JsonProperty(PropertyName = "internalAddresses")]
         public ICollection<HdAddress> InternalAddresses { get; set; }
+        
+        [JsonIgnore]
+        public int Id { get; internal set; }
 
         /// <summary>
         /// Gets the type of coin this account is for.
@@ -927,7 +963,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         this.HdPath = info.GetString("hdPath");
                         break;
                     case "transactions":
-                        this.Transactions = (ICollection<TransactionData>)info.GetValue("transactions", typeof(ICollection<TransactionData>));
+                        this.Transactions = (List<TransactionData>)info.GetValue("transactions", typeof(ICollection<TransactionData>));
                         break;
                 }
             }
@@ -985,7 +1021,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// A list of transactions involving this address.
         /// </summary>
         [JsonProperty(PropertyName = "transactions")]
-        public ICollection<TransactionData> Transactions { get; set; }
+        public List<TransactionData> Transactions { get; set; }
+
+        [JsonIgnore]
+        public long Id { get; internal set; }
+
+        [JsonIgnore]
+        public long WalletId { get; internal set; }
 
         /// <summary>
         /// Determines whether this is a change address or a receive address.
@@ -1214,8 +1256,13 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         /// <returns></returns>
         [JsonProperty(PropertyName = "isCoinbase", NullValueHandling = NullValueHandling.Ignore)]
-
         public bool? IsCoinbase { get; set; }
+        
+        [JsonIgnore]
+        public long AddressId { get; internal set; }
+        
+        [JsonIgnore]
+        public long DbId { get; internal set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -1327,6 +1374,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonProperty(PropertyName = "amount")]
         [JsonConverter(typeof(MoneyJsonConverter))]
         public Money Amount { get; set; }
+        public long DbId { get; internal set; }
+        public long DbSpendingTransactionId { get; internal set; }
+        public uint256 TransactionId { get; internal set; }
     }
 
     [Serializable]
@@ -1411,6 +1461,11 @@ namespace BRhodium.Bitcoin.Features.Wallet
         [JsonIgnore]
         public Transaction Transaction => this.Hex == null ? null : Transaction.Parse(this.Hex);
 
+        public long DbId { get; internal set; }
+        public uint256 ParentTransactionHash { get; internal set; }
+        public long ParentTransactionDbId { get; internal set; }
+        public long AddressDbId { get; internal set; }
+
         /// <summary>
         /// Determines whether this transaction being spent is confirmed.
         /// </summary>
@@ -1452,4 +1507,39 @@ namespace BRhodium.Bitcoin.Features.Wallet
             return new OutPoint(this.Transaction.Id, (uint)this.Transaction.Index);
         }
     }
+    /// <summary>
+    /// Provides a link composition between wallets and addresses from cached objects
+    /// </summary>
+    public class WalletLinkedHdAddress
+    {
+        private readonly HdAddress hdAddress;
+        private readonly long walletId;
+        /// <summary>
+        /// Creates an instance of the linker object.
+        /// </summary>
+        /// <param name="hdAddress">Address ref</param>
+        /// <param name="wallet">Wallet ref</param>
+        public WalletLinkedHdAddress(HdAddress hdAddress, long walletId)
+        {
+            this.hdAddress = hdAddress;
+            this.walletId = walletId;
+        }
+
+        public HdAddress HdAddress
+        {
+            get
+            {
+                return this.hdAddress;
+            }
+        }
+
+        public long WalletId
+        {
+            get
+            {
+                return this.walletId;
+            }
+        }
+    }
+
 }

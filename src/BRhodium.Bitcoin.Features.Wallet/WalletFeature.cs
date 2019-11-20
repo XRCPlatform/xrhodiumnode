@@ -112,17 +112,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void OptimizeIt(StringBuilder optimalizationLog)
         {
-            WalletManager walletManager = this.walletManager as WalletManager;
 
-            if (walletManager != null)
-            {
-                optimalizationLog.AppendLine("DBreeze VACUUM:");
-                optimalizationLog.AppendLine("Start : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
-
-                walletManager.DBreezeStorage.OptimizeStorage();
-
-                optimalizationLog.AppendLine("End : " + this.dateTimeProvider.GetUtcNow().ToString(CultureInfo.InvariantCulture));
-            }
         }
 
         /// <inheritdoc />
@@ -145,7 +135,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <inheritdoc />
         public void AddFeatureStats(StringBuilder benchLog)
         {
-            var walletNames = this.walletManager.GetWalletsNames();
+            var walletNames = this.walletManager.GetWalletNames();
 
             if (walletNames.Any())
             {

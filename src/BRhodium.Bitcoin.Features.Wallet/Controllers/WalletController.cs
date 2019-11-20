@@ -286,11 +286,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 };
 
                 // Get the wallet's file path.
-                (string folder, IEnumerable<string> fileNameCollection) = this.walletManager.GetWalletsFiles();
-                string searchFile = Path.ChangeExtension(request.Name, this.walletManager.GetWalletFileExtension());
-                string fileName = fileNameCollection.FirstOrDefault(i => i.Equals(searchFile));
-                if (folder != null && fileName != null)
-                    model.WalletFilePath = Path.Combine(folder, fileName);
+                //(string folder, IEnumerable<string> fileNameCollection) = this.walletManager.GetWalletsFiles();
+                //string searchFile = Path.ChangeExtension(request.Name, this.walletManager.GetWalletFileExtension());
+                //string fileName = fileNameCollection.FirstOrDefault(i => i.Equals(searchFile));
+                //if (folder != null && fileName != null)
+                //    model.WalletFilePath = Path.Combine(folder, fileName);
 
                 return this.Json(model);
             }
@@ -688,32 +688,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     this.logger.LogError("Exception occurred: {0}", transactionBroadCastEntry.ErrorMessage);
                     return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, transactionBroadCastEntry.ErrorMessage, "Transaction Exception");
                 }
-
-                return this.Json(model);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Exception occurred: {0}", e.ToString());
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Lists all the wallet files found under the default folder.
-        /// </summary>
-        /// <returns>A list of the wallets files found.</returns>
-        [Route("files")]
-        [HttpGet]
-        public IActionResult ListWalletsFiles()
-        {
-            try
-            {
-                (string folderPath, IEnumerable<string> filesNames) result = this.walletManager.GetWalletsFiles();
-                WalletFileModel model = new WalletFileModel
-                {
-                    WalletsPath = result.folderPath,
-                    WalletsFiles = result.filesNames
-                };
 
                 return this.Json(model);
             }

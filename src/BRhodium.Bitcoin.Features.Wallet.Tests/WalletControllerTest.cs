@@ -562,7 +562,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = new Wallet
             {
                 Name = "myWallet",
-                Network = NetworkHelpers.GetNetwork("BRhodiumMain"),
+                Network = this.Network,
                 CreationTime = new DateTime(2017, 6, 19, 1, 1, 1),
                 AccountsRoot = new List<AccountRoot> {
                     new AccountRoot()
@@ -583,14 +583,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var mockWalletWrapper = new Mock<IWalletManager>();
             mockWalletWrapper.Setup(w => w.GetWallet("myWallet")).Returns(wallet);
 
-            string walletFileExtension = "wallet.json";
-            string testWalletFileName = Path.ChangeExtension("myWallet", walletFileExtension);
-            string testWalletPath = Path.Combine(AppContext.BaseDirectory, "BRhodiumnode", testWalletFileName);
-            string folder = Path.GetDirectoryName(testWalletPath);
-            string[] files = new string[] { testWalletFileName };
-            mockWalletWrapper.Setup(w => w.GetWalletsFiles()).Returns((folder, files));
-            mockWalletWrapper.Setup(w => w.GetWalletFileExtension()).Returns(walletFileExtension);
-
             var controller = new WalletController(this.LoggerFactory.Object, mockWalletWrapper.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, connectionManagerMock.Object, this.Network, concurrentChain, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
 
             IActionResult result = controller.GetGeneralInfo(new WalletName
@@ -608,7 +600,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal(0, resultValue.ConnectedNodes);
             Assert.Equal(tip.Height, resultValue.ChainTip);
             Assert.True(resultValue.IsDecrypted);
-            Assert.Equal(testWalletPath, resultValue.WalletFilePath);
+
         }
 
         [Fact]
@@ -1523,67 +1515,67 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Equal("Hex required.", errorResponse.ErrorCode);
         }
 
-        [Fact]
-        public void ListWalletFilesWithExistingWalletFilesReturnsWalletFileModel()
-        {
-            string walletPath = "walletPath";
-            var walletManager = new Mock<IWalletManager>();
-            walletManager.Setup(m => m.GetWalletsFiles())
-                .Returns((walletPath, new[] { "wallet1.wallet.json", "wallet2.wallet.json" }));
+        //[Fact]
+        //public void ListWalletFilesWithExistingWalletFilesReturnsWalletFileModel()
+        //{
+        //    string walletPath = "walletPath";
+        //    var walletManager = new Mock<IWalletManager>();
+        //    walletManager.Setup(m => m.GetWalletsFiles())
+        //        .Returns((walletPath, new[] { "wallet1.wallet.json", "wallet2.wallet.json" }));
 
-            walletManager.Setup(m => m.GetWalletFileExtension()).Returns("wallet.json");
+        //    walletManager.Setup(m => m.GetWalletFileExtension()).Returns("wallet.json");
 
-            var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), this.Network, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
+        //    var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), Network.Main, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
 
-            IActionResult result = controller.ListWalletsFiles();
+        //    IActionResult result = controller.ListWalletsFiles();
 
-            JsonResult viewResult = Assert.IsType<JsonResult>(result);
-            var model = viewResult.Value as WalletFileModel;
+        //    JsonResult viewResult = Assert.IsType<JsonResult>(result);
+        //    var model = viewResult.Value as WalletFileModel;
 
-            Assert.NotNull(model);
-            Assert.Equal(walletPath, model.WalletsPath);
-            Assert.Equal(2, model.WalletsFiles.Count());
-            Assert.EndsWith("wallet1.wallet.json", model.WalletsFiles.ElementAt(0));
-            Assert.EndsWith("wallet2.wallet.json", model.WalletsFiles.ElementAt(1));
-        }
+        //    Assert.NotNull(model);
+        //    Assert.Equal(walletPath, model.WalletsPath);
+        //    Assert.Equal(2, model.WalletsFiles.Count());
+        //    Assert.EndsWith("wallet1.wallet.json", model.WalletsFiles.ElementAt(0));
+        //    Assert.EndsWith("wallet2.wallet.json", model.WalletsFiles.ElementAt(1));
+        //}
 
-        [Fact]
-        public void ListWalletFilesWithoutExistingWalletFilesReturnsWalletFileModel()
-        {
-            string walletPath = "walletPath";
-            var walletManager = new Mock<IWalletManager>();
-            walletManager.Setup(m => m.GetWalletsFiles())
-                .Returns((walletPath, Enumerable.Empty<string>()));
+        //[Fact]
+        //public void ListWalletFilesWithoutExistingWalletFilesReturnsWalletFileModel()
+        //{
+        //    string walletPath = "walletPath";
+        //    var walletManager = new Mock<IWalletManager>();
+        //    walletManager.Setup(m => m.GetWalletsFiles())
+        //        .Returns((walletPath, Enumerable.Empty<string>()));
 
-            var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), this.Network, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
+        //    var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), Network.Main, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
 
-            IActionResult result = controller.ListWalletsFiles();
+        //    IActionResult result = controller.ListWalletsFiles();
 
-            JsonResult viewResult = Assert.IsType<JsonResult>(result);
-            var model = viewResult.Value as WalletFileModel;
+        //    JsonResult viewResult = Assert.IsType<JsonResult>(result);
+        //    var model = viewResult.Value as WalletFileModel;
 
-            Assert.NotNull(model);
-            Assert.Equal(walletPath, model.WalletsPath);
-            Assert.Empty(model.WalletsFiles);
-        }
+        //    Assert.NotNull(model);
+        //    Assert.Equal(walletPath, model.WalletsPath);
+        //    Assert.Empty(model.WalletsFiles);
+        //}
 
-        [Fact]
-        public void ListWalletFilesWithExceptionReturnsBadRequest()
-        {
-            var walletManager = new Mock<IWalletManager>();
-            walletManager.Setup(m => m.GetWalletsFiles())
-                .Throws(new Exception("something happened."));
+        //[Fact]
+        //public void ListWalletFilesWithExceptionReturnsBadRequest()
+        //{
+        //    var walletManager = new Mock<IWalletManager>();
+        //    walletManager.Setup(m => m.GetWalletsFiles())
+        //        .Throws(new Exception("something happened."));
 
-            var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), this.Network, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
+        //    var controller = new WalletController(this.LoggerFactory.Object, walletManager.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), Network.Main, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
 
-            IActionResult result = controller.ListWalletsFiles();
+        //    IActionResult result = controller.ListWalletsFiles();
 
-            ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
-            ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
+        //    ErrorResult errorResult = Assert.IsType<ErrorResult>(result);
+        //    ErrorModel errorResponse = Assert.IsType<ErrorModel>(errorResult.Value);
 
-            Assert.Equal(400, errorResponse.Status);
-            Assert.Equal("something happened.", errorResponse.ErrorCode);
-        }
+        //    Assert.Equal(400, errorResponse.Status);
+        //    Assert.Equal("something happened.", errorResponse.ErrorCode);
+        //}
 
         [Fact]
         public void CreateNewAccountWithValidModelReturnsAccountName()
@@ -1651,7 +1643,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         {
             var walletName = "wallet 1";
             Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
-
+            wallet.AccountsRoot.Clear();
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 Accounts = new List<HdAccount>()
@@ -1792,48 +1784,41 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public void GetAllAddressesWithValidModelReturnsAllAddresses()
         {
             var walletName = "myWallet";
+            var walletPassword = Guid.NewGuid().ToString();
+
+            Wallet wallet = WalletTestsHelpers.GenerateBlankWallet(walletName, walletPassword, this.Network);
 
             // Receive address with a transaction
-            HdAddress usedReceiveAddress = WalletTestsHelpers.CreateAddress();
+            HdAddress usedReceiveAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
             TransactionData receiveTransaction = WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(500000), 1);
             usedReceiveAddress.Transactions.Add(receiveTransaction);
 
             // Receive address without a transaction
-            HdAddress unusedReceiveAddress = WalletTestsHelpers.CreateAddress();
+            HdAddress unusedReceiveAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(1);
 
             // Change address with a transaction
-            HdAddress usedChangeAddress = WalletTestsHelpers.CreateAddress(true);
+            HdAddress usedChangeAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(0);
             TransactionData changeTransaction = WalletTestsHelpers.CreateTransaction(new uint256(1), new Money(500000), 1);
             usedChangeAddress.Transactions.Add(changeTransaction);
 
             // Change address without a transaction
-            HdAddress unusedChangeAddress = WalletTestsHelpers.CreateAddress(true);
+            HdAddress unusedChangeAddress = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses.ElementAt(1);
 
-            var receiveAddresses = new List<HdAddress> { usedReceiveAddress, unusedReceiveAddress };
-            var changeAddresses = new List<HdAddress> { usedChangeAddress, unusedChangeAddress };
-            Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
-            wallet.AccountsRoot.Add(new AccountRoot()
-            {
-                Accounts = new List<HdAccount> { new HdAccount
-                {
-                    ExternalAddresses = receiveAddresses,
-                    InternalAddresses = changeAddresses,
-                    Name = "Account 0",
-                } },
-                CoinType = CoinType.RegTest
-            });
+            var receiveAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses;
+            var changeAddresses = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).InternalAddresses;
+
 
             var mockWalletWrapper = new Mock<IWalletManager>();
             mockWalletWrapper.Setup(m => m.GetWallet(walletName)).Returns(wallet);
 
             var controller = new WalletController(this.LoggerFactory.Object, mockWalletWrapper.Object, new Mock<IWalletTransactionHandler>().Object, new Mock<IWalletSyncManager>().Object, It.IsAny<ConnectionManager>(), this.Network, new Mock<ConcurrentChain>().Object, new Mock<IBroadcasterManager>().Object, DateTimeProvider.Default);
-            IActionResult result = controller.GetAllAddresses(new GetAllAddressesModel { WalletName = "myWallet", AccountName = "Account 0" });
+            IActionResult result = controller.GetAllAddresses(new GetAllAddressesModel { WalletName = "myWallet", AccountName = "account 0" });
 
             JsonResult viewResult = Assert.IsType<JsonResult>(result);
             var model = viewResult.Value as AddressesModel;
 
             Assert.NotNull(model);
-            Assert.Equal(4, model.Addresses.Count());
+            Assert.Equal(40, model.Addresses.Count());
 
             var modelUsedReceiveAddress = model.Addresses.Single(a => a.Address == usedReceiveAddress.Address);
             Assert.Equal(modelUsedReceiveAddress.Address, model.Addresses.Single(a => a.Address == modelUsedReceiveAddress.Address).Address);
