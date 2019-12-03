@@ -33,7 +33,7 @@ namespace BRhodium.Node.IntegrationTests
 
             var balanceBeforeMining = node.FullNode.WalletManager()
                 .GetSpendableTransactionsInWallet(toWalletName)
-                .Where(x => x.Address == address)
+                .Where(x => x.Address.Address.Equals(address.Address))
                 .Sum(s => s.Transaction.Amount);
 
             var wallet = node.FullNode.WalletManager().GetWalletByName(toWalletName);
@@ -47,7 +47,7 @@ namespace BRhodium.Node.IntegrationTests
 
             var balanceAfterMining = node.FullNode.WalletManager()
                 .GetSpendableTransactionsInWallet(toWalletName)
-                .Where(x => x.Address == address)
+                .Where(x => x.Address.Address.Equals(address.Address))
                 .Sum(s => s.Transaction.Amount);
 
             var balanceIncrease = balanceAfterMining - balanceBeforeMining;

@@ -23,4 +23,3 @@ namespace BRhodium.Node.IntegrationTests.Transactions
         }
     }
 }
-

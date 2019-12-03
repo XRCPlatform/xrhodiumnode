@@ -64,7 +64,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         public void GetTxOutWithValidTxThenReturnsCorrectUnspentTx()
         {
             RPCClient rpc = this.rpcTestFixture.RpcClient;
-            UnspentCoin[] unspent = rpc.ListUnspent(this.rpcTestFixture.TestWallet.Name,1);
+            UnspentCoin[] unspent = rpc.ListUnspent(this.rpcTestFixture.TestWallet.Name, 1);
             Assert.True(unspent.Any());
             UnspentCoin coin = unspent[0];
             UnspentTransaction resultTxOut = rpc.GetTxOut(coin.OutPoint.Hash, coin.OutPoint.N, true);
@@ -80,7 +80,7 @@ namespace BRhodium.Node.IntegrationTests.RPC
         public async void GetTxOutAsyncWithValidTxThenReturnsCorrectUnspentTxAsync()
         {
             RPCClient rpc = this.rpcTestFixture.RpcClient;
-            UnspentCoin[] unspent = rpc.ListUnspent(this.rpcTestFixture.TestWallet.Name,1);
+            UnspentCoin[] unspent = rpc.ListUnspent(this.rpcTestFixture.TestWallet.Name, 1);
             Assert.True(unspent.Any());
             UnspentCoin coin = unspent[0];
             UnspentTransaction resultTxOut = await rpc.GetTxOutAsync(coin.OutPoint.Hash, coin.OutPoint.N, true);

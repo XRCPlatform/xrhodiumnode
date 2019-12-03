@@ -78,8 +78,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                               "\"MerkleProof\"   TEXT NULL," +
                               "\"ScriptPubKey\"  TEXT NOT NULL," +
                               "\"Hex\"   TEXT NULL," +
-                              "\"IsPropagated\"  NUMERIC NOT NULL," +
-                              "\"IsSpent\"   NUMERIC NOT NULL" +
+                              "\"IsPropagated\"  NUMERIC DEFAULT 0 ," +
+                              "\"IsSpent\"   NUMERIC DEFAULT 0 " +
                         ");";
                         using (var command = new SQLiteCommand(sql, dbConnection, transaction))
                         {

@@ -855,7 +855,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     insertCommand.Parameters.AddWithValue("$MerkleProof", (trx.SpendingDetails != null) ? null : (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
                     insertCommand.Parameters.AddWithValue("$ScriptPubKey", PackageSriptToString(trx.ScriptPubKey));
                     insertCommand.Parameters.AddWithValue("$Hex", trx.Hex);
-                    insertCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
+                    insertCommand.Parameters.AddWithValue("$IsPropagated", (trx.IsPropagated.HasValue) ? trx.IsPropagated : false);
                     insertCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
 
                     insertCommand.ExecuteNonQuery();
@@ -883,7 +883,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                     updateTrxCommand.Parameters.AddWithValue("$BlockHeight", trx.BlockHeight);
                     updateTrxCommand.Parameters.AddWithValue("$BlockHash", trx.BlockHash);
                     updateTrxCommand.Parameters.AddWithValue("$CreationTime", trx.CreationTime.ToUnixTimeSeconds());
-                    updateTrxCommand.Parameters.AddWithValue("$IsPropagated", trx.IsPropagated);
+                    updateTrxCommand.Parameters.AddWithValue("$IsPropagated", (trx.IsPropagated.HasValue) ? trx.IsPropagated : false);
                     updateTrxCommand.Parameters.AddWithValue("$IsSpent", (trx.SpendingDetails != null) ? true : false);
                     updateTrxCommand.Parameters.AddWithValue("$MerkleProof", (trx.SpendingDetails != null) ? null : (trx.MerkleProof != null) ? PackPartialMerkleTree(trx.MerkleProof) : null);
                     updateTrxCommand.ExecuteNonQuery();
