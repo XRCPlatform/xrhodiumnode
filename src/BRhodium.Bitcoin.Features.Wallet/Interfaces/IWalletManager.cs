@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using BRhodium.Bitcoin.Features.Consensus.Models;
@@ -375,5 +375,11 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <value></value>
         WalletSettings WalletSettings { get; }
+
+        /// <summary>
+        /// Store and access wallet secrets.
+        /// </summary>
+        /// <value></value>
+        WalletSecrets WalletSecrets { get; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,7 @@ using BRhodium.Bitcoin.Features.Wallet.Interfaces;
 using BRhodium.Node.Utilities;
 using System.Text;
 using BRhodium.Bitcoin.Features.Consensus.Models;
+using Microsoft.AspNetCore.DataProtection;
 
 [assembly: InternalsVisibleTo("BRhodium.Bitcoin.Features.Wallet.Tests")]
 
@@ -23,6 +24,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// </summary>
     public class WalletManager : IWalletManager
     {
+        // <summary>As per RPC method definition this should be the max allowable expiry duration.</summary>
+        private const int MaxWalletUnlockDurationInSeconds = 60 * 60 * 5;
+
         /// <summary>Size of the buffer of unused addresses maintained in an account. </summary>
         private const int UnusedAddressesBuffer = 20;
 
@@ -84,6 +88,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>The settings for the wallet feature.</summary>
         private readonly WalletSettings walletSettings;
 
+        private WalletSecrets walletSecrets;
+        IDataProtector _protector;
+
         /// <summary>
         ///  Makes the wallet settings public for other functions.
         /// </summary>
@@ -91,6 +98,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
             get
             {
                 return this.walletSettings;
+            }
+        }
+
+        /// <summary>
+        /// Store and manage wallet secrets.
+        /// </summary>
+        /// <value></value>
+        public WalletSecrets WalletSecrets
+        {
+            get
+            {
+                return this.walletSecrets;
             }
         }
 
@@ -118,7 +137,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
             IAsyncLoopFactory asyncLoopFactory,
             INodeLifetime nodeLifetime,
             IDateTimeProvider dateTimeProvider,
-            IBroadcasterManager broadcasterManager = null) // no need to know about transactions the node will broadcast to.
+            IBroadcasterManager broadcasterManager = null,  // no need to know about transactions the node will broadcast to.
+            IDataProtectionProvider provider = null
+            )
         {
             Guard.NotNull(loggerFactory, nameof(loggerFactory));
             Guard.NotNull(network, nameof(network));
@@ -155,6 +176,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             this.keysLookup = new Dictionary<Script, HdAddress>();
             this.keysLookupToWalletName = new Dictionary<Script, string>();
             this.outpointLookup = new Dictionary<OutPoint, TransactionData>();
+
+            this.walletSecrets = new WalletSecrets(provider);
         }
 
         private void BroadcasterManager_TransactionStateChanged(object sender, TransactionBroadcastEntry transactionEntry)
@@ -187,7 +210,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
 
             foreach (Wallet wallet in wallets)
-                this.Wallets.AddOrReplace(wallet.Name,wallet);
+                this.Wallets.AddOrReplace(wallet.Name, wallet);
 
             // Load data in memory for faster lookups.
             this.LoadKeysLookupLock();

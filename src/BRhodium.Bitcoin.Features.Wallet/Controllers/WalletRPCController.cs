@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,9 +69,6 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
         /// <summary>Hd addresses to address list</summary>
         public static ConcurrentDictionary<string, HdAddress> HdAddressByAddressMap = new ConcurrentDictionary<string, HdAddress>();
-        private static ConcurrentDictionary<string, string> walletPassword = new ConcurrentDictionary<string, string>();
-        private static ConcurrentDictionary<string, DateTime> walletPasswordExpiration = new ConcurrentDictionary<string, DateTime>();
-
         private static bool inRescan = false;
 
         public WalletRPCController(
@@ -158,9 +155,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 }
 
                 var dateExpiration = DateTime.Now.AddSeconds(timeout);
-                walletPassword.AddOrReplace(walletName, password);
-                walletPasswordExpiration.AddOrReplace(walletName, dateExpiration);
-
+                this.walletManager.WalletSecrets.UnlockWallet(walletName, password, dateExpiration);
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -236,24 +231,8 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                    HdAddressByAddressMap.TryGetValue(address, out hdAddress);
                 }
 
-                var passwordExpiration = walletPasswordExpiration.TryGet(mywallet.Name);
-                string password = null;
-                if (passwordExpiration == null)
-                {
-                    throw new ArgumentNullException("password");
-                }
-                else
-                {
-                    if (passwordExpiration < DateTime.Now)
-                    {
-                        walletPassword.TryRemove(mywallet.Name, out password);
-                        throw new ArgumentNullException("password");
-                    }
-                    else
-                    {
-                        walletPassword.TryGetValue(mywallet.Name, out password);
-                    }
-                }
+                var password = this.walletManager.WalletSecrets.GetWalletPassword(mywallet.Name);
+
                 if (hdAddress == null)
                 {
                     throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
@@ -300,19 +279,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(walletName))
-                {
-                    walletPassword = new ConcurrentDictionary<string, string>();
-                    walletPasswordExpiration = new ConcurrentDictionary<string, DateTime>();
-                }
-                else
-                {
-                    string password;
-                    DateTime passwordExpiration;
-                    walletPassword.TryRemove(walletName, out password);
-                    walletPasswordExpiration.TryRemove(walletName, out passwordExpiration);
-                }
-
+                this.walletManager.WalletSecrets.LockWallet(walletName);
                 return this.Json(ResultHelper.BuildResultResponse(true));
             }
             catch (Exception e)
@@ -776,20 +743,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 var address = param1;
                 var amount = Decimal.Parse(param2);
-                string password;
-                DateTime passwordExpiration;
-
-                walletPasswordExpiration.TryGetValue(WalletRPCUtil.DEFAULT_WALLET, out passwordExpiration);
-
-                if (passwordExpiration < DateTime.Now)
-                {
-                    walletPassword.TryRemove(WalletRPCUtil.DEFAULT_WALLET, out password);
-                    throw new ArgumentNullException(nameof(password));
-                }
-                else
-                {
-                    walletPassword.TryGetValue(WalletRPCUtil.DEFAULT_WALLET, out password);
-                }
+                var password = this.walletManager.WalletSecrets.GetWalletPassword(WalletRPCUtil.DEFAULT_WALLET);
 
                 Guard.NotEmpty(password, nameof(password));
                 Guard.NotEmpty(address, nameof(address));
@@ -1605,7 +1559,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var txCount = wallet.GetAllTransactionsByCoinType((CoinType)this.Network.Consensus.CoinType);
                 result.TxCount = txCount == null ? 0 : txCount.Count();
 
-                var passwordExpiration = walletPasswordExpiration.TryGet(wallet.Name);
+                var passwordExpiration = this.walletManager.WalletSecrets.GetWalletPasswordExpiration(wallet.Name);
                 if (passwordExpiration == null)
                 {
                     throw new ArgumentNullException("password");
