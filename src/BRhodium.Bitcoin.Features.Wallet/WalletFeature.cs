@@ -19,6 +19,7 @@ using BRhodium.Node.Interfaces;
 using BRhodium.Node.Signals;
 using System.Globalization;
 using BRhodium.Node.Utilities;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
@@ -216,6 +217,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         services.AddSingleton<BroadcasterBehavior>();
                         services.AddSingleton<WalletSettings>(walletSettings);
                         services.AddSingleton<IWalletKeyPool, WalletKeyPool>();
+                        services.AddSingleton<IDataProtectionProvider, EphemeralDataProtectionProvider>();
                     });
             });
 

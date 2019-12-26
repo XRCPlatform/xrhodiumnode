@@ -1,4 +1,5 @@
-﻿using System;
+using System.Threading;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using BRhodium.Node.Utilities;
 using BRhodium.Node.Utilities.JsonConverters;
 using Xunit;
 using System.Text;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests
 {
@@ -3185,6 +3187,40 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Assert.Contains((unconfirmedTransactionId, trxUnconfirmed1.CreationTime), result);
             Assert.DoesNotContain(trxUnconfirmed1, remainingTrxs);
             Assert.Null(trxConfirmed2.SpendingDetails);
+        }
+
+        [Fact]
+        public void TestLockAndUnlockWallet()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+            var walletManager = new WalletManager(
+                this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, new EphemeralDataProtectionProvider());
+
+            var fixture = new WalletFixture();
+            fixture.GenerateBlankWallet("default", "test");
+            Assert.NotNull(walletManager.WalletSecrets);
+            walletManager.WalletSecrets.UnlockWallet("default", "test", DateTime.Now.AddSeconds(10));
+            Assert.Equal("test", walletManager.WalletSecrets.GetWalletPassword("default"));
+            walletManager.WalletSecrets.LockWallet("default");
+            Assert.Null(walletManager.WalletSecrets.GetWalletPassword("default"));
+        }
+
+        [Fact]
+        public void TestExpiration()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+            var walletManager = new WalletManager(
+                this.LoggerFactory.Object, this.Network, new Mock<ConcurrentChain>().Object, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, new EphemeralDataProtectionProvider());
+
+            var fixture = new WalletFixture();
+            fixture.GenerateBlankWallet("default", "test");
+            walletManager.WalletSecrets.UnlockWallet("default", "test", DateTime.Now.AddSeconds(1));
+            Assert.Equal("test", walletManager.WalletSecrets.GetWalletPassword("default"));
+            Thread.Sleep(1000);
+            Assert.Null(walletManager.WalletSecrets.GetWalletPassword("default"));
+
         }
 
         private (Mnemonic mnemonic, Wallet wallet) CreateWalletOnDiskAndDeleteWallet(WalletManager walletManager, string password, string passphrase, string walletName, ConcurrentChain chain)
