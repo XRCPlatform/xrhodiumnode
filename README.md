@@ -21,6 +21,8 @@ Join our community on [Discord](https://t.co/ns9nldLSrv).
 
 .NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. There is a convenience wrapper around most processes is provided to make setup quick.
 
+**Follow full installation process at http://wiki.bitcoinrh.org/.**
+
  1. Clone the repository:
 
 ```
