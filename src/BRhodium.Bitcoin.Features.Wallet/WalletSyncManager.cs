@@ -80,9 +80,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 ICollection<uint256> locators = this.walletManager.GetFirstWalletBlockLocator();
                 BlockLocator blockLocator = new BlockLocator { Blocks = locators.ToList() };
                 ChainedHeader fork = this.chain.FindFork(blockLocator);
-                this.walletManager.RemoveBlocks(fork);
-                this.walletManager.WalletTipHash = fork.HashBlock;
-                this.walletTip = fork;
+                if (fork != null)
+                {
+                    this.walletManager.RemoveBlocks(fork);
+                    this.walletManager.WalletTipHash = fork.HashBlock;
+                    this.walletTip = fork;
+                }     
             }
 
             this.logger.LogTrace("(-)");

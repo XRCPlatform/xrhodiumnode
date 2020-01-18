@@ -194,49 +194,27 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                     throw new ArgumentNullException("address");
                 }
                 HdAddress hdAddress = null;
-                //we need to find wallet
-                string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
-                if (walletCombix == null)
+                bool isFound = false;
+
+                Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+                if (currWallet != null)
                 {
-                    bool isFound = false;
-
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    foreach (var walletAddress in currWallet.GetAllAddressesByCoinType((CoinType)this.Network.Consensus.CoinType))
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                        if (walletAddress.Address.ToString().Equals(address))
                         {
-                            foreach (var walletAddress in currAccount.GetCombinedAddresses())
-                            {
-                                if (walletAddress.Address.ToString().Equals(address))
-                                {
-                                    isFound = true;
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
-                                    hdAddress = walletAddress;
-                                    break;
-                                }
-                            }
-
-                            if (isFound) break;
+                            isFound = true;
+                            hdAddress = walletAddress;
+                            break;
                         }
-
-                        if (isFound) break;
                     }
                 }
-                if (walletCombix == null)
+                if (currWallet == null)
                 {
                     throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
                 }
-                string walletName = walletCombix.Split('/')[1];
-                var mywallet = this.walletManager.GetWallet(walletName);
 
-                //if wallet combix was cached
-                if (HdAddressByAddressMap.ContainsKey(address) && hdAddress == null)
-                {
-                    HdAddressByAddressMap.TryGetValue(address, out hdAddress);
-                }
-
-                var passwordExpiration = walletPasswordExpiration.TryGet(mywallet.Name);
+                var passwordExpiration = walletPasswordExpiration.TryGet(currWallet.Name);
                 string password = null;
                 if (passwordExpiration == null)
                 {
@@ -246,12 +224,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     if (passwordExpiration < DateTime.Now)
                     {
-                        walletPassword.TryRemove(mywallet.Name, out password);
+                        walletPassword.TryRemove(currWallet.Name, out password);
                         throw new ArgumentNullException("password");
                     }
                     else
                     {
-                        walletPassword.TryGetValue(mywallet.Name, out password);
+                        walletPassword.TryGetValue(currWallet.Name, out password);
                     }
                 }
                 if (hdAddress == null)
@@ -262,7 +240,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     if (password != null && hdAddress != null)
                     {
-                        var pk = mywallet.GetExtendedPrivateKeyForAddress(password, hdAddress).PrivateKey.GetWif(this.Network);
+                        var pk = currWallet.GetExtendedPrivateKeyForAddress(password, hdAddress).PrivateKey.GetWif(this.Network);
                         string privatekey = pk.ToString();
                         return this.Json(ResultHelper.BuildResultResponse(privatekey));
                     }
@@ -280,6 +258,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
 
         /// <summary>
         /// Lock the wallets.
@@ -420,7 +399,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 {
                     res.IsValid = false;
                 }
-
+                //TODO:Remove cache at RPC controller tier and propagate to manager cache
                 string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
                 if (walletCombix != null)
                 {
@@ -429,26 +408,14 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 if (!res.IsMine)
                 {
-                    foreach (var currWalletName in this.walletManager.GetWalletNames())
+                    Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+                    if (currWallet != null)
                     {
-                        foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
-                        {
-                            foreach (var walletAddress in currAccount.GetCombinedAddresses())
-                            {
-                                if (walletAddress.Address.ToString().Equals(address))
-                                {
-                                    walletCombix = $"{currAccount.Name}/{currWalletName}";
-                                    WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                                    HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
-                                    res.IsMine = true;
-                                    break;
-                                }
-                            }
-
-                            if (res.IsMine) break;
-                        }
-
-                        if (res.IsMine) break;
+                        res.IsMine = true;
+                    }
+                    if (currWallet == null)
+                    {
+                        throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
                     }
                 }
 
@@ -461,13 +428,19 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             }
         }
 
+
         /// <summary>
         /// Gets the account as an wallet combix.
         /// </summary>
         /// <param name="address">The address.</param>
         /// <returns>(string) Return wallet combix as string.</returns>
+        /// <summary>
+        /// Gets the account as an wallet combix.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        /// <returns>(string) Gets  account name and wallet name sepearated by '/' separator called wallet combix as string.</returns>
         [ActionName("getaccount")]
-        [ActionDescription("Gets the account as an wallet combix.")]
+        [ActionDescription("Gets account name and wallet name sepearated by '/' separator.")]
         public IActionResult GetAccount(string address)
         {
             if (string.IsNullOrEmpty(address))
@@ -475,25 +448,16 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 throw new ArgumentNullException("address");
             }
 
-            string walletCombix = WalletsByAddressMap.TryGet<string, string>(address);
-            if (walletCombix != null)
+            Wallet currWallet = this.walletManager.GetWalletByAddress(address);
+            if (currWallet != null)
             {
-                return this.Json(ResultHelper.BuildResultResponse(walletCombix));
-            }
-
-            foreach (var currWalletName in this.walletManager.GetWalletNames())
-            {
-                foreach (var currAccount in this.walletManager.GetAccounts(currWalletName))
+                foreach (var hdAddress in currWallet.GetAllAddressesByCoinType((CoinType)this.Network.Consensus.CoinType))
                 {
-                    foreach (var walletAddress in currAccount.ExternalAddresses)
+                    if (hdAddress.Address.ToString().Equals(address))
                     {
-                        if (walletAddress.Address.ToString().Equals(address))
-                        {
-                            walletCombix = $"{currAccount.Name}/{currWalletName}";
-                            WalletsByAddressMap.TryAdd<string, string>(address, walletCombix);
-                            HdAddressByAddressMap.TryAdd<string, HdAddress>(address, walletAddress);
-                            return this.Json(ResultHelper.BuildResultResponse(walletCombix));
-                        }
+                        var account = currWallet.GetAccountByHdPathCoinType(hdAddress.HdPath, (CoinType)this.Network.Consensus.CoinType);
+                        string walletCombix = $"{account.Name}/{currWallet.Name}";
+                        return this.Json(ResultHelper.BuildResultResponse(walletCombix));
                     }
                 }
             }
@@ -501,6 +465,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             //if this point is reached the address is not in any wallets
             throw new RPCException(RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY, "Wallet not initialized", null, false);
         }
+
 
         /// <summary>
         /// The getaccountaddress RPC is a DEPRECATED RPC. It is intended to create an "account"

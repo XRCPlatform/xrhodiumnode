@@ -107,8 +107,12 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
 
         public static NodeBuilder Create([CallerMemberName] string caller = null, string version = "0.13.1")
         {
-            caller = Path.Combine("TestData", caller);
-            string path = CreateTestFolder(caller);
+            string optimisedPath = Path.Combine("TestData", caller);
+            if (optimisedPath.Length > 80)
+            {
+                optimisedPath = Path.Combine("TestData", caller.GetHashCode().ToString("X2"));
+            }
+            string path = CreateTestFolder(optimisedPath);
             return new NodeBuilder(path);
         }
 

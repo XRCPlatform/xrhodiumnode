@@ -76,7 +76,7 @@ namespace BRhodium.Bitcoin.Features.Consensus
         public PowConsensusOptions TestPowConsensusOptions()
         {
             var production = this;
-            production.CoinbaseMaturity = 1;
+            production.CoinbaseMaturity = 5;
             return production;
         }
         public PowConsensusOptions RegTestPowConsensusOptions()
