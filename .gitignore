@@ -247,3 +247,6 @@ ModelManifest.xml
 *.pubxml
 
 .DS_STORE
+
+# builds
+Scripts/brhodium-*
