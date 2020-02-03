@@ -29,7 +29,17 @@ apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev
 <para>and latest MS .Net Core Framework</para>
 
 <code language="cs">
-https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-current
+https://docs.microsoft.com/en-us/dotnet/core/install/linux-package-manager-ubuntu-1604
+
+wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+
+And install SDK 2.2
+
+sudo apt-get update
+sudo apt-get install apt-transport-https
+sudo apt-get update
+apt-get install dotnet-sdk-2.2
 </code>
 
 <para>After completing these steps you can continue with a first run.</para>
@@ -119,6 +129,14 @@ Change line:
 #server=0
 To:
 server=1
+</code>
+
+<para>To enable UPnp set:</para>
+<code language="cs">
+Change line:
+#upnp=0
+To:
+upnp=1
 </code>
 
 <para>Configure API RPC-JSON access authentication:</para>
