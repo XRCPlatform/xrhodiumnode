@@ -14,6 +14,7 @@ namespace BRhodium.Node.IntegrationTests.Transactions
             And(a_sending_and_a_receiving_wallet);
             And(some_funds_in_the_sending_wallet);
             And(no_fund_in_the_receiving_wallet);
+            And(the_block_is_mined);
             And(the_wallets_are_in_sync);
             And(a_nulldata_transaction);
             When(the_transaction_is_broadcasted);

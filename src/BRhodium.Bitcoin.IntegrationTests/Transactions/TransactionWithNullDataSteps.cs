@@ -49,8 +49,10 @@ namespace BRhodium.Node.IntegrationTests.Transactions
             this.senderNode = this.builder.CreateBRhodiumPowNode();
             this.receiverNode = this.builder.CreateBRhodiumPowNode();
             this.builder.StartAll();
-            this.senderNode.NotInIBD();
-            this.receiverNode.NotInIBD();
+            //this.senderNode.NotInIBD();
+            //this.receiverNode.NotInIBD();
+            this.senderNode.CreateRPCClient().AddNode(this.receiverNode.Endpoint, false);
+            this.receiverNode.CreateRPCClient().AddNode(this.senderNode.Endpoint, false);
         }
 
         private void a_sending_and_a_receiving_wallet()

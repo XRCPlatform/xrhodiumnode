@@ -212,8 +212,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
             }
             else this.logger.LogTrace("New block follows the previously known block '{0}'.", this.walletTip);
 
-            this.walletTip = newTip;
             this.walletManager.ProcessBlock(block, newTip);
+            this.walletTip = newTip;
 
             this.logger.LogTrace("(-)");
         }

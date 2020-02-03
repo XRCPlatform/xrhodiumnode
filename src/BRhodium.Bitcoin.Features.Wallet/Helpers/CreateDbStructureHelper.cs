@@ -115,7 +115,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Helpers
                             "\"WalletId\"  INTEGER  NOT NULL,  " +
                             "\"SpendingTransactionId\" INTEGER  NOT NULL, " +
                             "\"Amount\"    INTEGER  NOT NULL," +
-                            "\"DestinationAddress\"    TEXT NOT NULL," +
+                            "\"DestinationAddress\"    TEXT NULL," +//OP_RETURN does not need address
                             "\"DestinationScriptPubKey\"   TEXT NOT NULL" +
                         ");";
                         using (var command = new SQLiteCommand(sql, dbConnection, transaction))
