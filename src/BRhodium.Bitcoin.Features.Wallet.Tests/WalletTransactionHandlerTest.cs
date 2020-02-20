@@ -12,6 +12,7 @@ using BRhodium.Node.Tests.Common.Logging;
 using BRhodium.Node.Tests.Wallet.Common;
 using BRhodium.Node.Utilities;
 using Xunit;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests
 {
@@ -52,7 +53,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 var dataDir = "TestData/WalletTransactionHandlerTest/BuildTransactionNoSpendableTransactionsThrowsWalletException";
                 var nodeSettings = new NodeSettings(args: new string[] { $"-datadir={dataDir}", "-regtest" });
                 var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain.Object, nodeSettings, new Mock<WalletSettings>().Object,
-                    new DataFolder(nodeSettings.DataDir), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                    new DataFolder(nodeSettings.DataDir), new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
                 var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, new Mock<IWalletFeePolicy>().Object, this.Network);
 
                 walletManager.SaveWallet(wallet.wallet, true);
@@ -92,7 +93,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 var dataDir = "TestData/WalletTransactionHandlerTest/BuildTransactionFeeTooLowThrowsWalletException";
                 var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataDir}" });
                 var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, nodeSettings, new Mock<WalletSettings>().Object,
-                    new DataFolder(nodeSettings.DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                    new DataFolder(nodeSettings.DataDir), walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
                 var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
                 walletManager.SaveWallet(wallet);
@@ -251,7 +252,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, nodeSettings,
                 new Mock<WalletSettings>().Object, dataFolder,
-                walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
             var walletTransactionHandler =
                 new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
@@ -275,7 +276,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             walletFeePolicy.Setup(w => w.GetFeeRate(FeeType.Low)).Returns(new FeeRate(20000));
             var overrideFeeRate = new FeeRate(20000);
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, chain, NodeSettings.Default(this.Network), new Mock<WalletSettings>().Object,
-               dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+               dataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
             var wallet = WalletTestsHelpers.GenerateBlankWallet("myWallet1", "password", this.Network);
@@ -356,7 +357,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             DataFolder dataFolder = CreateDataFolder(this);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
             var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumRegTest, new Mock<ConcurrentChain>().Object, nodeSettings, new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
 
@@ -384,7 +385,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new ConcurrentChain(this.Network), nodeSettings, new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
 
@@ -410,7 +411,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             DataFolder dataFolder = CreateDataFolder(this);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new ConcurrentChain(this.Network), nodeSettings, new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
 
@@ -444,7 +445,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             var wallet = WalletTestsHelpers.GenerateBlankWallet("wallet1", Guid.NewGuid().ToString(), this.Network);
 
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new ConcurrentChain(this.Network), nodeSettings, new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, walletFeePolicy.Object, this.Network);
 
@@ -470,7 +471,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             DataFolder dataFolder = CreateDataFolder(this);
             var nodeSettings = new NodeSettings(this.Network, args: new string[] { $"-datadir={dataFolder}" });
             var walletManager = new WalletManager(this.LoggerFactory.Object, this.Network, new ConcurrentChain(this.Network), nodeSettings, new Mock<WalletSettings>().Object,
-                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, null, new EphemeralDataProtectionProvider());
 
             var walletTransactionHandler = new WalletTransactionHandler(this.LoggerFactory.Object, walletManager, It.IsAny<WalletFeePolicy>(), this.Network);
             var wallet = WalletTestsHelpers.GenerateBlankWallet("wallet1", Guid.NewGuid().ToString(), this.Network);
