@@ -198,5 +198,12 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
 
         /// <summary>'multi-op-return' error returns a <see cref="RejectNonStandard"/> reject code.</summary>
         public static MempoolError MultiOpReturn = new MempoolError(RejectNonstandard, "multi-op-return");
+
+        /// <summary>'no-witness-yet' error returns a <see cref="RejectNonStandard"/> reject code.</summary>
+        public static MempoolError NoWitnessYet = new MempoolError(RejectNonstandard, "no-witness-yet");
+
+        // TODO: It is not clear from the Bitcoin Core source what the actual message is supposed to be in this case. Chose witness-mutated as an unambiguous message.
+        /// <summary>'witness-mutated' error returns a <see cref="RejectInvalid"/> reject code.</summary>
+        public static MempoolError WitnessMutated = new MempoolError(RejectInvalid, "witness-mutated");
     }
 }

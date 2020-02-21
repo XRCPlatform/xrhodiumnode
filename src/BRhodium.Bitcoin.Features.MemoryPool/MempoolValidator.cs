@@ -130,6 +130,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
 
         /// <inheritdoc cref="IConsensusRules" />
         private readonly IConsensusRules consensusRules;
+        private readonly NodeDeployments nodeDeployments;
 
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
         private readonly ITxMempool memPool;
@@ -175,7 +176,8 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             CoinView coinView,
             ILoggerFactory loggerFactory,
             NodeSettings nodeSettings,
-            IConsensusRules consensusRules)
+            IConsensusRules consensusRules,
+            NodeDeployments nodeDeployments)
         {
             this.memPool = memPool;
             this.mempoolLock = mempoolLock;
@@ -190,6 +192,7 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             this.PerformanceCounter = new MempoolPerformanceCounter(this.dateTimeProvider);
             this.minRelayTxFee = nodeSettings.MinRelayTxFeeRate;
             this.consensusRules = consensusRules;
+            this.nodeDeployments = nodeDeployments;
         }
 
         /// <summary>Gets a counter for tracking memory pool performance.</summary>
@@ -554,10 +557,18 @@ namespace BRhodium.Bitcoin.Features.MemoryPool
             // TODO: Implement Witness Code
             // Bitcoin Ref: https://github.com/bitcoin/bitcoin/blob/ea729d55b4dbd17a53ced474a8457d4759cfb5a5/src/validation.cpp#L463-L467
             //// Reject transactions with witness before segregated witness activates (override with -prematurewitness)
-            bool witnessEnabled = false;//IsWitnessEnabled(chainActive.Tip(), Params().GetConsensus());
             //if (!GetBoolArg("-prematurewitness",false) && tx.HasWitness() && !witnessEnabled) {
             //    return state.DoS(0, false, REJECT_NONSTANDARD, "no-witness-yet", true);
             //}
+
+            DeploymentFlags flags = this.nodeDeployments.GetFlags(this.chain.Tip);
+            bool witnessEnabled = flags.ScriptFlags.HasFlag(ScriptVerify.Witness); // TODO: Must set this flag
+
+            if (context.Transaction.HasWitness && !witnessEnabled)
+            {
+                this.logger.LogTrace("(-)[FAIL_NO_WITNESS_YET");
+                context.State.Fail(MempoolErrors.NoWitnessYet).Throw();
+            }
 
             // Rather not work on nonstandard transactions (unless -testnet/-regtest)
             if (this.mempoolSettings.NodeSettings.RequireStandard)
