@@ -2011,8 +2011,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                         if (addSpendingTx)
                         {
                             var spendingDataTx = new TransactionData();
-                            var chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
-
+                            ChainedHeader chainedHeader = null;
+                            //unconfirmed transactions have nullable BlockHeight that throws error if access .value unchecked
+                            if (txItem.SpendingDetails.BlockHeight.HasValue)
+                            {
+                                chainedHeader = this.ConsensusLoop.Chain.GetBlock(txItem.SpendingDetails.BlockHeight.Value);
+                            }
                             if (chainedHeader != null)
                             {
                                 spendingDataTx.BlockHash = chainedHeader.HashBlock;
