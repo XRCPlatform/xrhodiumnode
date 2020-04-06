@@ -1,4 +1,7 @@
-1.1.14 : In Progress
+1.1.15 : In Progress
+
+1.1.14
+- Bug fix for ListSince RPC
 
 1.1.13
 - Added support for UPnP for NAT Traversal **

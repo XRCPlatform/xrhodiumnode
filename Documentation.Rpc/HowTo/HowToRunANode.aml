@@ -69,7 +69,7 @@ Go to \home\mynode\
 
 And clone this git:
 
-git clone -b master_1.1.13 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+git clone -b master_1.1.14 https://gitlab.com/bitcoinrh/BRhodiumNode.git
 </code>
 
         <para>Now go to project folder and call.</para>
