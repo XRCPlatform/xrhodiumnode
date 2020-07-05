@@ -1,4 +1,9 @@
-1.1.15 : In Progress
+1.1.16 : In Progress
+
+1.1.15
+- If user has txindex=1, then a transaction index will be present for all
+transactions. If the index is corrupted, it can be rebuilt by scanning
+every block to rebuild transaction -> block index.
 
 1.1.14
 - Bug fix for ListSince RPC
