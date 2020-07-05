@@ -89,6 +89,11 @@ namespace BRhodium.Bitcoin.Features.BlockStore
 
         /// <summary>Represents the last block stored to disk.</summary>
         ChainedHeader HighestPersistedBlock { get; }
+
+        /// <summary>
+        ///  For tx indexes re-indexing from blocks.
+        /// </summary>
+        void ReIndexTransactionIndex();
     }
 
     public class BlockRepository : IBlockRepository
@@ -209,9 +214,9 @@ namespace BRhodium.Bitcoin.Features.BlockStore
                     this.PerformanceCounter.AddRepositoryHitCount(1);
 
                     Row<byte[], Block> blockRow = transaction.Select<byte[], Block>("Block", transactionRow.Value.ToBytes());
+
                     if (blockRow.Exists)
                         res = blockRow.Value.Transactions.FirstOrDefault(t => t.GetHash() == trxid);
-
                     if (res != null) this.PerformanceCounter.AddRepositoryHitCount(1);
                     else this.PerformanceCounter.AddRepositoryMissCount(1);
                 }
@@ -689,6 +694,45 @@ namespace BRhodium.Bitcoin.Features.BlockStore
 
             this.logger.LogTrace("(-)");
             return task;
+        }
+
+        /// <summary>
+        /// Reindex the transaction table.
+        /// </summary>
+        public void ReIndexTransactionIndex()
+        {
+            this.logger.LogInformation("Reindexing transaction index ...");
+            var rowCount = 0;
+            this.DBreeze.Scheme.DeleteTable("Transaction");
+
+            using (DBreeze.Transactions.Transaction transaction = this.DBreeze.GetTransaction())
+            {
+                var blockCount = transaction.Count("Block");
+                var transactions = new List<(Transaction, Block)>();
+
+                foreach (var block in transaction.SelectForward<uint256, NBitcoin.Block>("Block"))
+                {
+
+                    foreach (var tx in block.Value.Transactions)
+                       transactions.Add((tx, block.Value));
+
+                    if (++rowCount % 1000 == 0)
+                    {
+                        // Doing insertions at batches of 1000 since DBreeze works best inserting in
+                        // ascending order.
+                        this.OnInsertTransactions(transaction, transactions);
+                        transactions.Clear();
+
+                        this.logger.LogInformation("Reindex tx index in progress ... {0}/{1} blocks processed ... ", rowCount, blockCount);
+                    }
+                }
+
+                // Update the final transactions
+                this.OnInsertTransactions(transaction, transactions);
+                transactions.Clear();
+
+                transaction.Commit();
+            }
         }
 
         public DBreezeEngine GetDbreezeEngine()

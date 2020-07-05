@@ -133,8 +133,8 @@ namespace BRhodium.Bitcoin.Features.BlockStore
         {
             this.logger.LogTrace("()");
 
-            if (this.storeSettings.ReIndex)
-                throw new NotImplementedException();
+            if (this.storeSettings.ReIndex && this.storeSettings.TxIndex)
+                this.BlockRepository.ReIndexTransactionIndex();
 
             this.StoreTip = this.Chain.GetBlock(this.BlockRepository.BlockHash);
 
