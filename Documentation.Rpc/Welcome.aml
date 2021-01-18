@@ -7,12 +7,12 @@
     </summary>
     -->
     <introduction>
-      <para>Use Bitcoin Rhodium's APIs to help you start building Bitcoin Rhodium Apps.</para>
+      <para>Use xRhodium's APIs to help you start building xRhodium Apps.</para>
     </introduction>
     <!-- Optional procedures followed by optional code example but must have
          at least one procedure or code example -->
     <procedure>
-      <title>Bitcoin Rhodium Developer APIs</title>
+      <title>xRhodium Developer APIs</title>
       <steps class="ordered">
         <step>
           <content>
@@ -23,21 +23,21 @@
         </step>
         <step>
           <content>
-            <para>Read information about API Authentization. Bitcoin Rhodium node is using basic authentization for access to RPC-Json API.<lineBreak/>
+            <para>Read information about API Authentization. xRhodium node is using basic authentization for access to RPC-Json API.<lineBreak/>
             <link xlink:href="e8437934-9f80-4efa-8d1b-fdf7c292be71">Read more about Access Authentication</link> </para>
 
           </content>
         </step>
         <step>
           <content>
-            <para>Severals basic "How to" steps to run Bitcoin Rhodium node with description of transaction processing.<lineBreak/>
+            <para>Severals basic "How to" steps to run xRhodium node with description of transaction processing.<lineBreak/>
             <link xlink:href="ab7662f3-3810-4857-abdd-8734d0d18622">Read more about How to...</link> </para>
 
           </content>
         </step>
         <step>
           <content>
-            <para>Sometimes is important to know all links to all subsites of Bitcoin Rhodium project. Wallets, Explorer, ...<lineBreak/>
+            <para>Sometimes is important to know all links to all subsites of xRhodium project. Wallets, Explorer, ...<lineBreak/>
             <link xlink:href="68886385-7fa1-424a-9ccb-a1e4f5207f85">Read more in Important links...</link> </para>
 
           </content>

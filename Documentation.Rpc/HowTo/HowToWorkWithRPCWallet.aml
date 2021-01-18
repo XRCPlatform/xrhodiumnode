@@ -2,7 +2,7 @@
 <topic id="a8247dcf-e6f6-4b13-83c5-8c25779636e0" revisionNumber="1">
   <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>This "How to" describes the flow of usage wallet in Bitcoin Rhodium node. It is based on following parts:</para>
+      <para>This "How to" describes the flow of usage wallet in xRhodium node. It is based on following parts:</para>
 
 <list class="bullet">
   <listItem><link xlink:href="#GenerateWallet"><legacyBold>GenerateNewWallet</legacyBold></link> - Generate new wallet</listItem>

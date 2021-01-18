@@ -81,7 +81,7 @@ RPC commands can be executed using the `rpc` option, along with the RPC name and
 
 ## Further Information
 
-Documentation is available at http://wiki.bitcoinrh.org/.
+Documentation is available at https://wiki.xrhodium.org/.
 
 ## Legal
 

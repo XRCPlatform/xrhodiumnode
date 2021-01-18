@@ -44,7 +44,7 @@
         </step>
         <step>
           <content>
-            <para>Validation of Bitcoin Rhodium addresses on client side and backend side.<lineBreak/>
+            <para>Validation of xRhodium addresses on client side and backend side.<lineBreak/>
             <link xlink:href="2bcf79e6-50f8-4277-8cc4-fac25862b4bc">How to validate addresses</link> </para>
 
           </content>

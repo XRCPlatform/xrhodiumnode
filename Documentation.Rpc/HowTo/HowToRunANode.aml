@@ -48,7 +48,7 @@ apt-get install dotnet-sdk-2.2
     </section>
 
     <section address="Section2">
-      <title>First run of Bitcoin Rhodium node</title>
+      <title>First run of xRhodium node</title>
       <content>
         <para>Switch to your new user (mynode) and run new TMUX session.</para>
 

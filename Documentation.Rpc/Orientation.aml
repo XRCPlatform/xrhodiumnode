@@ -65,7 +65,7 @@
   <listItem><externalLink>
 <linkText><para>Official Homepage</para></linkText>
 <linkAlternateText>Official Homepage</linkAlternateText>
-<linkUri>https://www.bitcoinrh.org/</linkUri>
+<linkUri>https://www.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
@@ -118,7 +118,7 @@
   <listItem><externalLink>
 <linkText><para>GitLab Bicoin Rhodium source</para></linkText>
 <linkAlternateText>GitLab Bicoin Rhodium source</linkAlternateText>
-<linkUri>https://gitlab.com/bitcoinrh/BRhodiumNode</linkUri>
+<linkUri>https://gitlab.com/bitcoinrh/xRhodiumNode</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
@@ -134,64 +134,50 @@
 
 <list class="bullet">
   <listItem><externalLink>
-<linkText><para>BRhodium Twitter</para></linkText>
-<linkAlternateText>BRhodium Twitter</linkAlternateText>
-<linkUri>https://twitter.com/BitCoinRh</linkUri>
+<linkText><para>xRhodium Twitter</para></linkText>
+<linkAlternateText>xRhodium Twitter</linkAlternateText>
+<linkUri>https://twitter.com/xrhodium_xrc</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
 
   <listItem><externalLink>
-<linkText><para>BRhodium Discord - Board</para></linkText>
-<linkAlternateText>BRhodium Discord - Board</linkAlternateText>
+<linkText><para>xRhodium Discord - Board</para></linkText>
+<linkAlternateText>xRhodium Discord - Board</linkAlternateText>
 <linkUri>https://discordapp.com/invite/WmxceSm</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
 
   <listItem><externalLink>
-<linkText><para>BRhodium Reddit</para></linkText>
-<linkAlternateText>BRhodium Reddit</linkAlternateText>
-<linkUri>https://www.reddit.com/r/BitcoinRhodium/</linkUri>
-<linkTarget>_blank</linkTarget>
-</externalLink>
-</listItem>
-
-  <listItem><externalLink>
-<linkText><para>BRhodium Bitcoin Talk</para></linkText>
-<linkAlternateText>BRhodium Bitcoin Talk</linkAlternateText>
+<linkText><para>xRhodium Bitcoin Talk</para></linkText>
+<linkAlternateText>xRhodium Bitcoin Talk</linkAlternateText>
 <linkUri>https://bitcointalk.org/index.php?topic=2505163.0</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
 
   <listItem><externalLink>
-<linkText><para>BRhodium YouTube</para></linkText>
-<linkAlternateText>BRhodium YouTube</linkAlternateText>
+<linkText><para>xRhodium YouTube</para></linkText>
+<linkAlternateText>xRhodium YouTube</linkAlternateText>
 <linkUri>https://www.youtube.com/channel/UCbVc-IjhVzOA_wixfMdbn7Q</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
 
   <listItem><externalLink>
-<linkText><para>BRhodium Medium</para></linkText>
-<linkAlternateText>BRhodium Medium</linkAlternateText>
-<linkUri>https://medium.com/@BitCoinRh</linkUri>
+<linkText><para>xRhodium Medium</para></linkText>
+<linkAlternateText>xRhodium Medium</linkAlternateText>
+<linkUri>https://medium.com/xrhodium</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
 
+
   <listItem><externalLink>
-<linkText><para>BRhodium Instagram</para></linkText>
-<linkAlternateText>BRhodium Instagram</linkAlternateText>
-<linkUri>https://www.instagram.com/bitcoinrhodium/</linkUri>
-<linkTarget>_blank</linkTarget>
-</externalLink>
-</listItem>
-  <listItem><externalLink>
-<linkText><para>BRhodium Facebook</para></linkText>
-<linkAlternateText>BRhodium Facebook</linkAlternateText>
-<linkUri>https://www.facebook.com/bitcoinrh/</linkUri>
+<linkText><para>xRhodium Telegram</para></linkText>
+<linkAlternateText>xRhodium Telegram</linkAlternateText>
+<linkUri>https://t.me/xrhodium_xrc</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>

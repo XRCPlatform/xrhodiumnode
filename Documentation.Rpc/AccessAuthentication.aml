@@ -7,7 +7,7 @@
         <!-- Uncomment this to create a sub-section outline
         <autoOutline /> -->
         <para>In the context of HTTP transactions, basic access authentication is a method for an HTTP user agent (e.g. a web browser) to provide a user name and password when making a request. In basic HTTP authentication, a request contains a header field of the form Authorization: Basic 'credentials'", where credentials is the base64 encoding of id and password joined by a colon. </para>
-        <para>Running Bitcoin Rhodium node with the <legacyBold>server=1</legacyBold> argument tells it to function as a HTTP JSON-RPC server, but Basic access authentication must be used when communicating with it, and, for security reasons, the server by default only accepts connections from other processes on the same machine.</para>
+        <para>Running xRhodium node with the <legacyBold>server=1</legacyBold> argument tells it to function as a HTTP JSON-RPC server, but Basic access authentication must be used when communicating with it, and, for security reasons, the server by default only accepts connections from other processes on the same machine.</para>
         <para>Allowing arbitrary machines to access the JSON-RPC port (using the rpcallowip configuration option) is dangerous and strongly discouraged access should be strictly limited to trusted machines.</para>
       </content>
     </section>
@@ -16,7 +16,7 @@
       <content>
         <para><legacyBold>If you don't need to secure the access to API RPC-JSON, just set server=1 only.</legacyBold></para>
         <para>In the data folder is file brhodium.conf (created after first run of node) which contains whole configuration</para>
-        <para>You only need <legacyBold>to set these params</legacyBold> to activate and configurate basic authentication for Bitcoin Rhodium API RPC-JSON.</para>
+        <para>You only need <legacyBold>to set these params</legacyBold> to activate and configurate basic authentication for xRhodium API RPC-JSON.</para>
 <code language="cs">
 ####RPC Settings####
 #Activate RPC Server (default: 0)
