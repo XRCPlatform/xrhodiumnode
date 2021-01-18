@@ -1,17 +1,17 @@
-Bitcoin Rhodium (XRC) - BRhodium, BitcoinRh
+xRhodium (XRC)
 ===========================================
 
-Project web site: [Bitcoin Rhodium](https://www.bitcoinrh.org)
+Project web site: [xRhodium](https://www.xrhodium.org)
 
 Current version: 1.1.15 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.15))
 
-## About Bitcoin Rhodium
+## About xRhodium
 
-Bitcoin Rhodium is a unique crypto commodity with limited supply and strong use case. Its store-of-value qualities are further supported by a set of features that meet the demand for a long-term crypto investment, incentivize strong-hand investor behaviour and bridge the gap between the world of crypto and traditional investment.
+xRhodium is a unique crypto commodity with limited supply and strong use case. Its store-of-value qualities are further supported by a set of features that meet the demand for a long-term crypto investment, incentivize strong-hand investor behaviour and bridge the gap between the world of crypto and traditional investment.
 
 ## About BRhodiumNode
 
-BRhodiumNode is the full node for Bitcoin Rhodium. It is developed in C#, using the .NET Core platform.
+BRhodiumNode is the full node for xRhodium. It is developed in C#, using the .NET Core platform.
 
 [.NET Core](https://dotnet.github.io/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
 
