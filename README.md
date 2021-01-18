@@ -15,7 +15,7 @@ BRhodiumNode is the full node for xRhodium. It is developed in C#, using the .NE
 
 [.NET Core](https://dotnet.github.io/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
 
-Join our community on [Discord](https://t.co/ns9nldLSrv).
+Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/En/Community).
 
 ## Installation and setup
 
