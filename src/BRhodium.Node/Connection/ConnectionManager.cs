@@ -228,7 +228,7 @@ namespace BRhodium.Node.Connection
                 this.logger.LogInformation("External IP: {0}", ip);
                     foreach (NodeServerEndpoint listen in this.ConnectionSettings.Listen)
                     {
-                        await this.device.CreatePortMapAsync(new Mapping(Protocol.Tcp, listen.Endpoint.Port, listen.Endpoint.Port, "Bitcoin Rhodium"));
+                        await this.device.CreatePortMapAsync(new Mapping(Protocol.Tcp, listen.Endpoint.Port, listen.Endpoint.Port, "xRhodium"));
                     }
                 });
 

@@ -47,7 +47,7 @@ namespace BRhodium.Node.Configuration
         /// <param name="args">The command-line arguments.</param>
         /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
         public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.XRC_PROTOCOL_VERSION,
-            string agent = "BRhodiumBitcoin", string[] args = null, bool loadConfiguration = true)
+            string agent = "xRhodium", string[] args = null, bool loadConfiguration = true)
         {
             this.Agent = agent;
             this.Network = innerNetwork;

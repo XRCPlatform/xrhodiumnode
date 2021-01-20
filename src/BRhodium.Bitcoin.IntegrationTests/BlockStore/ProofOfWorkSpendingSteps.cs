@@ -18,8 +18,8 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
         private const string ReceivingWalletName = "receiving wallet";
         private const string WalletPassword = "123456";
         private const string AccountName = "account 0";
-        private CoreNode sendingBRhodiumBitcoinNode;
-        private CoreNode receivingBRhodiumBitcoinNode;
+        private CoreNode sendingBRhodiumNode;
+        private CoreNode receivingBRhodiumNode;
         private int coinbaseMaturity;
         private Exception caughtException;
         private Transaction lastTransaction;
@@ -53,32 +53,32 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
                 .AndNoMoreConnections()
                 .Build();
 
-            this.sendingBRhodiumBitcoinNode = nodeGroup["sending"];
-            this.receivingBRhodiumBitcoinNode = nodeGroup["receiving"];
+            this.sendingBRhodiumNode = nodeGroup["sending"];
+            this.receivingBRhodiumNode = nodeGroup["receiving"];
 
-            this.coinbaseMaturity = (int)this.sendingBRhodiumBitcoinNode.FullNode
+            this.coinbaseMaturity = (int)this.sendingBRhodiumNode.FullNode
                 .Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
         }
 
         private void a_block_is_mined_creating_spendable_coins()
         {
-            this.sharedSteps.MineBlocks(1, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
+            this.sharedSteps.MineBlocks(1, this.sendingBRhodiumNode, AccountName, SendingWalletName, WalletPassword);
         }
 
         private void more_blocks_mined_to_just_BEFORE_maturity_of_original_block()
         {
-            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 2, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
+            this.sharedSteps.MineBlocks(this.coinbaseMaturity - 2, this.sendingBRhodiumNode, AccountName, SendingWalletName, WalletPassword);
         }
 
         private void more_blocks_mined_to_just_AFTER_maturity_of_original_block()
         {
-            this.sharedSteps.MineBlocks(this.coinbaseMaturity, this.sendingBRhodiumBitcoinNode, AccountName, SendingWalletName, WalletPassword);
+            this.sharedSteps.MineBlocks(this.coinbaseMaturity, this.sendingBRhodiumNode, AccountName, SendingWalletName, WalletPassword);
 
         }
 
         private void spending_the_coins_from_original_block()
         {
-            var sendtoAddress = this.receivingBRhodiumBitcoinNode.FullNode.WalletManager()
+            var sendtoAddress = this.receivingBRhodiumNode.FullNode.WalletManager()
                 .GetUnusedAddresses(new WalletAccountReference(ReceivingWalletName, AccountName), 2).ElementAt(1);
 
             try
@@ -93,13 +93,13 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
                             ScriptPubKey = sendtoAddress.ScriptPubKey
                         }
                     },
-                    FeeType.Medium, (int)this.sendingBRhodiumBitcoinNode.FullNode
+                    FeeType.Medium, (int)this.sendingBRhodiumNode.FullNode
                 .Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity);
 
-                this.lastTransaction = this.sendingBRhodiumBitcoinNode.FullNode.WalletTransactionHandler()
+                this.lastTransaction = this.sendingBRhodiumNode.FullNode.WalletTransactionHandler()
                     .BuildTransaction(transactionBuildContext);
 
-                this.sendingBRhodiumBitcoinNode.FullNode.NodeService<WalletController>()
+                this.sendingBRhodiumNode.FullNode.NodeService<WalletController>()
                     .SendTransaction(new SendTransactionRequest(this.lastTransaction.ToHex()));
             }
             catch (Exception exception)
@@ -120,7 +120,7 @@ namespace BRhodium.Node.IntegrationTests.BlockStore
 
         private void the_transaction_is_put_in_the_mempool()
         {
-            var tx = this.sendingBRhodiumBitcoinNode.FullNode.MempoolManager().GetTransaction(this.lastTransaction.GetHash()).GetAwaiter().GetResult();
+            var tx = this.sendingBRhodiumNode.FullNode.MempoolManager().GetTransaction(this.lastTransaction.GetHash()).GetAwaiter().GetResult();
             tx.GetHash().Should().Be(this.lastTransaction.GetHash());
             this.caughtException.Should().BeNull();
         }

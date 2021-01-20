@@ -1344,7 +1344,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
                 var chainedHeader = chainRepository.GetBlock(chainRepository.Height);
 
                 var fileContent = new StringBuilder();
-                fileContent.AppendLine("# Wallet dump created by Bitcoin Rhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
+                fileContent.AppendLine("# Wallet dump created by xRhodium" + Assembly.GetEntryAssembly().GetName().Version.ToString());
                 fileContent.AppendLine("# * Created on " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK"));
                 fileContent.AppendLine("# * Best block at time of backup was " + chainRepository.Height + " ," + chainedHeader.HashBlock);
                 fileContent.AppendLine("# * mined on" + Utils.UnixTimeToDateTime(chainedHeader.Header.Time).DateTime.ToString("yyyy-MM-ddTHH:mm:ssK"));

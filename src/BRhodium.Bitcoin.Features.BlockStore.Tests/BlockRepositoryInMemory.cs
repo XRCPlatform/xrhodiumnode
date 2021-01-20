@@ -120,6 +120,11 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Tests
             this.Dispose(true);
         }
 
+        public void ReIndexTransactionIndex()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion IDisposable Support
     }
 }

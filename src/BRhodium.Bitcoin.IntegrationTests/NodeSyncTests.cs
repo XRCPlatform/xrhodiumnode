@@ -192,7 +192,6 @@ namespace BRhodium.Node.IntegrationTests
         /// arrives from the puller. Then another block comes from the puller extending the chain without the block we mined.
         /// </para>
         /// </summary>
-        /// <seealso cref="https://github.com/BRhodiumproject/BRhodiumBitcoinFullNode/issues/636"/>
         [Fact]
         public void PullerVsMinerRaceCondition()
         {
