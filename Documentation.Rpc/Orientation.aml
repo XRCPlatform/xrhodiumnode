@@ -12,42 +12,42 @@
   <listItem><externalLink>
 <linkText><para>T-Homepage</para></linkText>
 <linkAlternateText>T-Homepage</linkAlternateText>
-<linkUri>https://testnet.bitcoinrh.org/</linkUri>
+<linkUri>https://testnet.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>T-Web Wallet</para></linkText>
 <linkAlternateText>T-Web Wallet</linkAlternateText>
-<linkUri>http://twallet.bitcoinrh.org</linkUri>
+<linkUri>http://twallet.xrhodium.org</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>T-Electrum Wallet</para></linkText>
 <linkAlternateText>T-Electrum Wallet</linkAlternateText>
-<linkUri>https://testnet.bitcoinrh.org/#electrum</linkUri>
+<linkUri>https://testnet.xrhodium.org/#electrum</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>T-Explorer</para></linkText>
 <linkAlternateText>T-Explorer</linkAlternateText>
-<linkUri>http://texplorer.bitcoinrh.org/</linkUri>
+<linkUri>http://texplorer.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
  <listItem><externalLink>
 <linkText><para>T-Faucet - Free Test Coins</para></linkText>
 <linkAlternateText>T-Faucet - Free Test Coins</linkAlternateText>
-<linkUri>http://tfaucet.bitcoinrh.org:9020/</linkUri>
+<linkUri>http://tfaucet.xrhodium.org:9020/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>Primary Mining T-Pool</para></linkText>
 <linkAlternateText>Primary Mining T-Pool</linkAlternateText>
-<linkUri>http://tpool.bitcoinrh.org:8888/</linkUri>
+<linkUri>http://tpool.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
@@ -72,28 +72,28 @@
   <listItem><externalLink>
 <linkText><para>Web Wallet</para></linkText>
 <linkAlternateText>Web Wallet</linkAlternateText>
-<linkUri>https://wallet.bitcoinrh.org</linkUri>
+<linkUri>https://wallet.xrhodium.org</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>Electrum Wallet</para></linkText>
 <linkAlternateText>Electrum Wallet</linkAlternateText>
-<linkUri>https://electrum.bitcoinrh.org</linkUri>
+<linkUri>https://electrum.xrhodium.org</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>Explorer</para></linkText>
 <linkAlternateText>Explorer</linkAlternateText>
-<linkUri>https://explorer.bitcoinrh.org/</linkUri>
+<linkUri>https://explorer.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>Primary Mining Pool</para></linkText>
 <linkAlternateText>Primary Mining Pool</linkAlternateText>
-<linkUri>http://poolcore.bitcoinrh.org/</linkUri>
+<linkUri>http://poolcore.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
