@@ -13,9 +13,8 @@ namespace NBitcoin.Policy
             this.network = network;
             ScriptVerify = NBitcoin.ScriptVerify.Standard;
             MaxTransactionSize = 100000;
-            // TODO: replace fee params with whats in Network.
             MaxTxFee = new FeeRate(Money.Coins(0.1m));
-            MinRelayTxFee = new FeeRate(Money.Satoshis(5000)); // TODO: new FeeRate(Money.Satoshis(network.MinRelayTxFee));
+            MinRelayTxFee = new FeeRate(Money.Satoshis(1000), 1000);
             CheckFee = true;
             CheckScriptPubKey = true;
         }
@@ -149,7 +148,7 @@ namespace NBitcoin.Policy
                             errors.Add(new FeeTooHighPolicyError(fees, max));
                     }
 
-                    if(MinRelayTxFee != null)
+                    if (MinRelayTxFee != null)
                     {
                         if(MinRelayTxFee != null)
                         {
