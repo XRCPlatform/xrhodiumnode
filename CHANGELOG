@@ -1,4 +1,12 @@
-1.1.16 : In Progress
+1.1.18
+- In progress
+
+1.1.17
+- Fixed issue with signed message
+
+1.1.16
+- Rebranding to xRhodium
+- MinRelayTxFee is based on network setting for now
 
 1.1.15
 - If user has txindex=1, then a transaction index will be present for all
