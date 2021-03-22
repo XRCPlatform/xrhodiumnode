@@ -1,5 +1,8 @@
-1.1.20
+1.1.21
 - In progress
+
+1.1.20
+- Increased compatibility with old nodes
 
 1.1.19
 - synced network protocol version with blockcore node

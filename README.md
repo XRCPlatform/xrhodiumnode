@@ -3,7 +3,7 @@ xRhodium (XRC)
 
 Project web site: [xRhodium](https://www.xrhodium.org)
 
-Current version: 1.1.19 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.19))
+Current version: 1.1.20 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.20))
 
 ## About xRhodium
 
@@ -26,7 +26,7 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
  1. Clone the repository:
 
 ```
-    git clone -b master_1.1.19 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+    git clone -b master_1.1.20 https://gitlab.com/bitcoinrh/BRhodiumNode.git
     cd BRhodiumNode
 ```
 
