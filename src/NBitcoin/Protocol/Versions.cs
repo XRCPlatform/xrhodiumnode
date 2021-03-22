@@ -8,7 +8,7 @@
         /// <summary>
         /// BTR Protocol
         /// </summary>
-        XRC_PROTOCOL_VERSION = 70012,
+        XRC_PROTOCOL_VERSION = 80000,
 
         /// <summary>
         /// Default protocols

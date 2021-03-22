@@ -133,7 +133,7 @@ namespace BRhodium.Node.P2P
             this.peerAddressManager = peerAddressManager;
             this.networkPeerDisposer = new NetworkPeerDisposer(this.loggerFactory, this.OnPeerDisposed);
             this.selfEndpointTracker = selfEndpointTracker;
-            this.Requirements = new NetworkPeerRequirement { MinVersion = this.NodeSettings.ProtocolVersion };
+            this.Requirements = new NetworkPeerRequirement { MinVersion = this.NodeSettings.MinProtocolVersion };
 
             this.defaultConnectionInterval = TimeSpans.Second;
             this.burstConnectionInterval = TimeSpan.Zero;

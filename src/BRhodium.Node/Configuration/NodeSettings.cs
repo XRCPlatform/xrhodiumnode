@@ -47,11 +47,13 @@ namespace BRhodium.Node.Configuration
         /// <param name="args">The command-line arguments.</param>
         /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
         public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = ProtocolVersion.XRC_PROTOCOL_VERSION,
+            ProtocolVersion minProtocolVersion = ProtocolVersion.PROTOCOL_VERSION,
             string agent = "xRhodium", string[] args = null, bool loadConfiguration = true)
         {
             this.Agent = agent;
             this.Network = innerNetwork;
             this.ProtocolVersion = protocolVersion;
+            this.MinProtocolVersion = minProtocolVersion;
 
             this.Log = new LogSettings();
             this.LoggerFactory = new ExtendedLoggerFactory();
@@ -164,6 +166,9 @@ namespace BRhodium.Node.Configuration
 
         /// <summary>Supported protocol version.</summary>
         public ProtocolVersion ProtocolVersion { get; set; }
+
+        /// <summary>Minimal supported protocol version.</summary>
+        public ProtocolVersion MinProtocolVersion { get; set; }
 
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
         public Network Network { get; private set; }
