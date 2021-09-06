@@ -4,6 +4,7 @@ using System.Text;
 
 namespace BRhodium.Bitcoin.Features.Wallet
 {
+    [Serializable]
     public class MultisigScheme
     {
         /// <summary>

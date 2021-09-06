@@ -7,7 +7,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The account for which the history is retrieved.
         /// </summary>
-        public HdAccount Account { get; set; }
+        public IHdAccount Account { get; set; }
 
         /// <summary>
         /// The collection of history items.

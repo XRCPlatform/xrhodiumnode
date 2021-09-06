@@ -93,7 +93,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// at index (i - 1) contains transactions.
         /// </remarks>
         /// <returns>An unused account.</returns>
-        HdAccount GetUnusedAccount(string walletName, string password);
+        IHdAccount GetUnusedAccount(string walletName, string password);
 
         /// <summary>
         /// Gets an account that contains no transactions.
@@ -105,7 +105,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// at index (i - 1) contains transactions.
         /// </remarks>
         /// <returns>An unused account.</returns>
-        HdAccount GetUnusedAccount(Wallet wallet, string password);
+        IHdAccount GetUnusedAccount(Wallet wallet, string password);
 
         /// <summary>
         /// Gets an address that contains no transaction.
@@ -180,7 +180,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <param name="account">The account for which to get history.</param>
         /// <returns>The history for this account.</returns>
-        AccountHistory GetHistory(HdAccount account);
+        AccountHistory GetHistory(IHdAccount account);
 
         /// <summary>
         /// Gets the balance of transactions contained in an account.
@@ -224,7 +224,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <param name="walletName">The name of the wallet to look into.</param>
         /// <returns></returns>
-        IEnumerable<HdAccount> GetAccounts(string walletName);
+        IEnumerable<IHdAccount> GetAccounts(string walletName);
 
         /// <summary>
         /// Gets the last block height.

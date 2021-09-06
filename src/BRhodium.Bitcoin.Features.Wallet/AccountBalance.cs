@@ -10,7 +10,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <summary>
         /// The account for which the balance is calculated.
         /// </summary>
-        public HdAccount Account { get; set; }
+        public IHdAccount Account { get; set; }
 
         /// <summary>
         /// The balance of confirmed transactions.

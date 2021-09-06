@@ -37,7 +37,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             var wallet = walletManager.GetWalletByName(walletName);
             if (wallet != null)
             {
-                return wallet.GetAccountByCoinType(DEFAULT_ACCOUNT, (CoinType)network.Consensus.CoinType);
+                return (HdAccount)wallet.GetAccountByCoinType(DEFAULT_ACCOUNT, (CoinType)network.Consensus.CoinType);
             }
             else
                 return null;

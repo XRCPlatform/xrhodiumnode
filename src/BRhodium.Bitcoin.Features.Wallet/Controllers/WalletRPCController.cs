@@ -306,7 +306,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             {
                 WalletBalanceModel model = new WalletBalanceModel();
 
-                var accounts = new List<HdAccount>();
+                var accounts = new List<IHdAccount>();
                 if (walletName == "*")
                 {
                     foreach (var name in this.walletManager.Wallets.Keys)
@@ -588,7 +588,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
             var w = this.walletManager;
             var wallet = w.GetWalletByName(walletName);
-            return wallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
+            return (HdAccount)wallet.GetAccountsByCoinType((CoinType)this.Network.Consensus.CoinType).ToArray().First();
         }
 
         /// <summary>

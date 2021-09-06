@@ -32,8 +32,15 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         [Fact]
         public void Generate1stMultisigAddress() {
 
-            WalletMultisig wallet = new WalletMultisig(this.multisigScheme);
-            Script redeemScript = wallet.GeneratePublicKey(0);
+            WalletMultisig wallet = new WalletMultisig(this.network);
+            var root = new AccountRootMultisig
+            {
+                CoinType = CoinType.BRhodium
+            };
+            wallet.AccountsRoot.Add(root);
+            var account = wallet.AddNewAccount(this.multisigScheme, CoinType.BRhodium, DateTimeOffset.UtcNow);
+
+            Script redeemScript = account.GeneratePublicKey(0);
             Assert.Equal("rbAxG3vTMCuVMWppaobvTajBtUHSiFtkr5", redeemScript.Hash.GetAddress(this.network).ToString()); 
         }
 
@@ -43,19 +50,28 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             string[] receiving = { "rbAxG3vTMCuVMWppaobvTajBtUHSiFtkr5", "roLKXofxDFrkZqW7kU9aD7j7E6pTajEe16", "rjmcR79w6MatNK3KeHR3FvaEEHngdAKa9h", "reD6MyXPFUaJpyBtJVDgdYf7iN4qHbhzBz" };
             string[] change = { "rXh3PVYpn462fDTAmLiUyKZ1aTWdzr4W9J", "rjNVcwuXKW1d8j8CQbxK4Kim5Hkg7Z4ZhL", "rginUKQEG9XjQVfhJ5ho7P4v9ENrtvF8Uk", "rgeVtHemGFGQzRU2Dhj3gYTgsWcjg4wgG5" };
 
-            WalletMultisig wallet = new WalletMultisig(this.multisigScheme);
+            WalletMultisig wallet = new WalletMultisig(this.network);
+            var root = new AccountRootMultisig
+            {
+                CoinType = CoinType.BRhodium
+            };
+            wallet.AccountsRoot.Add(root);
+            var account = wallet.AddNewAccount(this.multisigScheme, CoinType.BRhodium, DateTimeOffset.UtcNow);
 
             for (int i = 0; i < receiving.Length; i++)
             {
-                Script redeemScript = wallet.GeneratePublicKey(i);
+                Script redeemScript = account.GeneratePublicKey(i);
                 Assert.Equal(receiving[i], redeemScript.Hash.GetAddress(this.network).ToString());
             }
 
             for (int i = 0; i < change.Length; i++)
             {
-                Script redeemScript = wallet.GeneratePublicKey(i, true);
+                Script redeemScript = account.GeneratePublicKey(i, true);
                 Assert.Equal(change[i], redeemScript.Hash.GetAddress(this.network).ToString());
             }
         }
+
+       
+
     }
 }

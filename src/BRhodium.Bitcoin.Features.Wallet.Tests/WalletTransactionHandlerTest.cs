@@ -411,7 +411,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { WalletTestsHelpers.CreateAccount("account 1") }
+                Accounts = new List<IHdAccount> { WalletTestsHelpers.CreateAccount("account 1") }
             });
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
 
@@ -450,7 +450,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
@@ -487,7 +487,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
@@ -527,7 +527,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             walletManager.Wallets.AddOrReplace("wallet1", wallet);
@@ -555,7 +555,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             walletManager.Wallets.AddOrReplace("wallet1", wallet);

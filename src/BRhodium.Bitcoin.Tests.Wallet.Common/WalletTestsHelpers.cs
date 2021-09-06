@@ -129,7 +129,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
             return new Bitcoin.Features.Wallet.Wallet
             {
                 Name = name,
-                AccountsRoot = new List<AccountRoot>(),
+                AccountsRoot = new List<IAccountRoot>(),
                 BlockLocator = null,
                 Network = network
             };
@@ -152,7 +152,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 ChainCode = extendedKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
                 Network = network,
-                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = (CoinType)Network.BRhodiumRegTest.Consensus.CoinType } },
+                AccountsRoot = new List<IAccountRoot> { new AccountRoot() { Accounts = new List<IHdAccount>(), CoinType = (CoinType)Network.BRhodiumRegTest.Consensus.CoinType } },
             };
 
             return (walletFile, extendedKey);
@@ -204,7 +204,7 @@ namespace BRhodium.Node.Tests.Wallet.Common
                 wallet.AccountsRoot.Add(new AccountRoot()
                 {
                     CoinType = CoinType.RegTest,
-                    Accounts = new List<HdAccount>
+                    Accounts = new List<IHdAccount>
                     {
                         new HdAccount
                         {

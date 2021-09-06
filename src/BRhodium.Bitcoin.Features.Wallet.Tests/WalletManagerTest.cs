@@ -17,6 +17,7 @@ using BRhodium.Node.Utilities.JsonConverters;
 using Xunit;
 using System.Text;
 using Microsoft.AspNetCore.DataProtection;
+using NBitcoin.DataEncoders;
 
 namespace BRhodium.Bitcoin.Features.Wallet.Tests
 {
@@ -27,6 +28,289 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
         public WalletManagerTest(WalletFixture walletFixture)
         {
             this.walletFixture = walletFixture;
+        }
+        [Fact]
+        public void Test()
+        {
+
+            DataFolder dataFolder = new DataFolder(new NodeSettings(args: new string[] { }).DataDir);
+
+            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var nonce = RandomUtils.GetUInt32();
+            var block = new Block();
+            block.AddTransaction(new Transaction());
+            block.UpdateMerkleRoot();
+            block.Header.HashPrevBlock = chain.Genesis.HashBlock;
+            block.Header.Nonce = nonce;
+            block.Header.BlockTime = DateTimeOffset.Now;
+            chain.SetTip(block.Header);
+
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, new EphemeralDataProtectionProvider());
+            walletManager.Test();
+        }
+
+        /// <summary>
+        /// This is more of an integration test to verify fields are filled correctly. This is what I could confirm.
+        /// </summary>
+        [Fact]
+        public void CreateMultisigWallet()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+
+            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var nonce = RandomUtils.GetUInt32();
+            var block = new Block();
+            block.AddTransaction(new Transaction());
+            block.UpdateMerkleRoot();
+            block.Header.HashPrevBlock = chain.Genesis.HashBlock;
+            block.Header.Nonce = nonce;
+            block.Header.BlockTime = DateTimeOffset.Now;
+            chain.SetTip(block.Header);
+
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, new EphemeralDataProtectionProvider());
+
+            var xPubs = new string[]
+            {
+                "xpub661MyMwAqRbcFK4g9bHwLNYLmy4JxSFkKNRURL3hJqVYLoZ318eHmEKjMbFxbgDiaMycDk4oixtRkHKgbopRzukzimmyzAb2aEVfAEeJPxt",
+                "xpub661MyMwAqRbcFVViGz3WGiaYgzsKWKXYduJZ8oR4tnnaRLp2QXMUf5P9Yq6CpJ8zuddutUFyrTkMECqqa1UyjnegVpoiYbcqpJfSCP9GcmG",
+                "xpub661MyMwAqRbcFYCYnw23jLqPAHMvCfmLeKkmDSLGy6nGpVtJvN9EDoR2qdz8fmvkV8sSa1ZT7j8oyfBgjHKX2nGnESLqSndrM2gJ6TGcXrU",
+            };
+
+            var recieveRedeemScripts = new string[]
+            {
+                //"2 02134708a8b6df4908a73041d97feb75d0b2706710e8dacad9107d26e13c1fcc55 027a4fdc628e20e430e525b098b4fa3ef888765d03651b4d78ff795438ac458dcb 0305615df6ea6f4370f2ca4b09f0139523cfca72f0df7588d85eced64b51e25e00 3 OP_CHECKMULTISIG",
+                "522102134708a8b6df4908a73041d97feb75d0b2706710e8dacad9107d26e13c1fcc5521027a4fdc628e20e430e525b098b4fa3ef888765d03651b4d78ff795438ac458dcb210305615df6ea6f4370f2ca4b09f0139523cfca72f0df7588d85eced64b51e25e0053ae",
+                "522102e8bf4c7f1a483ff6e42fda3a4b99acf35f53d1dc2e19b41428d693d86cc7457b21037a5ba1a77965d5c3212a3c596ff05843c098b7f1fd0a302a505fb26d0b7cbe1a2103f3a2ed18c90dffad6535950de5d22677d9c7f88d6b61e221544fd8d26184693153ae",
+                "52210225a49e0cc70ee1a2aa63ae98f12fe644069d0b591c77967394a53709dd0730782102ab2bb7280689df3167c2fe80cd0abd3c3cf1ba769b235ed5155b18a0b2fa9e192103c01f3c9b8bdff0329f9e05a61cf4b5d50ceddafc39300d74411c8f2a46b91cbb53ae",
+                "522102db7982444aa7218263e8e075b50f7fa59b14f1288b358ad677ff7bf1b2aaa8d121039e67696312bb838d755efd221734349fa5db59a4385d8241460a1ba3c2e62bfe2103c71608f27b41be9d6822fd50f31bfff0ce691a16ba760ed821801a07512d965653ae",
+                "5221026135f28080e9e91f693e7458a52a6727b8130d8f689d3d58fb25eee70f099f2021035c604fe5ec14740bd2fbca5913054730c5fc2245f45392f3fcbfdd30f939b8b32103e33eb2a622d8dbb420b88b836841eb7d6b39d5637f718610df566fa3c50d297d53ae",
+            };
+
+            var changeRedeemScripts = new string[]
+            {
+                "52210230b1265c672328e722e06bf5395edb3dc77f27064de1dde9ee55771d59091b0521036feaf4e275bf6be6c7d4ec11969ea7f1c2e51a1b8e364b5450ab6055caf4ed462103b6bdb98fce45ae9cc0ac84359edc870ee9c37ab40961bfe3397e98ce6cf1e75c53ae",
+                "522102923652c9b6220b61a06b1907c700679d07a6895c35cfd612e7cb32f7b485fe622102f32b590744b70c0054b36736bc4fb7711b6126d33784537a50075aa5d7e0aaa5210314bc014000fd5f4469deaaeedc32da2e8aafc4d0519c16c581f184be78211a7c53ae",
+                "5221028de4dafd843231bc1b314192af8dcac9e974fe7c57171fbc3dcdeafa23be68312102c3d99d45c9ce81afc3f7cf1affe0f46e4675fd4feb822347f063b40391c0e74b2103861b41d6d67c19c0676f0906f0e6f74eb36a16fb72b209279fdea2962d7bc36753ae",
+                "52210215adb25ce0663b62afa80d3f9e4c212916181538b3cbb27b8d506577a77730d521032f1598232775df6008a3a36fcd20b630345fd087d648c7b37f85d470386227872103e940b74d39ee703bf87035ae21d76b4e560e3525a1fc1120d49507abe0f131ed53ae",
+                "52210238e487536141e85e96d5fce77227951c53704b6288e8a85bc2de8d61bae3f830210296fcf49b9ee68c52e977ece9e8f3a245675d5fe8bdd766ddd73f55b3f9d534ae2103bb37235320477cefa081bb01c8952538607b6ef146b60750610520e66c35e30453ae",
+            };
+
+            // create the wallet
+            WalletMultisig expectedWallet = walletManager.CreateMutisigWallet("mywallet",2, xPubs);
+
+            // assert it has saved it to disk and has been created correctly.
+            var actualWallet = walletManager.MultisigFileStorage.LoadByFileName("mywallet.multisigwallet.json");
+            
+            Assert.Equal("mywallet", expectedWallet.Name);
+            Assert.Equal(Network.BRhodiumMain, expectedWallet.Network);
+
+            Assert.Equal(expectedWallet.Name, actualWallet.Name);
+            Assert.Equal(expectedWallet.Network, actualWallet.Network);
+            Assert.True(actualWallet.IsMultisig);
+            Assert.Equal(actualWallet.EncryptedSeed, string.Empty);
+            Assert.Equal(expectedWallet.ChainCode, actualWallet.ChainCode);
+
+            Assert.Equal(1, expectedWallet.AccountsRoot.Count);
+            Assert.Equal(1, actualWallet.AccountsRoot.Count);
+
+            for (var i = 0; i < expectedWallet.AccountsRoot.Count; i++)
+            {
+                Assert.Equal(CoinType.BRhodium, expectedWallet.AccountsRoot.FirstOrDefault().CoinType);
+                Assert.Equal(1, expectedWallet.AccountsRoot.FirstOrDefault().LastBlockSyncedHeight);
+                Assert.Equal(block.GetHash(), expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash);
+
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).CoinType, actualWallet.AccountsRoot.ElementAt(i).CoinType);
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash, actualWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash);
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHeight, actualWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHeight);
+
+                var accountRoot = actualWallet.AccountsRoot.ElementAt(i);
+                Assert.Equal(1, accountRoot.Accounts.Count);
+
+                for (var j = 0; j < accountRoot.Accounts.Count; j++)
+                {
+                    var actualAccount = accountRoot.Accounts.ElementAt(j);
+                    Assert.Equal($"account {j}", actualAccount.Name);
+                    Assert.Equal(j, actualAccount.Index);
+                    Assert.Equal($"m/45'/10291'/{j}'", actualAccount.HdPath);
+
+                    
+                    Assert.Equal("N/A", actualAccount.ExtendedPubKey);
+
+                    Assert.Equal(20, actualAccount.InternalAddresses.Count);
+
+                    for (var k = 0; k < 5; k++)
+                    {
+                        var actualAddress = actualAccount.InternalAddresses.ElementAt(k);
+                        Script expectedAddressPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(changeRedeemScripts[k]));
+                        var expectedAddress = expectedAddressPubKey.Hash.GetAddress(expectedWallet.Network);
+                        Assert.Equal(k, actualAddress.Index);
+                        Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
+                        Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
+                        Assert.Equal(expectedAddressPubKey, actualAddress.Pubkey);
+                        Assert.Equal($"m/45'/10291'/{j}'/1/{k}", actualAddress.HdPath);
+                        Assert.Equal(0, actualAddress.Transactions.Count);
+                    }
+
+                    Assert.Equal(20, actualAccount.ExternalAddresses.Count);
+                    for (var l = 0; l < 5; l++)
+                    {
+                        var actualAddress = actualAccount.ExternalAddresses.ElementAt(l);
+                        Script expectedAddressPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(recieveRedeemScripts[l]));
+                        var expectedAddress = expectedAddressPubKey.Hash.GetAddress(expectedWallet.Network);
+                        Assert.Equal(l, actualAddress.Index);
+                        Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
+                        Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
+                        Assert.Equal(expectedAddressPubKey, actualAddress.Pubkey);
+                        Assert.Equal($"m/45'/10291'/{j}'/0/{l}", actualAddress.HdPath);
+                        Assert.Equal(0, actualAddress.Transactions.Count);
+                    }
+                }
+            }
+
+            Assert.Equal(2, expectedWallet.BlockLocator.Count);
+            Assert.Equal(2, actualWallet.BlockLocator.Count);
+
+            var expectedBlockHash = block.GetHash();
+            Assert.Equal(expectedBlockHash, expectedWallet.BlockLocator.ElementAt(0));
+            Assert.Equal(expectedWallet.BlockLocator.ElementAt(0), actualWallet.BlockLocator.ElementAt(0));
+
+            expectedBlockHash = chain.Genesis.HashBlock;
+            Assert.Equal(expectedBlockHash, expectedWallet.BlockLocator.ElementAt(1));
+            Assert.Equal(expectedWallet.BlockLocator.ElementAt(1), actualWallet.BlockLocator.ElementAt(1));
+
+        }
+
+
+        [Fact]
+        public void CreateMultisigWallet2()
+        {
+            DataFolder dataFolder = CreateDataFolder(this);
+
+            var chain = new ConcurrentChain(Network.BRhodiumMain);
+            var nonce = RandomUtils.GetUInt32();
+            var block = new Block();
+            block.AddTransaction(new Transaction());
+            block.UpdateMerkleRoot();
+            block.Header.HashPrevBlock = chain.Genesis.HashBlock;
+            block.Header.Nonce = nonce;
+            block.Header.BlockTime = DateTimeOffset.Now;
+            chain.SetTip(block.Header);
+
+            var walletManager = new WalletManager(this.LoggerFactory.Object, Network.BRhodiumMain, chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+                dataFolder, new Mock<IWalletFeePolicy>().Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default, null, new EphemeralDataProtectionProvider());
+
+            var xPubs = new string[]
+            {
+                "xpub6AJxsjtax4HoPhB9fapQHGHzr4dDRQiWJ6KzHwYhaY5NUxwoo2UnMMHDx8Yjh3CBs68HeACyWpZ36dABZL1YnZU1qnu69HAAuyVCEfvRLsU",
+                "xpub661MyMwAqRbcGbHP4CWVwkw6vze33mJtZgvMWDQ3JYqaGvYRYTnt7Dup9Yf6YNxWZTk2LFrk1tJ4qt7mVYsrmLMC4b9oNFAEQU3vEPjrFLL",
+                "xpub661MyMwAqRbcGXNBk2UiwwuPPir3brYVngtuXk2b3dpLwiEWii9fuhF6tZnDRo46pwEZpqavRW6zLsastnqvXwmCGSMpTqbCZi5xngnY7mx",
+                "xpub661MyMwAqRbcFZRSpx4vae7DuSduBYvbEJ6mzDsMLSv631v9a356TvDvuSkpPgEtePQzrJ4GPR4rA46zBqzwskTozkDzArNV1hv7ntUpAmG",
+                "xpub6B4R3DGcs9rfyCdN2HGQfYdt36LLFy53TbEx8t9owuAWyUgtpWcacvD5iCnwYzkXnGJK6qaPV2VMVzbkBV28b1wbK54cKwCu7uYEWuz61B3"
+            };
+
+            var recieveRedeemScripts = new string[]
+            {
+                "522102134708a8b6df4908a73041d97feb75d0b2706710e8dacad9107d26e13c1fcc5521027a4fdc628e20e430e525b098b4fa3ef888765d03651b4d78ff795438ac458dcb210305615df6ea6f4370f2ca4b09f0139523cfca72f0df7588d85eced64b51e25e0053ae",
+                "522102e8bf4c7f1a483ff6e42fda3a4b99acf35f53d1dc2e19b41428d693d86cc7457b21037a5ba1a77965d5c3212a3c596ff05843c098b7f1fd0a302a505fb26d0b7cbe1a2103f3a2ed18c90dffad6535950de5d22677d9c7f88d6b61e221544fd8d26184693153ae",
+                "52210225a49e0cc70ee1a2aa63ae98f12fe644069d0b591c77967394a53709dd0730782102ab2bb7280689df3167c2fe80cd0abd3c3cf1ba769b235ed5155b18a0b2fa9e192103c01f3c9b8bdff0329f9e05a61cf4b5d50ceddafc39300d74411c8f2a46b91cbb53ae",
+                "522102db7982444aa7218263e8e075b50f7fa59b14f1288b358ad677ff7bf1b2aaa8d121039e67696312bb838d755efd221734349fa5db59a4385d8241460a1ba3c2e62bfe2103c71608f27b41be9d6822fd50f31bfff0ce691a16ba760ed821801a07512d965653ae",
+                "5221026135f28080e9e91f693e7458a52a6727b8130d8f689d3d58fb25eee70f099f2021035c604fe5ec14740bd2fbca5913054730c5fc2245f45392f3fcbfdd30f939b8b32103e33eb2a622d8dbb420b88b836841eb7d6b39d5637f718610df566fa3c50d297d53ae",
+            };
+
+            var changeRedeemScripts = new string[]
+            {
+                "52210230b1265c672328e722e06bf5395edb3dc77f27064de1dde9ee55771d59091b0521036feaf4e275bf6be6c7d4ec11969ea7f1c2e51a1b8e364b5450ab6055caf4ed462103b6bdb98fce45ae9cc0ac84359edc870ee9c37ab40961bfe3397e98ce6cf1e75c53ae",
+                "522102923652c9b6220b61a06b1907c700679d07a6895c35cfd612e7cb32f7b485fe622102f32b590744b70c0054b36736bc4fb7711b6126d33784537a50075aa5d7e0aaa5210314bc014000fd5f4469deaaeedc32da2e8aafc4d0519c16c581f184be78211a7c53ae",
+                "5221028de4dafd843231bc1b314192af8dcac9e974fe7c57171fbc3dcdeafa23be68312102c3d99d45c9ce81afc3f7cf1affe0f46e4675fd4feb822347f063b40391c0e74b2103861b41d6d67c19c0676f0906f0e6f74eb36a16fb72b209279fdea2962d7bc36753ae",
+                "52210215adb25ce0663b62afa80d3f9e4c212916181538b3cbb27b8d506577a77730d521032f1598232775df6008a3a36fcd20b630345fd087d648c7b37f85d470386227872103e940b74d39ee703bf87035ae21d76b4e560e3525a1fc1120d49507abe0f131ed53ae",
+                "52210238e487536141e85e96d5fce77227951c53704b6288e8a85bc2de8d61bae3f830210296fcf49b9ee68c52e977ece9e8f3a245675d5fe8bdd766ddd73f55b3f9d534ae2103bb37235320477cefa081bb01c8952538607b6ef146b60750610520e66c35e30453ae",
+            };
+
+            // create the wallet
+            WalletMultisig expectedWallet = walletManager.CreateMutisigWallet("corporate", 3, xPubs);
+
+            // assert it has saved it to disk and has been created correctly.
+            var actualWallet = walletManager.MultisigFileStorage.LoadByFileName("corporate.multisigwallet.json");
+
+            Assert.Equal("mywallet", expectedWallet.Name);
+            Assert.Equal(Network.BRhodiumMain, expectedWallet.Network);
+
+            Assert.Equal(expectedWallet.Name, actualWallet.Name);
+            Assert.Equal(expectedWallet.Network, actualWallet.Network);
+            Assert.True(actualWallet.IsMultisig);
+            Assert.Equal(actualWallet.EncryptedSeed, string.Empty);
+            Assert.Equal(expectedWallet.ChainCode, actualWallet.ChainCode);
+
+            Assert.Equal(1, expectedWallet.AccountsRoot.Count);
+            Assert.Equal(1, actualWallet.AccountsRoot.Count);
+
+            for (var i = 0; i < expectedWallet.AccountsRoot.Count; i++)
+            {
+                Assert.Equal(CoinType.BRhodium, expectedWallet.AccountsRoot.ElementAt(i).CoinType);
+                Assert.Equal(1, expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHeight);
+                Assert.Equal(block.GetHash(), expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash);
+
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).CoinType, actualWallet.AccountsRoot.ElementAt(i).CoinType);
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash, actualWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHash);
+                Assert.Equal(expectedWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHeight, actualWallet.AccountsRoot.ElementAt(i).LastBlockSyncedHeight);
+
+                var accountRoot = actualWallet.AccountsRoot.ElementAt(i);
+                Assert.Equal(1, accountRoot.Accounts.Count);
+
+                for (var j = 0; j < accountRoot.Accounts.Count; j++)
+                {
+                    var actualAccount = accountRoot.Accounts.ElementAt(j);
+                    Assert.Equal($"account {j}", actualAccount.Name);
+                    Assert.Equal(j, actualAccount.Index);
+                    Assert.Equal($"m/45'/10291'/{j}'", actualAccount.HdPath);
+
+
+                    Assert.Equal("N/A", actualAccount.ExtendedPubKey);
+
+                    Assert.Equal(20, actualAccount.InternalAddresses.Count);
+
+                    for (var k = 0; k < 5; k++)
+                    {
+                        var actualAddress = actualAccount.InternalAddresses.ElementAt(k);
+                        Script expectedAddressPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(changeRedeemScripts[k]));
+                        var expectedAddress = expectedAddressPubKey.Hash.GetAddress(expectedWallet.Network);
+                        Assert.Equal(k, actualAddress.Index);
+                        Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
+                        Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
+                        Assert.Equal(expectedAddressPubKey, actualAddress.Pubkey);
+                        Assert.Equal($"m/45'/10291'/{j}'/1/{k}", actualAddress.HdPath);
+                        Assert.Equal(0, actualAddress.Transactions.Count);
+                    }
+
+                    Assert.Equal(20, actualAccount.ExternalAddresses.Count);
+                    for (var l = 0; l < 5; l++)
+                    {
+                        var actualAddress = actualAccount.ExternalAddresses.ElementAt(l);
+                        Script expectedAddressPubKey = Script.FromBytesUnsafe(Encoders.Hex.DecodeData(recieveRedeemScripts[l]));
+                        var expectedAddress = expectedAddressPubKey.Hash.GetAddress(expectedWallet.Network);
+                        Assert.Equal(l, actualAddress.Index);
+                        Assert.Equal(expectedAddress.ScriptPubKey, actualAddress.ScriptPubKey);
+                        Assert.Equal(expectedAddress.ToString(), actualAddress.Address);
+                        Assert.Equal(expectedAddressPubKey, actualAddress.Pubkey);
+                        Assert.Equal($"m/45'/10291'/{j}'/0/{l}", actualAddress.HdPath);
+                        Assert.Equal(0, actualAddress.Transactions.Count);
+                    }
+                }
+            }
+
+            Assert.Equal(2, expectedWallet.BlockLocator.Count);
+            Assert.Equal(2, actualWallet.BlockLocator.Count);
+
+            var expectedBlockHash = block.GetHash();
+            Assert.Equal(expectedBlockHash, expectedWallet.BlockLocator.ElementAt(0));
+            Assert.Equal(expectedWallet.BlockLocator.ElementAt(0), actualWallet.BlockLocator.ElementAt(0));
+
+            expectedBlockHash = chain.Genesis.HashBlock;
+            Assert.Equal(expectedBlockHash, expectedWallet.BlockLocator.ElementAt(1));
+            Assert.Equal(expectedWallet.BlockLocator.ElementAt(1), actualWallet.BlockLocator.ElementAt(1));
+
         }
 
         /// <summary>
@@ -1029,12 +1313,12 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { new HdAccount { Name = "Account 2" } }
+                Accounts = new List<IHdAccount> { new HdAccount { Name = "Account 2" } }
             });
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = (CoinType)this.Network.Consensus.CoinType,
-                Accounts = new List<HdAccount> { new HdAccount { Name = "Account 3" } }
+                Accounts = new List<IHdAccount> { new HdAccount { Name = "Account 3" } }
             });
             walletManager.Wallets.AddOrReplace("myWallet", wallet);
 
@@ -1292,7 +1576,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             wallet.AccountsRoot.Add(new AccountRoot()
             {
                 CoinType = CoinType.BRhodium,
-                Accounts = new List<HdAccount>
+                Accounts = new List<IHdAccount>
                 {
                     new HdAccount {
                         ExternalAddresses = WalletTestsHelpers.CreateUnspentTransactionsOfBlockHeights(Network.BRhodiumMain, 8,9,10),
@@ -2575,7 +2859,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             account2.ExternalAddresses.Add(account2Address1);
             account2.InternalAddresses.Add(account2Address2);
 
-            var accounts = new List<HdAccount> { account, account2 };
+            var accounts = new List<IHdAccount> { account, account2 };
 
             Wallet wallet = WalletTestsHelpers.CreateWallet("myWallet", this.Network);
             wallet.AccountsRoot.Add(new AccountRoot()

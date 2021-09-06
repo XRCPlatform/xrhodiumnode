@@ -564,7 +564,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
                 Name = "myWallet",
                 Network = NetworkHelpers.GetNetwork("BRhodiumMain"),
                 CreationTime = new DateTime(2017, 6, 19, 1, 1, 1),
-                AccountsRoot = new List<AccountRoot> {
+                AccountsRoot = new List<IAccountRoot> {
                     new AccountRoot()
                     {
                         CoinType = (CoinType)this.Network.Consensus.CoinType,
@@ -702,7 +702,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             HdAccount account = new HdAccount { ExternalAddresses = addresses };
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             List<FlatHistory> flat = addresses.SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToList();
@@ -758,7 +758,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             HdAccount account = new HdAccount { ExternalAddresses = addresses };
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             List<FlatHistory> flat = addresses.SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToList();
@@ -833,7 +833,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             HdAccount account = new HdAccount { ExternalAddresses = addresses };
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             List<FlatHistory> flat = addresses.SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToList();
@@ -929,7 +929,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             HdAccount account = new HdAccount { ExternalAddresses = addresses };
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             List<FlatHistory> flat = addresses.SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToList();
@@ -1026,7 +1026,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             HdAccount account = new HdAccount { ExternalAddresses = addresses };
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { account }
+                Accounts = new List<IHdAccount> { account }
             });
 
             List<FlatHistory> flat = addresses.SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToList();
@@ -1654,7 +1654,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
 
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount>()
+                Accounts = new List<IHdAccount>()
                 {
                     new HdAccount
                     {
@@ -1814,7 +1814,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Tests
             Wallet wallet = WalletTestsHelpers.CreateWallet(walletName, this.Network);
             wallet.AccountsRoot.Add(new AccountRoot()
             {
-                Accounts = new List<HdAccount> { new HdAccount
+                Accounts = new List<IHdAccount> { new HdAccount
                 {
                     ExternalAddresses = receiveAddresses,
                     InternalAddresses = changeAddresses,

@@ -458,7 +458,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
 
                 foreach (AccountBalance balance in balances)
                 {
-                    HdAccount account = balance.Account;
+                    IHdAccount account = balance.Account;
                     model.AccountsBalances.Add(new AccountBalanceModel
                     {
                         CoinType = this.coinType,
@@ -854,7 +854,7 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             try
             {
                 Wallet wallet = this.walletManager.GetWallet(request.WalletName);
-                HdAccount account = wallet.GetAccountByCoinType(request.AccountName, this.coinType);
+                HdAccount account = (HdAccount)wallet.GetAccountByCoinType(request.AccountName, this.coinType);
 
                 AddressesModel model = new AddressesModel
                 {

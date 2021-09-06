@@ -19,21 +19,62 @@ namespace BRhodium.Bitcoin.Features.Wallet
     [Serializable]
     public class Wallet : ISerializable
     {
-        protected Wallet(SerializationInfo info, StreamingContext context)
+        private bool isMultisig = false;
+
+        public Wallet(SerializationInfo info, StreamingContext context)
         {
-            this.Name = info.GetString("name");
-            this.EncryptedSeed = info.GetString("encryptedSeed");
-            this.ChainCode = (byte[])info.GetValue("chainCode", typeof(byte[]));
-            this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
-            var blockLocator = (string[])info.GetValue("blockLocator", typeof(string[]));
-            this.BlockLocator = blockLocator != null ? blockLocator.ToList().ConvertAll(a => new uint256(a)).ToList() : null;
-            var nameNetwork = info.GetString("network");
-            this.Network = Network.GetNetwork(nameNetwork.ToLowerInvariant());
-            this.AccountsRoot = (ICollection<AccountRoot>)info.GetValue("accountsRoot", typeof(ICollection<AccountRoot>));
+
+            foreach (SerializationEntry entry in info)
+            {
+                switch (entry.Name)
+                {
+                    case "name":
+                        this.Name = info.GetString("name");
+                        break;
+                    case "encryptedSeed":
+                        this.EncryptedSeed = info.GetString("encryptedSeed");
+                        break;
+                    case "chainCode":
+                        this.ChainCode = (byte[])info.GetValue("chainCode", typeof(byte[]));
+                        break;
+                    case "creationTime":
+                        this.CreationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(info.GetString("creationTime")));
+                        break;
+                    case "blockLocator":
+                        var blockLocator = (string[])info.GetValue("blockLocator", typeof(string[]));
+                        this.BlockLocator = blockLocator != null ? blockLocator.ToList().ConvertAll(a => new uint256(a)).ToList() : null;
+                        break;
+                    case "network":
+                        var nameNetwork = info.GetString("network");
+                        this.Network = Network.GetNetwork(nameNetwork.ToLowerInvariant());
+                        break;
+                    case "accountsRootSurrogate":
+                        //this.AccountsRoot = (ICollection<IAccountRoot>)info.GetValue("accountsRootSurrogate", typeof(ICollection<AccountRoot>));
+                        //List<IAccountRoot> accountRoot = new List<IAccountRoot>();
+                        //foreach (var item in (ICollection<AccountRoot>)info.GetValue("accountsRoot", typeof(ICollection<AccountRoot>)))
+                        //var roots = info.GetValue("accountsRootSurrogate", typeof(List<AccountRoot>));
+                        //foreach (var item in (List<AccountRoot>)roots)
+                        //{
+                        //    accountRoot.Add(item);
+                        //};
+                        this.AccountsRootSurrogate = (ICollection<AccountRoot>)info.GetValue("accountsRootSurrogate", typeof(ICollection<AccountRoot>));
+                        break;
+
+                    case "accountsRoot":
+                        //map concrete to interface based collection
+                        List<IAccountRoot> accountRootReal = new List<IAccountRoot>();
+                        foreach (var item in (List<AccountRoot>)info.GetValue("accountsRoot", typeof(List<AccountRoot>)))
+                        {
+                            accountRootReal.Add(item);
+                        };
+                        this.AccountsRoot = accountRootReal;
+                        break;
+                }
+            }
         }
 
         [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("name", this.Name);
             info.AddValue("encryptedSeed", this.EncryptedSeed);
@@ -41,6 +82,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
             info.AddValue("creationTime", this.CreationTime.ToUnixTimeSeconds().ToString());
             info.AddValue("blockLocator", this.BlockLocator != null ? this.BlockLocator.ToList().ConvertAll(a => a.ToString()).ToArray() : null);
             info.AddValue("network", this.Network.Name);
+            ICollection<AccountRoot> accountRootList = new List<AccountRoot>();
+            foreach (var item in this.AccountsRoot)
+            {
+                accountRootList.Add((AccountRoot)item);
+            }
+            info.AddValue("accountsRootSurrogate", accountRootList, typeof(ICollection<AccountRoot>));
             info.AddValue("accountsRoot", this.AccountsRoot);
         }
 
@@ -49,7 +96,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         public Wallet()
         {
-            this.AccountsRoot = new List<AccountRoot>();
+            this.AccountsRoot = new List<IAccountRoot>();
         }
 
         /// <summary>
@@ -95,14 +142,29 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The root of the accounts tree.
         /// </summary>
         [JsonProperty(PropertyName = "accountsRoot")]
-        public ICollection<AccountRoot> AccountsRoot { get; set; }
+        public ICollection<IAccountRoot> AccountsRoot { get; set; }
 
+        private ICollection<AccountRoot> AccountsRootSurrogate { get; set; }
+        
+
+        [JsonProperty(PropertyName = "isMultisig")]
+        public bool IsMultisig
+        {
+            get
+            {
+                return isMultisig;
+            }
+            set
+            {
+                isMultisig = value;
+            }
+        }
         /// <summary>
         /// Gets the accounts the wallet has for this type of coin.
         /// </summary>
         /// <param name="coinType">Type of the coin.</param>
         /// <returns>The accounts in the wallet corresponding to this type of coin.</returns>
-        public IEnumerable<HdAccount> GetAccountsByCoinType(CoinType coinType)
+        public IEnumerable<IHdAccount> GetAccountsByCoinType(CoinType coinType)
         {
             return this.AccountsRoot.Where(a => a.CoinType == coinType).SelectMany(a => a.Accounts);
         }
@@ -113,9 +175,9 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="accountName">The name of the account to retrieve.</param>
         /// <param name="coinType">The type of the coin this account is for.</param>
         /// <returns>The requested account.</returns>
-        public HdAccount GetAccountByCoinType(string accountName, CoinType coinType)
+        public IHdAccount GetAccountByCoinType(string accountName, CoinType coinType)
         {
-            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            IAccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
             return accountRoot?.GetAccountByName(accountName);
         }
 
@@ -126,7 +188,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="block">The block whose details are used to update the wallet.</param>
         public void SetLastBlockDetailsByCoinType(CoinType coinType, ChainedHeader block)
         {
-            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            IAccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
 
             if (accountRoot == null) return;
 
@@ -282,18 +344,18 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <returns>A collection of spendable outputs.</returns>
         public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, Network network, int currentChainHeight, int confirmations = 0)
         {
-            IEnumerable<HdAccount> accounts = this.GetAccountsByCoinType(coinType);
+            IEnumerable<IHdAccount> accounts = this.GetAccountsByCoinType(coinType);
 
             return accounts
                 .SelectMany(x => x.GetSpendableTransactions(network, currentChainHeight, confirmations));
         }
     }
-
+   
     /// <summary>
     /// The root for the accounts for any type of coins.
     /// </summary>
     [Serializable]
-    public class AccountRoot : ISerializable
+    public class AccountRoot : IAccountRoot, ISerializable
     {
         protected AccountRoot(SerializationInfo info, StreamingContext context)
         {
@@ -311,19 +373,39 @@ namespace BRhodium.Bitcoin.Features.Wallet
                         var lastBlockSyncedHash = info.GetString("lastBlockSyncedHash");
                         this.LastBlockSyncedHash = lastBlockSyncedHash != null ? new uint256(lastBlockSyncedHash) : null;
                         break;
+                    case "accountsSurrogate":
+                        //ICollection<IHdAccount> accounts = new List<IHdAccount>();
+                        //foreach (var item in (ICollection<HdAccount>)info.GetValue("accountsSurrogate", typeof(ICollection<HdAccount>)))
+                        //{
+                        //    accounts.Add(item);
+                        //};
+                        this.AccountsSurrogate = (ICollection<HdAccount>)info.GetValue("accountsSurrogate", typeof(ICollection<HdAccount>));
+                        break;
                     case "accounts":
-                        this.Accounts = (ICollection<HdAccount>)info.GetValue("accounts", typeof(ICollection<HdAccount>));
+                        ICollection<IHdAccount> accountsreal = new List<IHdAccount>();
+                        foreach (var item in (ICollection<HdAccount>)info.GetValue("accounts", typeof(ICollection<HdAccount>)))
+                        {
+                            accountsreal.Add(item);
+                        };
+                        this.Accounts = accountsreal;
                         break;
                 }
             }
         }
 
         [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("coinType", this.CoinType);
             if (this.LastBlockSyncedHeight != null) info.AddValue("lastBlockSyncedHeight", this.LastBlockSyncedHeight);
             if (this.LastBlockSyncedHash != null) info.AddValue("lastBlockSyncedHash", this.LastBlockSyncedHash != null ? this.LastBlockSyncedHash.ToString() : null);
+
+            ICollection<HdAccount> accountsList = new List<HdAccount>();
+            foreach (var item in this.Accounts)
+            {
+                accountsList.Add((HdAccount)item);
+            }
+            info.AddValue("accountsSurrogate", accountsList, typeof(ICollection<HdAccount>));
             info.AddValue("accounts", this.Accounts);
         }
 
@@ -332,7 +414,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// </summary>
         public AccountRoot()
         {
-            this.Accounts = new List<HdAccount>();
+            this.Accounts = new List<IHdAccount>();
         }
 
         /// <summary>
@@ -358,8 +440,8 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// The accounts used in the wallet.
         /// </summary>
         [JsonProperty(PropertyName = "accounts")]
-        public ICollection<HdAccount> Accounts { get; set; }
-
+        public ICollection<IHdAccount> Accounts { get; set; }
+        private ICollection<HdAccount> AccountsSurrogate { get; set; }
         /// <summary>
         /// Gets the first account that contains no transaction.
         /// </summary>
@@ -375,7 +457,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
 
             // gets the unused account with the lowest index
             var index = unusedAccounts.Min(a => a.Index);
-            return unusedAccounts.Single(a => a.Index == index);
+            return (HdAccount)unusedAccounts.Single(a => a.Index == index);
         }
 
         /// <summary>
@@ -390,7 +472,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                 throw new WalletException($"No account with the name {accountName} could be found.");
 
             // get the account
-            HdAccount account = this.Accounts.SingleOrDefault(a => a.Name == accountName);
+            HdAccount account = (HdAccount)this.Accounts.SingleOrDefault(a => a.Name == accountName);
             if (account == null)
                 throw new WalletException($"No account with the name {accountName} could be found.");
 
@@ -451,7 +533,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
     /// An HD account's details.
     /// </summary>
     [Serializable]
-    public class HdAccount : ISerializable
+    public class HdAccount : ISerializable, IHdAccount
     {
         protected HdAccount(SerializationInfo info, StreamingContext context)
         {
@@ -649,12 +731,12 @@ namespace BRhodium.Bitcoin.Features.Wallet
         {
             var allTransactions = this.ExternalAddresses.SelectMany(a => a.Transactions)
                 .Concat(this.InternalAddresses.SelectMany(i => i.Transactions)).ToList();
-            
+
             var confirmed = allTransactions.Sum(t => t.SpendableAmount(true));
             var total = allTransactions.Sum(t => t.SpendableAmount(false));
-            var immature = allTransactions.Sum(t => t.ImmatureCoinbaseAmount(chain)); 
+            var immature = allTransactions.Sum(t => t.ImmatureCoinbaseAmount(chain));
 
-            return (confirmed- immature, total - confirmed, immature);
+            return (confirmed - immature, total - confirmed, immature);
         }
 
         /// <summary>
@@ -704,7 +786,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
         /// <param name="addressesQuantity">The number of addresses to create.</param>
         /// <param name="isChange">Whether the addresses added are change (internal) addresses or receiving (external) addresses.</param>
         /// <returns>The created addresses.</returns>
-        public IEnumerable<HdAddress> CreateAddresses(Network network, int addressesQuantity, bool isChange = false)
+        public virtual IEnumerable<HdAddress> CreateAddresses(Network network, int addressesQuantity, bool isChange = false)
         {
             var addresses = isChange ? this.InternalAddresses : this.ExternalAddresses;
 
@@ -891,7 +973,7 @@ namespace BRhodium.Bitcoin.Features.Wallet
                                 Transaction = transactionData
                             };
                         }
-                    }                   
+                    }
                 }
             }
         }
