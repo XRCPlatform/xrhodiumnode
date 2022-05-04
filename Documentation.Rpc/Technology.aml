@@ -31,10 +31,10 @@
 <para><legacyBold>Important libraries :</legacyBold></para>
 
 <list class="bullet">
-  <listItem><para>MS .Net Core C# - <externalLink>
+  <listItem><para>MS .Net Core C# - (SDK Core 3.1) <externalLink>
 <linkText>Linux Download</linkText>
 <linkAlternateText>Linux Download</linkAlternateText>
-<linkUri>https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-current</linkUri>
+<linkUri>https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink> | <externalLink>
 <linkText>Windows Download</linkText>

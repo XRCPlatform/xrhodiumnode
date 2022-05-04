@@ -202,7 +202,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         {
             try
             {
-                var difficulty = this.GetNetworkDifficulty().Difficulty;
+                var difficulty = this.GetNetworkDifficulty().DifficultySafe();
 
                 return this.Json(ResultHelper.BuildResultResponse(difficulty));
             }
@@ -224,7 +224,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
             var miningInfo = new GetMiningInfo();
 
             miningInfo.Chain = string.IsNullOrEmpty(this.Network.Name) ? string.Empty : this.Network.Name.Replace("BRhodium", string.Empty).ToLower();
-            miningInfo.Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0;
+            miningInfo.Difficulty = this.GetNetworkDifficulty()?.DifficultySafe() ?? 0;
             miningInfo.PooledTx = this.txMempool.MapTx.Count();
             miningInfo.NetworkHashps = GetNetworkHashPS();
             miningInfo.Blocks = this.ChainState?.ConsensusTip?.Height ?? 0;

@@ -16,6 +16,7 @@ using BRhodium.Bitcoin.Features.BlockStore;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using BRhodium.Node;
+using BRhodium.Node.Utilities.Extensions;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -59,7 +60,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             result.Hash = chainedHeader.HashBlock.ToString();
             result.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
             result.Version = block.Header.Version;
-            result.Difficult = block.Header.Bits.Difficulty;
+            result.Difficult = block.Header.Bits.DifficultySafe();
             result.PrevHash = block.Header.HashPrevBlock.ToString();
             result.NextHash = chainedNextHeader != null ? chainedNextHeader.Header.GetHash().ToString() : null;
             result.MerkleRoot = block.Header.HashMerkleRoot.ToString();
