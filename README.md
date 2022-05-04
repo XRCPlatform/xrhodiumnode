@@ -3,7 +3,7 @@ xRhodium (XRC)
 
 Project web site: [xRhodium](https://www.xrhodium.org)
 
-Current version: 1.1.20 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.20))
+Current version: 1.1.30 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.30))
 
 ## About xRhodium
 
@@ -13,7 +13,7 @@ xRhodium is a unique crypto commodity with limited supply and strong use case. I
 
 BRhodiumNode is the full node for xRhodium. It is developed in C#, using the .NET Core platform.
 
-[.NET Core](https://dotnet.github.io/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
+[.NET Core](https://dotnet.microsoft.com/en-us/) is an open source cross platform framework and enables the development of applications and services on Windows, macOS and Linux.
 
 Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/En/Community).
 
@@ -26,13 +26,14 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
  1. Clone the repository:
 
 ```
-    git clone -b master_1.1.20 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+    git clone -b master_1.1.30 https://gitlab.com/bitcoinrh/BRhodiumNode.git
     cd BRhodiumNode
 ```
 
 The `master` branch is bleeding-edge. Use this at your own risk.
 
- 2. Install .NET Core. Follow instructions here: https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x.
+ 2. Install .NET Core (dotnet-sdk-3.1). Follow instructions here: 
+ https://docs.microsoft.com/en-us/dotnet/core/install/linux.
  3. Build BRhodium. The `bin/brhodium` script contains the required steps to do a build:
 
  ```

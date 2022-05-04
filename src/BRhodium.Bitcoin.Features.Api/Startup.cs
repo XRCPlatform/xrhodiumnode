@@ -8,10 +8,9 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace BRhodium.Bitcoin.Features.Api
-{
-    public class Startup
+{    public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -26,6 +25,14 @@ namespace BRhodium.Bitcoin.Features.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(
+                loggingBuilder =>
+                {
+                    loggingBuilder.AddConfiguration(this.Configuration.GetSection("Logging"));
+                    loggingBuilder.AddConsole();
+                    loggingBuilder.AddDebug();
+                });
+
             // Add service and create Policy to allow Cross-Origin Requests
             services.AddCors
             (
@@ -61,7 +68,8 @@ namespace BRhodium.Bitcoin.Features.Api
                     }
                 })
                 // add serializers for NBitcoin objects
-                .AddJsonOptions(options => NBitcoin.JsonConverters.Serializer.RegisterFrontConverters(options.SerializerSettings))
+                .AddNewtonsoftJson(options =>
+                    NBitcoin.JsonConverters.Serializer.RegisterFrontConverters(options.SerializerSettings))
                 .AddControllers(services);
 
             // Register the Swagger generator, defining one or more Swagger documents
@@ -87,14 +95,16 @@ namespace BRhodium.Bitcoin.Features.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(this.Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            app.UseStaticFiles();
+            app.UseRouting();
 
             app.UseCors("CorsPolicy");
 
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+            });
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();

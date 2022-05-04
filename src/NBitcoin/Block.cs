@@ -134,12 +134,16 @@ namespace NBitcoin
             return hash;
         }
 
-        public virtual uint256 GetPoWHash(int height, int powLimit2Height)
+        public virtual uint256 GetPoWHash(int height, int powLimit2Height, int powDigiShieldX11Height)
         {
-            if (height > powLimit2Height)
+            if (height > powDigiShieldX11Height) //TESTNET
+            {
+                return HashX11.Instance.Hash(this.ToBytes());
+            } 
+            else if (height > powLimit2Height)
             {
                 return HashX13.Instance.Hash(this.ToBytes(), 2);
-            }
+            } 
             else
             {
                 return HashX13.Instance.Hash(this.ToBytes(), 1);
@@ -166,7 +170,7 @@ namespace NBitcoin
             if ((bits.CompareTo(BigInteger.Zero) <= 0) || (bits.CompareTo(Pow256) >= 0))
                 return false;
 
-            return this.GetPoWHash(height, consensus.PowLimit2Height) <= this.Bits.ToUInt256();
+            return this.GetPoWHash(height, consensus.PowLimit2Height, consensus.PowDigiShieldX11Height) <= this.Bits.ToUInt256();
         }
 
         public override string ToString()

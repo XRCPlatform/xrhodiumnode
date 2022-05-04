@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin.BouncyCastle.Math;
 
 namespace NBitcoin
@@ -365,6 +366,10 @@ namespace NBitcoin
             if (this.Height == consensus.PowLimit2Height + 1)
                 return consensus.PowLimit2;
 
+            //hard fork 2 - DigiShield + X11
+            if (this.Height > consensus.PowDigiShieldX11Height)
+                return GetWorkRequiredDigiShield(consensus);
+
             Target proofOfWorkLimit;
 
             // Hard fork to higher difficulty
@@ -435,6 +440,61 @@ namespace NBitcoin
         }
 
         /// <summary>
+        /// Implementation of DigiShield
+        /// </summary>
+        /// <param name="consensus"></param>
+        /// <param name="lastBlockTarget">Primary for testing to force different target</param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public Target GetWorkRequiredDigiShield(Consensus consensus, Target lastBlockTarget = null)
+        {
+            var nAveragingInterval = 10 * 5; // block
+            var multiAlgoTargetSpacingV4 = 10 * 60; // seconds
+            var nAveragingTargetTimespanV4 = nAveragingInterval * multiAlgoTargetSpacingV4;
+            var nMaxAdjustDownV4 = 16;
+            var nMaxAdjustUpV4 = 8;
+            var nMinActualTimespanV4 = TimeSpan.FromSeconds(nAveragingTargetTimespanV4 * (100 - nMaxAdjustUpV4) / 100);
+            var nMaxActualTimespanV4 = TimeSpan.FromSeconds(nAveragingTargetTimespanV4 * (100 + nMaxAdjustDownV4) / 100);
+
+            var height = this.Height;
+            Target proofOfWorkLimit = consensus.PowLimit;
+            ChainedHeader lastBlock = this.Previous;
+            ChainedHeader firstBlock = this.GetAncestor(height - nAveragingInterval);
+
+            if ((height - consensus.PowDigiShieldX11Height) <= (nAveragingInterval + MedianTimeSpan))
+            {
+                return new Target(new uint256("000000000001a61a000000000000000000000000000000000000000000000000"));
+            }
+
+            // Limit adjustment step
+            // Use medians to prevent time-warp attacks
+            var nActualTimespan = lastBlock.GetAverageTimePast() - firstBlock.GetAverageTimePast();
+            nActualTimespan = TimeSpan.FromSeconds(nAveragingTargetTimespanV4
+                                    + (nActualTimespan.TotalSeconds - nAveragingTargetTimespanV4) / 4);
+
+            if (nActualTimespan < nMinActualTimespanV4)
+                nActualTimespan = nMinActualTimespanV4;
+            if (nActualTimespan > nMaxActualTimespanV4)
+                nActualTimespan = nMaxActualTimespanV4;
+
+            // Retarget.
+            BigInteger newTarget = lastBlock.Header.Bits.ToBigInteger();
+            if (lastBlockTarget != null)
+            {
+                newTarget = lastBlockTarget.ToBigInteger();
+            }
+
+            newTarget = newTarget.Multiply(BigInteger.ValueOf((long)nActualTimespan.TotalSeconds));
+            newTarget = newTarget.Divide(BigInteger.ValueOf((long)nAveragingTargetTimespanV4));
+
+            var finalTarget = new Target(newTarget);
+            if (finalTarget > proofOfWorkLimit)
+                finalTarget = proofOfWorkLimit;
+
+            return finalTarget;
+        }
+
+        /// <summary>
         /// Calculate the median block time over <see cref="MedianTimeSpan"/> window from this entry in the chain.
         /// </summary>
         /// <returns>The median block time.</returns>
@@ -451,6 +511,26 @@ namespace NBitcoin
             Array.Sort(median);
             return median[begin + ((end - begin) / 2)];
         }
+
+        public DateTimeOffset GetAverageTimePast()
+        {
+            var median = new List<DateTimeOffset>();
+
+            ChainedHeader chainedHeader = this;
+            for (int i = 0; i < MedianTimeSpan && chainedHeader != null; i++, chainedHeader = chainedHeader.Previous)
+                median.Add(chainedHeader.Header.BlockTime);
+
+            median.Sort();
+
+            var firstTimespan = median.First();
+            var lastTimespan = median.Last();
+            var differenceTimespan = lastTimespan - firstTimespan;
+            var timespan = differenceTimespan.TotalSeconds / 2;
+            var averageDateTime = firstTimespan.AddSeconds((long)timespan);
+
+            return averageDateTime;
+        }
+
 
         /// <summary>
         /// Check that the header is a valid block header including the work done for PoW blocks.

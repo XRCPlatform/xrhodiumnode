@@ -17,13 +17,6 @@
 </externalLink>
 </listItem>
   <listItem><externalLink>
-<linkText><para>T-Web Wallet</para></linkText>
-<linkAlternateText>T-Web Wallet</linkAlternateText>
-<linkUri>http://twallet.xrhodium.org</linkUri>
-<linkTarget>_blank</linkTarget>
-</externalLink>
-</listItem>
-  <listItem><externalLink>
 <linkText><para>T-Electrum Wallet</para></linkText>
 <linkAlternateText>T-Electrum Wallet</linkAlternateText>
 <linkUri>https://testnet.xrhodium.org/#electrum</linkUri>
@@ -33,7 +26,7 @@
   <listItem><externalLink>
 <linkText><para>T-Explorer</para></linkText>
 <linkAlternateText>T-Explorer</linkAlternateText>
-<linkUri>http://texplorer.xrhodium.org/</linkUri>
+<linkUri>https://texplorer.xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
@@ -65,21 +58,14 @@
   <listItem><externalLink>
 <linkText><para>Official Homepage</para></linkText>
 <linkAlternateText>Official Homepage</linkAlternateText>
-<linkUri>https://www.xrhodium.org/</linkUri>
-<linkTarget>_blank</linkTarget>
-</externalLink>
-</listItem>
-  <listItem><externalLink>
-<linkText><para>Web Wallet</para></linkText>
-<linkAlternateText>Web Wallet</linkAlternateText>
-<linkUri>https://wallet.xrhodium.org</linkUri>
+<linkUri>https://xrhodium.org/</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>
   <listItem><externalLink>
 <linkText><para>Electrum Wallet</para></linkText>
 <linkAlternateText>Electrum Wallet</linkAlternateText>
-<linkUri>https://electrum.xrhodium.org</linkUri>
+<linkUri>https://electrumxrc.org</linkUri>
 <linkTarget>_blank</linkTarget>
 </externalLink>
 </listItem>

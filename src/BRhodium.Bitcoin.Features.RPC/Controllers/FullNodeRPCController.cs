@@ -90,7 +90,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                     TimeOffset = this.ConnectionManager?.ConnectedPeers?.GetMedianTimeOffset() ?? 0,
                     Connections = this.ConnectionManager?.ConnectedPeers?.Count(),
                     Proxy = string.Empty,
-                    Difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
+                    Difficulty = this.GetNetworkDifficulty()?.DifficultySafe() ?? 0,
                     Testnet = this.Network.IsTest(),
                     RelayFee = this.Settings?.MinRelayTxFeeRate?.FeePerK?.ToUnit(MoneyUnit.XRC) ?? 0,
                     Errors = string.Empty

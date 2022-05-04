@@ -17,6 +17,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using BRhodium.Bitcoin.Features.Consensus;
 using BRhodium.Bitcoin.Features.BlockStore;
+using BRhodium.Node.Utilities.Extensions;
 
 namespace BRhodium.Bitcoin.Features.RPC.Controllers
 {
@@ -72,7 +73,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             blockTemplate.Size = blockTemplate.Weight = blockTemplate.StrippedSize = block.GetSerializedSize();
             blockTemplate.Bits = string.Format("{0:x8}", block.Header.Bits.ToCompact());
             blockTemplate.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
-            blockTemplate.Difficulty = block.Header.Bits.Difficulty;
+            blockTemplate.Difficulty = block.Header.Bits.DifficultySafe();
             blockTemplate.Nonce = block.Header.Nonce;
             blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
             blockTemplate.Version = block.Header.Version;
@@ -249,7 +250,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
             blockModel.Version = currentBlock.Header.Version;
             blockModel.VersionHex = currentBlock.Header.Version.ToString("X");
             blockModel.Merkleroot = string.Format("{0:x8}", currentBlock.Header.HashMerkleRoot);
-            blockModel.Difficulty = currentBlock.Header.Bits.Difficulty;
+            blockModel.Difficulty = currentBlock.Header.Bits.DifficultySafe();
             blockModel.Time = (int)currentBlock.Header.Time;
             blockModel.Height = currentBlock.Height;
             blockModel.Chainwork = currentBlock.ChainWork.ToString();
@@ -259,7 +260,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 (this.Chain.Network.Consensus.Option<PowConsensusOptions>().WitnessScaleFactor - 1) +
                 block.GetSerializedSize(this.Chain.Network, TransactionOptions.Witness);
 
-            blockModel.ProofHash = currentBlock.Header.GetPoWHash(currentBlock.Height, Network.Main.Consensus.PowLimit2Height);
+            blockModel.ProofHash = currentBlock.Header.GetPoWHash(
+                currentBlock.Height, 
+                Network.Main.Consensus.PowLimit2Height,
+                Network.Main.Consensus.PowDigiShieldX11Height);
+
             if (this.Chain.Tip.Height > currentBlock.Height)
             {
                 blockModel.NextBlockHash = string.Format("{0:x8}", this.Chain.GetBlock(currentBlock.Height + 1).Header.GetHash());
@@ -445,7 +450,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                         }
 
                         blockTemplate.Confirmations = this.Chain.Tip.Height - chainedHeader.Height;
-                        blockTemplate.Difficulty = block.Header.Bits.Difficulty;
+                        blockTemplate.Difficulty = block.Header.Bits.DifficultySafe();
                         blockTemplate.Nonce = block.Header.Nonce;
                         blockTemplate.Merkleroot = block.Header.HashMerkleRoot.ToString();
                         blockTemplate.Version = block.Header.Version;
@@ -585,7 +590,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
                 result.Blocks = chainRepository.Height;
                 result.Chain = this.Network.Name.Replace("BRhodium", string.Empty);
 
-                var difficulty = this.networkDifficulty?.GetNetworkDifficulty().Difficulty;
+                var difficulty = this.networkDifficulty?.GetNetworkDifficulty().DifficultySafe();
                 if (difficulty.HasValue) result.Difficulty = difficulty.Value;
 
                 result.Headers = chainRepository.Height;

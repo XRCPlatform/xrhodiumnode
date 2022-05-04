@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BRhodium.Node.Utilities.Extensions;
 using NBitcoin;
 
 namespace BRhodium.Bitcoin.Features.BlockStore.Models
@@ -27,7 +28,7 @@ namespace BRhodium.Bitcoin.Features.BlockStore.Models
             this.Nonce = block.Header.Nonce;
             this.PreviousBlockHash = block.Header.HashPrevBlock.ToString();
             this.MerkleRoot = block.Header.HashMerkleRoot.ToString();
-            this.Difficulty = block.Header.Bits.Difficulty;
+            this.Difficulty = block.Header.Bits.DifficultySafe();
             this.Transactions = block.Transactions.Select(t => t.GetHash().ToString()).ToArray();
         }
     }

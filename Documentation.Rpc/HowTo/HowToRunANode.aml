@@ -26,20 +26,21 @@ adduser mynode sudo
 apt-get install git cmake build-essential libssl-dev pkg-config libboost-all-dev libsodium-dev libzmq5 tmux
 </code>
 
-<para>and latest MS .Net Core Framework</para>
+<para>and MS .Net Core Framework 3.1 SDK</para>
 
 <code language="cs">
-https://docs.microsoft.com/en-us/dotnet/core/install/linux-package-manager-ubuntu-1604
+https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 
-wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
 
-And install SDK 2.2
+And install SDK 3.1
 
 sudo apt-get update
-sudo apt-get install apt-transport-https
+sudo apt-get install -y apt-transport-https
 sudo apt-get update
-apt-get install dotnet-sdk-2.2
+sudo apt-get install -y dotnet-sdk-3.1
 </code>
 
 <para>After completing these steps you can continue with a first run.</para>
@@ -69,7 +70,7 @@ Go to \home\mynode\
 
 And clone this git:
 
-git clone -b master_1.1.20 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+git clone -b master_1.1.30 https://gitlab.com/bitcoinrh/BRhodiumNode.git
 </code>
 
         <para>Now go to project folder and call.</para>

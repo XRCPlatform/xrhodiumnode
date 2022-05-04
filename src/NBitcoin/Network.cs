@@ -166,6 +166,8 @@ namespace NBitcoin
 
         public int PowLimit2Height { get; set; }
 
+        public int PowDigiShieldX11Height { get; set; }
+
         public TimeSpan PowTargetTimespan { get; set; }
 
         public TimeSpan PowTargetSpacing { get; set; }
@@ -215,6 +217,9 @@ namespace NBitcoin
                 MinerConfirmationWindow = this.MinerConfirmationWindow,
                 PowAllowMinDifficultyBlocks = this.PowAllowMinDifficultyBlocks,
                 PowLimit = this.PowLimit,
+                PowLimit2 = this.PowLimit2,
+                PowLimit2Height = this.PowLimit2Height,
+                PowDigiShieldX11Height = this.PowDigiShieldX11Height,
                 PowNoRetargeting = this.PowNoRetargeting,
                 PowTargetSpacing = this.PowTargetSpacing,
                 PowTargetTimespan = this.PowTargetTimespan,
