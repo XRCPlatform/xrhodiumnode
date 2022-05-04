@@ -232,33 +232,6 @@ namespace BRhodium.Node.Configuration.Logging
             AddFilters(settings, dataFolder);
         }
 
-        ///// <summary>
-        ///// Configure the console logger and set it to filter logs not related to the fullnode.
-        ///// </summary>
-        ///// <param name="loggerFactory">The logger factory to add the console logger.</param>
-        ///// <returns>The new console settings.</returns>
-        //public static void AddConsoleWithFilters(this ILoggerFactory loggerFactory)
-        //{
-        //    ConsoleLoggerSettings consoleLoggerSettings = new ConsoleLoggerSettings
-        //    {
-        //        Switches =
-        //        {
-        //            {"Default", Microsoft.Extensions.Logging.LogLevel.Information},
-        //            {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
-        //            {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
-        //            {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error}
-        //        }
-        //    };
-
-        //    ConsoleLoggerProvider consoleLoggerProvider = new ConsoleLoggerProvider(consoleLoggerSettings);
-        //    loggerFactory.AddProvider(consoleLoggerProvider);
-
-        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-        //    extendedLoggerFactory.ConsoleLoggerProvider = consoleLoggerProvider;
-        //    extendedLoggerFactory.ConsoleSettings = consoleLoggerSettings;
-        //}
-
         /// <summary>
         /// Configure the console logger and set it to filter logs not related to the fullnode.
         /// </summary>
@@ -302,29 +275,5 @@ namespace BRhodium.Node.Configuration.Logging
                 }
             }
         }
-
-        ///// <summary>
-        ///// Obtains configuration of the console logger.
-        ///// </summary>
-        ///// <param name="loggerFactory">Logger factory interface being extended.</param>
-        ///// <returns>Console logger settings.</returns>
-        //public static ConsoleLoggerSettings GetConsoleSettings(this ILoggerFactory loggerFactory)
-        //{
-        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-        //    return extendedLoggerFactory.ConsoleSettings;
-        //}
-
-        /// <summary>
-        /// Obtains configuration of the console logger provider.
-        /// </summary>
-        /// <param name="loggerFactory">Logger factory interface being extended.</param>
-        /// <returns>Console logger provider.</returns>
-        //public static ConsoleLoggerProvider GetConsoleLoggerProvider(this ILoggerFactory loggerFactory)
-        //{
-        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-        //    return extendedLoggerFactory.ConsoleLoggerProvider;
-        //}
     }
 }

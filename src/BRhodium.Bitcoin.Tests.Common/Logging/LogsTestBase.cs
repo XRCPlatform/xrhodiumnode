@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Moq;
 using NBitcoin;
 
@@ -12,19 +13,25 @@ namespace BRhodium.Node.Tests.Common.Logging
         /// This class is not able to work concurrently because logs is a static class.
         /// The logs class needs to be refactored first before tests can run in parallel.
         /// </remarks>
-        public LogsTestBase() : base(Network.BRhodiumRegTest)
+        public LogsTestBase(Network network = null) : base(Network.BRhodiumRegTest)
         {
             this.FullNodeLogger = new Mock<ILogger>();
             this.RPCLogger = new Mock<ILogger>();
             this.Logger = new Mock<ILogger>();
             this.LoggerFactory = new Mock<ILoggerFactory>();
+
+            Initialise();
+        }
+
+        private void Initialise()
+        {
             this.LoggerFactory.Setup(l => l.CreateLogger(It.IsAny<string>()))
                .Returns(this.Logger.Object);
             this.LoggerFactory.Setup(l => l.CreateLogger(typeof(FullNode).FullName))
                .Returns(this.FullNodeLogger.Object)
                .Verifiable();
             /*
-            // TODO: Re-factor by moving to BRhodium.Bitcoin.Features.RPC.Tests or BRhodium.Node.IntegrationTests
+            // TODO: Re-factor by moving to Stratis.Bitcoin.Features.RPC.Tests or Stratis.Bitcoin.IntegrationTests
             this.mockLoggerFactory.Setup(l => l.CreateLogger(typeof(RPCFeature).FullName))
                 .Returns(this.rpcLogger.Object)
                  .Verifiable();
@@ -41,29 +48,43 @@ namespace BRhodium.Node.Tests.Common.Logging
 
         protected void AssertLog<T>(Mock<ILogger> logger, LogLevel logLevel, string exceptionMessage, string message) where T : Exception
         {
-            logger.Verify(f => f.Log<Object>(logLevel,
-                It.IsAny<EventId>(),
-                It.Is<object>(l => ((FormattedLogValues)l)[0].Value.ToString().EndsWith(message)),
-                It.Is<T>(t => t.Message.Equals(exceptionMessage)),
-                It.IsAny<Func<object, Exception, string>>()));
+            logger
+                .Setup(f => f.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
+                .Callback(new InvocationAction(invocation =>
+                {
+                    if ((LogLevel)invocation.Arguments[0] == logLevel)
+                    {
+                        invocation.Arguments[2].ToString().Should().EndWith(message);
+                        ((T)invocation.Arguments[3]).Message.Should().Be(exceptionMessage);
+                    }
+                }));
         }
 
         protected void AssertLog<T>(Mock<ILogger<FullNode>> logger, LogLevel logLevel, string exceptionMessage, string message) where T : Exception
         {
-            logger.Verify(f => f.Log<Object>(logLevel,
-                It.IsAny<EventId>(),
-                It.Is<object>(l => ((FormattedLogValues)l)[0].Value.ToString().EndsWith(message)),
-                It.Is<T>(t => t.Message.Equals(exceptionMessage)),
-                It.IsAny<Func<object, Exception, string>>()));
+            logger
+                .Setup(f => f.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
+                .Callback(new InvocationAction(invocation =>
+                {
+                    if ((LogLevel)invocation.Arguments[0] == logLevel)
+                    {
+                        invocation.Arguments[2].ToString().Should().EndWith(message);
+                        ((T)invocation.Arguments[3]).Message.Should().Be(exceptionMessage);
+                    }
+                }));
         }
 
         protected void AssertLog(Mock<ILogger> logger, LogLevel logLevel, string message)
         {
-            logger.Verify(f => f.Log<Object>(logLevel,
-                It.IsAny<EventId>(),
-                It.Is<object>(l => ((FormattedLogValues)l)[0].Value.ToString().EndsWith(message)),
-                null,
-                It.IsAny<Func<object, Exception, string>>()));
+            logger
+                .Setup(f => f.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
+                .Callback(new InvocationAction(invocation =>
+                {
+                    if ((LogLevel)invocation.Arguments[0] == logLevel)
+                    {
+                        invocation.Arguments[2].ToString().Should().EndWith(message);
+                    }
+                }));
         }
 
         /* TODO: Re-factor
@@ -81,7 +102,7 @@ namespace BRhodium.Node.Tests.Common.Logging
         {
             logger.Verify(f => f.Log<Object>(logLevel,
                 It.IsAny<EventId>(),
-                It.Is<object>(l => ((FormattedLogValues)l)[0].Value.ToString().EndsWith(message)),
+                It.Is<object>(l => ((IReadOnlyList<KeyValuePair<string, object>>)l)[0].Value.ToString().EndsWith(message)),
                 null,
                 It.IsAny<Func<object, Exception, string>>()));
         }
