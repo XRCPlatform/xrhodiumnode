@@ -11,6 +11,7 @@ using NLog.Targets;
 using NLog.Targets.Wrappers;
 using BRhodium.Node.Configuration.Settings;
 using BRhodium.Node.Utilities;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace BRhodium.Node.Configuration.Logging
 {
@@ -20,10 +21,42 @@ namespace BRhodium.Node.Configuration.Logging
     public class ExtendedLoggerFactory : LoggerFactory
     {
         /// <summary>Configuration of console logger.</summary>
-        public ConsoleLoggerSettings ConsoleSettings { get; set; }
+        public ILoggingBuilder ConsoleSettings { get; set; }
 
         /// <summary>Provider of console logger.</summary>
         public ConsoleLoggerProvider ConsoleLoggerProvider { get; set; }
+
+        public static ILoggerFactory Create()
+        {
+            return ExtendedLoggerFactory.Create(builder =>
+            {
+                builder.AddFilter("Default", LogLevel.Information)
+                    .AddFilter("System", LogLevel.Warning)
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddFilter("Microsoft.AspNetCore", LogLevel.Error)
+                    .AddConsole();
+            }
+            );
+        }
+
+        /// <summary>Loads the NLog.config file from the <see cref="DataFolder"/>, if it exists.</summary>
+        public static ILoggerFactory Create(LogSettings settings)
+        {
+            return ExtendedLoggerFactory.Create(builder =>
+            {
+                LoggingConfiguration.ConfigureConsoleFilters(builder, settings);
+
+                builder.AddFilter("Default", LogLevel.Information)
+                    .AddFilter("System", LogLevel.Warning)
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddFilter("Microsoft.AspNetCore", LogLevel.Error)
+                    .AddFilter<ConsoleLoggerProvider>($"{nameof(BRhodium)}.*", LogLevel.Information)
+                    .AddConsole();
+
+                builder.SetMinimumLevel(LogLevel.Debug);
+            }
+            );
+        }
     }
 
     /// <summary>
@@ -199,32 +232,32 @@ namespace BRhodium.Node.Configuration.Logging
             AddFilters(settings, dataFolder);
         }
 
-        /// <summary>
-        /// Configure the console logger and set it to filter logs not related to the fullnode.
-        /// </summary>
-        /// <param name="loggerFactory">The logger factory to add the console logger.</param>
-        /// <returns>The new console settings.</returns>
-        public static void AddConsoleWithFilters(this ILoggerFactory loggerFactory)
-        {
-            ConsoleLoggerSettings consoleLoggerSettings = new ConsoleLoggerSettings
-            {
-                Switches =
-                {
-                    {"Default", Microsoft.Extensions.Logging.LogLevel.Information},
-                    {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
-                    {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
-                    {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error}
-                }
-            };
+        ///// <summary>
+        ///// Configure the console logger and set it to filter logs not related to the fullnode.
+        ///// </summary>
+        ///// <param name="loggerFactory">The logger factory to add the console logger.</param>
+        ///// <returns>The new console settings.</returns>
+        //public static void AddConsoleWithFilters(this ILoggerFactory loggerFactory)
+        //{
+        //    ConsoleLoggerSettings consoleLoggerSettings = new ConsoleLoggerSettings
+        //    {
+        //        Switches =
+        //        {
+        //            {"Default", Microsoft.Extensions.Logging.LogLevel.Information},
+        //            {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
+        //            {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
+        //            {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error}
+        //        }
+        //    };
 
-            ConsoleLoggerProvider consoleLoggerProvider = new ConsoleLoggerProvider(consoleLoggerSettings);
-            loggerFactory.AddProvider(consoleLoggerProvider);
+        //    ConsoleLoggerProvider consoleLoggerProvider = new ConsoleLoggerProvider(consoleLoggerSettings);
+        //    loggerFactory.AddProvider(consoleLoggerProvider);
 
-            ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-            Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-            extendedLoggerFactory.ConsoleLoggerProvider = consoleLoggerProvider;
-            extendedLoggerFactory.ConsoleSettings = consoleLoggerSettings;
-        }
+        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
+        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
+        //    extendedLoggerFactory.ConsoleLoggerProvider = consoleLoggerProvider;
+        //    extendedLoggerFactory.ConsoleSettings = consoleLoggerSettings;
+        //}
 
         /// <summary>
         /// Configure the console logger and set it to filter logs not related to the fullnode.
@@ -232,7 +265,7 @@ namespace BRhodium.Node.Configuration.Logging
         /// <param name="loggerFactory">Not used.</param>
         /// <param name="consoleLoggerSettings">Console settings to filter.</param>
         /// <param name="settings">Settings that hold potential debug arguments, if null no debug arguments will be loaded."/></param>
-        public static void ConfigureConsoleFilters(this ILoggerFactory loggerFactory, ConsoleLoggerSettings consoleLoggerSettings, LogSettings settings)
+        public static void ConfigureConsoleFilters(ILoggingBuilder builder, LogSettings settings)
         {
             if (settings != null)
             {
@@ -241,61 +274,57 @@ namespace BRhodium.Node.Configuration.Logging
                     if (settings.DebugArgs[0] == "1")
                     {
                         // Increase all logging to Debug.
-                        consoleLoggerSettings.Switches.Add($"{nameof(BRhodium)}.{nameof(Node)}", Microsoft.Extensions.Logging.LogLevel.Debug);
+                        builder.AddFilter<ConsoleLoggerProvider>($"{nameof(BRhodium)}", Microsoft.Extensions.Logging.LogLevel.Debug);
                     }
                     else
                     {
-                        HashSet<string> usedCategories = new HashSet<string>(StringComparer.Ordinal);
-
-                        // Increase selected categories to Debug.
-                        foreach (string key in settings.DebugArgs)
+                        lock (keyCategories)
                         {
-                            if (!keyCategories.TryGetValue(key.Trim(), out var category))
-                            {
-                                // Allow direct specification - e.g. "-debug=BRhodium.Node.Miner".
-                                category = key.Trim();
-                            }
+                            var usedCategories = new HashSet<string>(StringComparer.Ordinal);
 
-                            if (!usedCategories.Contains(category))
+                            // Increase selected categories to Debug.
+                            foreach (string key in settings.DebugArgs)
                             {
-                                usedCategories.Add(category);
-                                consoleLoggerSettings.Switches.Add(category.TrimEnd('*').TrimEnd('.'), Microsoft.Extensions.Logging.LogLevel.Debug);
+                                if (!keyCategories.TryGetValue(key.Trim(), out string category))
+                                {
+                                    // Allow direct specification - e.g. "-debug=Blockcore.Miner".
+                                    category = key.Trim();
+                                }
+
+                                if (!usedCategories.Contains(category))
+                                {
+                                    usedCategories.Add(category);
+                                    builder.AddFilter<ConsoleLoggerProvider>(category.TrimEnd('*').TrimEnd('.'), Microsoft.Extensions.Logging.LogLevel.Debug);
+                                }
                             }
                         }
                     }
                 }
-                else
-                {
-                    consoleLoggerSettings.Switches.Remove("Default");
-                    consoleLoggerSettings.Switches.Add("Default", settings.LogLevel);
-                }
             }
-
-            consoleLoggerSettings.Reload();
         }
 
-        /// <summary>
-        /// Obtains configuration of the console logger.
-        /// </summary>
-        /// <param name="loggerFactory">Logger factory interface being extended.</param>
-        /// <returns>Console logger settings.</returns>
-        public static ConsoleLoggerSettings GetConsoleSettings(this ILoggerFactory loggerFactory)
-        {
-            ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-            Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-            return extendedLoggerFactory.ConsoleSettings;
-        }
+        ///// <summary>
+        ///// Obtains configuration of the console logger.
+        ///// </summary>
+        ///// <param name="loggerFactory">Logger factory interface being extended.</param>
+        ///// <returns>Console logger settings.</returns>
+        //public static ConsoleLoggerSettings GetConsoleSettings(this ILoggerFactory loggerFactory)
+        //{
+        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
+        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
+        //    return extendedLoggerFactory.ConsoleSettings;
+        //}
 
         /// <summary>
         /// Obtains configuration of the console logger provider.
         /// </summary>
         /// <param name="loggerFactory">Logger factory interface being extended.</param>
         /// <returns>Console logger provider.</returns>
-        public static ConsoleLoggerProvider GetConsoleLoggerProvider(this ILoggerFactory loggerFactory)
-        {
-            ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
-            Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
-            return extendedLoggerFactory.ConsoleLoggerProvider;
-        }
+        //public static ConsoleLoggerProvider GetConsoleLoggerProvider(this ILoggerFactory loggerFactory)
+        //{
+        //    ExtendedLoggerFactory extendedLoggerFactory = loggerFactory as ExtendedLoggerFactory;
+        //    Guard.NotNull(extendedLoggerFactory, nameof(extendedLoggerFactory));
+        //    return extendedLoggerFactory.ConsoleLoggerProvider;
+        //}
     }
 }

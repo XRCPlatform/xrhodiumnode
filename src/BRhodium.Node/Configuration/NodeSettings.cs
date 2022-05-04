@@ -56,8 +56,7 @@ namespace BRhodium.Node.Configuration
             this.MinProtocolVersion = minProtocolVersion;
 
             this.Log = new LogSettings();
-            this.LoggerFactory = new ExtendedLoggerFactory();
-            this.LoggerFactory.AddConsoleWithFilters();
+            this.LoggerFactory = ExtendedLoggerFactory.Create(this.Log);
             this.LoggerFactory.AddNLog();
             this.Logger = this.LoggerFactory.CreateLogger(typeof(NodeSettings).FullName);
 
@@ -231,7 +230,6 @@ namespace BRhodium.Node.Configuration
             // Set the configuration filter and file path.
             this.Log.Load(config);
             this.LoggerFactory.AddFilters(this.Log, this.DataFolder);
-            this.LoggerFactory.ConfigureConsoleFilters(this.LoggerFactory.GetConsoleSettings(), this.Log);
 
             this.Logger.LogDebug("Data directory set to '{0}'.", this.DataDir);
             this.Logger.LogDebug("Configuration file set to '{0}'.", this.ConfigurationFile);

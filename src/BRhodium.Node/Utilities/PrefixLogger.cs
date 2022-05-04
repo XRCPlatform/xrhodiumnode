@@ -36,7 +36,7 @@ namespace BRhodium.Node.Utilities
         public PrefixLogger(ILoggerFactory loggerFactory, string categoryName, string prefix = null)
         {
             this.logger = NLog.LogManager.GetLogger(categoryName);
-            this.consoleLogger = loggerFactory.GetConsoleLoggerProvider().CreateLogger(categoryName);
+            this.consoleLogger = loggerFactory.CreateLogger(categoryName);
 
             this.prefix = prefix != null ? prefix : "";
             this.wrapperType = typeof(PrefixLogger);
