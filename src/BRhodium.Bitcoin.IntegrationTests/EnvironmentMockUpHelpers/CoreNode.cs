@@ -62,7 +62,6 @@ namespace BRhodium.Node.IntegrationTests.EnvironmentMockUpHelpers
             this.FindPorts(this.ports);
 
             var loggerFactory = new ExtendedLoggerFactory();
-            loggerFactory.AddConsoleWithFilters();
 
             this.networkPeerFactory = new NetworkPeerFactory(network, DateTimeProvider.Default, loggerFactory, new PayloadProvider().DiscoverPayloads(), new SelfEndpointTracker());
         }

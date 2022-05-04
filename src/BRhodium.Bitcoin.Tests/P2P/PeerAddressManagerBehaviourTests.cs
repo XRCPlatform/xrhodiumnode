@@ -23,7 +23,6 @@ namespace BRhodium.Node.Tests.P2P
         public PeerAddressManagerBehaviourTests()
         {
             this.extendedLoggerFactory = new ExtendedLoggerFactory();
-            this.extendedLoggerFactory.AddConsoleWithFilters();
 
             this.network = Network.Main;
             this.networkPeerFactory = new NetworkPeerFactory(this.network, DateTimeProvider.Default, this.extendedLoggerFactory, new PayloadProvider().DiscoverPayloads(), new SelfEndpointTracker());

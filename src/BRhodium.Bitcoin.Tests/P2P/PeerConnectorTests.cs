@@ -29,7 +29,6 @@ namespace BRhodium.Node.Tests.P2P
         public PeerConnectorTests()
         {
             this.extendedLoggerFactory = new ExtendedLoggerFactory();
-            this.extendedLoggerFactory.AddConsoleWithFilters();
 
             this.asyncLoopFactory = new AsyncLoopFactory(this.extendedLoggerFactory);
             this.network = Network.Main;

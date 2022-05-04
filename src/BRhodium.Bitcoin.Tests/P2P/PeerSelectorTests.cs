@@ -21,7 +21,6 @@ namespace BRhodium.Node.Tests.P2P
         public PeerSelectorTests()
         {
             this.extendedLoggerFactory = new ExtendedLoggerFactory();
-            this.extendedLoggerFactory.AddConsoleWithFilters();
         }
 
         /// <summary>

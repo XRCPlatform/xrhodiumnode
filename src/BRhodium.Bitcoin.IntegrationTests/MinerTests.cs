@@ -152,7 +152,6 @@ namespace BRhodium.Node.IntegrationTests
                 this.cachedCoinView = new CachedCoinView(new InMemoryCoinView(this.chain.Tip.HashBlock), dateTimeProvider, new LoggerFactory());
 
                 var loggerFactory = new ExtendedLoggerFactory();
-                loggerFactory.AddConsoleWithFilters();
 
                 NodeSettings nodeSettings = new NodeSettings(args: new string[] { "-checkpoints","-regtest" });
                 var consensusSettings = new ConsensusSettings().Load(nodeSettings);
