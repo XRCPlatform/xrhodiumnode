@@ -1,7 +1,7 @@
 xRhodium (XRC)
 ===========================================
 
-Project web site: [xRhodium](https://www.xrhodium.org)
+Project web site: [xRhodium](https://xrhodium.org)
 
 Current version: 1.1.30 ([Gitlab link](https://gitlab.com/bitcoinrh/BRhodiumNode/tree/master_1.1.30))
 
@@ -21,7 +21,7 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
 
 .NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. There is a convenience wrapper around most processes is provided to make setup quick.
 
-**Follow full installation process at http://wiki.xrhodium.org/.**
+**Follow full installation process at https://wiki.xrhodium.org/.**
 
  1. Clone the repository:
 
