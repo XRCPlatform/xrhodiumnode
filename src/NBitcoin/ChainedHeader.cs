@@ -461,7 +461,8 @@ namespace NBitcoin
             ChainedHeader lastBlock = this.Previous;
             ChainedHeader firstBlock = this.GetAncestor(height - nAveragingInterval);
 
-            if ((height - consensus.PowDigiShieldX11Height) <= (nAveragingInterval + MedianTimeSpan))
+            if (((height - consensus.PowDigiShieldX11Height) <= (nAveragingInterval + MedianTimeSpan)) 
+                && (consensus.CoinType == (int)CoinType.BRhodium))
             {
                 return new Target(new uint256("000000000001a61a000000000000000000000000000000000000000000000000"));
             }
