@@ -18,59 +18,19 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
         public RPCJsonOutputFormatterTest()
         {
             this.settings = new JsonSerializerSettings();
-            this.charpool = ArrayPool<char>.Create();
-
-            this.formatter = new TestRPCJsonOutputFormatter(this.settings, this.charpool);
-        }
-
-        [Fact]
-        public void CreateJsonWriterCreatesNewJsonWriterWithTextWriter()
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                using (TextWriter writer = new StreamWriter(memoryStream))
-                {
-                    using (StreamReader reader = new StreamReader(memoryStream))
-                    {
-                        var result = this.formatter.CreateJsonWriter(writer);
-                        result.WriteStartObject();
-                        result.WriteEndObject();
-
-                        writer.Flush();
-                        memoryStream.Position = 0;
-                        Assert.Equal("{}", reader.ReadToEnd());
-                    }
-                }
-            }
         }
 
         [Fact]
         public void CreateJsonSerializerCreatesSerializerWithProvidedSettings()
         {
-            this.settings.Culture = new System.Globalization.CultureInfo("en-GB");
-            this.formatter = new TestRPCJsonOutputFormatter(this.settings, this.charpool);
-
-            var serializer = this.formatter.CreateJsonSerializer();
+            var settings = new JsonSerializerSettings
+            {
+                Culture = new System.Globalization.CultureInfo("en-GB")
+            };
+            var formatter = new TestRPCJsonOutputFormatter(settings);
+            JsonSerializer serializer = formatter.JsonSerializer;
 
             Assert.Equal("en-GB", serializer.Culture.Name);
-        }
-
-        [Fact]
-        public void WriteObjectWritesObjectToWriter()
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                using (TextWriter writer = new StreamWriter(memoryStream))
-                {
-                    this.formatter.WriteObject(writer, new RPCAuthorization());
-                    using (StreamReader reader = new StreamReader(memoryStream))
-                    {
-                        writer.Flush();
-                        memoryStream.Position = 0;
-                        Assert.Equal("{\"Authorized\":[],\"AllowIp\":[]}", reader.ReadToEnd());
-                    }
-                }
-            }
         }
 
         [Fact]
@@ -124,19 +84,11 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
 
         private class TestRPCJsonOutputFormatter : RPCJsonOutputFormatter
         {
-            public TestRPCJsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool) : base(serializerSettings, charPool)
+            public TestRPCJsonOutputFormatter(JsonSerializerSettings serializerSettings) : base(serializerSettings)
             {
             }
 
-            public new JsonWriter CreateJsonWriter(TextWriter writer)
-            {
-                return base.CreateJsonWriter(writer);
-            }
-
-            public new JsonSerializer CreateJsonSerializer()
-            {
-                return base.CreateJsonSerializer();
-            }
+            public new JsonSerializer JsonSerializer => base.JsonSerializer;
         }
     }
 }

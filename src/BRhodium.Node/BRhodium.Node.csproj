@@ -3,7 +3,8 @@
   <PropertyGroup>
     <Description>BRhodium Bitcoin FullNode</Description>
     <AssemblyTitle>BRhodium.Bitcoin</AssemblyTitle>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RuntimeFrameworkVersion>3.1.0</RuntimeFrameworkVersion>
     <AssemblyName>BRhodium.Node</AssemblyName>
     <PackageId>BRhodium.Node</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -27,7 +28,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.0" />

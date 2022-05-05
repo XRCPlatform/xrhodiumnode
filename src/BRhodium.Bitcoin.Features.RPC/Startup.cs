@@ -23,10 +23,11 @@ namespace BRhodium.Bitcoin.Features.RPC
             services.AddSingleton<IObjectModelValidator, NoObjectModelValidator>();
             services.AddMvcCore(o =>
             {
+                o.EnableEndpointRouting = false;
                 o.ValueProviderFactories.Clear();
                 o.ValueProviderFactories.Add(new RPCParametersValueProvider());
             })
-                .AddJsonFormatters()
+                .AddNewtonsoftJson()
                 .AddFormatterMappings();
             services.TryAddEnumerable(ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, RPCJsonMvcOptionsSetup>());
         }
@@ -54,15 +55,15 @@ namespace BRhodium.Bitcoin.Features.RPC
             }
             authorizedAccess.AllowIp.AddRange(rpcSettings.AllowIp);
 
-            var options = GetMVCOptions(serviceProvider);
+            MvcNewtonsoftJsonOptions options = GetMVCOptions(serviceProvider);
             Serializer.RegisterFrontConverters(options.SerializerSettings, fullNode.Network);
             app.UseMiddleware(typeof(RPCMiddleware), authorizedAccess);
             app.UseRPC();
         }
 
-        private static MvcJsonOptions GetMVCOptions(IServiceProvider serviceProvider)
+        private static MvcNewtonsoftJsonOptions GetMVCOptions(IServiceProvider serviceProvider)
         {
-            return serviceProvider.GetRequiredService<IOptions<MvcJsonOptions>>().Value;
+            return serviceProvider.GetRequiredService<IOptions<MvcNewtonsoftJsonOptions>>().Value;
         }
     }
 

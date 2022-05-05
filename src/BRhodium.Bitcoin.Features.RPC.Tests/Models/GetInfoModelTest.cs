@@ -6,7 +6,7 @@ using Xunit;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
 {
-    public class GetInfoModelTest : BaseRPCModelTest
+    public class GetInfoModelTest 
     {
         private static readonly string[] AllPropertyNames = new string[] {
                 "version",
@@ -55,7 +55,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
                 PayTxFee = default(decimal)
             };
 
-            JObject obj = ModelToJObject(info);
+            JObject obj = JObject.FromObject(info);
             Assert.True(obj.HasValues);
             var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
 
@@ -68,7 +68,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
             var expectedOrderedPropertyNames = RequiredPropertyNames;
             var info = new GetInfoModel();
 
-            JObject obj = ModelToJObject(info);
+            JObject obj = JObject.FromObject(info);
             Assert.True(obj.HasValues);
             var actualOrderedPropertyNames = obj.Children().Select(o => (o as JProperty)?.Name).ToArray<string>();
 
