@@ -5,7 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
-using Swashbuckle.AspNetCore.Swagger;
+using NBitcoin.JsonConverters;
+using Newtonsoft.Json;
+using Microsoft.OpenApi.Models;
 
 namespace BRhodium.Bitcoin.Features.Api
 {    public class Startup
@@ -57,25 +59,28 @@ namespace BRhodium.Bitcoin.Features.Api
 
             // Add framework services.
             services.AddMvc(options =>
-                {
-                    options.Filters.Add(typeof(LoggingActionFilter));
+            {
+                options.Filters.Add(typeof(LoggingActionFilter));
 
-                    ServiceProvider serviceProvider = services.BuildServiceProvider();
-                    ApiSettings apiSettings = (ApiSettings)serviceProvider.GetRequiredService(typeof(ApiSettings));
-                    if (apiSettings.KeepaliveTimer != null)
-                    {
-                        options.Filters.Add(typeof(KeepaliveActionFilter));
-                    }
-                })
+                ServiceProvider serviceProvider = services.BuildServiceProvider();
+                ApiSettings apiSettings = (ApiSettings)serviceProvider.GetRequiredService(typeof(ApiSettings));
+                if (apiSettings.KeepaliveTimer != null)
+                {
+                    options.Filters.Add(typeof(KeepaliveActionFilter));
+                }
+            })
                 // add serializers for NBitcoin objects
                 .AddNewtonsoftJson(options =>
-                    NBitcoin.JsonConverters.Serializer.RegisterFrontConverters(options.SerializerSettings))
+                {
+                    Serializer.RegisterFrontConverters(options.SerializerSettings);
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                })
                 .AddControllers(services);
 
             // Register the Swagger generator, defining one or more Swagger documents
             services.AddSwaggerGen(setup =>
             {
-                setup.SwaggerDoc("v1", new Info { Title = "BRhodium.Node.Api", Version = "v1" });
+                setup.SwaggerDoc("v1", new OpenApiInfo { Title = "BRhodium.Node.Api", Version = "v1" });
 
                 //Set the comments path for the swagger json and ui.
                 var basePath = PlatformServices.Default.Application.ApplicationBasePath;
@@ -92,6 +97,8 @@ namespace BRhodium.Bitcoin.Features.Api
                     setup.IncludeXmlComments(walletXmlPath);
                 }
             });
+
+            services.AddSwaggerGenNewtonsoftSupport(); // explicit opt-in - needs to be placed after AddSwaggerGen()
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,7 +109,8 @@ namespace BRhodium.Bitcoin.Features.Api
 
             app.UseCors("CorsPolicy");
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
             });
 

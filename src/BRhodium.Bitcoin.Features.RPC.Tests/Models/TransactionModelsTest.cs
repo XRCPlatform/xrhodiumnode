@@ -7,7 +7,7 @@ using Xunit;
 
 namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
 {
-    public class TransactionModelsTest : BaseRPCModelTest, IDisposable
+    public class TransactionModelsTest : IDisposable
     {
         private const string TxBlock10Hex = "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d0136ffffffff0100f2052a01000000434104fcc2888ca91cf0103d8c5797c256bf976e81f280205d002d85b9b622ed1a6f820866c7b5fe12285cfa78c035355d752fc94a398b67597dc4fbb5b386816425ddac00000000";
         private const string TxBlock10Hash = "d3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11";
@@ -39,7 +39,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         public void TransactionModelBriefRenderTest()
         {
             var model = this.txBlock10CoinbaseModelBrief;
-            string json = ModelToJson(model);
+            string json = JObject.FromObject(model).ToString();
 
             string expectedJson = "\"" + TxBlock10Hex + "\"";
 
@@ -50,7 +50,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         public void TransactionModelVerboseRenderTest()
         {
             var expectedPropertyNameOrder = new string[] { "hex", "txid", "size", "version", "locktime", "vin", "vout" };
-            JObject obj = ModelToJObject(this.txBlock460373CoinbaseModelVerbose);
+            JObject obj = JObject.FromObject(this.txBlock460373CoinbaseModelVerbose);
             Assert.True(obj.HasValues);
 
             int actualElements = obj.Children().Count();
@@ -75,7 +75,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         {
             var expectedPropertyNameOrder = new string[] { "coinbase", "sequence" };
             string expectedCoinbase = "0355060704eba7e3582f4254432e434f4d2fb6000ddbcbe5000000000000";
-            JObject obj = ModelToJObject(this.txBlock460373CoinbaseModelVerbose);
+            JObject obj = JObject.FromObject(this.txBlock460373CoinbaseModelVerbose);
             Assert.True(obj.HasValues);
             var vin = obj["vin"];
             Assert.NotNull(vin);
@@ -97,7 +97,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         public void TransactionModelVerboseRenderVoutTest()
         {
             var expectedPropertyNameOrder = new string[] { "value", "n", "scriptPubKey" };
-            JObject obj = ModelToJObject(this.txBlock460373CoinbaseModelVerbose);
+            JObject obj = JObject.FromObject(this.txBlock460373CoinbaseModelVerbose);
             Assert.True(obj.HasValues);
             var vout = obj["vout"];
             Assert.NotNull(vout);
@@ -120,7 +120,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         {
             var expectedFirstPropertyNameOrder = new string[] { "asm", "hex", "reqSigs", "type", "addresses" };
             var expectedSecondPropertyNameOrder = new string[] { "asm", "hex", "type" };
-            JObject obj = ModelToJObject(this.txBlock460373CoinbaseModelVerbose);
+            JObject obj = JObject.FromObject(this.txBlock460373CoinbaseModelVerbose);
             var firstScript = obj["vout"]?.FirstOrDefault()?.Value<JToken>("scriptPubKey");
             var secondScript = obj["vout"]?.LastOrDefault()?.Value<JToken>("scriptPubKey");
 
@@ -143,7 +143,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests.Models
         public void TransactionModelVerboseRenderNonCoinbaseTest()
         {
             var expectedPropertyNameOrder = new string[] { "txid", "vout", "scriptSig", "sequence" };
-            JObject obj = ModelToJObject(this.txTwoInTwoOutModelVerbose);
+            JObject obj = JObject.FromObject(this.txTwoInTwoOutModelVerbose);
             Assert.True(obj.HasValues);
             var vin = obj["vin"];
             var firstIn = vin.FirstOrDefault();

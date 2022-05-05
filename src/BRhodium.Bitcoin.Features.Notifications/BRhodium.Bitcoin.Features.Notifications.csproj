@@ -3,7 +3,8 @@
   <PropertyGroup>
     <Description>BRhodium Bitcoin Features Notifications</Description>
     <AssemblyTitle>BRhodium.Bitcoin.Features.Notifications</AssemblyTitle>
-    <TargetFramework>netstandard2.1</TargetFramework>
+	<TargetFramework>netcoreapp3.1</TargetFramework>
+    <RuntimeFrameworkVersion>3.1.0</RuntimeFrameworkVersion>
     <AssemblyName>BRhodium.Bitcoin.Features.Notifications</AssemblyName>
     <PackageId>BRhodium.Bitcoin.Features.Notifications</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
