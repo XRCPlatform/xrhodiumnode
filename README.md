@@ -27,7 +27,7 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
 
 ```
     git clone -b master_1.1.30 https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.30
-    cd BRhodiumNode
+    cd xrhodiumnode
 ```
 
 The `master` branch is bleeding-edge. Use this at your own risk.
