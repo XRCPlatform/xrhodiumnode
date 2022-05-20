@@ -55,12 +55,12 @@ sudo apt-get install -y dotnet-sdk-3.1
 
 <code language="cs">
 su mynode
-tmux new -s btrnode
+tmux new -s xrcnode
 </code>
 
         <para>Later you will attach this session with command.</para>
 <code language="cs">
-tmux a –t btrnode
+tmux a –t xrcnode
 </code>
 
         <para>Next step is cloning of master branch of actual node under your user (su mynode).</para>
@@ -70,13 +70,13 @@ Go to \home\mynode\
 
 And clone this git:
 
-git clone -b master_1.1.30 https://gitlab.com/bitcoinrh/BRhodiumNode.git
+git clone -b master_1.1.30 https://github.com/XRCPlatform/xrhodiumnode.git
 </code>
 
         <para>Now go to project folder and call.</para>
 
 <code language="cs">
-Go to \home\mynode\BRhodiumNode\src\BRhodium\
+Go to \home\mynode\xrhodiumnode\src\BRhodium\
 
 then call:
 
@@ -162,7 +162,7 @@ rpcpassword=yourpsw
 
 <code language="cs">
 Then go back to
-\home\mynode\BRhodiumNode\src\BRhodium\
+\home\mynode\xrhodiumnode\src\BRhodium\
 
 And run again:
 dotnet run –testnet

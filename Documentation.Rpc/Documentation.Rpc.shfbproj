@@ -18,16 +18,16 @@
     <HtmlHelpName>Documentation</HtmlHelpName>
     <Language>en-US</Language>
     <DocumentationSources>
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Wallet.dll" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Wallet.xml" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.dll" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.RPC.xml" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.dll" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.Miner.xml" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.dll" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.BlockStore.xml" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.dll" />
-      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netstandard2.0\BRhodium.Bitcoin.Features.MemoryPool.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.Wallet.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Wallet\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.Wallet.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.RPC.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.RPC\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.RPC.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.Miner.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.Miner\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.Miner.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.BlockStore.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.BlockStore\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.BlockStore.xml" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.MemoryPool.dll" />
+      <DocumentationSource sourceFile="..\src\BRhodium.Bitcoin.Features.MemoryPool\bin\Debug\netcoreapp3.1\BRhodium.Bitcoin.Features.MemoryPool.xml" />
     </DocumentationSources>
     <WarnOnMissingSourceContext>False</WarnOnMissingSourceContext>
     <HelpFileFormat>Website</HelpFileFormat>
@@ -130,7 +130,7 @@
     <SdkLinkTarget>Blank</SdkLinkTarget>
     <HeaderText>
     </HeaderText>
-    <CopyrightHref>https://www.bitcoinrh.org/</CopyrightHref>
+    <CopyrightHref>https://www.xrhodium.org/</CopyrightHref>
     <CopyrightText>%40 2018 xRhodium</CopyrightText>
     <RootNamespaceTitle>API Reference %28JSON-RPC%29</RootNamespaceTitle>
     <TransformComponentArguments>
