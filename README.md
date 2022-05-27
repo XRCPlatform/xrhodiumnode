@@ -76,33 +76,26 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
  1. Clone the repository:
 
 ```
-    git clone -b master_1.1.30 https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.30
+    git clone -b master_1.1.30 https://github.com/XRCPlatform/xrhodiumnode.git
     cd xrhodiumnode
 ```
 
 The `master` branch is bleeding-edge. Use this at your own risk.
 
- 2. Install .NET Core (dotnet-sdk-3.1). Follow instructions here: 
+ 2. **Install .NET Core (dotnet-sdk-3.1)**. Follow instructions here: 
  https://docs.microsoft.com/en-us/dotnet/core/install/linux.
- 3. Build BRhodium. The `bin/brhodium` script contains the required steps to do a build:
 
- ```
-     bin/brhodium build
- ```
-
- It will create a `build/` directory at the root of the `BRhodium` directory.
-
-You can also do a build or run using the `dotnet` tools. To run the node:
+3. To build the node:
 
 ```
 $ cd src/BRhodium
 $ dotnet restore
-$ dotnet run # or dotnet build
+$ dotnet build
 ```
 
  4. Start a new node. By default, blockchain data, wallet data and configuration files is stored under `$HOME/.brhodium` by default. You can start the node using your build with:
  ```
-     bin/brhodium node
+     dotnet run
  ```
 
  This will start the node software and try to start downloading the mainnet chain. Currently, the blockchain is small, so a full download will likely not take that long.
@@ -110,25 +103,8 @@ $ dotnet run # or dotnet build
  5. If you want to run a testnet node:
 
  ```
-     bin/brhodium node -testnet
+     dotnet run -testnet
  ```
-
- 6. You can get list of commands using:
-
- ```
-     bin/brhodium help
- ```
-
-## RPC Commands
-
-The node implements a number of RPC commands, similar to Bitcoin's RPC interface. As a convenience, the `bin/brhodium` script provides a useful command-line interface.
-
-RPC commands can be executed using the `rpc` option, along with the RPC name and parameters:
-
-```
-    $ bin/brhodium rpc getblockhash 0
-    baff5bfd9dc43fb672d003ec20fd21428f9282ca46bfa1730d73e1f2c75f5fdd
-```
 
 ## Further Information
 
