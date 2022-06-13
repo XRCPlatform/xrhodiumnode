@@ -197,34 +197,6 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <ContentLayout Include="Content Layout.content" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="AccessAuthentication.aml" />
-    <None Include="HowTo\HowToWorkWithRPCForgotTx.aml" />
-    <None Include="HowTo\HowToBeNotified.aml" />
-    <None Include="Orientation.aml" />
-    <None Include="HowTo\HowToValidateAddresses.aml" />
-    <None Include="HowTo\HowToWorkWithRPCWallet.aml" />
-    <None Include="HowTo\HowToWorkWithRPC.aml" />
-    <None Include="HowTo\HowToSetupFirewall.aml" />
     <None Include="HowTo\HowToRunANode.aml" />
-    <None Include="HowTo\HowToRunANode.aml" />
-    <None Include="HowTo.aml" />
-    <None Include="Technology.aml" />
-    <None Include="Welcome.aml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="HowTo\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="firstrun.jpg">
-      <ImageId>firstrun</ImageId>
-      <AlternateText>firstrun</AlternateText>
-    </Image>
-    <Image Include="downloading.jpg">
-      <ImageId>downloading</ImageId>
-      <AlternateText>downloading</AlternateText>
-    </Image>
   </ItemGroup>
 </Project>

@@ -43,7 +43,7 @@ namespace BRhodium
             try
             {
                 //args = new string[] { "-regtest" };
-                // args = new string[] { "-testnet" };
+                //args = new string[] { "-testnet" };
                 NodeSettings nodeSettings = new NodeSettings(args: args, loadConfiguration: false);
 
                 var node = new FullNodeBuilder()
@@ -60,13 +60,14 @@ namespace BRhodium
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestFee(node); }).GetAwaiter();
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { WalletTest(node); }).GetAwaiter();
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { GetBlock(node); }).GetAwaiter();
-               //  Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestSend(node); }).GetAwaiter();
-               //  Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { SubmitBlock(node); }).GetAwaiter();
+                //  Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestSend(node); }).GetAwaiter();
+                //  Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { SubmitBlock(node); }).GetAwaiter();
 
                 //importaddresstest
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { WalletImport(node); }).GetAwaiter();
                 //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { DecodeTest(node); }).GetAwaiter();
-                //Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestTxGeneration(node); }).GetAwaiter();
+                // Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestTxGeneration(node); }).GetAwaiter();
+                Task.Delay(TimeSpan.FromSeconds(15)).ContinueWith((t) => { TestGetRawTx(node); }).GetAwaiter();
 
                 if (node != null)
                     await node.RunAsync();
@@ -405,6 +406,33 @@ namespace BRhodium
             //    // create the wallet
             //    var mnemonic = walletManager.CreateWallet(password, "mypoolcore.wallet", passphrase);
             //}
+        }
+
+        public static void TestGetRawTx(IFullNode fullNode)
+        {
+            var transactionRPC = fullNode.NodeService<TransactionRPCController>();
+            var walletRPC = fullNode.NodeService<WalletRPCController>();
+
+            try
+            {
+                var txDetail = transactionRPC.GetRawTransaction("25426c8c836e3245ec0f54500e42aa48aeeff8de40ba782087e3bc85d270a883", 1, "");
+                var getDetail = JsonConvert.SerializeObject(txDetail);
+
+                //  var txSend = transactionRPC.SendRawTransaction(txSignValue.Result.ToString());
+
+                //var resultx2 = walletRPC.GetWallet("04fcf046-a32d-4790-ad36-7bc45ec0a252");
+                //var resultx3 = walletRPC.GetNewAddress("04fcf046-a32d-4790-ad36-7bc45ec0a252");
+                //walletRPC.ImportAddress("04fcf046-a32d-4790-ad36-7bc45ec0a252", "stupidity", false);
+                // walletRPC.ImportAddress("04fcf046-a32d-4790-ad36-7bc45ec0a252", "TMHzbrb79JqM37dfXnN7WrfNUuA1fEiywS", false);
+                // walletRPC.ImportAddress("04fcf046-a32d-4790-ad36-7bc45ec0a252", "TBAAqzTgt7Cf3no46J7NSuf7vSZF1jxjcC", false);
+                //walletRPC.ImportPubKey("04fcf046-a32d-4790-ad36-7bc45ec0a252", "03defccb82cc300dd91338e04e36594305a62b3913f3a8fe0f3113de77d0a194d5", false);
+            }
+            catch (Exception e)
+            {
+                //exist then nothing
+            }
+
+            var s = true;
         }
     }
 }

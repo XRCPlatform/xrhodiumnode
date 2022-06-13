@@ -71,7 +71,7 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
 
 .NET Core is required to build and run the node software. The installation and setup notes below have been tested on Ubuntu 16.04+. There is a convenience wrapper around most processes is provided to make setup quick.
 
-**Follow full installation process at https://wiki.xrhodium.org/.**
+**Follow full installation process at https://github.com/XRCPlatform/xrhodiumnode/wiki.**
 
  1. Clone the repository:
 
@@ -108,7 +108,7 @@ $ dotnet build
 
 ## Further Information
 
-Documentation is available at https://wiki.xrhodium.org/.
+Documentation is available at https://github.com/XRCPlatform/xrhodiumnode/wiki.
 
 ## Legal
 
