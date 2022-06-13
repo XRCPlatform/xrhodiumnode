@@ -3,7 +3,7 @@ xRhodium (XRC)
 
 Project web site: [xRhodium](https://xrhodium.org)
 
-Current version: 1.1.30 ([Gitlab link](https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.30))
+Current version: 1.1.30 ([GitHub link](https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.30))
 
 
 ## About xRhodium
