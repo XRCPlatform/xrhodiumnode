@@ -1,6 +1,6 @@
-# Contributing to Bitcoin Rhodium
+# Contributing to xRhodium
 
-The Bitcoin Rhodium project welcomes contributions, code reviews, testing, patches, bug fixes, etc. The document outlines guidelines and processes that are involved with contributing to the project.
+The xRhodium project welcomes contributions, code reviews, testing, patches, bug fixes, etc. The document outlines guidelines and processes that are involved with contributing to the project.
 
 For practical and security reasons, there are a few primary maintainers of the official repository who will handle any releases but also maintain the integrity of the project officially. They are referred to as the development team, but they are not privileged other than keeping the project in check and moving ahead and maintaining a roadmap.
 
@@ -8,17 +8,17 @@ For practical and security reasons, there are a few primary maintainers of the o
 
 Large projects like these need people with many skills, whether those who can code, those who can write documentation, etc. The first place to start is our Discord room at [https://discord.gg/WmxceSm]. Following our open development process happens in the #development room.
 
-Bitcoin Rhodium's Node utilizes .NET Core and is primarily written in C#. There might be other applications that are written in other languages. If you are new to C# development a good place to start is [https://dotnet.microsoft.com/].
+xRhodium's Node utilizes .NET Core and is primarily written in C#. There might be other applications that are written in other languages. If you are new to C# development a good place to start is [https://dotnet.microsoft.com/].
 
 # Recording Issues
 
-We currently have an issue tracker at [https://issues.bitcoinrh.org]. Please refer to this site for understanding the current issues and for logging new ones.
+We use [GitHub Issues](https://docs.github.com/en/issues) as our issue tracking system. Please refer to [https://github.com/XRCPlatform/xrhodiumnode/issues] for understanding the current issues and for logging new ones.
 
 # Workflow
 
 Everyone can make contributions, but it is best when a certain workflow is utilized.
 
-All activity happens through out GitLab account: [https://gitlab.com/bitcoinrh].
+All activity happens through out GitHub account: [https://github.com/XRCPlatform/].
 
 An ideal contribution has a single purpose, that sufficiently states the reason for the change and references issues that it is trying to address.
 
@@ -34,7 +34,7 @@ _Please do not include reproducible binaries in commits._ They add bloat to the 
 
 ## Merge Requests
 
-A merge request is a request to merge into the main repository from your forked version. GitLab provides an interface to use this as an opportunity for code review.
+A merge request is a request to merge into the main repository from your forked version. GitHub provides an interface to use this as an opportunity for code review.
 
 _Merge requests are excellent ways to document change, outside of small commits._ It gives context to what is being changed and why. This documentation, from both commit and merge request, comes in use when we ask "Why did this change?"
 
@@ -56,7 +56,7 @@ Examples:
 
 ## Code Reviews
 
-Code reviews are important for non-trivial systems, and Bitcoin Rhodium is no exception. In our case, the product itself has value and depends on the correct operation of this software to help towards maintaining its value. As such, we take contributions seriously in this light. Not everything requires deep review though, but ensuring at least more than one person knows what is going into the codebase is really important.
+Code reviews are important for non-trivial systems, and xRhodium is no exception. In our case, the product itself has value and depends on the correct operation of this software to help towards maintaining its value. As such, we take contributions seriously in this light. Not everything requires deep review though, but ensuring at least more than one person knows what is going into the codebase is really important.
 
 We consider all requests important if there is a good reason for us to pull it in. the questions we try ask are:
 
