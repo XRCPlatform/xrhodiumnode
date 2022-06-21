@@ -202,24 +202,40 @@ namespace BRhodium.Bitcoin.Features.RPC.Controllers
              }
 
              var verbosityInt = Int32.Parse(verbosity);
-             var chainedHeader = GetChainedHeader(blockHashHex);
 
-             if (chainedHeader == null)
-             {
-                  return this.Json(ResultHelper.BuildResultResponse("Block not found"));
-             }
-
-            // exceptions correctly handled and formated at RPCMiddleware layer
-            switch (verbosityInt)
+            try
             {
-                case 0:
-                    var blockModelHex = GetBlockHex(chainedHeader);
-                    return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
-                case 1:
-                case 2:
-                default:
-                    var blockModel = this.GetBlockVerbose(chainedHeader, verbosityInt);
-                    return this.Json(ResultHelper.BuildResultResponse(blockModel));
+                var chainedHeader = GetChainedHeader(blockHashHex);
+                if (chainedHeader == null)
+                {
+                    return this.Json(ResultHelper.BuildResultResponse("Block not found"));
+                }
+
+                // exceptions correctly handled and formated at RPCMiddleware layer
+                switch (verbosityInt)
+                {
+                    case 0:
+                        var blockModelHex = GetBlockHex(chainedHeader);
+                        return this.Json(ResultHelper.BuildResultResponse(blockModelHex));
+                    case 1:
+                    case 2:
+                    default:
+                        var blockModel = this.GetBlockVerbose(chainedHeader, verbosityInt);
+                        return this.Json(ResultHelper.BuildResultResponse(blockModel));
+                }
+            }
+            catch (RPCException e)
+            {
+                this.logger.LogError("RPC Exception: {0}", e.ToString());
+                var errResponse = new Node.Utilities.JsonContract.ErrorModel();
+                errResponse.Code = ((int)e.RPCCode).ToString();
+                errResponse.Message = e.Message;
+                return this.Json(ResultHelper.BuildResultResponse(null, errResponse, 0));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
 

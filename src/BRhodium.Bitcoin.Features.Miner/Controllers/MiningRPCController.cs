@@ -65,6 +65,8 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         private static Object lockGetBlockTemplate = new Object();
         private static Object lockSubmitBlock = new Object();
 
+        private bool useDeprecatedWalletRPC;
+
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
@@ -97,6 +99,7 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
             this.blockProvider = blockProvider;
             this.ChainState = chainState;
             this.Network = fullNode.Network;
+            this.useDeprecatedWalletRPC = this.walletManager.WalletSettings.UseDeprecatedWalletRPC;
         }
 
         /// <summary>
@@ -359,43 +362,66 @@ namespace BRhodium.Bitcoin.Features.Miner.Controllers
         {
             var response = new SubmitBlockModel();
 
-            lock (lockSubmitBlock)
+            try
             {
-                if (string.IsNullOrEmpty(hex))
+                lock (lockSubmitBlock)
                 {
-                    throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Empty block hex supplied", null, false);
+                    if (string.IsNullOrEmpty(hex))
+                    {
+                        throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Empty block hex supplied", null, false);
+                    }
+
+                    var hexBytes = Encoders.Hex.DecodeData(hex);
+                    var pblock = Block.Load(hexBytes, this.Network);
+
+                    if (pblock == null)
+                    {
+                        throw new RPCException(RPCErrorCode.RPC_DESERIALIZATION_ERROR, "Empty block hex supplied", null, false);
+                    }
+
+                    var chainTip = this.consensusLoop.Chain.Tip;
+
+                    var newChain = new ChainedHeader(pblock.Header, pblock.GetHash(), chainTip);
+
+                    if (newChain.ChainWork <= chainTip.ChainWork)
+                    {
+                        throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Wrong chain work", null, false);
+                    }
+
+                    var blockValidationContext = new BlockValidationContext { Block = pblock };
+
+                    this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
+
+                    if (blockValidationContext.Error != null)
+                    {
+                        blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
+                    }
+
+                    var json = this.Json(ResultHelper.BuildResultResponse(null));// if block is successfuly accepted return null
+                    return json;
                 }
-
-                var hexBytes = Encoders.Hex.DecodeData(hex);
-                var pblock = Block.Load(hexBytes, this.Network);
-
-                if (pblock == null)
-                {
-                    throw new RPCException(RPCErrorCode.RPC_DESERIALIZATION_ERROR, "Empty block hex supplied", null, false);
-                }
-
-                var chainTip = this.consensusLoop.Chain.Tip;
-
-                var newChain = new ChainedHeader(pblock.Header, pblock.GetHash(), chainTip);
-
-                if (newChain.ChainWork <= chainTip.ChainWork)
-                {
-                    throw new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Wrong chain work", null, false);
-                }
-
-                var blockValidationContext = new BlockValidationContext { Block = pblock };
-
-                this.consensusLoop.AcceptBlockAsync(blockValidationContext).GetAwaiter().GetResult();
-
-                if (blockValidationContext.Error != null)
-                {
-                    blockValidationContext.Error.Throw(); // not sure if consesus error should have non 200 status code
-                }
-
-                var json = this.Json(ResultHelper.BuildResultResponse(null));// if block is successfuly accepted return null
-                return json;
             }
-
+            catch (RPCException e)
+            {
+                this.logger.LogError("RPC Exception: {0}", e.ToString());
+                var errResponse = new Node.Utilities.JsonContract.ErrorModel();
+                errResponse.Code = ((int)e.RPCCode).ToString();
+                errResponse.Message = e.Message;
+                return this.Json(ResultHelper.BuildResultResponse(null, errResponse, 0));
+            }
+            catch (ConsensusErrorException e)
+            {
+                this.logger.LogError("Consensus Error Exception: {0}", e.ToString());
+                var errResponse = new Node.Utilities.JsonContract.ErrorModel();
+                errResponse.Code = e.ConsensusError.Code;
+                errResponse.Message = e.ConsensusError.Message;
+                return this.Json(ResultHelper.BuildResultResponse(null, errResponse, 0));
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
         }
 
         /// <summary>

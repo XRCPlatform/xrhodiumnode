@@ -681,13 +681,18 @@ namespace BRhodium.Bitcoin.Features.Wallet.Controllers
             if (hdAcccountName.Contains("/"))
             {
                 var nameParts = hdAcccountName.Split('/');
-                accountName = nameParts[0];
-                walletName = nameParts[1];
+                walletName = nameParts[0];
+                accountName = nameParts[1];
             }
             else
             {
                 walletName = hdAcccountName;
                 accountName = DEFAULT_ACCOUNT_NAME;
+            }
+
+            if (this.useDeprecatedWalletRPC)
+            {
+                password = this.walletManager.WalletSecrets.GetWalletPassword(WalletRPCUtil.DEFAULT_WALLET);
             }
 
             var transaction = this.FullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;

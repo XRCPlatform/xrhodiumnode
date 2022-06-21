@@ -15,6 +15,7 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
     {
         private Mock<IRPCAuthorization> authorization;
         private Mock<RequestDelegate> delegateContext;
+        private Mock<IHttpContextFactory> httpContextFactory;
         private DefaultHttpContext httpContext;
         private RPCMiddleware middleware;
         private HttpResponseFeature response;
@@ -33,7 +34,15 @@ namespace BRhodium.Bitcoin.Features.RPC.Tests
             this.response.Body = new MemoryStream();
             this.featureCollection = new FeatureCollection();
 
-            this.middleware = new RPCMiddleware(this.delegateContext.Object, this.authorization.Object, this.LoggerFactory.Object);
+            this.httpContextFactory = new Mock<IHttpContextFactory>();
+            this.httpContextFactory.Setup(f => f.Create(It.IsAny<FeatureCollection>())).Returns((FeatureCollection f) => {
+                DefaultHttpContext newHttpContext = new DefaultHttpContext();
+                newHttpContext.Initialize(f);
+
+                return newHttpContext;
+            });
+
+            this.middleware = new RPCMiddleware(this.delegateContext.Object, this.authorization.Object, this.LoggerFactory.Object, this.httpContextFactory.Object);
         }
 
         [Fact]

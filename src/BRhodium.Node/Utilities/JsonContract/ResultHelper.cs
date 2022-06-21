@@ -8,7 +8,7 @@ namespace BRhodium.Node.Utilities.JsonContract
     {
         public static ResultModel BuildResultResponse(object obj)
         {
-            return BuildResultResponse(obj, null, 0);
+            return BuildResultResponse(obj, string.Empty, 0);
         }
 
         public static ResultModel BuildResultResponse(object obj, string error, int id)
@@ -28,5 +28,16 @@ namespace BRhodium.Node.Utilities.JsonContract
             return resultModel;
         }
 
+        public static ResultModel BuildResultResponse(object obj, ErrorModel error, int id)
+        {
+            ResultModel resultModel = new ResultModel
+            {
+                Result = obj,
+                Error = error,
+                Id = id
+            };
+
+            return resultModel;
+        }
     }
 }
