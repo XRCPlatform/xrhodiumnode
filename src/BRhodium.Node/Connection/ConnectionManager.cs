@@ -351,11 +351,13 @@ namespace BRhodium.Node.Connection
                 ChainHeadersBehavior chainHeadersBehavior = peer.Behavior<ChainHeadersBehavior>();
 
                 string agent = peer.PeerVersion != null ? peer.PeerVersion.UserAgent : "[Unknown]";
+                string protocol = peer.PeerVersion != null ? " (" + ((int)peer.PeerVersion.Version).ToString() + ")" : string.Empty;
                 builder.AppendLine(
                     "Peer:" + (peer.RemoteSocketEndpoint + ", ").PadRight(LoggingConfiguration.ColumnLength + 15) +
                     (" connected:" + (connectionManagerBehavior.Inbound ? "inbound" : "outbound") + ",").PadRight(LoggingConfiguration.ColumnLength + 7) +
                     (" height:" + (chainHeadersBehavior.PendingTip != null ? chainHeadersBehavior.PendingTip.Height.ToString() : peer.PeerVersion?.StartHeight.ToString() ?? "unknown") + ",").PadRight(LoggingConfiguration.ColumnLength + 2) +
-                    " agent:" + agent);
+                    " agent:" + agent +
+                    protocol);
             }
 
             return builder.ToString();
