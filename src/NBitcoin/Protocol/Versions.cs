@@ -6,9 +6,9 @@
     public enum ProtocolVersion : uint
     {
         /// <summary>
-        /// BTR Protocol
+        /// XRC Protocol
         /// </summary>
-        XRC_PROTOCOL_VERSION = 80000,
+        XRC_PROTOCOL_VERSION = 70013,
 
         /// <summary>
         /// Default protocols
@@ -75,6 +75,11 @@
         /// ! Version after which witness support potentially exists.
         /// </summary>
         WITNESS_VERSION = 70012,
+
+        /// <summary>
+        /// "feefilter" tells peers to filter invs to you by fee starts with this version.
+        /// </summary>
+        FEEFILTER_VERSION = 70013,
 
         /// <summary>
         /// shord-id-based block download starts with this version.
