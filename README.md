@@ -3,7 +3,7 @@ xRhodium (XRC)
 
 Project web site: [xRhodium](https://xrhodium.org)
 
-Current version: 1.1.31 ([GitHub link](https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.31))
+Current version: 1.1.32 ([GitHub link](https://github.com/XRCPlatform/xrhodiumnode/tree/master_1.1.32))
 
 
 ## About xRhodium
@@ -76,7 +76,7 @@ Join our community on [Discord, Telegram, Twitter, ..](https://www.xrhodium.org/
  1. Clone the repository:
 
 ```
-    git clone -b master_1.1.31 https://github.com/XRCPlatform/xrhodiumnode.git
+    git clone -b master_1.1.32 https://github.com/XRCPlatform/xrhodiumnode.git
     cd xrhodiumnode
 ```
 
