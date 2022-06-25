@@ -1,5 +1,15 @@
-1.1.21
-- In progress
+1.1.32
+- Changed protocol version to 70013 like Blockcore
+- New peer protocol version info in console
+
+1.1.31
+- Support of batch RPC processing
+- Fix in send money RPC
+- Refactoring
+
+1.1.3
+- Hardfork to X11 algo. Fork to X11 is from 136136. BlockHash 1c14a1d3f9e0157d3368514a669800629e51c4879739ada58f418d5bef5f2286
+- XRC Digishield POW retarget
 
 1.1.20
 - Increased compatibility with old nodes
